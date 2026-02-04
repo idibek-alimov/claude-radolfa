@@ -52,6 +52,10 @@ public class ProductEntity {
     @Column(name = "images", columnDefinition = "TEXT[]")
     private List<String> images;
 
+    @Column(name = "last_erp_sync_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant lastErpSyncAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Instant createdAt;

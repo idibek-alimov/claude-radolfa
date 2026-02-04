@@ -37,12 +37,13 @@ public class SyncErpProductService implements SyncErpProductUseCase {
                 .orElseGet(() -> new Product(
                         null,                    // id
                         erpId,
-                        null,                    // name  – will be set below
-                        null,                    // price – will be set below
-                        null,                    // stock – will be set below
+                        null,                    // name          – will be set below
+                        null,                    // price         – will be set below
+                        null,                    // stock         – will be set below
                         null,                    // webDescription – empty skeleton
                         false,                   // topSelling
-                        Collections.emptyList()  // images
+                        Collections.emptyList(), // images
+                        null                     // lastErpSyncAt – stamped by enrichWithErpData
                 ));
 
         // The single authorised write path for ERP-locked fields.

@@ -32,12 +32,13 @@ public class CreateProductService implements CreateProductUseCase {
         Product product = new Product(
                 null,              // id – assigned by DB
                 erpId,
-                null,              // name   – ERP-locked, populated by sync
-                null,              // price  – ERP-locked, populated by sync
-                null,              // stock  – ERP-locked, populated by sync
+                null,              // name          – ERP-locked, populated by sync
+                null,              // price         – ERP-locked, populated by sync
+                null,              // stock         – ERP-locked, populated by sync
                 webDescription,
                 topSelling,
-                images
+                images,
+                null               // lastErpSyncAt – stamped on first sync
         );
 
         return saveProductPort.save(product);

@@ -25,6 +25,14 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  # --- Spring Batch --------------------------------------------------
+  batch:
+    jdbc:
+      initialize-mode: always   # Spring Batch manages its own metadata tables
+    job:
+      launch:
+        enabled: false          # Jobs are triggered by the scheduler, not on startup
+
   # --- Elasticsearch -------------------------------------------------
   elasticsearch:
     uris:

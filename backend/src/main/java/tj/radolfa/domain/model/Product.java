@@ -1,6 +1,7 @@
 package tj.radolfa.domain.model;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +28,9 @@ public class Product {
     private boolean      topSelling;
     private List<String> images;
 
+    // ---- Audit (written only by enrichWithErpData) -----------------
+    private Instant lastErpSyncAt;
+
     // ----------------------------------------------------------------
     // Constructor
     // ----------------------------------------------------------------
@@ -37,7 +41,8 @@ public class Product {
                    Integer stock,
                    String webDescription,
                    boolean topSelling,
-                   List<String> images) {
+                   List<String> images,
+                   Instant lastErpSyncAt) {
         this.id             = id;
         this.erpId          = erpId;
         this.name           = name;
@@ -46,6 +51,7 @@ public class Product {
         this.webDescription = webDescription;
         this.topSelling     = topSelling;
         this.images         = images != null ? List.copyOf(images) : List.of();
+        this.lastErpSyncAt  = lastErpSyncAt;
     }
 
     // ----------------------------------------------------------------
@@ -53,13 +59,14 @@ public class Product {
     // ----------------------------------------------------------------
 
     /**
-     * Overwrites ONLY the three ERP-locked fields.
+     * Overwrites ONLY the three ERP-locked fields and stamps the audit clock.
      * Enrichment fields (webDescription, topSelling, images) are untouched.
      */
     public void enrichWithErpData(String name, BigDecimal price, Integer stock) {
-        this.name  = name;
-        this.price = price;
-        this.stock = stock;
+        this.name          = name;
+        this.price         = price;
+        this.stock         = stock;
+        this.lastErpSyncAt = Instant.now();
     }
 
     // ----------------------------------------------------------------
@@ -73,4 +80,5 @@ public class Product {
     public String       getWebDescription() { return webDescription; }
     public boolean      isTopSelling()      { return topSelling; }
     public List<String> getImages()         { return Collections.unmodifiableList(images); }
+    public Instant      getLastErpSyncAt()  { return lastErpSyncAt; }
 }
