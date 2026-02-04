@@ -4,6 +4,10 @@
 
 # --- DataSource (PostgreSQL 16) -----------------------------------
 spring:
+  # Active profile (dev by default; override via SPRING_PROFILES_ACTIVE)
+  profiles:
+    active: dev
+
   datasource:
     url:              jdbc:postgresql://localhost:5432/radolfa_db
     username:         radolfa
@@ -47,3 +51,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+# --- AWS -------------------------------------------------------
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET:radolfa-dev-bucket}   # env-var override; default for local dev
