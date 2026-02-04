@@ -1,0 +1,54 @@
+# docker-compose.yml – Local development services
+# Usage: docker-compose up -d postgres elasticsearch
+# ============================================================
+
+version: '3.8'
+
+services:
+
+  # ----------------------------------------------------------
+  # PostgreSQL 16
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: radolfa-postgres
+    environment:
+      POSTGRES_DB:       radolfa_db
+      POSTGRES_USER:     radolfa
+      POSTGRES_PASSWORD: radolfa
+    ports:
+      - "5432:5432"
+    volumes:
+      - radolfa-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:        ["CMD-SHELL", "pg_isready -U radolfa -d radolfa_db"]
+      interval:    5s
+      timeout:     3s
+      retries:     5
+
+  # ----------------------------------------------------------
+  # Elasticsearch 8.12
+  # ----------------------------------------------------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: radolfa-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xmx512m -Xms512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - radolfa-esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test:        ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health"]
+      interval:    10s
+      timeout:     5s
+      retries:     5
+
+# ----------------------------------------------------------
+# Named volumes (persist across container restarts)
+# ----------------------------------------------------------
+volumes:
+  radolfa-pgdata:
+  radolfa-esdata:

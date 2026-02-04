@@ -1,0 +1,41 @@
+# ================================================================
+# Radolfa – Application Configuration
+# ================================================================
+
+# --- DataSource (PostgreSQL 16) -----------------------------------
+spring:
+  datasource:
+    url:              jdbc:postgresql://localhost:5432/radolfa_db
+    username:         radolfa
+    password:         radolfa
+    driver-class-name: org.postgresql.Driver
+
+  # --- JPA / Hibernate -----------------------------------------------
+  jpa:
+    hibernate:
+      ddl-auto: validate          # Flyway owns every DDL change
+    show-sql:  false
+    properties:
+      hibernate:
+        format_logger_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- Flyway --------------------------------------------------------
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  # --- Elasticsearch -------------------------------------------------
+  elasticsearch:
+    uris:
+      - http://localhost:9200
+
+# --- Actuator -------------------------------------------------------
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
