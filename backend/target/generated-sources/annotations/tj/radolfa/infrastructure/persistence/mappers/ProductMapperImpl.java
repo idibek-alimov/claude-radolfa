@@ -11,8 +11,8 @@ import tj.radolfa.infrastructure.persistence.entity.ProductEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-05T21:57:49+0500",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260128-0750, environment: Java 21.0.9 (Eclipse Adoptium)"
+    date = "2026-02-05T23:07:31+0500",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.17 (Ubuntu)"
 )
 @Component
 public class ProductMapperImpl implements ProductMapper {
@@ -59,18 +59,18 @@ public class ProductMapperImpl implements ProductMapper {
 
         ProductEntity productEntity = new ProductEntity();
 
-        productEntity.setErpId( product.getErpId() );
         productEntity.setId( product.getId() );
+        productEntity.setErpId( product.getErpId() );
+        productEntity.setName( product.getName() );
+        productEntity.setPrice( product.getPrice() );
+        productEntity.setStock( product.getStock() );
+        productEntity.setWebDescription( product.getWebDescription() );
+        productEntity.setTopSelling( product.isTopSelling() );
         List<String> list = product.getImages();
         if ( list != null ) {
             productEntity.setImages( new ArrayList<String>( list ) );
         }
         productEntity.setLastErpSyncAt( product.getLastErpSyncAt() );
-        productEntity.setName( product.getName() );
-        productEntity.setPrice( product.getPrice() );
-        productEntity.setStock( product.getStock() );
-        productEntity.setTopSelling( product.isTopSelling() );
-        productEntity.setWebDescription( product.getWebDescription() );
 
         return productEntity;
     }

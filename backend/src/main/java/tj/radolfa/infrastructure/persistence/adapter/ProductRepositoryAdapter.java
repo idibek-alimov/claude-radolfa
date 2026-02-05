@@ -8,6 +8,7 @@ import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.persistence.mappers.ProductMapper;
 import tj.radolfa.infrastructure.persistence.repository.ProductRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -34,6 +35,20 @@ public class ProductRepositoryAdapter implements LoadProductPort, SaveProductPor
     public Optional<Product> load(String erpId) {
         return repository.findByErpId(erpId)
                 .map(mapper::toProduct);
+    }
+
+    @Override
+    public List<Product> loadAll() {
+        return repository.findAll().stream()
+                .map(mapper::toProduct)
+                .toList();
+    }
+
+    @Override
+    public List<Product> loadTopSelling() {
+        return repository.findByTopSellingTrue().stream()
+                .map(mapper::toProduct)
+                .toList();
     }
 
     @Override
