@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Orchestrates the creation of a new product record.
  *
- * Only enrichment fields are written.  ERP-locked fields (name, price, stock)
+ * Only enrichment fields are written. ERP-locked fields (name, price, stock)
  * remain null until the first ERP sync cycle completes.
  */
 @Service
@@ -25,20 +25,23 @@ public class CreateProductService implements CreateProductUseCase {
 
     @Override
     public Product execute(String erpId,
-                           String webDescription,
-                           boolean topSelling,
-                           List<String> images) {
+            String name,
+            java.math.BigDecimal price,
+            Integer stock,
+            String webDescription,
+            boolean topSelling,
+            List<String> images) {
 
         Product product = new Product(
-                null,              // id – assigned by DB
+                null, // id – assigned by DB
                 erpId,
-                null,              // name          – ERP-locked, populated by sync
-                null,              // price         – ERP-locked, populated by sync
-                null,              // stock         – ERP-locked, populated by sync
+                name, // name
+                price, // price
+                stock, // stock
                 webDescription,
                 topSelling,
                 images,
-                null               // lastErpSyncAt – stamped on first sync
+                null // lastErpSyncAt – stamped on first sync
         );
 
         return saveProductPort.save(product);

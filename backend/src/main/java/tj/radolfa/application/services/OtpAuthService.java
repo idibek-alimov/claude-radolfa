@@ -18,15 +18,18 @@ import java.util.Optional;
 /**
  * Application service implementing phone-based OTP authentication.
  *
- * <p>Flow:
+ * <p>
+ * Flow:
  * <ol>
- *   <li>User requests OTP via {@link #execute(String)} (SendOtpUseCase)</li>
- *   <li>OTP is generated and logged (DEV) or sent via SMS (PROD)</li>
- *   <li>User verifies OTP via {@link #execute(String, String)} (VerifyOtpUseCase)</li>
- *   <li>If valid, user is created (first login) or retrieved, JWT is issued</li>
+ * <li>User requests OTP via {@link #execute(String)} (SendOtpUseCase)</li>
+ * <li>OTP is generated and logged (DEV) or sent via SMS (PROD)</li>
+ * <li>User verifies OTP via {@link #execute(String, String)}
+ * (VerifyOtpUseCase)</li>
+ * <li>If valid, user is created (first login) or retrieved, JWT is issued</li>
  * </ol>
  *
- * <p>New users are automatically assigned the {@code USER} role.
+ * <p>
+ * New users are automatically assigned the {@code USER} role.
  */
 @Service
 public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
@@ -39,9 +42,9 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     private final SaveUserPort saveUserPort;
 
     public OtpAuthService(OtpStore otpStore,
-                          JwtUtil jwtUtil,
-                          LoadUserPort loadUserPort,
-                          SaveUserPort saveUserPort) {
+            JwtUtil jwtUtil,
+            LoadUserPort loadUserPort,
+            SaveUserPort saveUserPort) {
         this.otpStore = otpStore;
         this.jwtUtil = jwtUtil;
         this.loadUserPort = loadUserPort;
@@ -93,7 +96,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
      * Creates a new user with default USER role.
      */
     private User createNewUser(String phone) {
-        User newUser = new User(null, phone, UserRole.USER);
+        User newUser = new User(null, phone, UserRole.USER, null, null);
         User saved = saveUserPort.save(newUser);
         LOG.info("[AUTH] Created new user: phone={}, id={}", phone, saved.id());
         return saved;

@@ -11,24 +11,27 @@ import tj.radolfa.infrastructure.persistence.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 
+import tj.radolfa.application.ports.out.DeleteProductPort;
+
 /**
  * Hexagonal adapter that bridges the application Out-Ports
- * ({@link LoadProductPort}, {@link SaveProductPort}) to the
+ * ({@link LoadProductPort}, {@link SaveProductPort}, {@link DeleteProductPort})
+ * to the
  * Spring Data {@link ProductRepository}.
  *
  * MapStruct handles all mapping; this class contains zero
  * hand-written transformation code.
  */
 @Component
-public class ProductRepositoryAdapter implements LoadProductPort, SaveProductPort {
+public class ProductRepositoryAdapter implements LoadProductPort, SaveProductPort, DeleteProductPort {
 
     private final ProductRepository repository;
-    private final ProductMapper     mapper;
+    private final ProductMapper mapper;
 
     public ProductRepositoryAdapter(ProductRepository repository,
-                                    ProductMapper mapper) {
+            ProductMapper mapper) {
         this.repository = repository;
-        this.mapper     = mapper;
+        this.mapper = mapper;
     }
 
     @Override
@@ -54,7 +57,12 @@ public class ProductRepositoryAdapter implements LoadProductPort, SaveProductPor
     @Override
     public Product save(Product product) {
         var entity = mapper.toEntity(product);
-        var saved  = repository.save(entity);
+        var saved = repository.save(entity);
         return mapper.toProduct(saved);
+    }
+
+    @Override
+    public void deleteByErpId(String erpId) {
+        repository.findByErpId(erpId).ifPresent(repository::delete);
     }
 }

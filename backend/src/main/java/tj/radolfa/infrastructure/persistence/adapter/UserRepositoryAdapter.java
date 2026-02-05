@@ -19,17 +19,23 @@ import java.util.Optional;
 public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort {
 
     private final UserRepository repository;
-    private final UserMapper     mapper;
+    private final UserMapper mapper;
 
     public UserRepositoryAdapter(UserRepository repository,
-                                 UserMapper mapper) {
+            UserMapper mapper) {
         this.repository = repository;
-        this.mapper     = mapper;
+        this.mapper = mapper;
     }
 
     @Override
     public Optional<User> loadByPhone(String phone) {
         return repository.findByPhone(phone)
+                .map(mapper::toUser);
+    }
+
+    @Override
+    public Optional<User> loadById(Long id) {
+        return repository.findById(id)
                 .map(mapper::toUser);
     }
 

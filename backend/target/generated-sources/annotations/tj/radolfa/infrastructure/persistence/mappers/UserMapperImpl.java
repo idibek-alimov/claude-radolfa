@@ -8,7 +8,7 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-05T23:07:31+0500",
+    date = "2026-02-06T00:44:20+0500",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.17 (Ubuntu)"
 )
 @Component
@@ -23,12 +23,16 @@ public class UserMapperImpl implements UserMapper {
         Long id = null;
         String phone = null;
         UserRole role = null;
+        String name = null;
+        String email = null;
 
         id = entity.getId();
         phone = entity.getPhone();
         role = entity.getRole();
+        name = entity.getName();
+        email = entity.getEmail();
 
-        User user = new User( id, phone, role );
+        User user = new User( id, phone, role, name, email );
 
         return user;
     }
@@ -44,6 +48,8 @@ public class UserMapperImpl implements UserMapper {
         userEntity.setId( user.id() );
         userEntity.setPhone( user.phone() );
         userEntity.setRole( user.role() );
+        userEntity.setName( user.name() );
+        userEntity.setEmail( user.email() );
 
         return userEntity;
     }

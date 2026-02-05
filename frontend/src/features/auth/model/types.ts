@@ -13,6 +13,8 @@ export interface User {
   id: number;
   phone: string;
   role: "USER" | "MANAGER" | "SYSTEM";
+  name?: string;
+  email?: string;
 }
 
 export interface AuthResponse {

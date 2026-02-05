@@ -12,6 +12,7 @@ interface AuthState {
 
 interface UseAuthReturn extends AuthState {
     logout: () => void;
+    updateUser: (user: User) => void;
 }
 
 /**
@@ -100,8 +101,14 @@ export function useAuth(): UseAuthReturn {
         window.location.href = "/";
     };
 
+    const updateUser = (newUser: User) => {
+        localStorage.setItem("user", JSON.stringify(newUser));
+        setAuthState(prev => ({ ...prev, user: newUser }));
+    };
+
     return {
         ...authState,
         logout,
+        updateUser,
     };
 }

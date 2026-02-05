@@ -9,4 +9,6 @@ import java.util.Optional;
  */
 public interface LoadUserPort {
     Optional<User> loadByPhone(String phone);
+
+    Optional<User> loadById(Long id);
 }

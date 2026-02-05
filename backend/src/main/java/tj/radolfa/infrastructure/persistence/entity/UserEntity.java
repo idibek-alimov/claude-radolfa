@@ -28,13 +28,31 @@ public class UserEntity {
     @Column(name = "role", nullable = false, length = 16)
     private tj.radolfa.domain.model.UserRole role;
 
+    @Column(name = "name", length = 255)
+    private String name;
+
+    @Column(name = "email", unique = true, length = 255)
+    private String email;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Instant createdAt;
 
+    @Column(name = "updated_at", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant updatedAt;
+
     // ----------------------------------------------------------------
     @PrePersist
     public void prePersist() {
-        if (createdAt == null) createdAt = Instant.now();
+        if (createdAt == null)
+            createdAt = Instant.now();
+        if (updatedAt == null)
+            updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = Instant.now();
     }
 }

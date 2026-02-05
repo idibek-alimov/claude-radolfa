@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * In-Port: create a new product record.
  *
- * Only enrichment fields are supplied here.  The ERP-locked fields
+ * Only enrichment fields are supplied here. The ERP-locked fields
  * (name, price, stock) arrive later via {@link SyncErpProductUseCase}.
  */
 public interface CreateProductUseCase {
@@ -20,7 +20,10 @@ public interface CreateProductUseCase {
      * @return the persisted domain Product
      */
     Product execute(String erpId,
-                    String webDescription,
-                    boolean topSelling,
-                    List<String> images);
+            String name,
+            java.math.BigDecimal price,
+            Integer stock,
+            String webDescription,
+            boolean topSelling,
+            List<String> images);
 }
