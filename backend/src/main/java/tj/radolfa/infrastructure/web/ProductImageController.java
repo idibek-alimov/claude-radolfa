@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import tj.radolfa.application.ports.in.AddProductImageUseCase;
-import tj.radolfa.domain.exception.ErpLockViolationException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.web.dto.ProductImageResponseDto;
@@ -20,7 +20,7 @@ import tj.radolfa.infrastructure.web.dto.ProductImageResponseDto;
  *   POST /api/v1/products/{erpId}/images
  *   Content-Type: multipart/form-data
  *   Part name:    image
- *   Header:       X-User-Role: MANAGER   (placeholder guard -- Phase 5 replaces with JWT)
+ *   Authorization: Bearer &lt;JWT token&gt;
  * </pre>
  *
  * <h3>Boundary validations (controller responsibility)</h3>
@@ -29,11 +29,14 @@ import tj.radolfa.infrastructure.web.dto.ProductImageResponseDto;
  *   <li>File size must not exceed {@value #MAX_UPLOAD_SIZE_BYTES} bytes (5 MB).</li>
  * </ul>
  *
- * <h3>Security (placeholder)</h3>
- * Until Phase 5 wires real JWT auth, callers must send the header
- * {@code X-User-Role: MANAGER}.  Any other value (or absence) results
- * in a {@code 403 Forbidden}, mirroring the {@code X-Sync-Role: SYSTEM}
- * guard on {@link ErpSyncController}.
+ * <h3>Security</h3>
+ * <p>This endpoint requires the {@code MANAGER} role. The role is verified
+ * via JWT token in the Authorization header.
+ *
+ * <h3>Critical Constraint</h3>
+ * <p>MANAGER can only enrich products (images, descriptions). They CANNOT
+ * modify ERP-controlled fields (price, name, stock). ERPNext is the SOURCE
+ * OF TRUTH for those fields.
  */
 @RestController
 @RequestMapping("/api/v1/products")
@@ -43,9 +46,6 @@ public class ProductImageController {
 
     /** 5 MB hard cap on uploaded image payloads. */
     private static final long MAX_UPLOAD_SIZE_BYTES = 5L * 1024 * 1024;
-
-    private static final String USER_ROLE_HEADER = "X-User-Role";
-    private static final String REQUIRED_ROLE    = "MANAGER";
 
     private final AddProductImageUseCase addProductImageUseCase;
 
@@ -62,19 +62,18 @@ public class ProductImageController {
      * runs it through the resize/compress pipeline, stores the result,
      * and appends the public URL to the product's image list.
      *
+     * <p>Requires MANAGER role (enforced by Spring Security filter chain
+     * and method-level security annotation).
+     *
      * @param erpId the ERP identifier of the target product (path variable)
-     * @param role  value of the {@code X-User-Role} request header
      * @param file  the multipart image payload (part name {@code image})
      * @return 201 Created with the updated image list, or an error status
      */
     @PostMapping("/{erpId}/images")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<ProductImageResponseDto> uploadImage(
             @PathVariable          String        erpId,
-            @RequestHeader(value = USER_ROLE_HEADER, defaultValue = "") String role,
             @RequestParam("image") MultipartFile file) {
-
-        // --- role guard (Phase 5 placeholder) ---
-        guardManagerRole(role);
 
         // --- boundary validations ---
         if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
@@ -116,28 +115,8 @@ public class ProductImageController {
     }
 
     // ----------------------------------------------------------------
-    // Guard -- placeholder for Phase 5 auth
-    // ----------------------------------------------------------------
-
-    /**
-     * Throws {@link ErpLockViolationException} (mapped to 403) when the
-     * caller has not declared the {@code MANAGER} role via the header.
-     */
-    private void guardManagerRole(String role) {
-        if (!REQUIRED_ROLE.equals(role)) {
-            throw new ErpLockViolationException("image upload endpoint");
-        }
-    }
-
-    // ----------------------------------------------------------------
     // Exception mapping (scoped to this controller only)
     // ----------------------------------------------------------------
-
-    @ExceptionHandler(ErpLockViolationException.class)
-    public ResponseEntity<String> handleLockViolation(ErpLockViolationException ex) {
-        LOG.warn("[IMAGE] Access denied: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
-    }
 
     @ExceptionHandler(ImageProcessingException.class)
     public ResponseEntity<String> handleImageProcessingError(ImageProcessingException ex) {

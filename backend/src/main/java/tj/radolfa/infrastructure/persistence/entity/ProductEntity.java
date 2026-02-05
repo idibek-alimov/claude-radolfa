@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -48,8 +50,10 @@ public class ProductEntity {
     @Column(name = "is_top_selling", nullable = false)
     private boolean topSelling;
 
-    @Convert(converter = StringArrayConverter.class)
-    @Column(name = "images", columnDefinition = "TEXT[]")
+//    @Convert(converter = StringArrayConverter.class)
+//    @Column(name = "images", columnDefinition = "TEXT[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "images", columnDefinition = "text[]")
     private List<String> images;
 
     @Column(name = "last_erp_sync_at")

@@ -4,7 +4,6 @@ tj/radolfa/infrastructure/persistence/repository/ProductRepository.class
 tj/radolfa/application/ports/out/LoadProductPort.class
 tj/radolfa/infrastructure/persistence/entity/UserEntity.class
 tj/radolfa/infrastructure/persistence/entity/ErpSyncLogEntity.class
-tj/radolfa/infrastructure/persistence/mappers/ProductMapperImpl.class
 tj/radolfa/RadolfaApplication.class
 tj/radolfa/application/services/CreateProductService.class
 tj/radolfa/application/ports/out/LogSyncEventPort.class
@@ -22,7 +21,6 @@ tj/radolfa/infrastructure/erp/batch/ErpProductReader.class
 tj/radolfa/infrastructure/persistence/entity/StringArrayConverter.class
 tj/radolfa/infrastructure/persistence/adapter/ErpSyncLogAdapter.class
 tj/radolfa/domain/model/UserRole.class
-tj/radolfa/infrastructure/persistence/mappers/UserMapperImpl.class
 tj/radolfa/infrastructure/erp/ErpProductClientStub.class
 tj/radolfa/infrastructure/erp/ErpProductSnapshot.class
 tj/radolfa/domain/model/Product.class

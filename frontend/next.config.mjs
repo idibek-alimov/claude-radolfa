@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable standalone output for Docker deployment (smaller image size)
+  output: "standalone",
   images: {
     // S3 bucket domain — allow next/image to load product images from here.
     remotePatterns: [

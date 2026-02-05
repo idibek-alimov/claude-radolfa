@@ -1,54 +1,241 @@
-# docker-compose.yml – Local development services
-# Usage: docker-compose up -d postgres elasticsearch
-# ============================================================
-
-version: '3.8'
+# =============================================================================
+# Radolfa - Docker Compose Production Stack
+# =============================================================================
+# Usage:
+#   Development:  docker-compose up -d db elasticsearch
+#   Production:   docker-compose up -d
+#
+# Before running, copy .env.example to .env and configure all variables.
+# =============================================================================
 
 services:
 
-  # ----------------------------------------------------------
-  # PostgreSQL 16
-  # ----------------------------------------------------------
-  postgres:
+  # ===========================================================================
+  # Database: PostgreSQL 16
+  # ===========================================================================
+  db:
     image: postgres:16-alpine
-    container_name: radolfa-postgres
+    container_name: radolfa-db
+    restart: always
     environment:
-      POSTGRES_DB:       radolfa_db
-      POSTGRES_USER:     radolfa
-      POSTGRES_PASSWORD: radolfa
+      POSTGRES_DB: ${POSTGRES_DB:-radolfa_db}
+      POSTGRES_USER: ${POSTGRES_USER:-radolfa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-radolfa}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - radolfa-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test:        ["CMD-SHELL", "pg_isready -U radolfa -d radolfa_db"]
-      interval:    5s
-      timeout:     3s
-      retries:     5
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-radolfa} -d ${POSTGRES_DB:-radolfa_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
 
-  # ----------------------------------------------------------
-  # Elasticsearch 8.12
-  # ----------------------------------------------------------
+  # ===========================================================================
+  # Search Engine: Elasticsearch 8.12
+  # ===========================================================================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
     container_name: radolfa-elasticsearch
+    restart: always
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xmx512m -Xms512m
+      - ES_JAVA_OPTS=-Xmx${ES_HEAP_SIZE:-512m} -Xms${ES_HEAP_SIZE:-512m}
+      - cluster.name=radolfa-cluster
+      - bootstrap.memory_lock=true
     ports:
-      - "9200:9200"
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
     volumes:
       - radolfa-esdata:/usr/share/elasticsearch/data
     healthcheck:
-      test:        ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health"]
-      interval:    10s
-      timeout:     5s
-      retries:     5
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
 
-# ----------------------------------------------------------
-# Named volumes (persist across container restarts)
-# ----------------------------------------------------------
+  # ===========================================================================
+  # Backend: Spring Boot Application
+  # ===========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: radolfa-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      # Spring profiles
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+
+      # Database configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-radolfa_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-radolfa}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-radolfa}
+
+      # Elasticsearch configuration
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+
+      # AWS S3 configuration (use environment variables, never hardcode)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+
+      # JWT configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+
+      # JVM options
+      JAVA_OPTS: ${JAVA_OPTS:--XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Frontend: Next.js Application
+  # ===========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: radolfa-frontend
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Reverse Proxy: Nginx
+  # ===========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: radolfa-nginx
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Uncomment for SSL certificates (Let's Encrypt or custom)
+      # - ./nginx/ssl:/etc/nginx/ssl:ro
+      # - ./certbot/www:/var/www/certbot:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  radolfa-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes (persist data across container restarts)
+# =============================================================================
 volumes:
   radolfa-pgdata:
+    driver: local
   radolfa-esdata:
+    driver: local
