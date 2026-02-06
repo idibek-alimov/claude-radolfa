@@ -1,5 +1,12 @@
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
 import type { Product } from "@/entities/product";
+import { Badge } from "@/shared/ui/badge";
+import StockBadge from "./StockBadge";
+import { formatPrice } from "@/shared/lib/format";
 
 interface ProductCardProps {
   product: Product;
@@ -9,69 +16,65 @@ interface ProductCardProps {
  * Self-contained card that renders a single product.
  *
  * Constraints enforced here:
- *   – name, price, stock are DISPLAY-ONLY.  No <input> or editable element
- *     is rendered for any of those fields.
- *   – The first image in the array is used as the cover; a grey placeholder
- *     is shown when the list is empty.
+ *   - name, price, stock are DISPLAY-ONLY. No <input> or editable element.
+ *   - Entire card links to the product detail page.
  */
 export default function ProductCard({ product }: ProductCardProps) {
   const coverImage = product.images[0] ?? null;
 
   return (
-    <div className="relative rounded-xl border bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
-      {/* ── Top-Seller badge ────────────────────────────────────── */}
-      {product.topSelling && (
-        <span className="absolute top-2 right-2 z-10 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full">
-          Top Seller
-        </span>
-      )}
-
-      {/* ── Cover image ─────────────────────────────────────────── */}
-      <div className="relative w-full h-48 bg-gray-100">
-        {coverImage ? (
-          <Image
-            src={coverImage}
-            alt={product.name ?? "Product image"}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-gray-400 text-sm">No image</span>
-          </div>
-        )}
-      </div>
-
-      {/* ── Body ────────────────────────────────────────────────── */}
-      <div className="p-4 flex flex-col flex-1 gap-2">
-        <h3 className="font-semibold text-gray-900 truncate">
-          {product.name ?? "—"}
-        </h3>
-
-        <p className="text-sm text-gray-500 line-clamp-2 flex-1">
-          {product.webDescription ?? "No description yet."}
-        </p>
-
-        {/* ── Price + stock row ─────────────────────────────────── */}
-        <div className="mt-auto flex items-center justify-between">
-          <span className="text-lg font-bold text-indigo-600">
-            {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
-          </span>
-
-          <span
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-              (product.stock ?? 0) > 0
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
+    <Link href={`/products/${product.erpId}`} className="group block">
+      <motion.div
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.2 }}
+        className="relative rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
+      >
+        {/* Top-Seller badge */}
+        {product.topSelling && (
+          <Badge
+            variant="warning"
+            className="absolute top-3 right-3 z-10"
           >
-            {(product.stock ?? 0) > 0
-              ? `${product.stock} in stock`
-              : "Out of stock"}
-          </span>
+            Top Seller
+          </Badge>
+        )}
+
+        {/* Cover image */}
+        <div className="relative w-full h-52 bg-muted overflow-hidden">
+          {coverImage ? (
+            <Image
+              src={coverImage}
+              alt={product.name ?? "Product image"}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-muted-foreground text-sm">No image</span>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+
+        {/* Body */}
+        <div className="p-4 flex flex-col flex-1 gap-2">
+          <h3 className="font-semibold text-foreground truncate">
+            {product.name ?? "—"}
+          </h3>
+
+          <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
+            {product.webDescription ?? "No description yet."}
+          </p>
+
+          {/* Price + stock row */}
+          <div className="mt-auto flex items-center justify-between pt-2">
+            <span className="text-lg font-bold text-primary">
+              {formatPrice(product.price)}
+            </span>
+            <StockBadge stock={product.stock} />
+          </div>
+        </div>
+      </motion.div>
+    </Link>
   );
 }

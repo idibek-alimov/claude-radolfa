@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { sendOtp, verifyOtp } from "../api";
+import OtpInput from "./OtpInput";
+import { Package, AlertCircle, ArrowLeft, Phone } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 
 type Step = "phone" | "otp";
 
@@ -26,10 +30,8 @@ export default function LoginForm() {
   const verifyOtpMutation = useMutation({
     mutationFn: verifyOtp,
     onSuccess: (data) => {
-      // Store token in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      // Redirect to home
       window.location.href = "/";
     },
     onError: (err: Error) => {
@@ -56,97 +58,117 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to Radolfa
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {step === "phone"
-              ? "Enter your phone number to receive an OTP"
-              : "Enter the OTP sent to your phone"}
+    <div className="min-h-[calc(100vh-4rem)] flex">
+      {/* Left — Brand panel (desktop only) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white flex-col items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 -left-10 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl" />
+        </div>
+        <div className="relative z-10 text-center">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Package className="h-12 w-12" />
+            <span className="text-4xl font-bold">Radolfa</span>
+          </div>
+          <p className="text-xl text-indigo-200 max-w-md leading-relaxed">
+            Your trusted marketplace for premium products. Sign in to access
+            your account, track orders, and more.
           </p>
         </div>
+      </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
+      {/* Right — Form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background">
+        <div className="w-full max-w-md space-y-8">
+          {/* Mobile brand */}
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
+            <Package className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold text-foreground">Radolfa</span>
           </div>
-        )}
 
-        {step === "phone" ? (
-          <form className="mt-8 space-y-6" onSubmit={handleSendOtp}>
-            <div>
-              <label htmlFor="phone" className="sr-only">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Phone Number (e.g., +992123456789)"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={sendOtpMutation.isPending}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {sendOtpMutation.isPending ? "Sending..." : "Send OTP"}
-            </button>
-          </form>
-        ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleVerifyOtp}>
-            <div>
-              <label htmlFor="otp" className="sr-only">
-                OTP Code
-              </label>
-              <input
-                id="otp"
-                name="otp"
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 text-center text-2xl tracking-widest focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="0000"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("phone");
-                  setOtp("");
-                  setError(null);
-                }}
-                className="flex-1 py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={verifyOtpMutation.isPending}
-                className="flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-              >
-                {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
-              </button>
-            </div>
-
-            <p className="text-center text-sm text-gray-500">
-              OTP sent to {phone}
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+              {step === "phone" ? "Welcome back" : "Verify your phone"}
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {step === "phone"
+                ? "Enter your phone number to receive a verification code"
+                : `We sent a code to ${phone}`}
             </p>
-          </form>
-        )}
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {error}
+            </div>
+          )}
+
+          {step === "phone" ? (
+            <form className="space-y-6" onSubmit={handleSendOtp}>
+              <div className="space-y-2">
+                <label
+                  htmlFor="phone"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    required
+                    className="pl-10 h-11"
+                    placeholder="+992 123 456 789"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-11"
+                disabled={sendOtpMutation.isPending}
+              >
+                {sendOtpMutation.isPending ? "Sending..." : "Send Verification Code"}
+              </Button>
+            </form>
+          ) : (
+            <form className="space-y-6" onSubmit={handleVerifyOtp}>
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-foreground block text-center">
+                  Enter the 4-digit code
+                </label>
+                <OtpInput value={otp} onChange={setOtp} />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 h-11"
+                  onClick={() => {
+                    setStep("phone");
+                    setOtp("");
+                    setError(null);
+                  }}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 h-11"
+                  disabled={verifyOtpMutation.isPending}
+                >
+                  {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

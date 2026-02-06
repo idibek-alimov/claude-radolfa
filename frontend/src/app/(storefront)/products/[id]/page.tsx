@@ -1,4 +1,3 @@
-import { Navbar } from "@/widgets/Navbar";
 import { ProductDetail } from "@/entities/product";
 
 interface DetailPageProps {
@@ -11,16 +10,8 @@ interface DetailPageProps {
 /**
  * Product detail page — server component.
  *
- * The [id] segment is the erpId.  All client-side fetching and rendering
- * is delegated to ProductDetail (a "use client" component).
+ * Navbar and Footer are provided by the (storefront) layout.
  */
 export default function DetailPage({ params }: DetailPageProps) {
-  return (
-    <div>
-      <Navbar />
-      <main>
-        <ProductDetail erpId={params.id} />
-      </main>
-    </div>
-  );
+  return <ProductDetail erpId={params.id} />;
 }

@@ -1,13 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ProductGrid, fetchTopSellingProducts } from "@/widgets/ProductList";
 
-/**
- * Client shell that fetches top-selling products and hands them
- * to the already-finished ProductGrid.  Exists solely because
- * useQuery is a client hook and the page file must stay a server component.
- */
 export default function TopSellingSection() {
   const { data = [], isLoading } = useQuery({
     queryKey: ["products", "top-selling"],
@@ -15,8 +12,19 @@ export default function TopSellingSection() {
   });
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Top Sellers</h2>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+          Top Sellers
+        </h2>
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+        >
+          View All
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
       <ProductGrid products={data} loading={isLoading} />
     </section>
   );

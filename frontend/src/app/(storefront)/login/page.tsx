@@ -1,7 +1,7 @@
 import { LoginForm } from "@/features/auth";
 
 /**
- * Login page — uses the LoginForm feature component.
+ * Login page — now gets Navbar + Footer from the storefront layout.
  */
 export default function LoginPage() {
   return <LoginForm />;

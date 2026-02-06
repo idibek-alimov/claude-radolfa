@@ -1,118 +1,166 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProductByErpId } from "@/entities/product";
+import { Badge } from "@/shared/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/shared/ui/breadcrumb";
+import StockBadge from "./StockBadge";
+import ProductDetailSkeleton from "./ProductDetailSkeleton";
+import { formatPrice, formatDate } from "@/shared/lib/format";
 
 interface ProductDetailProps {
-  /** The stable ERP identifier passed down from the dynamic route segment. */
   erpId: string;
 }
 
 /**
- * Full-page product detail view.
+ * Full-page product detail view — two-column layout.
  *
- * Constraints enforced here (mirrors ProductCard contract):
+ * Constraints enforced here:
  *   - name, price, stock are rendered in read-only elements only.
- *     Zero <input>, <textarea>, or contentEditable anywhere in this tree.
- *   - Every image comes from S3 and is rendered via next/image with
- *     explicit width/height (thumbnail gallery style).
+ *   - Every image comes from S3 via next/image with unoptimized.
  */
 export default function ProductDetail({ erpId }: ProductDetailProps) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["product", erpId],
     queryFn: () => fetchProductByErpId(erpId),
     enabled: erpId.length > 0,
   });
 
-  // ── Loading state ─────────────────────────────────────────────────
-  if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500 animate-pulse">Loading product…</p>
-      </div>
-    );
-  }
+  if (isLoading) return <ProductDetailSkeleton />;
 
-  // ── Error state ───────────────────────────────────────────────────
   if (isError || !product) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <p className="text-red-600 font-medium">
+        <p className="text-destructive font-medium">
           Product not found or an error occurred.
         </p>
-        <p className="text-gray-500 text-sm mt-2">
+        <p className="text-muted-foreground text-sm mt-2">
           ERP ID: <span className="font-mono">{erpId}</span>
         </p>
       </div>
     );
   }
 
-  // ── Success state ─────────────────────────────────────────────────
+  const mainImage = product.images[selectedIdx] ?? product.images[0] ?? null;
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* ── Image gallery ───────────────────────────────────────── */}
-      {product.images.length > 0 && (
-        <div className="flex flex-wrap gap-3 mb-8">
-          {product.images.map((url, idx) => (
-            <div
-              key={url}
-              className="w-32 h-32 rounded-lg border border-gray-200 overflow-hidden bg-gray-100"
-            >
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-8">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/products">Products</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{product.name ?? erpId}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        {/* Left — Image gallery (60%) */}
+        <div className="lg:col-span-3">
+          {/* Main image */}
+          <div className="relative w-full aspect-square rounded-xl border bg-muted overflow-hidden">
+            {mainImage ? (
               <Image
-                src={url}
-                alt={`${product.name ?? "Product"} — image ${idx + 1}`}
-                width={128}
-                height={128}
-                className="object-cover w-full h-full"
+                src={mainImage}
+                alt={`${product.name ?? "Product"} — main`}
+                fill
+                className="object-cover"
                 unoptimized
               />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-muted-foreground">No image available</span>
+              </div>
+            )}
+          </div>
+
+          {/* Thumbnail strip */}
+          {product.images.length > 1 && (
+            <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
+              {product.images.map((url, idx) => (
+                <button
+                  key={url}
+                  onClick={() => setSelectedIdx(idx)}
+                  className={`relative w-20 h-20 rounded-lg border-2 overflow-hidden shrink-0 transition-colors ${
+                    idx === selectedIdx
+                      ? "border-primary"
+                      : "border-transparent hover:border-muted-foreground/30"
+                  }`}
+                >
+                  <Image
+                    src={url}
+                    alt={`${product.name ?? "Product"} — thumbnail ${idx + 1}`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
 
-      {/* ── Name (read-only) ────────────────────────────────────── */}
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        {product.name ?? "—"}
-      </h1>
+        {/* Right — Product info (40%) */}
+        <div className="lg:col-span-2 space-y-5">
+          <h1 className="text-3xl font-bold text-foreground">
+            {product.name ?? "—"}
+          </h1>
 
-      {/* ── Price (read-only) ───────────────────────────────────── */}
-      <p className="text-2xl font-semibold text-indigo-600 mb-4">
-        {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
-      </p>
+          <p className="text-3xl font-semibold text-primary">
+            {formatPrice(product.price)}
+          </p>
 
-      {/* ── Stock badge (read-only) ─────────────────────────────── */}
-      <div className="mb-6">
-        <span
-          className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${
-            (product.stock ?? 0) > 0
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {(product.stock ?? 0) > 0
-            ? `${product.stock} in stock`
-            : "Out of stock"}
-        </span>
+          <div className="flex items-center gap-3">
+            <StockBadge stock={product.stock} />
+            {product.topSelling && (
+              <Badge variant="warning">Top Seller</Badge>
+            )}
+          </div>
+
+          {product.webDescription && (
+            <div className="pt-4 border-t">
+              <h2 className="text-sm font-medium text-muted-foreground mb-2">
+                Description
+              </h2>
+              <p className="text-foreground leading-relaxed">
+                {product.webDescription}
+              </p>
+            </div>
+          )}
+
+          {/* Audit metadata */}
+          {product.lastErpSyncAt && (
+            <p className="text-xs text-muted-foreground pt-4 border-t">
+              Last synced from ERP:{" "}
+              <span className="font-mono">{formatDate(product.lastErpSyncAt)}</span>
+            </p>
+          )}
+        </div>
       </div>
-
-      {/* ── Web description ─────────────────────────────────────── */}
-      {product.webDescription && (
-        <p className="text-gray-700 leading-relaxed">
-          {product.webDescription}
-        </p>
-      )}
-
-      {/* ── Audit metadata ──────────────────────────────────────── */}
-      {product.lastErpSyncAt && (
-        <p className="text-xs text-gray-400 mt-8">
-          Last synced from ERP:{" "}
-          <span className="font-mono">
-            {new Date(product.lastErpSyncAt).toLocaleString()}
-          </span>
-        </p>
-      )}
     </div>
   );
 }
