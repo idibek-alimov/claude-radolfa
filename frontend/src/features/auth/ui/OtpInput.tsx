@@ -15,8 +15,8 @@ export default function OtpInput({
 }: OtpInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const digits = value.padEnd(length, "").split("").slice(0, length);
-
+  // const digits = value.padEnd(length, "").split("").slice(0, length);
+  const digits = Array.from({ length }, (_, i) => value[i] || "");
   const handleChange = (index: number, char: string) => {
     if (!/^\d?$/.test(char)) return;
 
