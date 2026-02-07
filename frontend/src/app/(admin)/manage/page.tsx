@@ -4,11 +4,13 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
+import { toast } from "sonner";
 import {
   getProducts,
   createProduct,
   updateProduct,
   deleteProduct,
+  uploadProductImage,
 } from "@/features/products/api";
 import { Product } from "@/features/products/types";
 import {
@@ -41,7 +43,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Plus, Pencil, Trash2, Lock, AlertCircle, Search, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, Lock, AlertCircle, Search, Package, Upload, Loader2, X } from "lucide-react";
 
 export default function ManageProductsPage() {
   const { user } = useAuth();
@@ -91,7 +93,12 @@ export default function ManageProductsPage() {
     stock: "",
     webDescription: "",
     topSelling: false,
+    images: [] as string[],
   });
+
+  // Image upload
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadProducts();
@@ -121,6 +128,7 @@ export default function ManageProductsPage() {
         stock: product.stock?.toString() || "",
         webDescription: product.webDescription || "",
         topSelling: product.topSelling,
+        images: product.images ?? [],
       });
     } else {
       setEditingProduct(null);
@@ -131,6 +139,7 @@ export default function ManageProductsPage() {
         stock: "",
         webDescription: "",
         topSelling: false,
+        images: [],
       });
     }
     setIsDialogOpen(true);
@@ -147,8 +156,7 @@ export default function ManageProductsPage() {
         stock: parseInt(formData.stock) || 0,
         webDescription: formData.webDescription,
         topSelling: formData.topSelling,
-        // images: [],
-        images: editingProduct ? editingProduct.images : [],
+        images: formData.images,
       };
 
       if (editingProduct) {
@@ -163,6 +171,53 @@ export default function ManageProductsPage() {
       setSaveError(e.response?.data?.message || "Failed to save product");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingProduct) return;
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+
+    setUploading(true);
+    try {
+      const result = await uploadProductImage(editingProduct.erpId, file);
+      setFormData((prev) => ({ ...prev, images: result.images }));
+      // Update the product in the global list
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.erpId === editingProduct.erpId ? { ...p, images: result.images } : p
+        )
+      );
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = async (url: string) => {
+    if (!editingProduct) return;
+    const updated = formData.images.filter((img) => img !== url);
+    setFormData((prev) => ({ ...prev, images: updated }));
+    try {
+      await updateProduct(editingProduct.erpId, {
+        webDescription: formData.webDescription,
+        topSelling: formData.topSelling,
+        images: updated,
+      });
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.erpId === editingProduct.erpId ? { ...p, images: updated } : p
+        )
+      );
+      toast.success("Image removed");
+    } catch (err: any) {
+      // Rollback
+      setFormData((prev) => ({ ...prev, images: formData.images }));
+      toast.error("Failed to remove image");
     }
   };
 
@@ -332,15 +387,20 @@ export default function ManageProductsPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-2">
+            <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto pr-1">
+              {/* ERP-Locked Fields */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">ERP ID</label>
+                <label className="text-sm font-medium flex items-center gap-1.5">
+                  ERP ID
+                  {editingProduct && <Lock className="h-3 w-3 text-muted-foreground" />}
+                </label>
                 <Input
                   disabled={!!editingProduct}
                   value={formData.erpId}
                   onChange={(e) =>
                     setFormData({ ...formData, erpId: e.target.value })
                   }
+                  className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
                 />
               </div>
               <div className="space-y-2">
@@ -352,10 +412,12 @@ export default function ManageProductsPage() {
                   </span>
                 </label>
                 <Input
+                  disabled={!!editingProduct}
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
+                  className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -366,10 +428,12 @@ export default function ManageProductsPage() {
                   </label>
                   <Input
                     type="number"
+                    disabled={!!editingProduct}
                     value={formData.price}
                     onChange={(e) =>
                       setFormData({ ...formData, price: e.target.value })
                     }
+                    className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
                   />
                 </div>
                 <div className="space-y-2">
@@ -379,13 +443,17 @@ export default function ManageProductsPage() {
                   </label>
                   <Input
                     type="number"
+                    disabled={!!editingProduct}
                     value={formData.stock}
                     onChange={(e) =>
                       setFormData({ ...formData, stock: e.target.value })
                     }
+                    className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
                   />
                 </div>
               </div>
+
+              {/* Editable Fields — Manager can enrich */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Description</label>
                 <textarea
@@ -414,6 +482,75 @@ export default function ManageProductsPage() {
                   Top Selling Product
                 </label>
               </div>
+
+              {/* Image Management — only in edit mode */}
+              {editingProduct && (
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">
+                      Product Images
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      disabled={uploading}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {uploading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="h-3.5 w-3.5" />
+                      )}
+                      {uploading ? "Uploading..." : "Add Image"}
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </div>
+
+                  {formData.images.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3 relative">
+                      {uploading && (
+                        <div className="absolute inset-0 bg-background/60 z-10 flex items-center justify-center rounded-md">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                      {formData.images.map((url) => (
+                        <div
+                          key={url}
+                          className="group relative aspect-square rounded-md border overflow-hidden bg-muted"
+                        >
+                          <Image
+                            src={url}
+                            alt="Product"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(url)}
+                            className="absolute top-1 right-1 z-10 rounded-full bg-destructive p-1 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-6 text-muted-foreground">
+                      <Package className="h-8 w-8 mb-2" />
+                      <p className="text-sm">No images yet</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {saveError && (
                 <div className="flex items-center gap-2 text-destructive text-sm">

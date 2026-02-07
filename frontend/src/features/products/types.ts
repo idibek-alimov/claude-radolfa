@@ -29,6 +29,11 @@ export interface UpdateProductRequest {
     images?: string[];
 }
 
+export interface ImageUploadResponse {
+    erpId: string;
+    images: string[];
+}
+
 export interface PaginatedProducts {
     products: Product[];
     total: number;
