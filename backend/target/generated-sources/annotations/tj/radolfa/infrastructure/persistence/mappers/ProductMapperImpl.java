@@ -2,7 +2,6 @@ package tj.radolfa.infrastructure.persistence.mappers;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
@@ -11,7 +10,7 @@ import tj.radolfa.infrastructure.persistence.entity.ProductEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-08T01:56:46+0500",
+    date = "2026-02-08T02:17:16+0500",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.17 (Ubuntu)"
 )
 @Component
@@ -34,10 +33,7 @@ public class ProductMapperImpl implements ProductMapper {
         Instant lastErpSyncAt = null;
 
         topSelling = entity.isTopSelling();
-        List<String> list = entity.getImages();
-        if ( list != null ) {
-            images = new ArrayList<String>( list );
-        }
+        images = imagesToUrls( entity.getImages() );
         id = entity.getId();
         erpId = entity.getErpId();
         name = entity.getName();
@@ -66,10 +62,6 @@ public class ProductMapperImpl implements ProductMapper {
         productEntity.setStock( product.getStock() );
         productEntity.setWebDescription( product.getWebDescription() );
         productEntity.setTopSelling( product.isTopSelling() );
-        List<String> list = product.getImages();
-        if ( list != null ) {
-            productEntity.setImages( new ArrayList<String>( list ) );
-        }
         productEntity.setLastErpSyncAt( product.getLastErpSyncAt() );
 
         return productEntity;

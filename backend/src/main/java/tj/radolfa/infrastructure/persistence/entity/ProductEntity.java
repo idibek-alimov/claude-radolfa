@@ -5,11 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,9 +17,12 @@ import java.util.List;
  *
  * Extends {@link BaseAuditEntity} for optimistic locking ({@code @Version})
  * and standardised {@code created_at}/{@code updated_at} timestamps.
+ *
+ * {@code @SQLRestriction} hides soft-deleted rows from all standard queries.
  */
 @Entity
 @Table(name = "products")
+@SQLRestriction("deleted_at IS NULL")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
@@ -48,11 +51,15 @@ public class ProductEntity extends BaseAuditEntity {
     @Column(name = "is_top_selling", nullable = false)
     private boolean topSelling;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "images", columnDefinition = "text[]")
-    private List<String> images;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    private List<ProductImageEntity> images = new ArrayList<>();
 
     @Column(name = "last_erp_sync_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant lastErpSyncAt;
+
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant deletedAt;
 }

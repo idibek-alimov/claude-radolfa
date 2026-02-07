@@ -5,9 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +19,11 @@ import java.util.List;
  * Extends {@link BaseAuditEntity} for optimistic locking ({@code @Version})
  * and standardised {@code created_at}/{@code updated_at} timestamps.
  *
- * The {@code user} field is a proper {@code @ManyToOne} relationship
- * (previously a raw {@code Long userId}), enabling FK enforcement and
- * join-fetching when needed.
+ * {@code @SQLRestriction} hides soft-deleted rows from all standard queries.
  */
 @Entity
 @Table(name = "orders")
+@SQLRestriction("deleted_at IS NULL")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
@@ -46,4 +47,8 @@ public class OrderEntity extends BaseAuditEntity {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items = new ArrayList<>();
+
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant deletedAt;
 }

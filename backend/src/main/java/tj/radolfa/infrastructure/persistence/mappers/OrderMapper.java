@@ -23,6 +23,7 @@ public interface OrderMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     OrderEntity toEntity(Order order);
 
     OrderItem toOrderItem(OrderItemEntity entity);

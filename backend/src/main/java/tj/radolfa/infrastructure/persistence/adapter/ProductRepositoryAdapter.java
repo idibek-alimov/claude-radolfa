@@ -2,16 +2,16 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
 
+import tj.radolfa.application.ports.out.DeleteProductPort;
 import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.application.ports.out.SaveProductPort;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.persistence.mappers.ProductMapper;
 import tj.radolfa.infrastructure.persistence.repository.ProductRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-
-import tj.radolfa.application.ports.out.DeleteProductPort;
 
 /**
  * Hexagonal adapter that bridges the application Out-Ports
@@ -57,12 +57,24 @@ public class ProductRepositoryAdapter implements LoadProductPort, SaveProductPor
     @Override
     public Product save(Product product) {
         var entity = mapper.toEntity(product);
+
+        // Map domain image URLs to entities and wire the bidirectional back-pointer
+        var imageEntities = mapper.urlsToImages(product.getImages());
+        entity.getImages().clear();
+        imageEntities.forEach(img -> {
+            img.setProduct(entity);
+            entity.getImages().add(img);
+        });
+
         var saved = repository.save(entity);
         return mapper.toProduct(saved);
     }
 
     @Override
     public void deleteByErpId(String erpId) {
-        repository.findByErpId(erpId).ifPresent(repository::delete);
+        repository.findByErpId(erpId).ifPresent(entity -> {
+            entity.setDeletedAt(Instant.now());
+            repository.save(entity);
+        });
     }
 }
