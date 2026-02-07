@@ -1,8 +1,10 @@
 import apiClient from "@/shared/api/axios";
 import { Product, CreateProductRequest, UpdateProductRequest, PaginatedProducts } from "./types";
 
-export async function getProducts(page = 1, limit = 12): Promise<PaginatedProducts> {
-    const response = await apiClient.get<PaginatedProducts>(`/api/v1/products?page=${page}&limit=${limit}`);
+export async function getProducts(page = 1, limit = 12, search?: string): Promise<PaginatedProducts> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (search) params.set("search", search);
+    const response = await apiClient.get<PaginatedProducts>(`/api/v1/products?${params}`);
     return response.data;
 }
 

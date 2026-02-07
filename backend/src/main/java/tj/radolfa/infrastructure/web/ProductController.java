@@ -71,8 +71,18 @@ public class ProductController {
     @Operation(summary = "List all products", description = "Returns paginated products in the catalog")
     public ResponseEntity<PaginatedProducts> getAllProducts(
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
+            @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit,
+            @Parameter(description = "Search by name or ERP ID") @RequestParam(required = false) String search) {
         List<Product> allProducts = loadProductPort.loadAll();
+
+        if (search != null && !search.isBlank()) {
+            String term = search.toLowerCase();
+            allProducts = allProducts.stream()
+                    .filter(p -> (p.getName() != null && p.getName().toLowerCase().contains(term))
+                            || (p.getErpId() != null && p.getErpId().toLowerCase().contains(term)))
+                    .toList();
+        }
+
         int total = allProducts.size();
 
         // Simple in-memory pagination

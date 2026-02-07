@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import Image from "next/image";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
 import {
@@ -40,7 +41,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Plus, Pencil, Trash2, Lock, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Lock, AlertCircle, Search, Package } from "lucide-react";
 
 export default function ManageProductsPage() {
   const { user } = useAuth();
@@ -58,6 +59,29 @@ export default function ManageProductsPage() {
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceRef = useRef<NodeJS.Timeout>();
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value.trim().toLowerCase());
+    }, 300);
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    if (!debouncedSearch) return products;
+    return products.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(debouncedSearch) ||
+        p.erpId.toLowerCase().includes(debouncedSearch) ||
+        p.webDescription?.toLowerCase().includes(debouncedSearch)
+    );
+  }, [products, debouncedSearch]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -123,7 +147,8 @@ export default function ManageProductsPage() {
         stock: parseInt(formData.stock) || 0,
         webDescription: formData.webDescription,
         topSelling: formData.topSelling,
-        images: [],
+        // images: [],
+        images: editingProduct ? editingProduct.images : [],
       };
 
       if (editingProduct) {
@@ -174,6 +199,17 @@ export default function ManageProductsPage() {
             </Button>
           </div>
 
+          {/* Search */}
+          <div className="mb-4 relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search by name, ERP ID..."
+              className="pl-9"
+            />
+          </div>
+
           {/* Product Table */}
           <div className="bg-card rounded-xl border shadow-sm">
             {loading && products.length === 0 ? (
@@ -186,7 +222,8 @@ export default function ManageProductsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="pl-4">Product</TableHead>
+                    <TableHead className="pl-4 w-[56px]">Image</TableHead>
+                    <TableHead>Product</TableHead>
                     <TableHead>ERP ID</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
@@ -195,9 +232,27 @@ export default function ManageProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="pl-4">
+                        {product.images?.[0] ? (
+                          <div className="relative h-10 w-10 rounded-md border overflow-hidden">
+                            <Image
+                              src={product.images[0]}
+                              alt={product.name ?? "Product"}
+                              width={40}
+                              height={40}
+                              className="object-cover aspect-square"
+                              unoptimized
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div>
                           <p className="font-medium text-sm">
                             {product.name || "Unnamed Product"}
@@ -253,9 +308,11 @@ export default function ManageProductsPage() {
                 </TableBody>
               </Table>
             )}
-            {products.length === 0 && !loading && (
+            {filteredProducts.length === 0 && !loading && (
               <div className="p-12 text-center text-muted-foreground">
-                No products found. Start by adding one.
+                {debouncedSearch
+                  ? `No products matching "${debouncedSearch}"`
+                  : "No products found. Start by adding one."}
               </div>
             )}
           </div>
