@@ -3,6 +3,9 @@ import axios from "axios";
 /**
  * Single Axios instance shared across the entire app.
  *
+ * Authentication is handled via HTTP-only cookies (set by the backend).
+ * `withCredentials: true` ensures cookies are sent on every request.
+ *
  * In production, the frontend is behind nginx which proxies /api/* to the backend.
  * So we use an empty baseURL to make relative requests.
  *
@@ -16,17 +19,7 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
-
-// Add auth token to requests if available
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
+  withCredentials: true,
 });
 
 export default apiClient;

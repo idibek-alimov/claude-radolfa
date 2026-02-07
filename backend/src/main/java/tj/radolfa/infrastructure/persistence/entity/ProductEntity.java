@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.persistence.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -14,19 +15,16 @@ import java.util.List;
 /**
  * JPA persistence model for the {@code products} table.
  *
- * Lombok {@link Data} is fine here – this is infrastructure, not domain.
- * The {@code images} column is a native Postgres TEXT[] array; Hibernate
- * handles it transparently via {@link ElementCollection} with a
- * {@link CollectionTable} pointing at a single-column layout.  However,
- * because the DDL uses a plain array column (not a join table), we use
- * a custom {@link StringArrayConverter} instead.
+ * Extends {@link BaseAuditEntity} for optimistic locking ({@code @Version})
+ * and standardised {@code created_at}/{@code updated_at} timestamps.
  */
 @Entity
 @Table(name = "products")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductEntity {
+public class ProductEntity extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,8 +48,6 @@ public class ProductEntity {
     @Column(name = "is_top_selling", nullable = false)
     private boolean topSelling;
 
-//    @Convert(converter = StringArrayConverter.class)
-//    @Column(name = "images", columnDefinition = "TEXT[]")
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "images", columnDefinition = "text[]")
     private List<String> images;
@@ -59,27 +55,4 @@ public class ProductEntity {
     @Column(name = "last_erp_sync_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant lastErpSyncAt;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Instant updatedAt;
-
-    // ----------------------------------------------------------------
-    // Lifecycle hooks
-    // ----------------------------------------------------------------
-    @PrePersist
-    public void prePersist() {
-        Instant now = Instant.now();
-        if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = Instant.now();
-    }
 }

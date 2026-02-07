@@ -1,114 +1,82 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import apiClient from "@/shared/api/axios";
 import type { User } from "./types";
 
 interface AuthState {
-    user: User | null;
-    token: string | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 interface UseAuthReturn extends AuthState {
-    logout: () => void;
-    updateUser: (user: User) => void;
+  logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 /**
- * Custom hook for managing authentication state.
- * 
- * Reads token and user from localStorage on mount and provides:
- * - Current user info (phone, role)
- * - Authentication status
- * - Logout function
- * 
- * @example
- * ```tsx
- * const { user, isAuthenticated, logout } = useAuth();
- * 
- * if (!isAuthenticated) {
- *   return <Link href="/login">Login</Link>;
- * }
- * 
- * return (
- *   <div>
- *     <p>Welcome, {user.phone}</p>
- *     <button onClick={logout}>Logout</button>
- *   </div>
- * );
- * ```
+ * Custom hook for managing authentication state via HTTP-only cookies.
+ *
+ * On mount, calls GET /api/v1/auth/me to resolve the current user
+ * from the cookie-authenticated session. No tokens are stored client-side.
  */
 export function useAuth(): UseAuthReturn {
-    const [authState, setAuthState] = useState<AuthState>({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: true,
-    });
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+  });
 
-    useEffect(() => {
-        // Only run on client side
-        if (typeof window === "undefined") {
-            return;
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCurrentUser() {
+      try {
+        const { data } = await apiClient.get<User>("/api/v1/auth/me");
+        if (!cancelled) {
+          setAuthState({
+            user: data,
+            isAuthenticated: true,
+            isLoading: false,
+          });
         }
-
-        try {
-            const token = localStorage.getItem("token");
-            const userJson = localStorage.getItem("user");
-
-            if (token && userJson) {
-                const user = JSON.parse(userJson) as User;
-                setAuthState({
-                    user,
-                    token,
-                    isAuthenticated: true,
-                    isLoading: false,
-                });
-            } else {
-                setAuthState({
-                    user: null,
-                    token: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
-            }
-        } catch (error) {
-            console.error("Failed to parse auth data from localStorage:", error);
-            setAuthState({
-                user: null,
-                token: null,
-                isAuthenticated: false,
-                isLoading: false,
-            });
-        }
-    }, []);
-
-    const logout = () => {
-        // Clear localStorage
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        // Update state
-        setAuthState({
+      } catch {
+        if (!cancelled) {
+          setAuthState({
             user: null,
-            token: null,
             isAuthenticated: false,
             isLoading: false,
-        });
+          });
+        }
+      }
+    }
 
-        // Redirect to home
-        window.location.href = "/";
-    };
+    fetchCurrentUser();
+    return () => { cancelled = true; };
+  }, []);
 
-    const updateUser = (newUser: User) => {
-        localStorage.setItem("user", JSON.stringify(newUser));
-        setAuthState(prev => ({ ...prev, user: newUser }));
-    };
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post("/api/v1/auth/logout");
+    } catch {
+      // Cookie may already be expired — ignore
+    }
+    setAuthState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+    window.location.href = "/";
+  }, []);
 
-    return {
-        ...authState,
-        logout,
-        updateUser,
-    };
+  const updateUser = useCallback((newUser: User) => {
+    setAuthState((prev) => ({ ...prev, user: newUser }));
+  }, []);
+
+  return {
+    ...authState,
+    logout,
+    updateUser,
+  };
 }

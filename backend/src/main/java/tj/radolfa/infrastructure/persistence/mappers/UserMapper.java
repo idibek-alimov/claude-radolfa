@@ -19,6 +19,8 @@ public interface UserMapper {
      * Domain -> Entity.
      * createdAt is managed by the JPA lifecycle hook.
      */
+    @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     UserEntity toEntity(User user);
 }

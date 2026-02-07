@@ -3,37 +3,39 @@ package tj.radolfa.infrastructure.persistence.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JPA persistence model for the {@code orders} table.
+ *
+ * Extends {@link BaseAuditEntity} for optimistic locking ({@code @Version})
+ * and standardised {@code created_at}/{@code updated_at} timestamps.
+ *
+ * The {@code user} field is a proper {@code @ManyToOne} relationship
+ * (previously a raw {@code Long userId}), enabling FK enforcement and
+ * join-fetching when needed.
+ */
 @Entity
 @Table(name = "orders")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderEntity {
+public class OrderEntity extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // We can map User directly if UserEntity exists, or just user_id.
-    // To match typical simple design, let's map user_id for now,
-    // or assume UserEntity is available. Let's map UserEntity for safety if we need
-    // it later.
-    // Actually, looking at ProductEntity, it's standalone. Let's check UserEntity.
-    // I'll stick to user_id for simplicity unless I need to fetch user details with
-    // order.
-    // But JPA is better with relationships. Let's assume UserEntity is in the same
-    // package.
-
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -44,23 +46,4 @@ public class OrderEntity {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items = new ArrayList<>();
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null)
-            createdAt = Instant.now();
-        if (updatedAt == null)
-            updatedAt = Instant.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = Instant.now();
-    }
 }

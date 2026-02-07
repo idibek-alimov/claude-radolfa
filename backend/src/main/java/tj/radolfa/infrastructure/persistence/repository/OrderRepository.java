@@ -6,5 +6,5 @@ import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
-    List<OrderEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<OrderEntity> findByUser_IdOrderByCreatedAtDesc(Long userId);
 }

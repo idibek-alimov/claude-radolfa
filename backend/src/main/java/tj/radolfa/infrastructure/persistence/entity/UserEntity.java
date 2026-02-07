@@ -3,19 +3,22 @@ package tj.radolfa.infrastructure.persistence.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 /**
  * JPA persistence model for the {@code users} table.
+ *
+ * Extends {@link BaseAuditEntity} for optimistic locking ({@code @Version})
+ * and standardised {@code created_at}/{@code updated_at} timestamps.
  */
 @Entity
 @Table(name = "users")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEntity {
+public class UserEntity extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,26 +36,4 @@ public class UserEntity {
 
     @Column(name = "email", unique = true, length = 255)
     private String email;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Instant updatedAt;
-
-    // ----------------------------------------------------------------
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null)
-            createdAt = Instant.now();
-        if (updatedAt == null)
-            updatedAt = Instant.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = Instant.now();
-    }
 }

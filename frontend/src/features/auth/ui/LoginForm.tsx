@@ -29,9 +29,9 @@ export default function LoginForm() {
 
   const verifyOtpMutation = useMutation({
     mutationFn: verifyOtp,
-    onSuccess: (data) => {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+    onSuccess: () => {
+      // Cookie is set by the server via Set-Cookie header.
+      // No client-side token storage needed.
       window.location.href = "/";
     },
     onError: (err: Error) => {

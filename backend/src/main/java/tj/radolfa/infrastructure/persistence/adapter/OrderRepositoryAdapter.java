@@ -1,9 +1,11 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
 import tj.radolfa.infrastructure.persistence.repository.OrderRepository;
 
@@ -15,15 +17,19 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
+    private final EntityManager em;
 
-    public OrderRepositoryAdapter(OrderRepository repository, OrderMapper mapper) {
+    public OrderRepositoryAdapter(OrderRepository repository,
+                                  OrderMapper mapper,
+                                  EntityManager em) {
         this.repository = repository;
         this.mapper = mapper;
+        this.em = em;
     }
 
     @Override
     public List<Order> loadByUserId(Long userId) {
-        return repository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+        return repository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
                 .map(mapper::toOrder)
                 .toList();
     }
@@ -37,11 +43,16 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
     @Override
     public Order save(Order order) {
         var entity = mapper.toEntity(order);
-        // Ensure bidirectional relationship if needed,
-        // usually MapStruct does it if configured, or manually:
+
+        // Resolve the ManyToOne user reference without a SELECT query.
+        // getReference() returns a lazy proxy that Hibernate uses for the FK column.
+        entity.setUser(em.getReference(UserEntity.class, order.userId()));
+
+        // Wire bidirectional OrderItem → Order back-pointer
         if (entity.getItems() != null) {
             entity.getItems().forEach(item -> item.setOrder(entity));
         }
+
         var saved = repository.save(entity);
         return mapper.toOrder(saved);
     }

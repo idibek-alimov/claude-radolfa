@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
 import { toast } from "sonner";
+import { updateProduct } from "@/features/products/api";
 import {
-  getProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  uploadProductImage,
-} from "@/features/products/api";
+  useProducts,
+  useCreateProduct,
+  useUpdateProduct,
+  useDeleteProduct,
+  useUploadProductImage,
+} from "@/features/products/model/queries";
 import { Product } from "@/features/products/types";
 import {
   Table,
@@ -48,15 +49,18 @@ import { Plus, Pencil, Trash2, Lock, AlertCircle, Search, Package, Upload, Loade
 export default function ManageProductsPage() {
   const { user } = useAuth();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  // ── TanStack Query ──────────────────────────────────────────────
+  const { data, isLoading, isError } = useProducts();
+  const products = data?.products ?? [];
 
-  // Dialog State
+  const createMutation = useCreateProduct();
+  const updateMutation = useUpdateProduct();
+  const deleteMutation = useDeleteProduct();
+  const uploadMutation = useUploadProductImage();
+
+  // ── Dialog State ────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   // Delete confirmation
@@ -100,22 +104,7 @@ export default function ManageProductsPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadProducts();
-  }, [page]);
-
-  const loadProducts = async () => {
-    setLoading(true);
-    try {
-      const data = await getProducts(page, 100);
-      setProducts(data.products);
-      setHasMore(data.hasMore);
-    } catch (e) {
-      console.error("Failed to load products", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ── Handlers ────────────────────────────────────────────────────
 
   const handleOpenDialog = (product?: Product) => {
     setSaveError("");
@@ -146,50 +135,45 @@ export default function ManageProductsPage() {
   };
 
   const handleSave = async () => {
-    setSaving(true);
     setSaveError("");
-    try {
-      const payload = {
-        erpId: formData.erpId,
-        name: formData.name,
-        price: parseFloat(formData.price) || 0,
-        stock: parseInt(formData.stock) || 0,
-        webDescription: formData.webDescription,
-        topSelling: formData.topSelling,
-        images: formData.images,
-      };
+    const payload = {
+      erpId: formData.erpId,
+      name: formData.name,
+      price: parseFloat(formData.price) || 0,
+      stock: parseInt(formData.stock) || 0,
+      webDescription: formData.webDescription,
+      topSelling: formData.topSelling,
+      images: formData.images,
+    };
 
+    try {
       if (editingProduct) {
-        await updateProduct(editingProduct.erpId, payload);
+        await updateMutation.mutateAsync({
+          erpId: editingProduct.erpId,
+          data: payload,
+        });
       } else {
-        await createProduct(payload);
+        await createMutation.mutateAsync(payload);
       }
       setIsDialogOpen(false);
-      loadProducts();
     } catch (e: any) {
       console.error(e);
       setSaveError(e.response?.data?.message || "Failed to save product");
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingProduct) return;
-    // Reset input so the same file can be re-selected
     e.target.value = "";
 
     setUploading(true);
     try {
-      const result = await uploadProductImage(editingProduct.erpId, file);
+      const result = await uploadMutation.mutateAsync({
+        erpId: editingProduct.erpId,
+        file,
+      });
       setFormData((prev) => ({ ...prev, images: result.images }));
-      // Update the product in the global list
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.erpId === editingProduct.erpId ? { ...p, images: result.images } : p
-        )
-      );
       toast.success("Image uploaded");
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
@@ -208,14 +192,8 @@ export default function ManageProductsPage() {
         topSelling: formData.topSelling,
         images: updated,
       });
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.erpId === editingProduct.erpId ? { ...p, images: updated } : p
-        )
-      );
       toast.success("Image removed");
-    } catch (err: any) {
-      // Rollback
+    } catch {
       setFormData((prev) => ({ ...prev, images: formData.images }));
       toast.error("Failed to remove image");
     }
@@ -224,15 +202,18 @@ export default function ManageProductsPage() {
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteProduct(deleteTarget);
+      await deleteMutation.mutateAsync(deleteTarget);
       setDeleteTarget(null);
-      loadProducts();
     } catch (e: any) {
       console.error(e);
       setSaveError(e.response?.data?.message || "Failed to delete product");
       setDeleteTarget(null);
     }
   };
+
+  const saving = createMutation.isPending || updateMutation.isPending;
+
+  // ── Render ──────────────────────────────────────────────────────
 
   return (
     <ProtectedRoute requiredRole="MANAGER">
@@ -267,7 +248,7 @@ export default function ManageProductsPage() {
 
           {/* Product Table */}
           <div className="bg-card rounded-xl border shadow-sm">
-            {loading && products.length === 0 ? (
+            {isLoading && products.length === 0 ? (
               <div className="p-6 space-y-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-12 w-full" />
@@ -363,7 +344,7 @@ export default function ManageProductsPage() {
                 </TableBody>
               </Table>
             )}
-            {filteredProducts.length === 0 && !loading && (
+            {filteredProducts.length === 0 && !isLoading && (
               <div className="p-12 text-center text-muted-foreground">
                 {debouncedSearch
                   ? `No products matching "${debouncedSearch}"`
