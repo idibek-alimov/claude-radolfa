@@ -10,8 +10,8 @@ import tj.radolfa.infrastructure.persistence.entity.ProductEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-08T02:17:16+0500",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.17 (Ubuntu)"
+    date = "2026-02-08T18:08:17+0500",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260128-0750, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
 public class ProductMapperImpl implements ProductMapper {
@@ -55,14 +55,14 @@ public class ProductMapperImpl implements ProductMapper {
 
         ProductEntity productEntity = new ProductEntity();
 
-        productEntity.setId( product.getId() );
         productEntity.setErpId( product.getErpId() );
+        productEntity.setId( product.getId() );
+        productEntity.setLastErpSyncAt( product.getLastErpSyncAt() );
         productEntity.setName( product.getName() );
         productEntity.setPrice( product.getPrice() );
         productEntity.setStock( product.getStock() );
-        productEntity.setWebDescription( product.getWebDescription() );
         productEntity.setTopSelling( product.isTopSelling() );
-        productEntity.setLastErpSyncAt( product.getLastErpSyncAt() );
+        productEntity.setWebDescription( product.getWebDescription() );
 
         return productEntity;
     }
