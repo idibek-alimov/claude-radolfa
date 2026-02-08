@@ -1,8 +1,7 @@
 package tj.radolfa.application.ports.in;
 
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
-
-import java.math.BigDecimal;
 
 /**
  * In-Port: synchronise the ERP-locked fields for a single product.
@@ -18,5 +17,5 @@ public interface SyncErpProductUseCase {
      *
      * @return the product after the sync merge
      */
-    Product execute(String erpId, String name, BigDecimal price, Integer stock);
+    Product execute(String erpId, String name, Money price, Integer stock);
 }

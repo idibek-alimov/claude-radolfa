@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import tj.radolfa.application.ports.in.SyncErpProductUseCase;
 import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.application.ports.out.SaveProductPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 
 /**
@@ -31,7 +31,7 @@ public class SyncErpProductService implements SyncErpProductUseCase {
     }
 
     @Override
-    public Product execute(String erpId, String name, BigDecimal price, Integer stock) {
+    public Product execute(String erpId, String name, Money price, Integer stock) {
 
         Product product = loadProductPort.load(erpId)
                 .orElseGet(() -> new Product(

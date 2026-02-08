@@ -2,10 +2,13 @@ package tj.radolfa.infrastructure.persistence.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 import tj.radolfa.infrastructure.persistence.entity.OrderItemEntity;
+
+import java.math.BigDecimal;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
@@ -30,4 +33,14 @@ public interface OrderMapper {
 
     @Mapping(target = "order", ignore = true)
     OrderItemEntity toEntity(OrderItem item);
+
+    // ---- Money <-> BigDecimal bridge --------------------------------
+
+    default Money bigDecimalToMoney(BigDecimal value) {
+        return Money.of(value);
+    }
+
+    default BigDecimal moneyToBigDecimal(Money money) {
+        return money != null ? money.amount() : null;
+    }
 }

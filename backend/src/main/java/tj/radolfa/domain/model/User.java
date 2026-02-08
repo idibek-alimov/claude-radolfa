@@ -6,7 +6,7 @@ package tj.radolfa.domain.model;
  */
 public record User(
         Long id,
-        String phone,
+        PhoneNumber phone,
         UserRole role,
         String name,
         String email) {

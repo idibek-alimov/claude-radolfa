@@ -1,6 +1,5 @@
 package tj.radolfa.domain.model;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,9 +19,9 @@ public class Product {
     private final String erpId;
 
     // ---- ERP-locked fields (written only by enrichWithErpData) ----
-    private String     name;
-    private BigDecimal price;
-    private Integer    stock;
+    private String  name;
+    private Money   price;
+    private Integer stock;
 
     // ---- Enrichment fields (editable by the application) ----------
     private String       webDescription;
@@ -38,7 +37,7 @@ public class Product {
     public Product(Long id,
                    String erpId,
                    String name,
-                   BigDecimal price,
+                   Money price,
                    Integer stock,
                    String webDescription,
                    boolean topSelling,
@@ -63,7 +62,7 @@ public class Product {
      * Overwrites ONLY the three ERP-locked fields and stamps the audit clock.
      * Enrichment fields (webDescription, topSelling, images) are untouched.
      */
-    public void enrichWithErpData(String name, BigDecimal price, Integer stock) {
+    public void enrichWithErpData(String name, Money price, Integer stock) {
         this.name          = name;
         this.price         = price;
         this.stock         = stock;
@@ -89,7 +88,7 @@ public class Product {
     public Long         getId()             { return id; }
     public String       getErpId()          { return erpId; }
     public String       getName()           { return name; }
-    public BigDecimal   getPrice()          { return price; }
+    public Money        getPrice()          { return price; }
     public Integer      getStock()          { return stock; }
     public String       getWebDescription() { return webDescription; }
     public boolean      isTopSelling()      { return topSelling; }

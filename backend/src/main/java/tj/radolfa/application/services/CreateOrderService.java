@@ -5,12 +5,12 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.CreateOrderUseCase;
 import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.Product;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,23 +31,21 @@ public class CreateOrderService implements CreateOrderUseCase {
     @Transactional
     public Order execute(Long userId, Map<String, Integer> items) {
         List<OrderItem> orderItems = new ArrayList<>();
-        BigDecimal total = BigDecimal.ZERO;
+        Money total = Money.ZERO;
 
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
             String erpId = entry.getKey();
-            Integer quantity = entry.getValue();
+            int quantity = entry.getValue();
 
             Product product = loadProductPort.load(erpId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + erpId));
 
-            // Allow price to be zero or handle null if needed, but for now strict
-            BigDecimal price = product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO;
-
-            BigDecimal itemTotal = price.multiply(BigDecimal.valueOf(quantity));
+            Money price = product.getPrice() != null ? product.getPrice() : Money.ZERO;
+            Money itemTotal = price.multiply(quantity);
             total = total.add(itemTotal);
 
             orderItems.add(new OrderItem(
-                    null, // new item
+                    null,
                     product.getId(),
                     product.getName(),
                     quantity,

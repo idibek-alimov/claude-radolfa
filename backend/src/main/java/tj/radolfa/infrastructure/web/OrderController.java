@@ -47,12 +47,12 @@ public class OrderController {
         return new OrderDto(
                 order.id(),
                 order.status().name(),
-                order.totalAmount(),
+                order.totalAmount().amount(),
                 order.items().stream()
                         .map(item -> new OrderItemDto(
                                 item.productName(),
                                 item.quantity(),
-                                item.priceAtPurchase()))
+                                item.priceAtPurchase().amount()))
                         .toList(),
                 order.createdAt());
     }

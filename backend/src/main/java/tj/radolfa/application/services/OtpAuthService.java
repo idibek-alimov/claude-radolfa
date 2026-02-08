@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.in.SendOtpUseCase;
 import tj.radolfa.application.ports.in.VerifyOtpUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
+import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtUtil;
@@ -57,10 +58,9 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
 
     @Override
     public void execute(String phone) {
-        // Normalize phone number (basic sanitization)
-        String normalizedPhone = normalizePhone(phone);
-        otpStore.generateOtp(normalizedPhone);
-        LOG.info("[AUTH] OTP sent to phone={}", normalizedPhone);
+        PhoneNumber normalized = PhoneNumber.of(phone);
+        otpStore.generateOtp(normalized.value());
+        LOG.info("[AUTH] OTP sent to phone={}", normalized);
     }
 
     // ----------------------------------------------------------------
@@ -70,19 +70,19 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     @Override
     @Transactional
     public Optional<AuthResult> execute(String phone, String otp) {
-        String normalizedPhone = normalizePhone(phone);
+        PhoneNumber normalized = PhoneNumber.of(phone);
 
-        if (!otpStore.verifyOtp(normalizedPhone, otp)) {
-            LOG.warn("[AUTH] OTP verification failed for phone={}", normalizedPhone);
+        if (!otpStore.verifyOtp(normalized.value(), otp)) {
+            LOG.warn("[AUTH] OTP verification failed for phone={}", normalized);
             return Optional.empty();
         }
 
         // Find existing user or create new one
-        User user = loadUserPort.loadByPhone(normalizedPhone)
-                .orElseGet(() -> createNewUser(normalizedPhone));
+        User user = loadUserPort.loadByPhone(normalized.value())
+                .orElseGet(() -> createNewUser(normalized));
 
         // Generate JWT
-        String token = jwtUtil.generateToken(user.id(), user.phone(), user.role());
+        String token = jwtUtil.generateToken(user.id(), user.phone().value(), user.role());
         LOG.info("[AUTH] User authenticated: phone={}, role={}", user.phone(), user.role());
 
         return Optional.of(new AuthResult(token, user));
@@ -95,21 +95,10 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     /**
      * Creates a new user with default USER role.
      */
-    private User createNewUser(String phone) {
+    private User createNewUser(PhoneNumber phone) {
         User newUser = new User(null, phone, UserRole.USER, null, null);
         User saved = saveUserPort.save(newUser);
         LOG.info("[AUTH] Created new user: phone={}, id={}", phone, saved.id());
         return saved;
-    }
-
-    /**
-     * Normalizes phone number by removing spaces and ensuring consistency.
-     * Can be extended with country code normalization if needed.
-     */
-    private String normalizePhone(String phone) {
-        if (phone == null) {
-            throw new IllegalArgumentException("Phone number cannot be null");
-        }
-        return phone.replaceAll("\\s+", "").trim();
     }
 }

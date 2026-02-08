@@ -10,6 +10,7 @@ import tj.radolfa.application.ports.in.CreateProductUseCase;
 import tj.radolfa.application.ports.in.DeleteProductUseCase;
 import tj.radolfa.application.ports.in.UpdateProductUseCase;
 import tj.radolfa.application.ports.out.LoadProductPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
@@ -116,7 +117,7 @@ public class ProductController {
         Product product = createProductUseCase.execute(
                 request.erpId(),
                 request.name(),
-                request.price(),
+                Money.of(request.price()),
                 request.stock(),
                 request.webDescription(),
                 request.topSelling(),
@@ -132,7 +133,7 @@ public class ProductController {
         Product product = updateProductUseCase.execute(
                 erpId,
                 request.name(),
-                request.price(),
+                Money.of(request.price()),
                 request.stock(),
                 request.webDescription(),
                 request.topSelling(),
@@ -156,7 +157,7 @@ public class ProductController {
                 product.getId(),
                 product.getErpId(),
                 product.getName(),
-                product.getPrice(),
+                product.getPrice() != null ? product.getPrice().amount() : null,
                 product.getStock(),
                 product.getWebDescription(),
                 product.isTopSelling(),

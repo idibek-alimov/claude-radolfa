@@ -1,5 +1,6 @@
 package tj.radolfa.application.ports.in;
 
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public interface CreateProductUseCase {
      */
     Product execute(String erpId,
             String name,
-            java.math.BigDecimal price,
+            Money price,
             Integer stock,
             String webDescription,
             boolean topSelling,

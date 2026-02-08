@@ -4,10 +4,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.persistence.entity.ProductEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductImageEntity;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,5 +62,15 @@ public interface ProductMapper {
             entities.add(img);
         }
         return entities;
+    }
+
+    // ---- Money <-> BigDecimal bridge --------------------------------
+
+    default Money bigDecimalToMoney(BigDecimal value) {
+        return Money.of(value);
+    }
+
+    default BigDecimal moneyToBigDecimal(Money money) {
+        return money != null ? money.amount() : null;
     }
 }

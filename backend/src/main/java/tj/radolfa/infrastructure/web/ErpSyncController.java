@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import tj.radolfa.application.ports.in.SyncErpProductUseCase;
 import tj.radolfa.application.ports.out.LogSyncEventPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
 
@@ -73,7 +74,7 @@ public class ErpSyncController {
                 syncUseCase.execute(
                         snapshot.erpId(),
                         snapshot.name(),
-                        snapshot.price(),
+                        Money.of(snapshot.price()),
                         snapshot.stock()
                 );
                 logSyncEvent.log(snapshot.erpId(), true, null);

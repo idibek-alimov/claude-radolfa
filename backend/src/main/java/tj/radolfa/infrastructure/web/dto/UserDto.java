@@ -14,6 +14,6 @@ public record UserDto(
      * Creates a UserDto from a domain User.
      */
     public static UserDto fromDomain(User user) {
-        return new UserDto(user.id(), user.phone(), user.role().name());
+        return new UserDto(user.id(), user.phone().value(), user.role().name());
     }
 }

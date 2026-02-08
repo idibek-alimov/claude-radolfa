@@ -2,14 +2,15 @@ package tj.radolfa.infrastructure.persistence.mappers;
 
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
+import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-08T18:32:09+0500",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.17 (Ubuntu)"
+    date = "2026-02-08T18:47:16+0500",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.18 (Ubuntu)"
 )
 @Component
 public class UserMapperImpl implements UserMapper {
@@ -21,13 +22,13 @@ public class UserMapperImpl implements UserMapper {
         }
 
         Long id = null;
-        String phone = null;
+        PhoneNumber phone = null;
         UserRole role = null;
         String name = null;
         String email = null;
 
         id = entity.getId();
-        phone = entity.getPhone();
+        phone = stringToPhoneNumber( entity.getPhone() );
         role = entity.getRole();
         name = entity.getName();
         email = entity.getEmail();
@@ -46,7 +47,7 @@ public class UserMapperImpl implements UserMapper {
         UserEntity userEntity = new UserEntity();
 
         userEntity.setId( user.id() );
-        userEntity.setPhone( user.phone() );
+        userEntity.setPhone( phoneNumberToString( user.phone() ) );
         userEntity.setRole( user.role() );
         userEntity.setName( user.name() );
         userEntity.setEmail( user.email() );

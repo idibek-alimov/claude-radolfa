@@ -4,6 +4,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.in.SyncErpProductUseCase;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 
@@ -33,7 +34,7 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
         return syncUseCase.execute(
                 snapshot.erpId(),
                 snapshot.name(),
-                snapshot.price(),
+                Money.of(snapshot.price()),
                 snapshot.stock()
         );
     }

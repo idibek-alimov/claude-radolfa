@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import tj.radolfa.application.ports.in.CreateProductUseCase;
 import tj.radolfa.application.ports.out.SaveProductPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public class CreateProductService implements CreateProductUseCase {
     @Override
     public Product execute(String erpId,
             String name,
-            java.math.BigDecimal price,
+            Money price,
             Integer stock,
             String webDescription,
             boolean topSelling,

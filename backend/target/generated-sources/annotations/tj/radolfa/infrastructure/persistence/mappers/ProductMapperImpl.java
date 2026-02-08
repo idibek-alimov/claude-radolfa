@@ -1,17 +1,17 @@
 package tj.radolfa.infrastructure.persistence.mappers;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.persistence.entity.ProductEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-08T18:32:09+0500",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.17 (Ubuntu)"
+    date = "2026-02-08T18:47:16+0500",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.18 (Ubuntu)"
 )
 @Component
 public class ProductMapperImpl implements ProductMapper {
@@ -27,7 +27,7 @@ public class ProductMapperImpl implements ProductMapper {
         Long id = null;
         String erpId = null;
         String name = null;
-        BigDecimal price = null;
+        Money price = null;
         Integer stock = null;
         String webDescription = null;
         Instant lastErpSyncAt = null;
@@ -37,7 +37,7 @@ public class ProductMapperImpl implements ProductMapper {
         id = entity.getId();
         erpId = entity.getErpId();
         name = entity.getName();
-        price = entity.getPrice();
+        price = bigDecimalToMoney( entity.getPrice() );
         stock = entity.getStock();
         webDescription = entity.getWebDescription();
         lastErpSyncAt = entity.getLastErpSyncAt();
@@ -58,7 +58,7 @@ public class ProductMapperImpl implements ProductMapper {
         productEntity.setId( product.getId() );
         productEntity.setErpId( product.getErpId() );
         productEntity.setName( product.getName() );
-        productEntity.setPrice( product.getPrice() );
+        productEntity.setPrice( moneyToBigDecimal( product.getPrice() ) );
         productEntity.setStock( product.getStock() );
         productEntity.setWebDescription( product.getWebDescription() );
         productEntity.setTopSelling( product.isTopSelling() );
