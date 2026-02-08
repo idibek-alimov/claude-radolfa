@@ -1,5 +1,6 @@
 package tj.radolfa.application.ports.out;
 
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Product;
 
 import java.util.List;
@@ -19,6 +20,16 @@ public interface LoadProductPort {
      * Load all products.
      */
     List<Product> loadAll();
+
+    /**
+     * Load a paginated, optionally filtered page of products.
+     *
+     * @param page   1-based page number
+     * @param limit  items per page
+     * @param search nullable — SQL ILIKE on name, exact match on erpId
+     * @return a framework-agnostic page of domain products
+     */
+    PageResult<Product> loadPage(int page, int limit, String search);
 
     /**
      * Load products marked as top-selling.

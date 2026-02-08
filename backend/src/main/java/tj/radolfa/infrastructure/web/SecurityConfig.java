@@ -13,7 +13,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import tj.radolfa.infrastructure.security.*;
+import tj.radolfa.infrastructure.security.CorsProperties;
+import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
+import tj.radolfa.infrastructure.security.JwtProperties;
+import tj.radolfa.infrastructure.security.OtpProperties;
+import tj.radolfa.infrastructure.security.RateLimitProperties;
 
 import java.util.List;
 
@@ -46,7 +50,8 @@ import java.util.List;
 @EnableConfigurationProperties({
         JwtProperties.class,
         OtpProperties.class,
-        CorsProperties.class
+        CorsProperties.class,
+        RateLimitProperties.class
 })
 public class SecurityConfig {
 

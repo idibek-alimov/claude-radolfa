@@ -1,11 +1,18 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.DeleteProductPort;
 import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.application.ports.out.SaveProductPort;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Product;
+import tj.radolfa.infrastructure.persistence.entity.ProductEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductMapper;
 import tj.radolfa.infrastructure.persistence.repository.ProductRepository;
 
@@ -45,6 +52,28 @@ public class ProductRepositoryAdapter implements LoadProductPort, SaveProductPor
         return repository.findAll().stream()
                 .map(mapper::toProduct)
                 .toList();
+    }
+
+    @Override
+    public PageResult<Product> loadPage(int page, int limit, String search) {
+        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("id").ascending());
+
+        Specification<ProductEntity> spec = Specification.where(null);
+        if (search != null && !search.isBlank()) {
+            String term = search.trim().toLowerCase();
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("name")), "%" + term + "%"),
+                    cb.equal(cb.lower(root.get("erpId")), term)
+            ));
+        }
+
+        Page<ProductEntity> jpaPage = repository.findAll(spec, pageable);
+
+        List<Product> products = jpaPage.getContent().stream()
+                .map(mapper::toProduct)
+                .toList();
+
+        return new PageResult<>(products, jpaPage.getTotalElements(), page, jpaPage.hasNext());
     }
 
     @Override

@@ -66,6 +66,12 @@ radolfa:
     otp:
       expiration-seconds: 300   # 5 minutes
       length: 4
+    rate-limit:
+      otp-request-max-per-phone: 5
+      otp-request-window-minutes: 60
+      otp-verify-max-per-phone: 5
+      otp-verify-window-minutes: 15
+      ip-max-per-hour: 20
     cors:
       allowed-origins:
         - http://localhost:8000

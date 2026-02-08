@@ -1,5 +1,6 @@
 package tj.radolfa.infrastructure.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,11 @@ import tj.radolfa.application.ports.in.SendOtpUseCase;
 import tj.radolfa.application.ports.in.VerifyOtpUseCase;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
 import tj.radolfa.infrastructure.security.JwtProperties;
+import tj.radolfa.infrastructure.security.RateLimitProperties;
+import tj.radolfa.infrastructure.security.RateLimiterService;
 import tj.radolfa.infrastructure.web.dto.*;
+
+import java.time.Duration;
 
 /**
  * REST adapter for authentication endpoints.
@@ -40,13 +45,19 @@ public class AuthController {
     private final SendOtpUseCase sendOtpUseCase;
     private final VerifyOtpUseCase verifyOtpUseCase;
     private final JwtProperties jwtProperties;
+    private final RateLimiterService rateLimiter;
+    private final RateLimitProperties rateLimitProps;
 
     public AuthController(SendOtpUseCase sendOtpUseCase,
                           VerifyOtpUseCase verifyOtpUseCase,
-                          JwtProperties jwtProperties) {
+                          JwtProperties jwtProperties,
+                          RateLimiterService rateLimiter,
+                          RateLimitProperties rateLimitProps) {
         this.sendOtpUseCase = sendOtpUseCase;
         this.verifyOtpUseCase = verifyOtpUseCase;
         this.jwtProperties = jwtProperties;
+        this.rateLimiter = rateLimiter;
+        this.rateLimitProps = rateLimitProps;
     }
 
     // ----------------------------------------------------------------
@@ -63,9 +74,26 @@ public class AuthController {
      * @return 200 OK with success message
      */
     @PostMapping("/login")
-    public ResponseEntity<MessageResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        LOG.info("[AUTH] Login request received for phone={}", maskPhone(request.phone()));
+    public ResponseEntity<MessageResponseDto> login(@Valid @RequestBody LoginRequestDto request,
+                                                    HttpServletRequest httpRequest) {
+        String ip = extractClientIp(httpRequest);
 
+        if (!rateLimiter.tryConsume("login:ip:" + ip,
+                rateLimitProps.ipMaxPerHour(), Duration.ofHours(1))) {
+            LOG.warn("[RATE_LIMIT] IP limit exceeded on /login for ip={}", maskIp(ip));
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many requests. Try again later."));
+        }
+
+        if (!rateLimiter.tryConsume("login:phone:" + request.phone(),
+                rateLimitProps.otpRequestMaxPerPhone(),
+                Duration.ofMinutes(rateLimitProps.otpRequestWindowMinutes()))) {
+            LOG.warn("[RATE_LIMIT] Phone limit exceeded on /login for phone={}", maskPhone(request.phone()));
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many OTP requests. Try again later."));
+        }
+
+        LOG.info("[AUTH] Login request received for phone={}", maskPhone(request.phone()));
         sendOtpUseCase.execute(request.phone());
 
         return ResponseEntity.ok(MessageResponseDto.success(
@@ -87,7 +115,25 @@ public class AuthController {
      * @return 200 OK with JWT token and user info, or 401 if verification fails
      */
     @PostMapping("/verify")
-    public ResponseEntity<?> verify(@Valid @RequestBody VerifyOtpRequestDto request) {
+    public ResponseEntity<?> verify(@Valid @RequestBody VerifyOtpRequestDto request,
+                                    HttpServletRequest httpRequest) {
+        String ip = extractClientIp(httpRequest);
+
+        if (!rateLimiter.tryConsume("verify:ip:" + ip,
+                rateLimitProps.ipMaxPerHour(), Duration.ofHours(1))) {
+            LOG.warn("[RATE_LIMIT] IP limit exceeded on /verify for ip={}", maskIp(ip));
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many requests. Try again later."));
+        }
+
+        if (!rateLimiter.tryConsume("verify:phone:" + request.phone(),
+                rateLimitProps.otpVerifyMaxPerPhone(),
+                Duration.ofMinutes(rateLimitProps.otpVerifyWindowMinutes()))) {
+            LOG.warn("[RATE_LIMIT] Phone limit exceeded on /verify for phone={}", maskPhone(request.phone()));
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many verification attempts. Try again later."));
+        }
+
         LOG.info("[AUTH] OTP verification request for phone={}", maskPhone(request.phone()));
 
         var authResult = verifyOtpUseCase.execute(request.phone(), request.otp());
@@ -155,6 +201,29 @@ public class AuthController {
                 .path("/")
                 .maxAge(maxAgeSec)
                 .build();
+    }
+
+    /**
+     * Extracts client IP, respecting X-Forwarded-For from reverse proxies (Nginx).
+     */
+    private String extractClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Masks IP for logging (e.g. "192.168.1.100" -> "192.168.***").
+     */
+    private String maskIp(String ip) {
+        if (ip == null) return "***";
+        int lastDot = ip.lastIndexOf('.');
+        if (lastDot > 0) {
+            return ip.substring(0, lastDot) + ".***";
+        }
+        return "***";
     }
 
     /**

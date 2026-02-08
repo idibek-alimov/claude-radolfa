@@ -10,6 +10,7 @@ import tj.radolfa.application.ports.in.CreateProductUseCase;
 import tj.radolfa.application.ports.in.DeleteProductUseCase;
 import tj.radolfa.application.ports.in.UpdateProductUseCase;
 import tj.radolfa.application.ports.out.LoadProductPort;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Product;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
 import tj.radolfa.infrastructure.web.dto.ProductDto;
@@ -73,31 +74,15 @@ public class ProductController {
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit,
             @Parameter(description = "Search by name or ERP ID") @RequestParam(required = false) String search) {
-        List<Product> allProducts = loadProductPort.loadAll();
 
-        if (search != null && !search.isBlank()) {
-            String term = search.toLowerCase();
-            allProducts = allProducts.stream()
-                    .filter(p -> (p.getName() != null && p.getName().toLowerCase().contains(term))
-                            || (p.getErpId() != null && p.getErpId().toLowerCase().contains(term)))
-                    .toList();
-        }
+        PageResult<Product> result = loadProductPort.loadPage(page, limit, search);
 
-        int total = allProducts.size();
-
-        // Simple in-memory pagination
-        int startIndex = (page - 1) * limit;
-        int endIndex = Math.min(startIndex + limit, total);
-
-        List<ProductDto> pageProducts = allProducts.stream()
-                .skip(startIndex)
-                .limit(limit)
+        List<ProductDto> dtos = result.items().stream()
                 .map(this::toDto)
                 .toList();
 
-        boolean hasMore = endIndex < total;
-
-        return ResponseEntity.ok(new PaginatedProducts(pageProducts, total, page, hasMore));
+        return ResponseEntity.ok(new PaginatedProducts(
+                dtos, (int) result.totalElements(), result.page(), result.hasMore()));
     }
 
     /**
