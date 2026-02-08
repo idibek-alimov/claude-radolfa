@@ -35,7 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger LOG = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private static final String BEARER_PREFIX = "Bearer ";
-    public static final String AUTH_COOKIE_NAME = "auth_token";
     private static final String CLAIM_ROLE = "role";
     private static final String CLAIM_USER_ID = "userId";
 
@@ -74,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (cookies == null)
             return null;
         for (Cookie cookie : cookies) {
-            if (AUTH_COOKIE_NAME.equals(cookie.getName())) {
+            if (AuthCookieManager.AUTH_COOKIE_NAME.equals(cookie.getName())) {
                 return cookie.getValue();
             }
         }

@@ -6,15 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.SendOtpUseCase;
 import tj.radolfa.application.ports.in.VerifyOtpUseCase;
+import tj.radolfa.infrastructure.security.AuthCookieManager;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
-import tj.radolfa.infrastructure.security.JwtProperties;
 import tj.radolfa.infrastructure.security.RateLimitProperties;
 import tj.radolfa.infrastructure.security.RateLimiterService;
 import tj.radolfa.infrastructure.web.dto.*;
@@ -44,18 +43,18 @@ public class AuthController {
 
     private final SendOtpUseCase sendOtpUseCase;
     private final VerifyOtpUseCase verifyOtpUseCase;
-    private final JwtProperties jwtProperties;
+    private final AuthCookieManager cookieManager;
     private final RateLimiterService rateLimiter;
     private final RateLimitProperties rateLimitProps;
 
     public AuthController(SendOtpUseCase sendOtpUseCase,
                           VerifyOtpUseCase verifyOtpUseCase,
-                          JwtProperties jwtProperties,
+                          AuthCookieManager cookieManager,
                           RateLimiterService rateLimiter,
                           RateLimitProperties rateLimitProps) {
         this.sendOtpUseCase = sendOtpUseCase;
         this.verifyOtpUseCase = verifyOtpUseCase;
-        this.jwtProperties = jwtProperties;
+        this.cookieManager = cookieManager;
         this.rateLimiter = rateLimiter;
         this.rateLimitProps = rateLimitProps;
     }
@@ -142,14 +141,12 @@ public class AuthController {
             LOG.info("[AUTH] OTP verified successfully for phone={}", maskPhone(request.phone()));
             var result = authResult.get();
 
-            ResponseCookie cookie = buildAuthCookie(result.token(), jwtProperties.expirationMs() / 1000);
-
             AuthResponseDto response = AuthResponseDto.bearer(
                     result.token(),
                     UserDto.fromDomain(result.user())
             );
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, cookieManager.createLoginCookie(result.token()).toString())
                     .body(response);
         } else {
             LOG.warn("[AUTH] OTP verification failed for phone={}", maskPhone(request.phone()));
@@ -183,25 +180,14 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<MessageResponseDto> logout() {
-        ResponseCookie cookie = buildAuthCookie("", 0);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, cookieManager.createLogoutCookie().toString())
                 .body(MessageResponseDto.success("Logged out"));
     }
 
     // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
-
-    private ResponseCookie buildAuthCookie(String value, long maxAgeSec) {
-        return ResponseCookie.from(JwtAuthenticationFilter.AUTH_COOKIE_NAME, value)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(maxAgeSec)
-                .build();
-    }
 
     /**
      * Extracts client IP, respecting X-Forwarded-For from reverse proxies (Nginx).
