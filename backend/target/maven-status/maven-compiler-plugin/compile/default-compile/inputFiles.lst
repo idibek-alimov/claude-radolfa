@@ -32,6 +32,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/erp/ErpProductSnapshot.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/in/DeleteProductUseCase.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/erp/batch/ErpSyncScheduler.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/async/AsyncImageProcessor.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/dto/CreateOrderRequestDto.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/adapter/OrderRepositoryAdapter.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/OrderEntity.java
@@ -85,6 +86,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/CreateProductService.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/OpenApiConfig.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/mappers/ProductMapper.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/config/AsyncConfig.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/erp/batch/ErpSyncJobConfig.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/SaveOrderPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/ImageUploadPort.java

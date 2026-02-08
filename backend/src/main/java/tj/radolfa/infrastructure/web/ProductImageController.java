@@ -8,10 +8,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import tj.radolfa.application.ports.in.AddProductImageUseCase;
-import tj.radolfa.domain.exception.ImageProcessingException;
-import tj.radolfa.domain.model.Product;
+import tj.radolfa.application.ports.out.LoadProductPort;
+import tj.radolfa.infrastructure.async.AsyncImageProcessor;
+import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.ProductImageResponseDto;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * REST adapter for the product-image upload pipeline.
@@ -23,20 +26,24 @@ import tj.radolfa.infrastructure.web.dto.ProductImageResponseDto;
  *   Authorization: Bearer &lt;JWT token&gt;
  * </pre>
  *
+ * <h3>Async pipeline</h3>
+ * <p>The endpoint buffers the raw bytes, validates inputs synchronously,
+ * then delegates resize + S3 upload to a background thread pool.
+ * Returns {@code 202 Accepted} immediately.
+ *
  * <h3>Boundary validations (controller responsibility)</h3>
  * <ul>
+ *   <li>Product must exist (fail-fast before going async).</li>
  *   <li>Content type must start with {@code image/}.</li>
  *   <li>File size must not exceed {@value #MAX_UPLOAD_SIZE_BYTES} bytes (5 MB).</li>
  * </ul>
  *
  * <h3>Security</h3>
- * <p>This endpoint requires the {@code MANAGER} role. The role is verified
- * via JWT token in the Authorization header.
+ * <p>This endpoint requires the {@code MANAGER} role.
  *
  * <h3>Critical Constraint</h3>
  * <p>MANAGER can only enrich products (images, descriptions). They CANNOT
- * modify ERP-controlled fields (price, name, stock). ERPNext is the SOURCE
- * OF TRUTH for those fields.
+ * modify ERP-controlled fields (price, name, stock).
  */
 @RestController
 @RequestMapping("/api/v1/products")
@@ -47,10 +54,13 @@ public class ProductImageController {
     /** 5 MB hard cap on uploaded image payloads. */
     private static final long MAX_UPLOAD_SIZE_BYTES = 5L * 1024 * 1024;
 
-    private final AddProductImageUseCase addProductImageUseCase;
+    private final AsyncImageProcessor asyncImageProcessor;
+    private final LoadProductPort loadProductPort;
 
-    public ProductImageController(AddProductImageUseCase addProductImageUseCase) {
-        this.addProductImageUseCase = addProductImageUseCase;
+    public ProductImageController(AsyncImageProcessor asyncImageProcessor,
+                                  LoadProductPort loadProductPort) {
+        this.asyncImageProcessor = asyncImageProcessor;
+        this.loadProductPort = loadProductPort;
     }
 
     // ----------------------------------------------------------------
@@ -58,22 +68,27 @@ public class ProductImageController {
     // ----------------------------------------------------------------
 
     /**
-     * Uploads an image for the product identified by {@code erpId},
-     * runs it through the resize/compress pipeline, stores the result,
-     * and appends the public URL to the product's image list.
+     * Accepts an image upload for background processing.
      *
-     * <p>Requires MANAGER role (enforced by Spring Security filter chain
-     * and method-level security annotation).
+     * <p>Validates inputs synchronously, buffers raw bytes, fires async
+     * processing, and returns {@code 202 Accepted} immediately.
+     * The image URL will appear in the product's image list once
+     * background processing completes.
      *
-     * @param erpId the ERP identifier of the target product (path variable)
+     * @param erpId the ERP identifier of the target product
      * @param file  the multipart image payload (part name {@code image})
-     * @return 201 Created with the updated image list, or an error status
+     * @return 202 Accepted, or 400/404 on validation failure
      */
     @PostMapping("/{erpId}/images")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ProductImageResponseDto> uploadImage(
+    public ResponseEntity<?> uploadImage(
             @PathVariable          String        erpId,
             @RequestParam("image") MultipartFile file) {
+
+        // --- fail-fast: product must exist before we go async ---
+        if (loadProductPort.load(erpId).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         // --- boundary validations ---
         if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
@@ -81,7 +96,7 @@ public class ProductImageController {
                     erpId, file.getContentType());
             return ResponseEntity.badRequest()
                     .body(new ProductImageResponseDto(erpId,
-                            java.util.List.of("Error: content type must start with 'image/'")));
+                            List.of("Error: content type must start with 'image/'")));
         }
 
         if (file.getSize() > MAX_UPLOAD_SIZE_BYTES) {
@@ -89,38 +104,25 @@ public class ProductImageController {
                     erpId, file.getSize(), MAX_UPLOAD_SIZE_BYTES);
             return ResponseEntity.badRequest()
                     .body(new ProductImageResponseDto(erpId,
-                            java.util.List.of("Error: file size exceeds 5 MB limit")));
+                            List.of("Error: file size exceeds 5 MB limit")));
         }
 
-        // --- delegate to use case ---
+        // --- buffer bytes and fire async ---
+        byte[] imageBytes;
         try {
-            Product updated = addProductImageUseCase.execute(
-                    erpId,
-                    file.getInputStream(),
-                    file.getOriginalFilename()
-            );
-
-            LOG.info("[IMAGE] Successfully uploaded image for erpId={}, total images={}",
-                    erpId, updated.getImages().size());
-
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ProductImageResponseDto(updated.getErpId(), updated.getImages()));
-
-        } catch (java.io.IOException ex) {
+            imageBytes = file.getBytes();
+        } catch (IOException ex) {
             LOG.error("[IMAGE] IO error reading multipart payload for erpId={}", erpId, ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ProductImageResponseDto(erpId,
-                            java.util.List.of("Error: failed to read uploaded file")));
+                    .body(MessageResponseDto.error("Failed to read uploaded file"));
         }
-    }
 
-    // ----------------------------------------------------------------
-    // Exception mapping (scoped to this controller only)
-    // ----------------------------------------------------------------
+        asyncImageProcessor.processAsync(erpId, imageBytes, file.getOriginalFilename());
 
-    @ExceptionHandler(ImageProcessingException.class)
-    public ResponseEntity<String> handleImageProcessingError(ImageProcessingException ex) {
-        LOG.error("[IMAGE] Processing failed: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        LOG.info("[IMAGE] Accepted image for async processing: erpId={}, size={}KB",
+                erpId, imageBytes.length / 1024);
+
+        return ResponseEntity.accepted()
+                .body(MessageResponseDto.success("Image accepted for background processing"));
     }
 }
