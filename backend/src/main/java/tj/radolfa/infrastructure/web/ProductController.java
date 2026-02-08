@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.CreateProductUseCase;
 import tj.radolfa.application.ports.in.DeleteProductUseCase;
+import tj.radolfa.application.ports.in.SearchProductsUseCase;
 import tj.radolfa.application.ports.in.UpdateProductUseCase;
 import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.domain.model.Money;
@@ -45,15 +46,18 @@ public class ProductController {
     private final CreateProductUseCase createProductUseCase;
     private final UpdateProductUseCase updateProductUseCase;
     private final DeleteProductUseCase deleteProductUseCase;
+    private final SearchProductsUseCase searchProductsUseCase;
 
     public ProductController(LoadProductPort loadProductPort,
             CreateProductUseCase createProductUseCase,
             UpdateProductUseCase updateProductUseCase,
-            DeleteProductUseCase deleteProductUseCase) {
+            DeleteProductUseCase deleteProductUseCase,
+            SearchProductsUseCase searchProductsUseCase) {
         this.loadProductPort = loadProductPort;
         this.createProductUseCase = createProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
         this.deleteProductUseCase = deleteProductUseCase;
+        this.searchProductsUseCase = searchProductsUseCase;
     }
 
     /**
@@ -108,6 +112,38 @@ public class ProductController {
                 .map(this::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Fuzzy search across products (Elasticsearch-powered with SQL fallback).
+     */
+    @GetMapping("/search")
+    @Operation(summary = "Search products", description = "Full-text fuzzy search across product catalog")
+    public ResponseEntity<PaginatedProducts> searchProducts(
+            @Parameter(description = "Search query") @RequestParam String q,
+            @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
+
+        PageResult<Product> result = searchProductsUseCase.search(q, page, limit);
+
+        List<ProductDto> dtos = result.items().stream()
+                .map(this::toDto)
+                .toList();
+
+        return ResponseEntity.ok(new PaginatedProducts(
+                dtos, (int) result.totalElements(), result.page(), result.hasMore()));
+    }
+
+    /**
+     * Autocomplete suggestions for the search box.
+     */
+    @GetMapping("/autocomplete")
+    @Operation(summary = "Autocomplete product names", description = "Returns name suggestions for the search box")
+    public ResponseEntity<List<String>> autocomplete(
+            @Parameter(description = "Partial search text") @RequestParam String q,
+            @Parameter(description = "Max suggestions") @RequestParam(defaultValue = "5") int limit) {
+
+        return ResponseEntity.ok(searchProductsUseCase.autocomplete(q, limit));
     }
 
     @PostMapping

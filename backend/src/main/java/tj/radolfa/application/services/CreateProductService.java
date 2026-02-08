@@ -3,6 +3,7 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 
 import tj.radolfa.application.ports.in.CreateProductUseCase;
+import tj.radolfa.application.ports.out.ElasticsearchProductIndexer;
 import tj.radolfa.application.ports.out.SaveProductPort;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Product;
@@ -19,9 +20,12 @@ import java.util.List;
 public class CreateProductService implements CreateProductUseCase {
 
     private final SaveProductPort saveProductPort;
+    private final ElasticsearchProductIndexer indexer;
 
-    public CreateProductService(SaveProductPort saveProductPort) {
+    public CreateProductService(SaveProductPort saveProductPort,
+                                ElasticsearchProductIndexer indexer) {
         this.saveProductPort = saveProductPort;
+        this.indexer = indexer;
     }
 
     @Override
@@ -45,6 +49,8 @@ public class CreateProductService implements CreateProductUseCase {
                 null // lastErpSyncAt – stamped on first sync
         );
 
-        return saveProductPort.save(product);
+        Product saved = saveProductPort.save(product);
+        indexer.index(saved);
+        return saved;
     }
 }

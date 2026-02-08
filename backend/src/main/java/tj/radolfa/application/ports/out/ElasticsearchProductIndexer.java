@@ -16,4 +16,11 @@ public interface ElasticsearchProductIndexer {
      * @param product the domain product that was just persisted
      */
     void index(Product product);
+
+    /**
+     * Remove a product document from the search index.
+     *
+     * @param erpId the ERP identifier of the product to remove
+     */
+    void delete(String erpId);
 }

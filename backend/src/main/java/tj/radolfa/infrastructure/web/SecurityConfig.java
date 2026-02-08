@@ -96,10 +96,11 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs.yaml").permitAll()
 
                         // ============================================================
-                        // SYSTEM role only: ERP Sync endpoints
+                        // SYSTEM role only: ERP Sync and Search index management
                         // Critical: Only SYSTEM can modify price/name/stock
                         // ============================================================
                         .requestMatchers("/api/v1/sync/**").hasRole("SYSTEM")
+                        .requestMatchers("/api/v1/search/**").hasRole("SYSTEM")
 
                         // ============================================================
                         // MANAGER role: Image upload and description editing

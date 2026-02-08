@@ -3,6 +3,7 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.UpdateProductUseCase;
+import tj.radolfa.application.ports.out.ElasticsearchProductIndexer;
 import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.application.ports.out.SaveProductPort;
 import tj.radolfa.domain.model.Money;
@@ -15,10 +16,14 @@ public class UpdateProductService implements UpdateProductUseCase {
 
     private final LoadProductPort loadProductPort;
     private final SaveProductPort saveProductPort;
+    private final ElasticsearchProductIndexer indexer;
 
-    public UpdateProductService(LoadProductPort loadProductPort, SaveProductPort saveProductPort) {
+    public UpdateProductService(LoadProductPort loadProductPort,
+                                SaveProductPort saveProductPort,
+                                ElasticsearchProductIndexer indexer) {
         this.loadProductPort = loadProductPort;
         this.saveProductPort = saveProductPort;
+        this.indexer = indexer;
     }
 
     @Override
@@ -39,6 +44,8 @@ public class UpdateProductService implements UpdateProductUseCase {
                 images,
                 existing.getLastErpSyncAt());
 
-        return saveProductPort.save(updated);
+        Product saved = saveProductPort.save(updated);
+        indexer.index(saved);
+        return saved;
     }
 }
