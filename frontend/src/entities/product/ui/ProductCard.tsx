@@ -3,39 +3,36 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import type { Product } from "@/entities/product";
+import type { ListingVariant } from "@/entities/product";
 import { Badge } from "@/shared/ui/badge";
 import StockBadge from "./StockBadge";
-import { formatPrice } from "@/shared/lib/format";
+import { formatPriceRange } from "@/shared/lib/format";
 
 interface ProductCardProps {
-  product: Product;
+  listing: ListingVariant;
 }
 
 /**
- * Self-contained card that renders a single product.
- *
- * Constraints enforced here:
- *   - name, price, stock are DISPLAY-ONLY. No <input> or editable element.
- *   - Entire card links to the product detail page.
+ * Self-contained card that renders a single listing variant (colour).
+ * Links to the product detail page via its slug.
  */
-export default function ProductCard({ product }: ProductCardProps) {
-  const coverImage = product.images[0] ?? null;
+export default function ProductCard({ listing }: ProductCardProps) {
+  const coverImage = listing.images[0] ?? null;
 
   return (
-    <Link href={`/products/${product.erpId}`} className="group block">
+    <Link href={`/products/${listing.slug}`} className="group block">
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
         className="relative rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
       >
-        {/* Top-Seller badge */}
-        {product.topSelling && (
+        {/* Colour badge */}
+        {listing.colorKey && (
           <Badge
-            variant="warning"
+            variant="secondary"
             className="absolute top-3 right-3 z-10"
           >
-            Top Seller
+            {listing.colorKey}
           </Badge>
         )}
 
@@ -44,7 +41,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {coverImage ? (
             <Image
               src={coverImage}
-              alt={product.name ?? "Product image"}
+              alt={listing.name ?? "Product image"}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               unoptimized
@@ -59,19 +56,19 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Body */}
         <div className="p-4 flex flex-col flex-1 gap-2">
           <h3 className="font-semibold text-foreground truncate">
-            {product.name ?? "—"}
+            {listing.name ?? "—"}
           </h3>
 
           <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-            {product.webDescription ?? "No description yet."}
+            {listing.webDescription ?? "No description yet."}
           </p>
 
           {/* Price + stock row */}
           <div className="mt-auto flex items-center justify-between pt-2">
             <span className="text-lg font-bold text-primary">
-              {formatPrice(product.price)}
+              {formatPriceRange(listing.priceStart, listing.priceEnd)}
             </span>
-            <StockBadge stock={product.stock} />
+            <StockBadge stock={listing.totalStock} />
           </div>
         </div>
       </motion.div>

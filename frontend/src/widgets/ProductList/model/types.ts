@@ -1,8 +1,8 @@
-import type { Product } from "@/entities/product";
+import type { ListingVariant } from "@/entities/product";
 
 export interface ProductListProps {
-  /** The current page of products to render. */
-  products: Product[];
+  /** The current page of listings to render. */
+  listings: ListingVariant[];
   /** True while the next page is being fetched. */
   loading?: boolean;
   /** Whether another page exists on the server. */

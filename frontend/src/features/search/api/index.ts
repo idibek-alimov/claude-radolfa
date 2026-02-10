@@ -1,17 +1,17 @@
-import { apiClient } from "@/shared/api";
+import { searchListings } from "@/entities/product";
 import type { SearchParams, SearchResult } from "@/features/search";
 
 /**
- * Hit the backend search endpoint.
- * Elasticsearch adapter on the backend side is not yet wired;
- * this call will 404 until that phase lands.
+ * Hit the backend listing search endpoint.
+ * Elasticsearch adapter on the backend with SQL fallback.
  */
 export async function searchProducts(
   params: SearchParams
 ): Promise<SearchResult> {
-  const { data } = await apiClient.get<SearchResult>(
-    "/api/v1/products/search",
-    { params }
+  const result = await searchListings(
+    params.query,
+    params.page ?? 1,
+    params.limit ?? 12
   );
-  return data;
+  return result;
 }

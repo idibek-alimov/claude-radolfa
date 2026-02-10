@@ -1,76 +1,72 @@
-// AUTO-GENERATED FROM BACKEND - DO NOT EDIT
+// ── Storefront types – 3-Tier Product Hierarchy ─────────────────
 //
-// Sources:
-//   tj.radolfa.domain.model.Product                  (class)
-//   tj.radolfa.infrastructure.web.dto.ProductImageResponseDto  (record)
+// These interfaces mirror the backend DTOs exposed by ListingController:
+//   ListingVariantDto, ListingVariantDetailDto, SkuDto
 //
-// Re-run `/bridge` after any change to the Java source.
-//
-// ── Type-mapping key ─────────────────────────────────────────────
-//   Java Long        → number | null     (boxed; null on unsaved entities)
-//   Java String      → string | string | null  (see per-field note)
-//   Java BigDecimal  → number | null     (nullable before first ERP sync)
-//   Java Integer     → number | null     (boxed; nullable before first ERP sync)
-//   Java boolean     → boolean           (primitive; never null)
-//   Java List<T>     → T[]               (always initialised; may be empty)
-//   Java Instant     → string | null     (ISO-8601 over the wire)
-// ─────────────────────────────────────────────────────────────────
+// The Admin panel uses a separate Product type in features/products/types.ts.
 
 /**
- * Full product aggregate as returned by the backend.
- *
- * Field-ownership contract (enforced server-side; mirrored here for
- * the UI to honour):
- *
- *   LOCKED   – set exclusively by ERP sync.  The frontend must never
- *              render an <input> or any editable control for these fields.
- *   EDITABLE – owned by Radolfa.  Managers may update via the API.
- *   AUDIT    – read-only timestamps stamped by the backend.
+ * A purchasable unit — one size of one colour variant.
+ * Displayed on the product detail page as a size selector.
  */
-export interface Product {
-  /** Internal DB primary key.  Opaque to the frontend — prefer {@link erpId}. */
-  id: number | null;
-
-  /** Stable identifier assigned by ERPNext.  Use as the React key in lists. */
-  erpId: string;
-
-  /** Product name.                                LOCKED – ERP source of truth. */
-  name: string | null;
-
-  /** Unit price in the shop currency (USD).       LOCKED – ERP source of truth. */
-  price: number | null;
-
-  /** Current stock count.                         LOCKED – ERP source of truth. */
-  stock: number | null;
-
-  /** Marketing description written by the team.   EDITABLE – Radolfa owned. */
-  webDescription: string | null;
-
-  /** Curated "top seller" flag.                   EDITABLE – Radolfa owned. */
-  topSelling: boolean;
-
-  /** S3 image URLs produced by the image pipeline. EDITABLE – Radolfa owned. */
-  images: string[];
-
-  /** ISO-8601 timestamp of the most recent ERP sync. AUDIT – read-only. */
-  lastErpSyncAt: string | null;
+export interface Sku {
+  id: number;
+  erpItemCode: string;
+  sizeLabel: string;
+  stockQuantity: number;
+  /** Original / list price. */
+  price: number;
+  /** Effective price after promotions. */
+  salePrice: number;
+  onSale: boolean;
+  saleEndsAt: string | null;
 }
 
-// ── Response DTOs ────────────────────────────────────────────────
-// These mirror the records in tj.radolfa.infrastructure.web.dto.
-// They are placed here (product slice) because they are exclusively
-// returned by product-scoped endpoints.
+/**
+ * Product card shown on the grid/listing page.
+ * One card per colour variant (e.g. "T-Shirt — Red").
+ *
+ * Aggregate fields (priceStart, priceEnd, totalStock) are computed
+ * server-side from the variant's SKUs.
+ */
+export interface ListingVariant {
+  id: number;
+  slug: string;
+  name: string;
+  colorKey: string;
+  webDescription: string;
+  images: string[];
+  priceStart: number;
+  priceEnd: number;
+  totalStock: number;
+}
 
 /**
- * Response body of `POST /api/v1/products/{erpId}/images`.
- *
- * Source: tj.radolfa.infrastructure.web.dto.ProductImageResponseDto
- *   String        erpId   → string
- *   List<String>  images  → string[]
+ * Lightweight reference to another colour of the same product.
+ * Enables frontend colour swatches without a second API call.
  */
-export interface ProductImageResponse {
-  /** The ERP identifier of the product that was updated. */
-  erpId: string;
-  /** Full image-URL list after the new upload was appended. */
-  images: string[];
+export interface SiblingVariant {
+  slug: string;
+  colorKey: string;
+  thumbnail: string;
+}
+
+/**
+ * Full detail view for a single listing variant.
+ * Includes the SKU list (sizes/prices) and sibling colour swatches.
+ */
+export interface ListingVariantDetail extends ListingVariant {
+  skus: Sku[];
+  siblingVariants: SiblingVariant[];
+}
+
+/**
+ * Paginated response returned by the listings API.
+ * Mirrors backend `PageResult<ListingVariantDto>`.
+ */
+export interface PaginatedListings {
+  items: ListingVariant[];
+  totalElements: number;
+  page: number;
+  hasMore: boolean;
 }

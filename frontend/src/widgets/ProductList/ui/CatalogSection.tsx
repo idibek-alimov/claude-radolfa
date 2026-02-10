@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ProductGrid, fetchProducts } from "@/widgets/ProductList";
+import { ProductGrid, fetchListings } from "@/widgets/ProductList";
 import { SearchBar } from "@/features/search";
 import type { SearchParams } from "@/features/search";
 import {
@@ -27,9 +27,9 @@ export default function CatalogSection() {
     isLoading,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["products", "catalog", searchQuery],
+    queryKey: ["listings", "catalog", searchQuery],
     queryFn: async ({ pageParam = 1 }) => {
-      const result = await fetchProducts(pageParam, PAGE_LIMIT);
+      const result = await fetchListings(pageParam, PAGE_LIMIT);
       return result;
     },
     initialPageParam: 1,
@@ -39,14 +39,10 @@ export default function CatalogSection() {
     },
   });
 
-  const products = data?.pages.flatMap((page) => page.products) ?? [];
-  const totalCount = data?.pages[0]?.total ?? 0;
+  const listings = data?.pages.flatMap((page) => page.items) ?? [];
+  const totalCount = data?.pages[0]?.totalElements ?? 0;
 
   const handleSearch = (params: SearchParams) => {
-    console.log(
-      "[CatalogSection] search submitted — backend endpoint not yet live.",
-      { query: params.query }
-    );
     setSearchQuery(params.query);
   };
 
@@ -83,7 +79,7 @@ export default function CatalogSection() {
       </div>
 
       <ProductGrid
-        products={products}
+        listings={listings}
         loading={isLoading || isFetchingNextPage}
         hasMore={hasNextPage}
         onLoadMore={fetchNextPage}

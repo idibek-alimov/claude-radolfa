@@ -1,4 +1,4 @@
-import type { Product } from "@/entities/product";
+import type { ListingVariant } from "@/entities/product";
 
 /** Parameters sent to the search API. */
 export interface SearchParams {
@@ -9,7 +9,8 @@ export interface SearchParams {
 
 /** Paginated response returned by the search API. */
 export interface SearchResult {
-  products: Product[];
-  total: number;
+  items: ListingVariant[];
+  totalElements: number;
   page: number;
+  hasMore: boolean;
 }
