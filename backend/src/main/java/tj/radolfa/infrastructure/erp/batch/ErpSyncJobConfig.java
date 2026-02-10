@@ -9,14 +9,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import tj.radolfa.domain.model.Product;
+import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 
 /**
  * Spring Batch {@code @Configuration} that assembles the
  * {@code erpInitialImportJob}.
  *
- * Chunk size is 10: each transaction commits after 10 products are
+ * <p>Chunk size is 10: each transaction commits after 10 products are
  * read, processed, and written.
  */
 @Configuration
@@ -24,9 +24,6 @@ public class ErpSyncJobConfig {
 
     private static final int CHUNK_SIZE = 10;
 
-    // ----------------------------------------------------------------
-    // Job
-    // ----------------------------------------------------------------
     @Bean
     public Job erpInitialImportJob(JobRepository jobRepository,
                                    Step erpImportStep) {
@@ -35,17 +32,14 @@ public class ErpSyncJobConfig {
                 .build();
     }
 
-    // ----------------------------------------------------------------
-    // Step
-    // ----------------------------------------------------------------
     @Bean
     public Step erpImportStep(JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
-                              ErpProductReader   reader,
+                              ErpProductReader    reader,
                               ErpProductProcessor processor,
-                              ErpProductWriter   writer) {
+                              ErpProductWriter    writer) {
         return new StepBuilder("erpImportStep", jobRepository)
-                .<ErpProductSnapshot, Product>chunk(CHUNK_SIZE, transactionManager)
+                .<ErpProductSnapshot, ProductBase>chunk(CHUNK_SIZE, transactionManager)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)

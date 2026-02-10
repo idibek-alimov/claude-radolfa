@@ -1,35 +1,32 @@
 package tj.radolfa.infrastructure.web;
 
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import tj.radolfa.application.ports.in.SyncErpProductUseCase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
 import tj.radolfa.application.ports.out.LogSyncEventPort;
 import tj.radolfa.domain.model.Money;
-import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
+import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
 
-import java.util.List;
-
 /**
- * REST adapter for incremental (push-based) ERP sync.
+ * REST adapter for ERP product synchronisation.
  *
- * <p>ERPNext (or a webhook bridge) POSTs a JSON array of product snapshots.
- * Each snapshot is forwarded to {@link SyncErpProductUseCase} -- the single
- * authorised upsert path. Individual failures are logged and counted but
- * do not abort the remaining items.
+ * <p>Accepts a rich hierarchy payload from ERPNext:
+ * Template → Variant (Colour) → Item (Size/SKU).
  *
  * <h3>Security</h3>
- * <p>This endpoint is protected by Spring Security. Only users with the
- * {@code SYSTEM} role can access it. The role is verified via JWT token
- * in the Authorization header.
+ * Only users with the {@code SYSTEM} role can access this endpoint.
  *
  * <h3>Critical Constraint</h3>
- * <p>ERPNext is the SOURCE OF TRUTH for price, name, stock. Only SYSTEM
- * role can modify these fields through this sync endpoint.
+ * ERPNext is the SOURCE OF TRUTH for price, name, stock.
  */
 @RestController
 @RequestMapping("/api/v1/sync")
@@ -37,56 +34,77 @@ public class ErpSyncController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErpSyncController.class);
 
-    private final SyncErpProductUseCase syncUseCase;
-    private final LogSyncEventPort      logSyncEvent;
+    private final SyncProductHierarchyUseCase syncUseCase;
+    private final LogSyncEventPort            logSyncEvent;
 
-    public ErpSyncController(SyncErpProductUseCase syncUseCase,
-                             LogSyncEventPort      logSyncEvent) {
+    public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
+                             LogSyncEventPort            logSyncEvent) {
         this.syncUseCase  = syncUseCase;
         this.logSyncEvent = logSyncEvent;
     }
 
-    // ----------------------------------------------------------------
-    // Endpoint
-    // ----------------------------------------------------------------
-
     /**
-     * Accepts a JSON array of ERP product snapshots, syncs each one,
-     * and returns a summary of the operation.
-     *
-     * <p>Requires SYSTEM role (enforced by Spring Security filter chain
-     * and method-level security annotation).
-     *
-     * @param snapshots the array of product snapshots to sync
-     * @return 200 with {@link SyncResultDto}, or 403 if unauthorized
+     * Accepts a hierarchy payload, performs idempotent upsert
+     * across ProductBase → ListingVariant → Sku, and returns
+     * a summary of the operation.
      */
     @PostMapping("/products")
     @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<SyncResultDto> syncProducts(@RequestBody List<ErpProductSnapshot> snapshots) {
+    public ResponseEntity<SyncResultDto> syncProducts(
+            @Valid @RequestBody ErpHierarchyPayload payload) {
 
-        LOG.info("[ERP-SYNC] Received sync request with {} products", snapshots.size());
+        LOG.info("[ERP-SYNC] Received hierarchy sync for template={}",
+                payload.templateCode());
 
         int synced = 0;
         int errors = 0;
 
-        for (ErpProductSnapshot snapshot : snapshots) {
-            try {
-                syncUseCase.execute(
-                        snapshot.erpId(),
-                        snapshot.name(),
-                        Money.of(snapshot.price()),
-                        snapshot.stock()
-                );
-                logSyncEvent.log(snapshot.erpId(), true, null);
-                synced++;
-            } catch (Exception ex) {
-                LOG.error("[ERP-SYNC] Failed to sync erpId={}: {}", snapshot.erpId(), ex.getMessage(), ex);
-                logSyncEvent.log(snapshot.erpId(), false, ex.getMessage());
-                errors++;
-            }
+        try {
+            HierarchySyncCommand command = toCommand(payload);
+            syncUseCase.execute(command);
+            logSyncEvent.log(payload.templateCode(), true, null);
+            synced = 1;
+        } catch (Exception ex) {
+            LOG.error("[ERP-SYNC] Failed to sync template={}: {}",
+                    payload.templateCode(), ex.getMessage(), ex);
+            logSyncEvent.log(payload.templateCode(), false, ex.getMessage());
+            errors = 1;
         }
 
         LOG.info("[ERP-SYNC] Completed -- synced={}, errors={}", synced, errors);
         return ResponseEntity.ok(new SyncResultDto(synced, errors));
+    }
+
+    // ---- Mapping: DTO → Command ----
+
+    private HierarchySyncCommand toCommand(ErpHierarchyPayload payload) {
+        var variants = payload.variants().stream()
+                .map(this::toVariantCommand)
+                .toList();
+
+        return new HierarchySyncCommand(
+                payload.templateCode(),
+                payload.templateName(),
+                variants
+        );
+    }
+
+    private VariantCommand toVariantCommand(ErpHierarchyPayload.VariantPayload vp) {
+        var items = vp.items().stream()
+                .map(this::toSkuCommand)
+                .toList();
+
+        return new VariantCommand(vp.colorKey(), items);
+    }
+
+    private SkuCommand toSkuCommand(ErpHierarchyPayload.ItemPayload ip) {
+        return new SkuCommand(
+                ip.erpItemCode(),
+                ip.sizeLabel(),
+                ip.stockQuantity(),
+                Money.of(ip.price().list()),
+                Money.of(ip.price().effective()),
+                ip.price().saleEndsAt()
+        );
     }
 }

@@ -3,39 +3,56 @@ package tj.radolfa.infrastructure.erp.batch;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import tj.radolfa.application.ports.in.SyncErpProductUseCase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
 import tj.radolfa.domain.model.Money;
-import tj.radolfa.domain.model.Product;
+import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 
+import java.util.List;
+
 /**
- * Spring Batch {@code ItemProcessor} that delegates every snapshot
- * to {@link SyncErpProductUseCase}.
+ * Spring Batch {@code ItemProcessor} that converts a flat ERP snapshot
+ * into a hierarchy command and delegates to {@link SyncProductHierarchyUseCase}.
  *
- * This is the single point at which the upsert decision is made:
- * <ul>
- *   <li>Product already exists -> {@code enrichWithErpData} overwrites only locked fields.</li>
- *   <li>Product is new         -> a skeleton record is created with locked fields populated.</li>
- * </ul>
- *
- * No duplicate logic lives here – all business rules are in the use-case service.
+ * <p>The flat ERP API returns individual items. This processor wraps each
+ * into a minimal hierarchy: one template → one "default" variant → one SKU.
+ * The use case's idempotent upsert merges correctly when multiple items
+ * share the same template code.
  */
 @Component
-public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Product> {
+public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, ProductBase> {
 
-    private final SyncErpProductUseCase syncUseCase;
+    private final SyncProductHierarchyUseCase syncUseCase;
 
-    public ErpProductProcessor(SyncErpProductUseCase syncUseCase) {
+    public ErpProductProcessor(SyncProductHierarchyUseCase syncUseCase) {
         this.syncUseCase = syncUseCase;
     }
 
     @Override
-    public Product process(ErpProductSnapshot snapshot) {
-        return syncUseCase.execute(
+    public ProductBase process(ErpProductSnapshot snapshot) {
+        var skuCommand = new SkuCommand(
+                snapshot.erpId(),
+                null,
+                snapshot.stock(),
+                Money.of(snapshot.price()),
+                Money.of(snapshot.price()),
+                null
+        );
+
+        var variantCommand = new VariantCommand(
+                "default",
+                List.of(skuCommand)
+        );
+
+        var command = new HierarchySyncCommand(
                 snapshot.erpId(),
                 snapshot.name(),
-                Money.of(snapshot.price()),
-                snapshot.stock()
+                List.of(variantCommand)
         );
+
+        return syncUseCase.execute(command);
     }
 }

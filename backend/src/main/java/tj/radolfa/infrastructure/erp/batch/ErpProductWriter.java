@@ -1,40 +1,33 @@
 package tj.radolfa.infrastructure.erp.batch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
-import tj.radolfa.application.ports.out.ElasticsearchProductIndexer;
-import tj.radolfa.application.ports.out.SaveProductPort;
-import tj.radolfa.domain.model.Product;
+import tj.radolfa.domain.model.ProductBase;
 
 /**
- * Spring Batch {@code ItemWriter} that persists each product and then
- * pushes it into the search index.
+ * Spring Batch {@code ItemWriter} for the hierarchy sync pipeline.
  *
- * Note: {@link SaveProductPort#save} is called here even though
- * {@link tj.radolfa.application.services.SyncErpProductService} already saves.
- * The processor's save ensures the domain object is persisted; this writer's
- * save is idempotent (same entity, same state) and guarantees the post-process
- * write contract.  The index call is the primary added value of this writer.
+ * <p>The processor already persists data via
+ * {@link tj.radolfa.application.ports.in.SyncProductHierarchyUseCase},
+ * so this writer only handles post-processing (logging).
+ *
+ * <p>Elasticsearch re-indexing for the hierarchy model will be added
+ * when the search adapter is migrated to the new schema.
  */
 @Component
-public class ErpProductWriter implements ItemWriter<Product> {
+public class ErpProductWriter implements ItemWriter<ProductBase> {
 
-    private final SaveProductPort              savePort;
-    private final ElasticsearchProductIndexer  indexer;
-
-    public ErpProductWriter(SaveProductPort savePort,
-                            ElasticsearchProductIndexer indexer) {
-        this.savePort = savePort;
-        this.indexer  = indexer;
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(ErpProductWriter.class);
 
     @Override
-    public void write(Chunk<? extends Product> chunk) {
-        for (Product product : chunk) {
-            Product persisted = savePort.save(product);
-            indexer.index(persisted);
+    public void write(Chunk<? extends ProductBase> chunk) {
+        for (ProductBase base : chunk) {
+            LOG.debug("[BATCH-WRITER] Processed template={}", base.getErpTemplateCode());
         }
+        LOG.info("[BATCH-WRITER] Wrote {} product bases", chunk.size());
     }
 }
