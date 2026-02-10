@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
@@ -14,7 +15,12 @@ import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 
+import tj.radolfa.domain.model.Money;
+import tj.radolfa.domain.model.Sku;
+
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Handles an inbound ERP sync event for a full product hierarchy.
@@ -32,19 +38,22 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
 
     private static final Logger LOG = LoggerFactory.getLogger(SyncProductHierarchyService.class);
 
-    private final LoadProductBasePort    loadBasePort;
-    private final LoadListingVariantPort loadVariantPort;
-    private final LoadSkuPort            loadSkuPort;
+    private final LoadProductBasePort      loadBasePort;
+    private final LoadListingVariantPort   loadVariantPort;
+    private final LoadSkuPort              loadSkuPort;
     private final SaveProductHierarchyPort savePort;
+    private final ListingIndexPort         listingIndexPort;
 
     public SyncProductHierarchyService(LoadProductBasePort loadBasePort,
                                        LoadListingVariantPort loadVariantPort,
                                        LoadSkuPort loadSkuPort,
-                                       SaveProductHierarchyPort savePort) {
-        this.loadBasePort    = loadBasePort;
-        this.loadVariantPort = loadVariantPort;
-        this.loadSkuPort     = loadSkuPort;
-        this.savePort        = savePort;
+                                       SaveProductHierarchyPort savePort,
+                                       ListingIndexPort listingIndexPort) {
+        this.loadBasePort      = loadBasePort;
+        this.loadVariantPort   = loadVariantPort;
+        this.loadSkuPort       = loadSkuPort;
+        this.savePort          = savePort;
+        this.listingIndexPort  = listingIndexPort;
     }
 
     @Override
@@ -80,6 +89,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
             variant.markSynced();
             ListingVariant savedVariant = savePort.saveVariant(variant, baseId);
 
+            List<Sku> savedSkus = new ArrayList<>();
             for (HierarchySyncCommand.SkuCommand sc : vc.items()) {
                 final Long variantId = savedVariant.getId();
                 Sku sku = loadSkuPort.findByErpItemCode(sc.erpItemCode())
@@ -102,13 +112,51 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                         sc.saleEndsAt()
                 );
 
-                savePort.saveSku(sku, variantId);
+                savedSkus.add(savePort.saveSku(sku, variantId));
             }
+
+            // Index into Elasticsearch (fire-and-forget)
+            indexVariant(savedVariant, command.templateName(), savedSkus);
         }
 
         LOG.info("[HIERARCHY-SYNC] Completed template={}, variants={}",
                 command.templateCode(), command.variants().size());
 
         return savedBase;
+    }
+
+    private void indexVariant(ListingVariant variant, String productName, List<Sku> skus) {
+        Double priceStart = skus.stream()
+                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
+                .filter(java.util.Objects::nonNull)
+                .map(Money::amount)
+                .min(java.math.BigDecimal::compareTo)
+                .map(java.math.BigDecimal::doubleValue)
+                .orElse(null);
+
+        Double priceEnd = skus.stream()
+                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
+                .filter(java.util.Objects::nonNull)
+                .map(Money::amount)
+                .max(java.math.BigDecimal::compareTo)
+                .map(java.math.BigDecimal::doubleValue)
+                .orElse(null);
+
+        int totalStock = skus.stream()
+                .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
+                .sum();
+
+        listingIndexPort.index(
+                variant.getId(),
+                variant.getSlug(),
+                productName,
+                variant.getColorKey(),
+                variant.getWebDescription(),
+                variant.getImages(),
+                priceStart,
+                priceEnd,
+                totalStock,
+                variant.getLastSyncAt()
+        );
     }
 }

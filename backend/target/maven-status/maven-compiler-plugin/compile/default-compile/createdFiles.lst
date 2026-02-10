@@ -38,7 +38,6 @@ tj/radolfa/infrastructure/web/dto/OrderItemDto.class
 tj/radolfa/application/ports/in/SendOtpUseCase.class
 tj/radolfa/infrastructure/persistence/mappers/ProductMapper.class
 tj/radolfa/infrastructure/s3/S3ImageUploaderStub.class
-tj/radolfa/infrastructure/erp/ElasticsearchProductIndexerStub.class
 tj/radolfa/infrastructure/persistence/entity/OrderItemEntity.class
 tj/radolfa/application/services/AddProductImageService.class
 tj/radolfa/application/ports/out/LoadUserPort.class
@@ -56,7 +55,6 @@ tj/radolfa/infrastructure/web/dto/ProductImageResponseDto.class
 tj/radolfa/application/ports/out/ProcessedImage.class
 tj/radolfa/infrastructure/security/JwtProperties.class
 tj/radolfa/infrastructure/security/JwtAuthenticationFilter.class
-tj/radolfa/application/ports/out/ElasticsearchProductIndexer.class
 tj/radolfa/domain/model/Order.class
 tj/radolfa/infrastructure/erp/batch/ErpProductReader.class
 tj/radolfa/application/ports/in/VerifyOtpUseCase.class

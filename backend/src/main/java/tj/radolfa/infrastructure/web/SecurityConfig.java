@@ -88,6 +88,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
 
                         // Swagger / OpenAPI endpoints
                         .requestMatchers("/swagger-ui/**").permitAll()

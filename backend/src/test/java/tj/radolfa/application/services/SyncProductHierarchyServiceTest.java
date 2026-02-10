@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
+import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
@@ -22,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,6 +44,7 @@ class SyncProductHierarchyServiceTest {
     private FakeLoadListingVariantPort  fakeLoadVariant;
     private FakeLoadSkuPort             fakeLoadSku;
     private FakeSavePort                fakeSave;
+    private FakeListingIndexPort        fakeIndexPort;
 
     @BeforeEach
     void setUp() {
@@ -49,9 +52,10 @@ class SyncProductHierarchyServiceTest {
         fakeLoadVariant = new FakeLoadListingVariantPort();
         fakeLoadSku     = new FakeLoadSkuPort();
         fakeSave        = new FakeSavePort();
+        fakeIndexPort   = new FakeListingIndexPort();
 
         service = new SyncProductHierarchyService(
-                fakeLoadBase, fakeLoadVariant, fakeLoadSku, fakeSave
+                fakeLoadBase, fakeLoadVariant, fakeLoadSku, fakeSave, fakeIndexPort
         );
     }
 
@@ -239,6 +243,21 @@ class SyncProductHierarchyServiceTest {
             return existing != null && existing.getErpItemCode().equals(code)
                     ? Optional.of(existing) : Optional.empty();
         }
+    }
+
+    static class FakeListingIndexPort implements ListingIndexPort {
+        AtomicInteger indexCount = new AtomicInteger();
+
+        @Override
+        public void index(Long variantId, String slug, String name, String colorKey,
+                          String description, List<String> images,
+                          Double priceStart, Double priceEnd, Integer totalStock,
+                          Instant lastSyncAt) {
+            indexCount.incrementAndGet();
+        }
+
+        @Override
+        public void delete(String slug) {}
     }
 
     static class FakeSavePort implements SaveProductHierarchyPort {
