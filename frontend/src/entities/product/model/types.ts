@@ -39,6 +39,7 @@ export interface ListingVariant {
   priceStart: number;
   priceEnd: number;
   totalStock: number;
+  topSelling: boolean;
 }
 
 /**

@@ -50,9 +50,9 @@ public class OrderController {
                 order.totalAmount().amount(),
                 order.items().stream()
                         .map(item -> new OrderItemDto(
-                                item.productName(),
-                                item.quantity(),
-                                item.priceAtPurchase().amount()))
+                                item.getProductName(),
+                                item.getQuantity(),
+                                item.getPrice().amount()))
                         .toList(),
                 order.createdAt());
     }

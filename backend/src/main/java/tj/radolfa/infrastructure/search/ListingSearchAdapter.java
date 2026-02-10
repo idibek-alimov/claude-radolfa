@@ -24,7 +24,8 @@ import java.util.List;
 /**
  * Real Elasticsearch adapter for the listings index.
  *
- * <p>Handles both indexing (write) and search (read).
+ * <p>
+ * Handles both indexing (write) and search (read).
  * Index/delete are fire-and-forget: failures are logged but never
  * propagate to the sync pipeline.
  */
@@ -32,116 +33,115 @@ import java.util.List;
 @Profile("!test")
 public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ListingSearchAdapter.class);
+        private static final Logger LOG = LoggerFactory.getLogger(ListingSearchAdapter.class);
 
-    private final ListingSearchRepository repository;
-    private final ElasticsearchOperations operations;
+        private final ListingSearchRepository repository;
+        private final ElasticsearchOperations operations;
 
-    public ListingSearchAdapter(ListingSearchRepository repository,
-                                ElasticsearchOperations operations) {
-        this.repository = repository;
-        this.operations = operations;
-    }
-
-    // ---- ListingIndexPort (write) ----
-
-    @Override
-    public void index(Long variantId, String slug, String name, String colorKey,
-                      String description, List<String> images,
-                      Double priceStart, Double priceEnd, Integer totalStock,
-                      Instant lastSyncAt) {
-        try {
-            ListingDocument doc = new ListingDocument(
-                    variantId, slug, name, colorKey, description,
-                    images, priceStart, priceEnd, totalStock, lastSyncAt);
-            repository.save(doc);
-            LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
-        } catch (Exception e) {
-            LOG.warn("Failed to index listing variant id={}: {}", variantId, e.getMessage());
+        public ListingSearchAdapter(ListingSearchRepository repository,
+                        ElasticsearchOperations operations) {
+                this.repository = repository;
+                this.operations = operations;
         }
-    }
 
-    @Override
-    public void delete(String slug) {
-        try {
-            repository.deleteBySlug(slug);
-            LOG.debug("Deleted listing from index slug={}", slug);
-        } catch (Exception e) {
-            LOG.warn("Failed to delete listing from index slug={}: {}", slug, e.getMessage());
+        // ---- ListingIndexPort (write) ----
+
+        @Override
+        public void index(Long variantId, String slug, String name, String colorKey,
+                        String description, List<String> images,
+                        Double priceStart, Double priceEnd, Integer totalStock,
+                        Instant lastSyncAt) {
+                try {
+                        ListingDocument doc = new ListingDocument(
+                                        variantId, slug, name, colorKey, description,
+                                        images, priceStart, priceEnd, totalStock, lastSyncAt);
+                        repository.save(doc);
+                        LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
+                } catch (Exception e) {
+                        LOG.warn("Failed to index listing variant id={}: {}", variantId, e.getMessage());
+                }
         }
-    }
 
-    // ---- SearchListingPort (read) ----
+        @Override
+        public void delete(String slug) {
+                try {
+                        repository.deleteBySlug(slug);
+                        LOG.debug("Deleted listing from index slug={}", slug);
+                } catch (Exception e) {
+                        LOG.warn("Failed to delete listing from index slug={}: {}", slug, e.getMessage());
+                }
+        }
 
-    @Override
-    public PageResult<ListingVariantDto> search(String query, int page, int limit) {
-        Query fuzzyQuery = BoolQuery.of(b -> b
-                .should(
-                        Query.of(q -> q.match(m -> m
-                                .field("name")
-                                .query(query)
-                                .fuzziness("AUTO")
-                                .boost(3.0f))),
-                        Query.of(q -> q.match(m -> m
-                                .field("webDescription")
-                                .query(query)
-                                .fuzziness("AUTO"))),
-                        Query.of(q -> q.match(m -> m
-                                .field("colorKey")
-                                .query(query)
-                                .boost(2.0f)))
-                )
-                .minimumShouldMatch("1")
-        )._toQuery();
+        // ---- SearchListingPort (read) ----
 
-        NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(fuzzyQuery)
-                .withPageable(PageRequest.of(page - 1, limit))
-                .build();
+        @Override
+        public PageResult<ListingVariantDto> search(String query, int page, int limit) {
+                Query fuzzyQuery = BoolQuery.of(b -> b
+                                .should(
+                                                Query.of(q -> q.match(m -> m
+                                                                .field("name")
+                                                                .query(query)
+                                                                .fuzziness("AUTO")
+                                                                .boost(3.0f))),
+                                                Query.of(q -> q.match(m -> m
+                                                                .field("webDescription")
+                                                                .query(query)
+                                                                .fuzziness("AUTO"))),
+                                                Query.of(q -> q.match(m -> m
+                                                                .field("colorKey")
+                                                                .query(query)
+                                                                .boost(2.0f))))
+                                .minimumShouldMatch("1"))._toQuery();
 
-        SearchHits<ListingDocument> hits = operations.search(searchQuery, ListingDocument.class);
+                NativeQuery searchQuery = NativeQuery.builder()
+                                .withQuery(fuzzyQuery)
+                                .withPageable(PageRequest.of(page - 1, limit))
+                                .build();
 
-        List<ListingVariantDto> items = hits.getSearchHits().stream()
-                .map(SearchHit::getContent)
-                .map(this::toDto)
-                .toList();
+                SearchHits<ListingDocument> hits = operations.search(searchQuery, ListingDocument.class);
 
-        long totalHits = hits.getTotalHits();
-        boolean hasMore = (long) page * limit < totalHits;
+                List<ListingVariantDto> items = hits.getSearchHits().stream()
+                                .map(SearchHit::getContent)
+                                .map(this::toDto)
+                                .toList();
 
-        return new PageResult<>(items, totalHits, page, hasMore);
-    }
+                long totalHits = hits.getTotalHits();
+                boolean hasMore = (long) page * limit < totalHits;
 
-    @Override
-    public List<String> autocomplete(String prefix, int limit) {
-        NativeQuery searchQuery = NativeQuery.builder()
-                .withQuery(Query.of(q -> q.match(m -> m
-                        .field("name.autocomplete")
-                        .query(prefix))))
-                .withPageable(PageRequest.of(0, limit))
-                .build();
+                return new PageResult<>(items, totalHits, page, hasMore);
+        }
 
-        SearchHits<ListingDocument> hits = operations.search(searchQuery, ListingDocument.class);
+        @Override
+        public List<String> autocomplete(String prefix, int limit) {
+                NativeQuery searchQuery = NativeQuery.builder()
+                                .withQuery(Query.of(q -> q.match(m -> m
+                                                .field("name.autocomplete")
+                                                .query(prefix))))
+                                .withPageable(PageRequest.of(0, limit))
+                                .build();
 
-        return hits.getSearchHits().stream()
-                .map(hit -> hit.getContent().getName())
-                .distinct()
-                .toList();
-    }
+                SearchHits<ListingDocument> hits = operations.search(searchQuery, ListingDocument.class);
 
-    // ---- Mapping ----
+                return hits.getSearchHits().stream()
+                                .map(hit -> hit.getContent().getName())
+                                .distinct()
+                                .toList();
+        }
 
-    private ListingVariantDto toDto(ListingDocument doc) {
-        return new ListingVariantDto(
-                doc.getId(),
-                doc.getSlug(),
-                doc.getName(),
-                doc.getColorKey(),
-                doc.getWebDescription(),
-                doc.getImages() != null ? doc.getImages() : List.of(),
-                doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,
-                doc.getPriceEnd() != null ? BigDecimal.valueOf(doc.getPriceEnd()) : null,
-                doc.getTotalStock()
-        );
-    }
+        // ---- Mapping ----
+
+        private ListingVariantDto toDto(ListingDocument doc) {
+                return new ListingVariantDto(
+                                doc.getId(),
+                                doc.getSlug(),
+                                doc.getName(),
+                                doc.getColorKey(),
+                                doc.getWebDescription(),
+                                doc.getImages() != null ? doc.getImages() : List.of(),
+                                doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,
+                                doc.getPriceEnd() != null ? BigDecimal.valueOf(doc.getPriceEnd()) : null,
+                                doc.getTotalStock(),
+                                false // topSelling not yet in search index
+                );
+        }
 }

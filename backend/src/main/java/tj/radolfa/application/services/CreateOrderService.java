@@ -3,13 +3,11 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.CreateOrderUseCase;
-import tj.radolfa.application.ports.out.LoadProductPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
-import tj.radolfa.domain.model.Product;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,11 +18,11 @@ import java.util.Map;
 public class CreateOrderService implements CreateOrderUseCase {
 
     private final SaveOrderPort saveOrderPort;
-    private final LoadProductPort loadProductPort;
+    private final tj.radolfa.application.ports.out.LoadSkuPort loadSkuPort;
 
-    public CreateOrderService(SaveOrderPort saveOrderPort, LoadProductPort loadProductPort) {
+    public CreateOrderService(SaveOrderPort saveOrderPort, tj.radolfa.application.ports.out.LoadSkuPort loadSkuPort) {
         this.saveOrderPort = saveOrderPort;
-        this.loadProductPort = loadProductPort;
+        this.loadSkuPort = loadSkuPort;
     }
 
     @Override
@@ -34,20 +32,24 @@ public class CreateOrderService implements CreateOrderUseCase {
         Money total = Money.ZERO;
 
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
-            String erpId = entry.getKey();
+            String skuCode = entry.getKey();
             int quantity = entry.getValue();
 
-            Product product = loadProductPort.load(erpId)
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + erpId));
+            tj.radolfa.domain.model.Sku sku = loadSkuPort.findByErpItemCode(skuCode)
+                    .orElseThrow(() -> new IllegalArgumentException("SKU not found: " + skuCode));
 
-            Money price = product.getPrice() != null ? product.getPrice() : Money.ZERO;
+            // Use Sale Price if available and active
+            Money price = sku.getSalePrice() != null ? sku.getSalePrice() : sku.getPrice();
+            if (price == null)
+                price = Money.ZERO;
+
             Money itemTotal = price.multiply(quantity);
             total = total.add(itemTotal);
 
             orderItems.add(new OrderItem(
                     null,
-                    product.getId(),
-                    product.getName(),
+                    sku.getId(),
+                    sku.getSizeLabel(), // Or product name + size? Keeping simple for now
                     quantity,
                     price));
         }

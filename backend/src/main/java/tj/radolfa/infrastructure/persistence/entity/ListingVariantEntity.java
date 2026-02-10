@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "listing_variants",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"product_base_id", "color_key"}))
+@Table(name = "listing_variants", uniqueConstraints = @UniqueConstraint(columnNames = { "product_base_id",
+        "color_key" }))
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
@@ -35,6 +35,9 @@ public class ListingVariantEntity extends BaseAuditEntity {
 
     @Column(name = "web_description", columnDefinition = "TEXT")
     private String webDescription;
+
+    @Column(name = "top_selling", nullable = false)
+    private boolean topSelling = false;
 
     @OneToMany(mappedBy = "listingVariant", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")

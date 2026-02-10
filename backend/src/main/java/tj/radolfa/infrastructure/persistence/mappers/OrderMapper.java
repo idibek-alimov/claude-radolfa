@@ -19,7 +19,8 @@ public interface OrderMapper {
 
     /**
      * Domain -> Entity.
-     * The {@code user} relationship is set by the adapter (requires a managed reference).
+     * The {@code user} relationship is set by the adapter (requires a managed
+     * reference).
      * Audit fields and version are managed by JPA lifecycle hooks.
      */
     @Mapping(target = "user", ignore = true)
@@ -29,8 +30,11 @@ public interface OrderMapper {
     @Mapping(target = "deletedAt", ignore = true)
     OrderEntity toEntity(Order order);
 
+    @Mapping(target = "price", source = "priceAtPurchase")
     OrderItem toOrderItem(OrderItemEntity entity);
 
+    @Mapping(target = "priceAtPurchase", source = "price")
+    @Mapping(target = "id", ignore = true) // Generated
     @Mapping(target = "order", ignore = true)
     OrderItemEntity toEntity(OrderItem item);
 

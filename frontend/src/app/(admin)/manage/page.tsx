@@ -5,15 +5,20 @@ import Image from "next/image";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
 import { toast } from "sonner";
-import { updateProduct } from "@/features/products/api";
 import {
-  useProducts,
-  useCreateProduct,
-  useUpdateProduct,
-  useDeleteProduct,
-  useUploadProductImage,
-} from "@/features/products/model/queries";
-import { Product } from "@/features/products/types";
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
+import {
+  fetchListings,
+  updateListing,
+  uploadListingImage,
+  removeListingImage,
+  searchListings,
+} from "@/entities/product/api"; // Ensure imports are correct
+import { ListingVariant } from "@/entities/product/model/types";
 import {
   Table,
   TableHeader,
@@ -30,43 +35,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/shared/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/shared/ui/alert-dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Plus, Pencil, Trash2, Lock, AlertCircle, Search, Package, Upload, Loader2, X } from "lucide-react";
+import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X } from "lucide-react";
 
 export default function ManageProductsPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  // ── TanStack Query ──────────────────────────────────────────────
-  const { data, isLoading, isError } = useProducts();
-  const products = data?.products ?? [];
-
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
-  const deleteMutation = useDeleteProduct();
-  const uploadMutation = useUploadProductImage();
-
-  // ── Dialog State ────────────────────────────────────────────────
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [saveError, setSaveError] = useState("");
-
-  // Delete confirmation
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-
-  // Search State
+  // ── Query State ─────────────────────────────────────────────────
+  const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<NodeJS.Timeout>();
@@ -75,91 +55,103 @@ export default function ManageProductsPage() {
     setSearchQuery(value);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value.trim().toLowerCase());
+      setDebouncedSearch(value.trim());
+      setPage(1); // Reset to page 1 on search
     }, 300);
   }, []);
 
-  const filteredProducts = useMemo(() => {
-    if (!debouncedSearch) return products;
-    return products.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(debouncedSearch) ||
-        p.erpId.toLowerCase().includes(debouncedSearch) ||
-        p.webDescription?.toLowerCase().includes(debouncedSearch)
-    );
-  }, [products, debouncedSearch]);
+  // ── Data Fetching ──────────────────────────────────────────────
+  const { data, isLoading } = useQuery({
+    queryKey: ["listings", page, debouncedSearch],
+    queryFn: () =>
+      debouncedSearch
+        ? searchListings(debouncedSearch, page, 12)
+        : fetchListings(page, 12),
+    placeholderData: keepPreviousData,
+  });
+
+  const listings = data?.items ?? [];
+
+  // ── Dialog State ────────────────────────────────────────────────
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ListingVariant | null>(null);
+  const [saveError, setSaveError] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
-    erpId: "",
-    name: "",
-    price: "",
-    stock: "",
     webDescription: "",
     topSelling: false,
-    images: [] as string[],
   });
 
-  // Image upload
+  // Image upload state
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Mutations ──────────────────────────────────────────────────
+  const updateMutation = useMutation({
+    mutationFn: ({ slug, data }: { slug: string; data: any }) =>
+      updateListing(slug, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+      toast.success("Product updated");
+      setIsDialogOpen(false);
+    },
+    onError: (err: any) => {
+      setSaveError(err.message || "Failed to update");
+    },
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: ({ slug, file }: { slug: string; file: File }) =>
+      uploadListingImage(slug, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+      toast.success("Image uploaded. Processing in background.");
+      // Note: Image processing is async, so it might not appear immediately.
+    },
+    onError: (err: any) => toast.error(err.message || "Upload failed"),
+  });
+
+  const deleteImageMutation = useMutation({
+    mutationFn: ({ slug, url }: { slug: string; url: string }) =>
+      removeListingImage(slug, url),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+      toast.success("Image removed");
+      // Optimistic update for standard image removal if synchronous
+      if (editingProduct) {
+        setEditingProduct({
+          ...editingProduct,
+          images: editingProduct.images.filter(url => url !== variables.url)
+        });
+      }
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to remove image"),
+  });
+
   // ── Handlers ────────────────────────────────────────────────────
 
-  const handleOpenDialog = (product?: Product) => {
+  const handleOpenDialog = (product: ListingVariant) => {
     setSaveError("");
-    if (product) {
-      setEditingProduct(product);
-      setFormData({
-        erpId: product.erpId,
-        name: product.name || "",
-        price: product.price?.toString() || "",
-        stock: product.stock?.toString() || "",
-        webDescription: product.webDescription || "",
-        topSelling: product.topSelling,
-        images: product.images ?? [],
-      });
-    } else {
-      setEditingProduct(null);
-      setFormData({
-        erpId: `SKU-${Date.now().toString().slice(-6)}`,
-        name: "",
-        price: "",
-        stock: "",
-        webDescription: "",
-        topSelling: false,
-        images: [],
-      });
-    }
+    setEditingProduct(product);
+    setFormData({
+      webDescription: product.webDescription || "",
+      topSelling: product.topSelling || false,
+    });
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
+    if (!editingProduct) return;
     setSaveError("");
-    const payload = {
-      erpId: formData.erpId,
-      name: formData.name,
-      price: parseFloat(formData.price) || 0,
-      stock: parseInt(formData.stock) || 0,
-      webDescription: formData.webDescription,
-      topSelling: formData.topSelling,
-      images: formData.images,
-    };
 
-    try {
-      if (editingProduct) {
-        await updateMutation.mutateAsync({
-          erpId: editingProduct.erpId,
-          data: payload,
-        });
-      } else {
-        await createMutation.mutateAsync(payload);
-      }
-      setIsDialogOpen(false);
-    } catch (e: any) {
-      console.error(e);
-      setSaveError(e.response?.data?.message || "Failed to save product");
-    }
+    updateMutation.mutate({
+      slug: editingProduct.slug,
+      data: {
+        webDescription: formData.webDescription,
+        topSelling: formData.topSelling,
+      },
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,14 +161,10 @@ export default function ManageProductsPage() {
 
     setUploading(true);
     try {
-      const result = await uploadMutation.mutateAsync({
-        erpId: editingProduct.erpId,
+      await uploadMutation.mutateAsync({
+        slug: editingProduct.slug,
         file,
       });
-      setFormData((prev) => ({ ...prev, images: result.images }));
-      toast.success("Image uploaded");
-    } catch (err: any) {
-      toast.error(err.message || "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -184,34 +172,14 @@ export default function ManageProductsPage() {
 
   const handleRemoveImage = async (url: string) => {
     if (!editingProduct) return;
-    const updated = formData.images.filter((img) => img !== url);
-    setFormData((prev) => ({ ...prev, images: updated }));
-    try {
-      await updateProduct(editingProduct.erpId, {
-        webDescription: formData.webDescription,
-        topSelling: formData.topSelling,
-        images: updated,
-      });
-      toast.success("Image removed");
-    } catch {
-      setFormData((prev) => ({ ...prev, images: formData.images }));
-      toast.error("Failed to remove image");
-    }
+    await deleteImageMutation.mutateAsync({ slug: editingProduct.slug, url });
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteMutation.mutateAsync(deleteTarget);
-      setDeleteTarget(null);
-    } catch (e: any) {
-      console.error(e);
-      setSaveError(e.response?.data?.message || "Failed to delete product");
-      setDeleteTarget(null);
-    }
+  // ── Helper ──────────────────────────────────────────────────────
+  const formatPrice = (start: number, end: number) => {
+    if (start === end) return `$${start.toFixed(2)}`;
+    return `$${start.toFixed(2)} - $${end.toFixed(2)}`;
   };
-
-  const saving = createMutation.isPending || updateMutation.isPending;
 
   // ── Render ──────────────────────────────────────────────────────
 
@@ -226,13 +194,9 @@ export default function ManageProductsPage() {
                 Product Management
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Manage your product catalog, pricing, and inventory
+                Enrich product details. Pricing and stock are synced from ERP.
               </p>
             </div>
-            <Button onClick={() => handleOpenDialog()} className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Button>
           </div>
 
           {/* Search */}
@@ -241,14 +205,14 @@ export default function ManageProductsPage() {
             <Input
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search by name, ERP ID..."
+              placeholder="Search by name, slug..."
               className="pl-9"
             />
           </div>
 
           {/* Product Table */}
           <div className="bg-card rounded-xl border shadow-sm">
-            {isLoading && products.length === 0 ? (
+            {isLoading && listings.length === 0 ? (
               <div className="p-6 space-y-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-12 w-full" />
@@ -260,7 +224,7 @@ export default function ManageProductsPage() {
                   <TableRow>
                     <TableHead className="pl-4 w-[56px]">Image</TableHead>
                     <TableHead>Product</TableHead>
-                    <TableHead>ERP ID</TableHead>
+                    <TableHead>Slug / Key</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
@@ -268,14 +232,14 @@ export default function ManageProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
+                  {listings.map((item) => (
+                    <TableRow key={item.id}>
                       <TableCell className="pl-4">
-                        {product.images?.[0] ? (
+                        {item.images?.[0] ? (
                           <div className="relative h-10 w-10 rounded-md border overflow-hidden">
                             <Image
-                              src={product.images[0]}
-                              alt={product.name ?? "Product"}
+                              src={item.images[0]}
+                              alt={item.name}
                               width={40}
                               height={40}
                               className="object-cover aspect-square"
@@ -291,181 +255,126 @@ export default function ManageProductsPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium text-sm">
-                            {product.name || "Unnamed Product"}
+                            {item.name}
                           </p>
                           <p className="text-xs text-muted-foreground truncate max-w-xs">
-                            {product.webDescription}
+                            {item.webDescription}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                          {product.erpId}
+                          {item.slug}
                         </code>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Lock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">${product.price}</span>
+                          <span className="text-sm">
+                            {formatPrice(item.priceStart, item.priceEnd)}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Lock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{product.stock}</span>
+                          <span className="text-sm">{item.totalStock}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {product.topSelling && (
+                        {item.topSelling && (
                           <Badge variant="success">Top Seller</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right pr-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(product)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteTarget(product.erpId)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(item)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             )}
-            {filteredProducts.length === 0 && !isLoading && (
+
+            {listings.length === 0 && !isLoading && (
               <div className="p-12 text-center text-muted-foreground">
                 {debouncedSearch
                   ? `No products matching "${debouncedSearch}"`
-                  : "No products found. Start by adding one."}
+                  : "No products found."}
               </div>
             )}
           </div>
         </div>
 
-        {/* Edit/Create Dialog */}
+        {/* Edit Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? "Edit Product" : "Add New Product"}
-              </DialogTitle>
+              <DialogTitle>Edit Product</DialogTitle>
               <DialogDescription>
-                {editingProduct
-                  ? "Update the product details below. ERP-locked fields are synced from the source system."
-                  : "Fill in the details to create a new product."}
+                Update description and images. Price, stock, and basic details are synced from ERP and cannot be changed here.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto pr-1">
-              {/* ERP-Locked Fields */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-1.5">
-                  ERP ID
-                  {editingProduct && <Lock className="h-3 w-3 text-muted-foreground" />}
-                </label>
-                <Input
-                  disabled={!!editingProduct}
-                  value={formData.erpId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, erpId: e.target.value })
-                  }
-                  className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-1.5">
-                  Name
-                  <Lock className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground font-normal">
-                    Synced from ERP
-                  </span>
-                </label>
-                <Input
-                  disabled={!!editingProduct}
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            {editingProduct && (
+              <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto pr-1">
+                {/* ERP-Locked Fields */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-1.5">
-                    Price
+                    Slug
                     <Lock className="h-3 w-3 text-muted-foreground" />
                   </label>
                   <Input
-                    type="number"
-                    disabled={!!editingProduct}
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: e.target.value })
-                    }
-                    className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
+                    disabled
+                    value={editingProduct.slug}
+                    className="bg-slate-50 dark:bg-slate-900"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-1.5">
-                    Stock
+                    Name (and Color)
                     <Lock className="h-3 w-3 text-muted-foreground" />
                   </label>
                   <Input
-                    type="number"
-                    disabled={!!editingProduct}
-                    value={formData.stock}
-                    onChange={(e) =>
-                      setFormData({ ...formData, stock: e.target.value })
-                    }
-                    className={editingProduct ? "bg-slate-50 dark:bg-slate-900" : ""}
+                    disabled
+                    value={`${editingProduct.name} - ${editingProduct.colorKey}`}
+                    className="bg-slate-50 dark:bg-slate-900"
                   />
                 </div>
-              </div>
 
-              {/* Editable Fields — Manager can enrich */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <textarea
-                  value={formData.webDescription}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      webDescription: e.target.value,
-                    })
-                  }
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  rows={3}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="topSelling"
-                  checked={formData.topSelling}
-                  onChange={(e) =>
-                    setFormData({ ...formData, topSelling: e.target.checked })
-                  }
-                  className="h-4 w-4 rounded border-input"
-                />
-                <label htmlFor="topSelling" className="text-sm">
-                  Top Selling Product
-                </label>
-              </div>
+                {/* Editable Fields */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Web Description</label>
+                  <textarea
+                    value={formData.webDescription}
+                    onChange={(e) =>
+                      setFormData({ ...formData, webDescription: e.target.value })
+                    }
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="topSelling"
+                    checked={formData.topSelling}
+                    onChange={(e) =>
+                      setFormData({ ...formData, topSelling: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  <label htmlFor="topSelling" className="text-sm">
+                    Top Selling Product
+                  </label>
+                </div>
 
-              {/* Image Management — only in edit mode */}
-              {editingProduct && (
+                {/* Image Management */}
                 <div className="space-y-3 pt-2 border-t">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">
@@ -495,14 +404,14 @@ export default function ManageProductsPage() {
                     />
                   </div>
 
-                  {formData.images.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-3 relative">
-                      {uploading && (
-                        <div className="absolute inset-0 bg-background/60 z-10 flex items-center justify-center rounded-md">
-                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                      {formData.images.map((url) => (
+                  <div className="grid grid-cols-3 gap-3 relative">
+                    {uploading && (
+                      <div className="absolute inset-0 bg-background/60 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {editingProduct.images.length > 0 ? (
+                      editingProduct.images.map((url) => (
                         <div
                           key={url}
                           className="group relative aspect-square rounded-md border overflow-hidden bg-muted"
@@ -522,24 +431,24 @@ export default function ManageProductsPage() {
                             <X className="h-3 w-3" />
                           </button>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-6 text-muted-foreground">
-                      <Package className="h-8 w-8 mb-2" />
-                      <p className="text-sm">No images yet</p>
-                    </div>
-                  )}
+                      ))
+                    ) : (
+                      <div className="col-span-3 flex flex-col items-center justify-center rounded-md border border-dashed py-6 text-muted-foreground">
+                        <Package className="h-8 w-8 mb-2" />
+                        <p className="text-sm">No images yet</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
 
-              {saveError && (
-                <div className="flex items-center gap-2 text-destructive text-sm">
-                  <AlertCircle className="h-4 w-4" />
-                  {saveError}
-                </div>
-              )}
-            </div>
+                {saveError && (
+                  <div className="flex items-center gap-2 text-destructive text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    {saveError}
+                  </div>
+                )}
+              </div>
+            )}
 
             <DialogFooter>
               <Button
@@ -548,37 +457,12 @@ export default function ManageProductsPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : "Save"}
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {/* Delete Confirmation */}
-        <AlertDialog
-          open={!!deleteTarget}
-          onOpenChange={(open) => !open && setDeleteTarget(null)}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Product</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this product? This action cannot
-                be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleConfirmDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </ProtectedRoute>
   );

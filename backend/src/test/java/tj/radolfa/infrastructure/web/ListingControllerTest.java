@@ -7,6 +7,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import tj.radolfa.application.ports.in.GetListingUseCase;
+import tj.radolfa.application.ports.in.UpdateListingUseCase;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
@@ -23,7 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Standalone MockMvc test for {@link ListingController}.
  *
- * <p>Verifies endpoint mapping, JSON structure, and 404 handling.
+ * <p>
+ * Verifies endpoint mapping, JSON structure, and 404 handling.
  * Uses an in-memory fake (no Spring context, no security filter chain).
  */
 class ListingControllerTest {
@@ -34,7 +36,7 @@ class ListingControllerTest {
     @BeforeEach
     void setUp() {
         fakeUseCase = new FakeGetListingUseCase();
-        ListingController controller = new ListingController(fakeUseCase);
+        ListingController controller = new ListingController(fakeUseCase, new FakeUpdateListingUseCase());
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -42,8 +44,8 @@ class ListingControllerTest {
     @DisplayName("GET /api/v1/listings returns paginated grid")
     void grid_returnsPaginatedResult() throws Exception {
         mockMvc.perform(get("/api/v1/listings")
-                        .param("page", "1")
-                        .param("limit", "12"))
+                .param("page", "1")
+                .param("limit", "12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items[0].slug").value("tpl-001-red"))
@@ -79,9 +81,9 @@ class ListingControllerTest {
     @DisplayName("GET /api/v1/listings/search returns search results")
     void search_returnsResults() throws Exception {
         mockMvc.perform(get("/api/v1/listings/search")
-                        .param("q", "shirt")
-                        .param("page", "1")
-                        .param("limit", "12"))
+                .param("q", "shirt")
+                .param("page", "1")
+                .param("limit", "12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.items[0].slug").value("tpl-001-red"));
@@ -91,8 +93,8 @@ class ListingControllerTest {
     @DisplayName("GET /api/v1/listings/autocomplete returns suggestions")
     void autocomplete_returnsSuggestions() throws Exception {
         mockMvc.perform(get("/api/v1/listings/autocomplete")
-                        .param("q", "shi")
-                        .param("limit", "5"))
+                .param("q", "shi")
+                .param("limit", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0]").value("T-Shirt"))
                 .andExpect(jsonPath("$[1]").value("Shirt Dress"));
@@ -106,8 +108,8 @@ class ListingControllerTest {
                 1L, "tpl-001-red", "T-Shirt", "red",
                 "A red cotton tee",
                 List.of("https://s3/img1.jpg"),
-                new BigDecimal("24.99"), new BigDecimal("29.99"), 50
-        );
+                new BigDecimal("24.99"), new BigDecimal("29.99"), 50,
+                false);
 
         @Override
         public PageResult<ListingVariantDto> getPage(int page, int limit) {
@@ -116,7 +118,8 @@ class ListingControllerTest {
 
         @Override
         public Optional<ListingVariantDetailDto> getBySlug(String slug) {
-            if (!"tpl-001-red".equals(slug)) return Optional.empty();
+            if (!"tpl-001-red".equals(slug))
+                return Optional.empty();
 
             return Optional.of(new ListingVariantDetailDto(
                     1L, "tpl-001-red", "T-Shirt", "red",
@@ -126,12 +129,9 @@ class ListingControllerTest {
                     List.of(new SkuDto(
                             100L, "TPL-001-RED-S", "S", 50,
                             new BigDecimal("29.99"), new BigDecimal("24.99"),
-                            true, null
-                    )),
+                            true, null)),
                     List.of(new ListingVariantDetailDto.SiblingVariant(
-                            "tpl-001-blue", "blue", "https://s3/blue-thumb.jpg"
-                    ))
-            ));
+                            "tpl-001-blue", "blue", "https://s3/blue-thumb.jpg"))));
         }
 
         @Override
@@ -142,6 +142,20 @@ class ListingControllerTest {
         @Override
         public List<String> autocomplete(String prefix, int limit) {
             return List.of("T-Shirt", "Shirt Dress");
+        }
+    }
+
+    static class FakeUpdateListingUseCase implements UpdateListingUseCase {
+        @Override
+        public void update(String slug, UpdateListingCommand command) {
+        }
+
+        @Override
+        public void addImage(String slug, String imageUrl) {
+        }
+
+        @Override
+        public void removeImage(String slug, String imageUrl) {
         }
     }
 }

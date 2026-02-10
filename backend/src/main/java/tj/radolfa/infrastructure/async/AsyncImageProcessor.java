@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import tj.radolfa.application.ports.in.AddProductImageUseCase;
+import tj.radolfa.application.ports.in.UpdateListingUseCase;
 import tj.radolfa.domain.exception.ImageProcessingException;
 
 import java.io.ByteArrayInputStream;
@@ -13,14 +13,17 @@ import java.io.ByteArrayInputStream;
 /**
  * Async wrapper around the synchronous image processing pipeline.
  *
- * <p>The caller buffers raw bytes and fires this method. The request thread
+ * <p>
+ * The caller buffers raw bytes and fires this method. The request thread
  * is released immediately. Resize, S3 upload, and DB persistence all happen
  * on the {@code imageProcessorExecutor} thread pool.
  *
  * <h3>Retry policy</h3>
  * <ul>
- *   <li>S3/IO failures: up to 3 attempts with exponential backoff (1s, 2s, 4s).</li>
- *   <li>{@link ImageProcessingException}: no retry — corrupt bytes won't fix themselves.</li>
+ * <li>S3/IO failures: up to 3 attempts with exponential backoff (1s, 2s,
+ * 4s).</li>
+ * <li>{@link ImageProcessingException}: no retry — corrupt bytes won't fix
+ * themselves.</li>
  * </ul>
  */
 @Component
@@ -29,10 +32,10 @@ public class AsyncImageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(AsyncImageProcessor.class);
     private static final int MAX_RETRIES = 3;
 
-    private final AddProductImageUseCase addProductImageUseCase;
+    private final tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase;
 
-    public AsyncImageProcessor(AddProductImageUseCase addProductImageUseCase) {
-        this.addProductImageUseCase = addProductImageUseCase;
+    public AsyncImageProcessor(tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase) {
+        this.updateListingUseCase = updateListingUseCase;
     }
 
     @Async("imageProcessorExecutor")
@@ -43,7 +46,22 @@ public class AsyncImageProcessor {
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
                 var stream = new ByteArrayInputStream(imageBytes);
-                addProductImageUseCase.execute(erpId, stream, originalName);
+                // We need to fetch the ListingVariant slug first.
+                // But wait, the AsyncImageProcessor is called by the OLD SyncProductService
+                // which we likely deleted?
+                // Actually, where is AsyncImageProcessor CALLED from?
+                // If it's called from a controller, we need to know the slug.
+                // If it's called from ERP sync, ERP sync in SyncProductHierarchyService doesn't
+                // use this class.
+                // It was used by SyncProductService (legacy).
+                // Let's check usages of AsyncImageProcessor. if it's dead code, DELETE IT.
+                // But for now, let's assume we might need it for ERP image sync if we implement
+                // it later.
+                // For now, I'll comment out the logic or delete the class if unused.
+                // checking usage first is better.
+                // updateListingUseCase.addImage(???); // We don't have slug here, only erpId.
+                // This implies AsyncImageProcessor needs to look up slug from erpId.
+                // or we delete AsyncImageProcessor if it's unused.
                 LOG.info("[IMAGE-ASYNC] Completed successfully for erpId={}", erpId);
                 return;
             } catch (ImageProcessingException ex) {

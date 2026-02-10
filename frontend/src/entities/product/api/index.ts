@@ -2,7 +2,17 @@ import { apiClient } from "@/shared/api";
 import type {
   ListingVariantDetail,
   PaginatedListings,
+  ListingVariant,
 } from "@/entities/product/model/types";
+
+export interface UpdateListingRequest {
+  webDescription?: string;
+  topSelling?: boolean;
+}
+
+export interface ImageUploadResponse {
+  images: string[];
+}
 
 /** Paginated listing grid (colour cards). */
 export async function fetchListings(
@@ -49,4 +59,38 @@ export async function fetchAutocomplete(
     { params: { q, limit } }
   );
   return data;
+}
+
+/** Update listing enrichment fields (manager only). */
+export async function updateListing(
+  slug: string,
+  data: UpdateListingRequest
+): Promise<void> {
+  await apiClient.put(`/api/v1/listings/${slug}`, data);
+}
+
+/** Upload an image to a listing (manager only). */
+export async function uploadListingImage(
+  slug: string,
+  file: File
+): Promise<void> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("File must be an image");
+  }
+  const form = new FormData();
+  form.append("image", file);
+  await apiClient.post(`/api/v1/listings/${slug}/images`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
+/** Remove an image from a listing (manager only). */
+export async function removeListingImage(
+  slug: string,
+  imageUrl: string
+): Promise<void> {
+  // DELETE with body is tricky in some clients/proxies, but axios supports it via `data` config.
+  await apiClient.delete(`/api/v1/listings/${slug}/images`, {
+    data: { url: imageUrl },
+  });
 }
