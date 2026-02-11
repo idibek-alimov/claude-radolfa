@@ -87,7 +87,6 @@ public class SecurityConfig {
                         // ============================================================
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
 
                         // Swagger / OpenAPI endpoints
@@ -104,11 +103,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/search/**").hasRole("SYSTEM")
 
                         // ============================================================
-                        // MANAGER role: Image upload and description editing
-                        // Note: MANAGER can enrich products but NOT modify ERP fields
+                        // MANAGER role: Listing enrichment (images, descriptions)
+                        // Note: MANAGER can enrich listings but NOT modify ERP fields
                         // ============================================================
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products/*/images").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/*/description").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/listings/*").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/listings/*/images").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/listings/*/images").hasRole("MANAGER")
 
                         // ============================================================
                         // USER role: Profile, wishlist, order history

@@ -1,3 +1,10 @@
+-- ================================================================
+-- V4__spring_batch_schema.sql
+--
+-- Spring Batch infrastructure tables.
+-- Managed by Flyway because spring.batch.jdbc.initialize-schema=never.
+-- ================================================================
+
 CREATE TABLE BATCH_JOB_INSTANCE  (
                                      JOB_INSTANCE_ID BIGINT  NOT NULL PRIMARY KEY ,
                                      VERSION BIGINT ,
