@@ -10,5 +10,6 @@ public record User(
                 UserRole role,
                 String name,
                 String email,
-                int loyaltyPoints) {
+                int loyaltyPoints,
+                Long version) {
 }

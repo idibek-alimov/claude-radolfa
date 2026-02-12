@@ -39,7 +39,8 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
                 user.role(),
                 user.name(),
                 user.email(),
-                command.points());
+                command.points(),
+                user.version());
 
         saveUserPort.save(updated);
         LOG.info("[LOYALTY-SYNC] Updated loyalty points for phone={}, points={}", command.phone(), command.points());

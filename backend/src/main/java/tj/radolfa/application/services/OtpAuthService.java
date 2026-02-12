@@ -96,7 +96,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
      * Creates a new user with default USER role.
      */
     private User createNewUser(PhoneNumber phone) {
-        User newUser = new User(null, phone, UserRole.USER, null, null, 0);
+        User newUser = new User(null, phone, UserRole.USER, null, null, 0, null);
         User saved = saveUserPort.save(newUser);
         LOG.info("[AUTH] Created new user: phone={}, id={}", phone, saved.id());
         return saved;
