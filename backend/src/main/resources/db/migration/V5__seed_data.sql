@@ -15,7 +15,7 @@ INSERT INTO order_statuses (name) VALUES
 -- ----------------------------------------------------------------
 -- Test users (fictional Tajik phone numbers +992)
 -- ----------------------------------------------------------------
-INSERT INTO users (phone, role) VALUES
-    ('+992901234567', 'USER'),
-    ('+992902345678', 'MANAGER'),
-    ('+992903456789', 'SYSTEM');
+INSERT INTO users (phone, role, loyalty_points) VALUES
+    ('+992901234567', 'USER', 20),
+    ('+992902345678', 'MANAGER', 30),
+    ('+992903456789', 'SYSTEM', 50);

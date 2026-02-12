@@ -4,6 +4,7 @@ import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,4 +30,9 @@ public interface LoadListingPort {
      * SQL LIKE fallback search when Elasticsearch is unavailable.
      */
     PageResult<ListingVariantDto> search(String query, int page, int limit);
+
+    /**
+     * SQL LIKE fallback autocomplete when Elasticsearch is unavailable.
+     */
+    List<String> autocomplete(String prefix, int limit);
 }

@@ -36,4 +36,7 @@ public class UserEntity extends BaseAuditEntity {
 
     @Column(name = "email", unique = true, length = 255)
     private String email;
+
+    @Column(name = "loyalty_points", nullable = false)
+    private int loyaltyPoints;
 }

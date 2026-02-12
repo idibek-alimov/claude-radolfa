@@ -27,6 +27,7 @@ CREATE TABLE users (
     role       VARCHAR(16)  NOT NULL REFERENCES roles(name),
     name       VARCHAR(255),
     email      VARCHAR(255) UNIQUE,
+    loyalty_points INTEGER  NOT NULL DEFAULT 0,
     version    BIGINT       NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()

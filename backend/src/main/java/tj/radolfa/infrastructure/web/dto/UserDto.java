@@ -8,12 +8,22 @@ import tj.radolfa.domain.model.User;
 public record UserDto(
         Long id,
         String phone,
-        String role
+        String role,
+        String name,
+        String email,
+        int loyaltyPoints
 ) {
     /**
      * Creates a UserDto from a domain User.
      */
     public static UserDto fromDomain(User user) {
-        return new UserDto(user.id(), user.phone().value(), user.role().name());
+        return new UserDto(
+                user.id(),
+                user.phone().value(),
+                user.role().name(),
+                user.name(),
+                user.email(),
+                user.loyaltyPoints()
+        );
     }
 }

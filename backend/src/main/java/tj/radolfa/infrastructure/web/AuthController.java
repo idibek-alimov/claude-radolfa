@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.SendOtpUseCase;
 import tj.radolfa.application.ports.in.VerifyOtpUseCase;
+import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.infrastructure.security.AuthCookieManager;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
 import tj.radolfa.infrastructure.security.RateLimitProperties;
@@ -43,17 +44,20 @@ public class AuthController {
 
     private final SendOtpUseCase sendOtpUseCase;
     private final VerifyOtpUseCase verifyOtpUseCase;
+    private final LoadUserPort loadUserPort;
     private final AuthCookieManager cookieManager;
     private final RateLimiterService rateLimiter;
     private final RateLimitProperties rateLimitProps;
 
     public AuthController(SendOtpUseCase sendOtpUseCase,
                           VerifyOtpUseCase verifyOtpUseCase,
+                          LoadUserPort loadUserPort,
                           AuthCookieManager cookieManager,
                           RateLimiterService rateLimiter,
                           RateLimitProperties rateLimitProps) {
         this.sendOtpUseCase = sendOtpUseCase;
         this.verifyOtpUseCase = verifyOtpUseCase;
+        this.loadUserPort = loadUserPort;
         this.cookieManager = cookieManager;
         this.rateLimiter = rateLimiter;
         this.rateLimitProps = rateLimitProps;
@@ -167,11 +171,10 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(MessageResponseDto.error("Not authenticated"));
         }
-        return ResponseEntity.ok(new UserDto(
-                principal.userId(),
-                principal.phone(),
-                principal.role()
-        ));
+        return loadUserPort.loadById(principal.userId())
+                .map(user -> ResponseEntity.ok((Object) UserDto.fromDomain(user)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(MessageResponseDto.error("User not found")));
     }
 
     // ----------------------------------------------------------------

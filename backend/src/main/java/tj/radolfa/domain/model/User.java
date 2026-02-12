@@ -5,9 +5,10 @@ package tj.radolfa.domain.model;
  * Now includes profile information (name, email).
  */
 public record User(
-        Long id,
-        PhoneNumber phone,
-        UserRole role,
-        String name,
-        String email) {
+                Long id,
+                PhoneNumber phone,
+                UserRole role,
+                String name,
+                String email,
+                int loyaltyPoints) {
 }

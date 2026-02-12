@@ -58,6 +58,18 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         Page<Object[]> searchGrid(@Param("query") String query, Pageable pageable);
 
         /**
+         * SQL LIKE fallback autocomplete: distinct product names matching the prefix.
+         */
+        @Query("""
+                        SELECT DISTINCT pb.name
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        WHERE LOWER(pb.name) LIKE LOWER(CONCAT('%', :prefix, '%'))
+                        ORDER BY pb.name ASC
+                        """)
+        List<String> autocompleteNames(@Param("prefix") String prefix, Pageable pageable);
+
+        /**
          * Sibling variants of the same ProductBase (excluding the current one).
          */
         @Query("""

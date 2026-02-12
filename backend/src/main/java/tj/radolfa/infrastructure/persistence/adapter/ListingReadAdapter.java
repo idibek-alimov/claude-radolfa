@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
@@ -56,6 +57,11 @@ public class ListingReadAdapter implements LoadListingPort {
         public PageResult<ListingVariantDto> search(String query, int page, int limit) {
                 Page<Object[]> raw = variantRepo.searchGrid(query, PageRequest.of(page - 1, limit));
                 return toGridResult(raw, page, limit);
+        }
+
+        @Override
+        public List<String> autocomplete(String prefix, int limit) {
+                return variantRepo.autocompleteNames(prefix, PageRequest.of(0, limit));
         }
 
         // ---- Grid helpers ----

@@ -43,4 +43,10 @@ export interface User {
   phone: string;
   /** The authorised role granted to this user. */
   role: UserRole;
+  /** Display name (optional, set via profile). */
+  name?: string;
+  /** Email (optional, set via profile). */
+  email?: string;
+  /** Loyalty points synced from ERPNext. */
+  loyaltyPoints: number;
 }

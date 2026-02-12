@@ -61,8 +61,8 @@ public class GetListingService implements GetListingUseCase {
         try {
             return searchListingPort.autocomplete(prefix, limit);
         } catch (Exception e) {
-            LOG.warn("Elasticsearch autocomplete failed, returning empty: {}", e.getMessage());
-            return List.of();
+            LOG.warn("Elasticsearch autocomplete failed, falling back to SQL: {}", e.getMessage());
+            return loadListingPort.autocomplete(prefix, limit);
         }
     }
 }

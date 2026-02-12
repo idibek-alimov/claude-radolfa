@@ -267,9 +267,11 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm opacity-90">Available Points</p>
-                      <p className="text-4xl font-bold mt-1">0</p>
+                      <p className="text-4xl font-bold mt-1">
+                        {user?.loyaltyPoints ?? 0}
+                      </p>
                       <p className="text-xs opacity-75 mt-2">
-                        Coming soon — Earn points with every purchase!
+                        Earn points with every purchase!
                       </p>
                     </div>
                     <Star className="h-14 w-14 opacity-50" />

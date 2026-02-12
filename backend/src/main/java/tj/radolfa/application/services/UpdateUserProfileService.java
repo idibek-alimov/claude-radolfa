@@ -29,7 +29,8 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase {
                 user.phone(),
                 user.role(),
                 name,
-                email);
+                email,
+                user.loyaltyPoints());
 
         return saveUserPort.save(updatedUser);
     }

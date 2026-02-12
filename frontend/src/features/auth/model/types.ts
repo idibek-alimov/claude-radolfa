@@ -15,6 +15,7 @@ export interface User {
   role: "USER" | "MANAGER" | "SYSTEM";
   name?: string;
   email?: string;
+  loyaltyPoints: number;
 }
 
 export interface AuthResponse {

@@ -52,6 +52,7 @@ tj/radolfa/infrastructure/web/dto/ListingVariantDto.class
 tj/radolfa/infrastructure/erp/batch/ErpSyncScheduler.class
 tj/radolfa/application/ports/out/LoadListingVariantPort.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase.class
+tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase$SyncLoyaltyCommand.class
 tj/radolfa/application/ports/in/CreateOrderUseCase.class
 tj/radolfa/application/services/OtpAuthService.class
 tj/radolfa/application/ports/in/GetMyOrdersUseCase.class
@@ -65,6 +66,7 @@ tj/radolfa/infrastructure/s3/S3ImageUploaderStub.class
 tj/radolfa/infrastructure/persistence/adapter/ListingReadAdapter.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDetailDto.class
 tj/radolfa/infrastructure/security/RateLimiterService.class
+tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase.class
 tj/radolfa/domain/model/PhoneNumber.class
 tj/radolfa/application/ports/in/GetListingUseCase.class
 tj/radolfa/infrastructure/persistence/entity/OrderItemEntity.class
@@ -98,6 +100,7 @@ tj/radolfa/application/ports/out/ListingIndexPort.class
 tj/radolfa/application/services/CreateOrderService.class
 tj/radolfa/infrastructure/security/OtpStore$OtpEntry.class
 tj/radolfa/infrastructure/persistence/entity/ListingVariantEntity.class
+tj/radolfa/infrastructure/web/dto/SyncLoyaltyRequestDto.class
 tj/radolfa/infrastructure/search/ListingSearchStub.class
 tj/radolfa/infrastructure/security/JwtAuthenticationFilter$JwtAuthenticatedUser.class
 tj/radolfa/infrastructure/persistence/mappers/OrderMapperImpl.class
@@ -115,6 +118,7 @@ tj/radolfa/infrastructure/search/ListingDocument.class
 tj/radolfa/application/services/SyncProductHierarchyService.class
 tj/radolfa/infrastructure/web/SearchController.class
 tj/radolfa/infrastructure/erp/ErpProductClient.class
+tj/radolfa/application/services/SyncLoyaltyPointsService.class
 tj/radolfa/infrastructure/web/SearchController$ReindexResult.class
 tj/radolfa/domain/exception/ErpLockViolationException.class
 tj/radolfa/infrastructure/persistence/adapter/ProductHierarchyAdapter.class

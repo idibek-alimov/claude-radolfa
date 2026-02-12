@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase;
+import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase.SyncLoyaltyCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
@@ -14,6 +16,7 @@ import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySync
 import tj.radolfa.application.ports.out.LogSyncEventPort;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
+import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
 
 /**
@@ -35,12 +38,15 @@ public class ErpSyncController {
     private static final Logger LOG = LoggerFactory.getLogger(ErpSyncController.class);
 
     private final SyncProductHierarchyUseCase syncUseCase;
+    private final SyncLoyaltyPointsUseCase   loyaltyUseCase;
     private final LogSyncEventPort            logSyncEvent;
 
     public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
+                             SyncLoyaltyPointsUseCase   loyaltyUseCase,
                              LogSyncEventPort            logSyncEvent) {
-        this.syncUseCase  = syncUseCase;
-        this.logSyncEvent = logSyncEvent;
+        this.syncUseCase    = syncUseCase;
+        this.loyaltyUseCase = loyaltyUseCase;
+        this.logSyncEvent   = logSyncEvent;
     }
 
     /**
@@ -73,6 +79,20 @@ public class ErpSyncController {
 
         LOG.info("[ERP-SYNC] Completed -- synced={}, errors={}", synced, errors);
         return ResponseEntity.ok(new SyncResultDto(synced, errors));
+    }
+
+    /**
+     * Syncs loyalty points for a user, looked up by phone number.
+     * If the user doesn't exist, a warning is logged and 204 is returned.
+     */
+    @PostMapping("/loyalty")
+    @PreAuthorize("hasRole('SYSTEM')")
+    public ResponseEntity<Void> syncLoyaltyPoints(
+            @Valid @RequestBody SyncLoyaltyRequestDto request) {
+
+        LOG.info("[LOYALTY-SYNC] Received points sync for phone={}", request.phone());
+        loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
+        return ResponseEntity.noContent().build();
     }
 
     // ---- Mapping: DTO → Command ----
