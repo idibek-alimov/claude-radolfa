@@ -1,7 +1,10 @@
 package tj.radolfa.infrastructure.security;
 
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 /**
  * Single owner of auth cookie construction and configuration.
@@ -19,9 +22,11 @@ public class AuthCookieManager {
     public static final String AUTH_COOKIE_NAME = "auth_token";
 
     private final long maxAgeSeconds;
+    private final boolean secureCookie;
 
-    public AuthCookieManager(JwtProperties jwtProperties) {
+    public AuthCookieManager(JwtProperties jwtProperties, Environment environment) {
         this.maxAgeSeconds = jwtProperties.expirationMs() / 1000;
+        this.secureCookie = !Arrays.asList(environment.getActiveProfiles()).contains("dev");
     }
 
     /**
@@ -46,8 +51,8 @@ public class AuthCookieManager {
     private ResponseCookie buildCookie(String value, long maxAge) {
         return ResponseCookie.from(AUTH_COOKIE_NAME, value)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
+                .secure(secureCookie)
+                .sameSite(secureCookie ? "Strict" : "Lax")
                 .path("/")
                 .maxAge(maxAge)
                 .build();

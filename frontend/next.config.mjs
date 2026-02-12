@@ -2,6 +2,17 @@
 const nextConfig = {
   // Enable standalone output for Docker deployment (smaller image size)
   output: "standalone",
+
+  // Proxy API requests to the backend in local development.
+  // In production, nginx handles this — the rewrites are only used by `next dev`.
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:8080/api/:path*",
+      },
+    ];
+  },
   images: {
     // S3 bucket domain — allow next/image to load product images from here.
     remotePatterns: [
