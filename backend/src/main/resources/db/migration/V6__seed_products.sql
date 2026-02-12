@@ -116,100 +116,86 @@ DECLARE
     -- Unsplash photo IDs — 90 unique IDs (3 per product base × 30), used as primary images
     -- Each variant gets 2-3 images using nearby IDs
     v_unsplash     TEXT[] := ARRAY[
-        -- T-Shirt (1)
-        '1529720317453-f8e39e4e1ae4', 'xocimQVEOiE', 'QIPsRFTmYmQ',
-        -- Hoodie (2)
-        'FIKD9t5_5zQ', 'XKimW0pke6w', 'FGbCBiUwSPU',
-        -- Jeans (3)
-        'D2K1UZr4vxk', 'R3REKFP2i5E', 'Bke23QMz5TQ',
-        -- Windbreaker (4)
-        '0RDBOAdnbWM', 'mnZ0yEE2gOk', 'KCdYn0xu2aw',
-        -- Skirt (5)
-        'SIm1hOBVEKE', 'gDPaDDy6_WE', 'u3y1tB7ixrI',
-        -- Dress (6)
-        '_3Q3tsJ01nc', 'wFyin9rHjao', 'MOO6k3RaiwE',
-        -- Suit (7)
-        'ZOS1PFdBR_Q', 'WG7JmHveXCg', 'j1GiPlvSGSc',
-        -- Sweater (8)
-        'w2AjxfkMn84', 'Yui5vfKHuzs', 'u5nBVIfFSr0',
-        -- Cardigan (9)
-        'XAkPN1YEhFg', 'C1fMH2Vej8A', 'vOnwXMHSgOA',
-        -- Blazer (10)
-        'poI7DelFiVA', 'q4-dKLBtRjU', 'ZHvM3XIOHoE',
-        -- Trench Coat (11)
-        'RU6MJVxVbN4', 'WYE2UhAkif0', '8hgm6mKK04U',
-        -- Shorts (12)
-        'i59iwWN75KY', 'nCKcRBFDmGg', 'UYiesSO4FiM',
-        -- Swim Trunks (13)
-        '6te7S5nO2kA', 'VKBajRmGCrs', 'Gj5PXw99uB0',
-        -- Pajamas (14)
-        'xekxGBMhJDM', 'D4fipYKT3cg', 'pIGwiU0TRvY',
-        -- Polo (15)
-        'dP8CBD2WLVU', 'F_Pl0_vkyIU', '7BjhtdogU3A',
-        -- Linen Shirt (16)
-        'ZGYMfMEPxJo', 'UtwM7mDJRg4', 'b6Pme5_8nvI',
-        -- Jogger (17)
-        'b0g0FYHHDaY', 'gE1phX0Lbos', '2L0pFRljU9E',
-        -- Fleece (18)
-        'lmFJOx7hPc4', 'AvhMzHwiE_0', 'G8CBOT_pMrE',
-        -- Tie (19)
-        'JSlVYMtKbOA', 'FPF-p-0lnRg', 'fY8Jr4iuPQM',
-        -- Scarf (20)
-        'HkN64BISuQA', '2VkGObxA5jk', 'vGQ49l9I4EE',
-        -- Sneakers (21)
-        'TamMbr4okv4', 'kSklaGoIo30', '-mzGQvKlyQo',
-        -- Boots (22)
-        '5LIInaqRp5s', 'b9K3_-GPx1U', '39MVKfRJhl8',
-        -- Sandals (23)
-        'N1QwvJDvj4E', 'z9_GjkT1dkA', 'SazCZ97yvdA',
-        -- Cap (24)
-        'XZFv-0OYmhE', 'fY0lXMpB26M', 'pFyKRmDiWEA',
-        -- Backpack (25)
-        'tFl1hO8bLMQ', 'eDhLSGbYCVo', 'HJckKnwCXxQ',
-        -- Wallet (26)
-        'Y1drMFKqEhE', 'mNGaaLeWEp0', 'xEaAoizNFV8',
-        -- Belt (27)
-        '0ZBRKEG9Drg', 'OLlCHMbxnt0', 'Rc0r-_eaJYk',
-        -- Sunglasses (28)
-        'NQRZxH1Y-hg', 'UO02gAW3c0c', 'xxIcsAEk1Ks',
-        -- Watch (29)
-        'rKbka5sMh6I', 'MPKQiDpMyqU', 'sfL_QOnmy00',
-        -- Tote Bag (30)
-        'xkArbaksMKU', 'b7MZ-lFCiv0', 'bFRnKODcsbQ'
+        -- Product 1-30 (3 images each = 90 total)
+        -- Product 1 (T-Shirt)
+        '1583743814966-8936f5b7be1a', '1581655353564-df123a1eb820', '1521572163474-6864f9cf17ab',
+        -- Product 2 (Hoodie)
+        '1556821840-3a63f95609a7', '1620799140188-3b2a02fd9a77', '1564557287817-3785e38ec1f5',
+        -- Product 3 (Jeans)
+        '1604176354204-9268737828e4', '1602293589930-3b9b6f2b453b', '1637069585336-827b298fe84a',
+        -- Product 4 (Windbreaker)
+        '1591047139829-d91aecb6caea', '1620799140188-3b2a02fd9a77', '1516762689617-e1cffcef479d',
+        -- Product 5 (Skirt)
+        '1577900232427-18219b9166a0', '1583496661160-fb5886a0aaaa', '1646054224885-f978f5798312',
+        -- Product 6 (Dress)
+        '1675186049409-f9f8f60ebb5e', '1583496661160-fb5886a0aaaa', '1525507119028-ed4c629a60a3',
+        -- Product 7 (Suit)
+        '1491336477066-31156b5e4f35', '1507679799987-c73779587ccf', '1600091166971-7f9faad6c1e2',
+        -- Product 8 (Sweater)
+        '1574201635302-388dd92a4c3f', '1631541909061-71e349d1f203', '1572635196237-14b3f281503f',
+        -- Product 9 (Cardigan)
+        '1610288311735-39b7facbd095', '1581497396202-5645e76a3a8e', '1679847628912-4c3e7402abc7',
+        -- Product 10 (Blazer)
+        '1617127365659-c47fa864d8bc', '1617137984095-74e4e5e3613f', '1507679799987-c73779587ccf',
+        -- Product 11 (Trench Coat)
+        '1591047139829-d91aecb6caea', '1516762689617-e1cffcef479d', '1572635196237-14b3f281503f',
+        -- Product 12 (Shorts)
+        '1591195853828-11db59a44f6b', '1667388624717-895854eea032', '1598522325074-042db73aa4e6',
+        -- Product 13 (Swim Trunks)
+        '1591195853828-11db59a44f6b', '1667388624717-895854eea032', '1598522325074-042db73aa4e6',
+        -- Product 14 (Pajamas)
+        '1623832101940-647285e32a58', '1572635196237-14b3f281503f', '1516762689617-e1cffcef479d',
+        -- Product 15 (Polo)
+        '1583743814966-8936f5b7be1a', '1581655353564-df123a1eb820', '1521572163474-6864f9cf17ab',
+        -- Product 16 (Linen Shirt)
+        '1591047139829-d91aecb6caea', '1620799140188-3b2a02fd9a77', '1523381210434-271e8be1f52b',
+        -- Product 17 (Jogger)
+        '1604176354204-9268737828e4', '1602293589930-3b9b6f2b453b', '1637069585336-827b298fe84a',
+        -- Product 18 (Fleece)
+        '1556821840-3a63f95609a7', '1620799140188-3b2a02fd9a77', '1564557287817-3785e38ec1f5',
+        -- Product 19 (Tie)
+        '1598033129183-c05e1ac983ff', '1591729652476-e7f587578d9c', '1589756823695-278bc923f962',
+        -- Product 20 (Scarf)
+        '1457545195570-67f207084966', '1623832101940-647285e32a58', '1609803384069-19f3e5a70e75',
+        -- Product 21 (Sneakers)
+        '1606107557195-0e29a4b5b4aa', '1542291026-7eec264c27ff', '1525966222134-fcfa99b8ae77',
+        -- Product 22 (Boots)
+        '1550998358-08b4f83dc345', '1608256246200-53e635b5b65f', '1544441893-675973e31985',
+        -- Product 23 (Sandals)
+        '1618615098938-84fc29796e76', '1603487742131-4160ec999306', '1591195853828-11db59a44f6b',
+        -- Product 24 (Cap)
+        '1588850561407-ed78c282e89b', '1691256676359-574db56b52cd', '1584917865442-de89df76afd3',
+        -- Product 25 (Backpack)
+        '1553062407-98eeb64c6a62', '1509762774605-f07235a08f1f', '1598532163257-ae3c6b2524b6',
+        -- Product 26 (Wallet)
+        '1614260938313-a7fc1a7ad0d2', '1579014134953-1580d7f123f3', '1627123424574-724758594e93',
+        -- Product 27 (Belt)
+        '1664286074176-5206ee5dc878', '1666723043169-22e34545675c', '1711443982852-9d22d3e4f961',
+        -- Product 28 (Sunglasses)
+        '1577803645773-f96470509666', '1511499767150-a48a237f0083', '1572635196237-14b3f281503f',
+        -- Product 29 (Watch)
+        '1542496658-e33a6d0d50f6', '1523170335258-f5ed11844a49', '1524805444758-089113d48a6d',
+        -- Product 30 (Tote Bag)
+        '1598532163257-ae3c6b2524b6', '1584917865442-de89df76afd3', '1591047139829-d91aecb6caea'
     ];
 
     -- Extra image IDs for 2nd/3rd images per variant
     v_extra_imgs   TEXT[] := ARRAY[
-        'FnA5pAzqhMM', 'TNlHf4m4gpI', 'HH4WBGNyltc',
-        'T-0EW-SEbsE', 'WNoLnJo7tS8', 'U2BI3GMnSSA',
-        'qdLiIJbMVr0', 'B4TjXnI0Y2c', 'Y5bvRlcCx8k',
-        'qnWPjzgQK7g', 'Xa4W7wmhdmk', 'SYTO3xs06fU',
-        'XMcoTHgNcQA', 'CabUqKlCkMY', 'Aoh4jLR5M4o',
-        'LTQMgx8tK-s', '0V7_N62zZcU', 'BUPbCkwqoR0',
-        'U-Kty6HxcQc', '93Ep1dhTJOg', 'mXz64B-3EzM',
-        'pMW4jzELQCw', 'FPjNRUaO__g', 'OOE4xAnBhKo',
-        'ZelenyiVlad', 'xBFTjrMIC0c', 'l5Tzv1alcps',
-        'YlOdCaABiSY', 'rp7MBx_4oXA', 'DTyjDyc8MYY',
-        'xND0R8S55bM', 'b5S4FrJb7yI', '6F7hMRC4Sjw',
-        'JWiMShWiF14', '5a6sy9vDTvY', '8manzosDSGM',
-        'PCYw7EUzKcI', 'g9KFz-hs4kE', 'SavQfLRm4Do',
-        'YUu3JCEGy-0', '2EGNqazbAMk', 'dESMzoBGJ7c',
-        'hCb3lIB8L8E', 'oIpFYxtaR_Q', 'yz7MjNKqXkA',
-        'MNtag_e_FbI', '1KENKTjODLk', 'dEkLm7ZJxTA',
-        'r1Re6hg29hI', '4f7r1LuKu8w', 'WtwSsqwYnH0',
-        'pn2aVMO0lvE', 'GtOo21gaXmQ', '8PyBbDGMm8c',
-        'mJ1pB2mWd5I', '3K9WOhqP-OY', 'V-LbUqn2SDw',
-        'Jp2mAfLDWBs', 'P7IuVAcnXRE', 'ehyV_EoIPWE',
-        'RmoWqDCqN2E', 'DNkoNXQti3c', '3wkKGJYNJcU',
-        'xHjHL-n3JJw', '_SFJhRPzJHs', 'YMOjT0PjCGo',
-        'v4op_GX5fRg', '0AIi5eA_FqE', 'hpRGrfOIybc',
-        '3_2dSYdExmQ', 'eDePtt6xKCE', 'EwKXn5CapA4',
-        'I2yvAo2GFrc', 'L_LcE4sQDUQ', 'wTPp323zAEw',
-        '6_fUMn0jSjQ', 'D3Mag4JIVRo', 'mGZX2MOPR-s',
-        'OoY695oFHJg', 'G_6n5M5-caw', 'RJeGJ6JZXCI',
-        'K62u25Jk6vo', 'w1JE5duY62M', 'PGnqT0rXWLs',
-        '_bY_OtTcR3E', 'oHGFjHBkruA', 'K4mSJ7kQbpo',
-        'Vc2dAqoSIKE', 'n5iz4rTpiLQ', 'JO19vDkXSqY'
+        '1489987707025-afc232f7ea0f', '1441984904996-e0b6ba687e04', '1525507119028-ed4c629a60a3', '1529720317453-c8da503f2051', '1470309864661-68328b2cd0a5', '1578681994506-b8f463449011',
+        '1523381294911-8d3cead13475', '1516762689617-e1cffcef479d', '1544441893-675973e31985', '1523381210434-271e8be1f52b', '1591047139829-d91aecb6caea', '1620799140188-3b2a02fd9a77',
+        '1564557287817-3785e38ec1f5', '1604176354204-9268737828e4', '1602293589930-3b9b6f2b453b', '1637069585336-827b298fe84a', '1675186049409-f9f8f60ebb5e', '1583496661160-fb5886a0aaaa',
+        '1646054224885-f978f5798312', '1491336477066-31156b5e4f35', '1507679799987-c73779587ccf', '1600091166971-7f9faad6c1e2', '1574201635302-388dd92a4c3f', '1631541909061-71e349d1f203',
+        '1610288311735-39b7facbd095', '1581497396202-5645e76a3a8e', '1617127365659-c47fa864d8bc', '1617137984095-74e4e5e3613f', '1667388624717-895854eea032', '1591195853828-11db59a44f6b',
+        '1598522325074-042db73aa4e6', '1598033129183-c05e1ac983ff', '1591729652476-e7f587578d9c', '1589756823695-278bc923f962', '1457545195570-67f207084966', '1609803384069-19f3e5a70e75',
+        '1606107557195-0e29a4b5b4aa', '1542291026-7eec264c27ff', '1525966222134-fcfa99b8ae77', '1550998358-08b4f83dc345', '1608256246200-53e635b5b65f', '1618615098938-84fc29796e76',
+        '1603487742131-4160ec999306', '1588850561407-ed78c282e89b', '1553062407-98eeb64c6a62', '1509762774605-f07235a08f1f', '1614260938313-a7fc1a7ad0d2', '1579014134953-1580d7f123f3',
+        '1664286074176-5206ee5dc878', '1577803645773-f96470509666', '1511499767150-a48a237f0083', '1542496658-e33a6d0d50f6', '1523170335258-f5ed11844a49', '1524805444758-089113d48a6d',
+        '1598532163257-ae3c6b2524b6', '1584917865442-de89df76afd3', '1627123424574-724758594e93', '1666723043169-22e34545675c', '1572635196237-14b3f281503f', '1523381210434-271e8be1f52b',
+        '1516762689617-e1cffcef479d', '1578681994506-b8f463449011', '1521572163474-6864f9cf17ab', '1556821840-3a63f95609a7', '1620799140188-3b2a02fd9a77', '1604176354204-9268737828e4',
+        '1602293589930-3b9b6f2b453b', '1637069585336-827b298fe84a', '1675186049409-f9f8f60ebb5e', '1583496661160-fb5886a0aaaa', '1646054224885-f978f5798312', '1491336477066-31156b5e4f35',
+        '1507679799987-c73779587ccf', '1600091166971-7f9faad6c1e2', '1574201635302-388dd92a4c3f', '1631541909061-71e349d1f203', '1610288311735-39b7facbd095', '1581497396202-5645e76a3a8e',
+        '1617127365659-c47fa864d8bc', '1617137984095-74e4e5e3613f', '1667388624717-895854eea032', '1591195853828-11db59a44f6b', '1598522325074-042db73aa4e6', '1598033129183-c05e1ac983ff',
+        '1591729652476-e7f587578d9c', '1589756823695-278bc923f962', '1457545195570-67f207084966', '1609803384069-19f3e5a70e75', '1606107557195-0e29a4b5b4aa', '1542291026-7eec264c27ff'
     ];
 
     -- Loop variables
