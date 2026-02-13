@@ -7,6 +7,7 @@ export type {
     SiblingVariant,
     ListingVariantDetail,
     PaginatedListings,
+    HomeSection,
 } from "./model/types";
 export { default as ProductCard } from "./ui/ProductCard";
 export { default as ProductDetail } from "./ui/ProductDetail";
@@ -18,4 +19,5 @@ export {
     fetchListingBySlug,
     searchListings,
     fetchAutocomplete,
+    fetchHomeCollections,
 } from "./api";

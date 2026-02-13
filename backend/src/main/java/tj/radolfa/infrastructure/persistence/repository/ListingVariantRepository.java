@@ -69,6 +69,59 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         """)
         List<String> autocompleteNames(@Param("prefix") String prefix, Pageable pageable);
 
+        // ---- Homepage collection queries ----
+
+        /**
+         * Featured listings (manually curated via the {@code featured} flag).
+         */
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        WHERE lv.featured = TRUE
+                        GROUP BY lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling
+                        ORDER BY lv.updatedAt DESC
+                        """)
+        List<Object[]> findFeaturedGrid(Pageable pageable);
+
+        /**
+         * New arrivals: most recently created variants.
+         */
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        GROUP BY lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling,
+                                 lv.createdAt
+                        ORDER BY lv.createdAt DESC
+                        """)
+        List<Object[]> findNewArrivalsGrid(Pageable pageable);
+
+        /**
+         * On-sale listings: variants that have at least one SKU with an active sale price.
+         */
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        JOIN lv.skus s
+                        WHERE s.salePrice IS NOT NULL AND s.salePrice < s.price
+                        GROUP BY lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling
+                        ORDER BY lv.updatedAt DESC
+                        """)
+        List<Object[]> findOnSaleGrid(Pageable pageable);
+
         /**
          * Sibling variants of the same ProductBase (excluding the current one).
          */

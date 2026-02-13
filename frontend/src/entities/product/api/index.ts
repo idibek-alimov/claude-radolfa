@@ -3,6 +3,7 @@ import type {
   ListingVariantDetail,
   PaginatedListings,
   ListingVariant,
+  HomeSection,
 } from "@/entities/product/model/types";
 
 export interface UpdateListingRequest {
@@ -57,6 +58,14 @@ export async function fetchAutocomplete(
   const { data } = await apiClient.get<string[]>(
     "/api/v1/listings/autocomplete",
     { params: { q, limit } }
+  );
+  return data;
+}
+
+/** Homepage collection sections (Featured, New Arrivals, Deals). */
+export async function fetchHomeCollections(): Promise<HomeSection[]> {
+  const { data } = await apiClient.get<HomeSection[]>(
+    "/api/v1/home/collections"
   );
   return data;
 }

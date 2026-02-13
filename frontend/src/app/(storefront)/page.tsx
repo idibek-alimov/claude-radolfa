@@ -1,5 +1,5 @@
 import { HeroBanner } from "@/widgets/HeroBanner";
-import { TopSellingSection } from "@/widgets/ProductList";
+import { HomeCollections } from "@/widgets/HomeCollections";
 import { TrustBanner } from "@/widgets/TrustBanner";
 
 /**
@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       <HeroBanner />
-      <TopSellingSection />
+      <HomeCollections />
       <TrustBanner />
     </>
   );

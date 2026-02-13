@@ -39,6 +39,9 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "top_selling", nullable = false)
     private boolean topSelling = false;
 
+    @Column(name = "featured", nullable = false)
+    private boolean featured = false;
+
     @OneToMany(mappedBy = "listingVariant", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     private List<ListingVariantImageEntity> images = new ArrayList<>();

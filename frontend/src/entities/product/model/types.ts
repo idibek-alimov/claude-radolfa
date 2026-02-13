@@ -71,3 +71,13 @@ export interface PaginatedListings {
   page: number;
   hasMore: boolean;
 }
+
+/**
+ * A single homepage collection row (e.g. "Featured", "New Arrivals").
+ * Mirrors backend `HomeSectionDto`.
+ */
+export interface HomeSection {
+  key: string;
+  title: string;
+  items: ListingVariant[];
+}

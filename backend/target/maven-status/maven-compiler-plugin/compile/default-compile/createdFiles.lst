@@ -19,6 +19,7 @@ tj/radolfa/application/ports/out/LogSyncEventPort.class
 tj/radolfa/infrastructure/search/ListingSearchRepository.class
 tj/radolfa/domain/model/ListingVariant.class
 tj/radolfa/infrastructure/erp/batch/ErpSyncJobConfig.class
+tj/radolfa/application/services/GetHomeCollectionsService.class
 tj/radolfa/infrastructure/web/dto/ErpHierarchyPayload$VariantPayload.class
 tj/radolfa/infrastructure/web/dto/ErpHierarchyPayload.class
 tj/radolfa/infrastructure/persistence/adapter/OrderRepositoryAdapter.class
@@ -50,9 +51,11 @@ tj/radolfa/infrastructure/web/UserController.class
 tj/radolfa/domain/model/ProductBase.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDto.class
 tj/radolfa/infrastructure/erp/batch/ErpSyncScheduler.class
+tj/radolfa/infrastructure/persistence/adapter/HomeCollectionsAdapter.class
 tj/radolfa/application/ports/out/LoadListingVariantPort.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase.class
 tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase$SyncLoyaltyCommand.class
+tj/radolfa/application/ports/out/LoadHomeCollectionsPort.class
 tj/radolfa/application/ports/in/CreateOrderUseCase.class
 tj/radolfa/application/services/OtpAuthService.class
 tj/radolfa/application/ports/in/GetMyOrdersUseCase.class
@@ -93,6 +96,7 @@ tj/radolfa/infrastructure/erp/batch/ErpProductReader.class
 tj/radolfa/application/ports/in/VerifyOtpUseCase.class
 tj/radolfa/application/ports/in/VerifyOtpUseCase$AuthResult.class
 tj/radolfa/infrastructure/persistence/entity/StringArrayConverter.class
+tj/radolfa/application/ports/in/GetHomeCollectionsUseCase.class
 tj/radolfa/domain/model/PageResult.class
 tj/radolfa/infrastructure/web/dto/UserDto.class
 tj/radolfa/application/services/UpdateUserProfileService.class
@@ -114,12 +118,14 @@ tj/radolfa/infrastructure/web/dto/LoginRequestDto.class
 tj/radolfa/infrastructure/web/GlobalExceptionHandler.class
 tj/radolfa/application/ports/out/LoadOrderPort.class
 tj/radolfa/domain/exception/ImageProcessingException.class
+tj/radolfa/infrastructure/web/HomeController.class
 tj/radolfa/infrastructure/search/ListingDocument.class
 tj/radolfa/application/services/SyncProductHierarchyService.class
 tj/radolfa/infrastructure/web/SearchController.class
 tj/radolfa/infrastructure/erp/ErpProductClient.class
 tj/radolfa/application/services/SyncLoyaltyPointsService.class
 tj/radolfa/infrastructure/web/SearchController$ReindexResult.class
+tj/radolfa/infrastructure/web/dto/HomeSectionDto.class
 tj/radolfa/domain/exception/ErpLockViolationException.class
 tj/radolfa/infrastructure/persistence/adapter/ProductHierarchyAdapter.class
 tj/radolfa/infrastructure/s3/S3ImageUploader.class
