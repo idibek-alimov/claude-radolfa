@@ -2,6 +2,7 @@ tj/radolfa/application/ports/in/SyncProductHierarchyUseCase$HierarchySyncCommand
 tj/radolfa/infrastructure/persistence/entity/BaseAuditEntity.class
 tj/radolfa/infrastructure/web/dto/ErpHierarchyPayload$PricePayload.class
 tj/radolfa/infrastructure/web/ListingController$ImageUrlRequest.class
+tj/radolfa/infrastructure/web/dto/CollectionPageDto.class
 tj/radolfa/infrastructure/persistence/repository/SkuRepository.class
 tj/radolfa/application/ports/out/LoadListingPort.class
 tj/radolfa/infrastructure/security/AuthCookieManager.class

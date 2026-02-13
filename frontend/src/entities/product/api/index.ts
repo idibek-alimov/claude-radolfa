@@ -4,6 +4,7 @@ import type {
   PaginatedListings,
   ListingVariant,
   HomeSection,
+  CollectionPage,
 } from "@/entities/product/model/types";
 
 export interface UpdateListingRequest {
@@ -66,6 +67,19 @@ export async function fetchAutocomplete(
 export async function fetchHomeCollections(): Promise<HomeSection[]> {
   const { data } = await apiClient.get<HomeSection[]>(
     "/api/v1/home/collections"
+  );
+  return data;
+}
+
+/** Paginated collection page (e.g. "View All" for New Arrivals). */
+export async function fetchCollectionPage(
+  key: string,
+  page: number = 1,
+  limit: number = 12
+): Promise<CollectionPage> {
+  const { data } = await apiClient.get<CollectionPage>(
+    `/api/v1/home/collections/${key}`,
+    { params: { page, limit } }
   );
   return data;
 }

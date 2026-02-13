@@ -60,7 +60,7 @@ function CollectionRow({ section }: { section: HomeSection }) {
           {section.title}
         </h2>
         <Link
-          href="/products"
+          href={`/collections/${section.key}`}
           className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
           View All

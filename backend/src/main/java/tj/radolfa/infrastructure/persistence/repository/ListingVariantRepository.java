@@ -86,7 +86,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         GROUP BY lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling
                         ORDER BY lv.updatedAt DESC
                         """)
-        List<Object[]> findFeaturedGrid(Pageable pageable);
+        Page<Object[]> findFeaturedGrid(Pageable pageable);
 
         /**
          * New arrivals: most recently created variants.
@@ -103,7 +103,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                  lv.createdAt
                         ORDER BY lv.createdAt DESC
                         """)
-        List<Object[]> findNewArrivalsGrid(Pageable pageable);
+        Page<Object[]> findNewArrivalsGrid(Pageable pageable);
 
         /**
          * On-sale listings: variants that have at least one SKU with an active sale price.
@@ -120,7 +120,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         GROUP BY lv.id, lv.slug, pb.name, lv.colorKey, lv.webDescription, lv.topSelling
                         ORDER BY lv.updatedAt DESC
                         """)
-        List<Object[]> findOnSaleGrid(Pageable pageable);
+        Page<Object[]> findOnSaleGrid(Pageable pageable);
 
         /**
          * Sibling variants of the same ProductBase (excluding the current one).

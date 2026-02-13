@@ -1,9 +1,11 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadHomeCollectionsPort;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 
@@ -27,22 +29,47 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
         this.variantRepo = variantRepo;
     }
 
+    // ---- Homepage preview (limited, no pagination metadata) ----
+
     @Override
     public List<ListingVariantDto> loadFeatured(int limit) {
-        return toGridDtos(variantRepo.findFeaturedGrid(PageRequest.of(0, limit)));
+        return toGridDtos(variantRepo.findFeaturedGrid(PageRequest.of(0, limit)).getContent());
     }
 
     @Override
     public List<ListingVariantDto> loadNewArrivals(int limit) {
-        return toGridDtos(variantRepo.findNewArrivalsGrid(PageRequest.of(0, limit)));
+        return toGridDtos(variantRepo.findNewArrivalsGrid(PageRequest.of(0, limit)).getContent());
     }
 
     @Override
     public List<ListingVariantDto> loadOnSale(int limit) {
-        return toGridDtos(variantRepo.findOnSaleGrid(PageRequest.of(0, limit)));
+        return toGridDtos(variantRepo.findOnSaleGrid(PageRequest.of(0, limit)).getContent());
+    }
+
+    // ---- Paginated "View All" pages ----
+
+    @Override
+    public PageResult<ListingVariantDto> loadFeaturedPage(int page, int limit) {
+        return toPageResult(variantRepo.findFeaturedGrid(PageRequest.of(page - 1, limit)), page);
+    }
+
+    @Override
+    public PageResult<ListingVariantDto> loadNewArrivalsPage(int page, int limit) {
+        return toPageResult(variantRepo.findNewArrivalsGrid(PageRequest.of(page - 1, limit)), page);
+    }
+
+    @Override
+    public PageResult<ListingVariantDto> loadOnSalePage(int page, int limit) {
+        return toPageResult(variantRepo.findOnSaleGrid(PageRequest.of(page - 1, limit)), page);
     }
 
     // ---- Shared helpers (same column layout as ListingReadAdapter) ----
+
+    private PageResult<ListingVariantDto> toPageResult(Page<Object[]> raw, int page) {
+        List<ListingVariantDto> items = toGridDtos(raw.getContent());
+        return new PageResult<>(items, raw.getTotalElements(), page,
+                (long) page * raw.getSize() < raw.getTotalElements());
+    }
 
     private List<ListingVariantDto> toGridDtos(List<Object[]> rows) {
         List<Long> variantIds = rows.stream()

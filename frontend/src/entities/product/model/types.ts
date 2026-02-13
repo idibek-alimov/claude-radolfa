@@ -81,3 +81,13 @@ export interface HomeSection {
   title: string;
   items: ListingVariant[];
 }
+
+/**
+ * Paginated response for a single collection's "View All" page.
+ * Mirrors backend `CollectionPageDto`.
+ */
+export interface CollectionPage {
+  key: string;
+  title: string;
+  page: PaginatedListings;
+}
