@@ -22,4 +22,6 @@ export {
     fetchAutocomplete,
     fetchHomeCollections,
     fetchCollectionPage,
+    fetchCategoryProducts,
+    fetchCategoryTree,
 } from "./api";

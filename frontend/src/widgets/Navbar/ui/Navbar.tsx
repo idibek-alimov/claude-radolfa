@@ -26,6 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/shared/ui/dropdown-menu";
+import { MegaMenu, MegaMenuMobile } from "@/widgets/MegaMenu";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 /* ── User Avatar ───────────────────────────────────────────────── */
@@ -137,6 +138,9 @@ function MobileMenu() {
         </SheetHeader>
 
         <nav className="flex flex-col gap-2 mt-8">
+          {/* Categories accordion */}
+          <MegaMenuMobile />
+
           {user?.role === "MANAGER" && (
             <SheetClose asChild>
               <Link
@@ -261,6 +265,9 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Desktop: MegaMenu category bar */}
+      <MegaMenu />
     </nav>
   );
 }

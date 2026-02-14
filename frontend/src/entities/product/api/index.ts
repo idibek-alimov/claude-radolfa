@@ -5,6 +5,7 @@ import type {
   ListingVariant,
   HomeSection,
   CollectionPage,
+  CategoryTree,
 } from "@/entities/product/model/types";
 
 export interface UpdateListingRequest {
@@ -105,6 +106,25 @@ export async function uploadListingImage(
   await apiClient.post(`/api/v1/listings/${slug}/images`, form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+}
+
+/** Products filtered by category slug (includes descendants). */
+export async function fetchCategoryProducts(
+  slug: string,
+  page: number = 1,
+  limit: number = 12,
+): Promise<PaginatedListings> {
+  const { data } = await apiClient.get<PaginatedListings>(
+    `/api/v1/categories/${slug}/products`,
+    { params: { page, limit } },
+  );
+  return data;
+}
+
+/** Category tree for navigation. */
+export async function fetchCategoryTree(): Promise<CategoryTree[]> {
+  const { data } = await apiClient.get<CategoryTree[]>("/api/v1/categories");
+  return data;
 }
 
 /** Remove an image from a listing (manager only). */
