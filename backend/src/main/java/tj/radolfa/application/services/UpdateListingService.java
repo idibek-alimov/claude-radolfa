@@ -30,6 +30,9 @@ public class UpdateListingService implements UpdateListingUseCase {
         if (command.topSelling() != null) {
             entity.setTopSelling(command.topSelling());
         }
+        if (command.featured() != null) {
+            entity.setFeatured(command.featured());
+        }
 
         // We do not replace images here — image management is done via
         // addImage/removeImage

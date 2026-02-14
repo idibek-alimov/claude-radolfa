@@ -63,6 +63,9 @@ public class ListingDocument {
     @Field(type = FieldType.Boolean)
     private Boolean topSelling;
 
+    @Field(type = FieldType.Boolean)
+    private Boolean featured;
+
     @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
     private Instant lastSyncAt;
 
@@ -73,7 +76,7 @@ public class ListingDocument {
                            String webDescription, List<String> images,
                            Double priceStart, Double priceEnd,
                            Integer totalStock, boolean topSelling,
-                           Instant lastSyncAt) {
+                           boolean featured, Instant lastSyncAt) {
         this.id             = id;
         this.slug           = slug;
         this.name           = name;
@@ -86,6 +89,7 @@ public class ListingDocument {
         this.priceEnd       = priceEnd;
         this.totalStock     = totalStock;
         this.topSelling     = topSelling;
+        this.featured       = featured;
         this.lastSyncAt     = lastSyncAt;
     }
 
@@ -101,5 +105,6 @@ public class ListingDocument {
     public Double       getPriceEnd()       { return priceEnd; }
     public Integer      getTotalStock()     { return totalStock; }
     public Boolean      getTopSelling()     { return topSelling; }
+    public Boolean      getFeatured()       { return featured; }
     public Instant      getLastSyncAt()     { return lastSyncAt; }
 }

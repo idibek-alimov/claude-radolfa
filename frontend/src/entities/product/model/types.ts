@@ -42,6 +42,7 @@ export interface ListingVariant {
   priceEnd: number;
   totalStock: number;
   topSelling: boolean;
+  featured: boolean;
 }
 
 /**

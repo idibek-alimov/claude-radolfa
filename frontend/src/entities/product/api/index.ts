@@ -11,6 +11,7 @@ import type {
 export interface UpdateListingRequest {
   webDescription?: string;
   topSelling?: boolean;
+  featured?: boolean;
 }
 
 export interface ImageUploadResponse {

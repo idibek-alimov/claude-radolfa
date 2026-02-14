@@ -21,6 +21,8 @@ public record ListingVariantDetailDto(
         BigDecimal priceStart,
         BigDecimal priceEnd,
         Integer totalStock,
+        boolean topSelling,
+        boolean featured,
         List<SkuDto> skus,
         List<SiblingVariant> siblingVariants
 ) {

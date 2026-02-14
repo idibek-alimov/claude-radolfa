@@ -97,6 +97,7 @@ public class SearchController {
                         priceEnd != null ? priceEnd.doubleValue() : null,
                         totalStock,
                         variant.isTopSelling(),
+                        variant.isFeatured(),
                         variant.getLastSyncAt()
                 );
                 indexed++;

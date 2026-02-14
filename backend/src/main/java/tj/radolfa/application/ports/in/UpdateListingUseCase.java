@@ -12,6 +12,7 @@ public interface UpdateListingUseCase {
     record UpdateListingCommand(
             String webDescription,
             Boolean topSelling,
+            Boolean featured,
             List<String> images) {
     }
 }

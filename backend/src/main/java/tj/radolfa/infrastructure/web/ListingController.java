@@ -84,6 +84,7 @@ public class ListingController {
         updateListingUseCase.update(slug, new tj.radolfa.application.ports.in.UpdateListingUseCase.UpdateListingCommand(
                 request.webDescription,
                 request.topSelling,
+                request.featured,
                 null // images updated separately
         ));
         return ResponseEntity.ok().build();
@@ -109,7 +110,7 @@ public class ListingController {
         return ResponseEntity.ok().build();
     }
 
-    public record UpdateListingRequest(String webDescription, Boolean topSelling) {
+    public record UpdateListingRequest(String webDescription, Boolean topSelling, Boolean featured) {
     }
 
     public record ImageUrlRequest(String url) {

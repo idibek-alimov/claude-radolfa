@@ -88,7 +88,7 @@ public class ListingReadAdapter implements LoadListingPort {
 
         // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
         //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
-        //                 [9]=totalStock, [10]=colorHexCode
+        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
         private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
                 Long id = (Long) row[0];
                 return new ListingVariantDto(
@@ -103,7 +103,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 toBigDecimal(row[7]),  // priceStart
                                 toBigDecimal(row[8]),  // priceEnd
                                 toInteger(row[9]),     // totalStock
-                                (Boolean) row[6]);     // topSelling
+                                (Boolean) row[6],      // topSelling
+                                (Boolean) row[11]);    // featured
         }
 
         // ---- Detail helpers ----
@@ -179,6 +180,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 priceStart,
                                 priceEnd,
                                 totalStock,
+                                entity.isTopSelling(),
+                                entity.isFeatured(),
                                 skus,
                                 siblings);
         }

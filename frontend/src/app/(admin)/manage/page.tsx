@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
@@ -13,12 +13,13 @@ import {
 } from "@tanstack/react-query";
 import {
   fetchListings,
+  fetchListingBySlug,
   updateListing,
   uploadListingImage,
   removeListingImage,
   searchListings,
-} from "@/entities/product/api"; // Ensure imports are correct
-import { ListingVariant } from "@/entities/product/model/types";
+} from "@/entities/product/api";
+import type { ListingVariant, ListingVariantDetail } from "@/entities/product/model/types";
 import {
   Table,
   TableHeader,
@@ -39,7 +40,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X } from "lucide-react";
+import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star } from "lucide-react";
 
 export default function ManageProductsPage() {
   const { user } = useAuth();
@@ -81,7 +82,12 @@ export default function ManageProductsPage() {
   const [formData, setFormData] = useState({
     webDescription: "",
     topSelling: false,
+    featured: false,
   });
+
+  // Detail data (SKUs) loaded when dialog opens
+  const [detail, setDetail] = useState<ListingVariantDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // Image upload state
   const [uploading, setUploading] = useState(false);
@@ -131,14 +137,27 @@ export default function ManageProductsPage() {
 
   // ── Handlers ────────────────────────────────────────────────────
 
-  const handleOpenDialog = (product: ListingVariant) => {
+  const handleOpenDialog = async (product: ListingVariant) => {
     setSaveError("");
     setEditingProduct(product);
     setFormData({
       webDescription: product.webDescription || "",
       topSelling: product.topSelling || false,
+      featured: product.featured || false,
     });
+    setDetail(null);
     setIsDialogOpen(true);
+
+    // Fetch detail (SKUs) in background
+    setDetailLoading(true);
+    try {
+      const d = await fetchListingBySlug(product.slug);
+      setDetail(d);
+    } catch {
+      // Non-critical — SKU table just won't show
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -150,6 +169,7 @@ export default function ManageProductsPage() {
       data: {
         webDescription: formData.webDescription,
         topSelling: formData.topSelling,
+        featured: formData.featured,
       },
     });
   };
@@ -282,9 +302,17 @@ export default function ManageProductsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {item.topSelling && (
-                          <Badge variant="success">Top Seller</Badge>
-                        )}
+                        <div className="flex flex-wrap gap-1">
+                          {item.topSelling && (
+                            <Badge variant="success">Top Seller</Badge>
+                          )}
+                          {item.featured && (
+                            <Badge variant="default">
+                              <Star className="h-3 w-3 mr-0.5" />
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right pr-4">
                         <Button
@@ -313,7 +341,7 @@ export default function ManageProductsPage() {
 
         {/* Edit Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl px-8">
             <DialogHeader>
               <DialogTitle>Edit Product</DialogTitle>
               <DialogDescription>
@@ -322,64 +350,156 @@ export default function ManageProductsPage() {
             </DialogHeader>
 
             {editingProduct && (
-              <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto pr-1">
-                {/* ERP-Locked Fields */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1.5">
-                    Slug
-                    <Lock className="h-3 w-3 text-muted-foreground" />
-                  </label>
-                  <Input
-                    disabled
-                    value={editingProduct.slug}
-                    className="bg-slate-50 dark:bg-slate-900"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1.5">
-                    Name (and Color)
-                    <Lock className="h-3 w-3 text-muted-foreground" />
-                  </label>
-                  <Input
-                    disabled
-                    value={`${editingProduct.name} - ${editingProduct.colorKey}`}
-                    className="bg-slate-50 dark:bg-slate-900"
-                  />
-                </div>
-
-                {/* Editable Fields */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Web Description</label>
-                  <textarea
-                    value={formData.webDescription}
-                    onChange={(e) =>
-                      setFormData({ ...formData, webDescription: e.target.value })
-                    }
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    rows={3}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="topSelling"
-                    checked={formData.topSelling}
-                    onChange={(e) =>
-                      setFormData({ ...formData, topSelling: e.target.checked })
-                    }
-                    className="h-4 w-4 rounded border-input"
-                  />
-                  <label htmlFor="topSelling" className="text-sm">
-                    Top Selling Product
-                  </label>
+              <div className="space-y-5 py-2 max-h-[70vh] overflow-y-auto pr-1">
+                {/* ── ERP Data (Read-Only) ──────────────────────────── */}
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <Lock className="h-3 w-3" />
+                    ERP-Synced Data
+                  </p>
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Slug</label>
+                      <Input
+                        disabled
+                        value={editingProduct.slug}
+                        className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Name &amp; Color</label>
+                      <Input
+                        disabled
+                        value={`${editingProduct.name} — ${editingProduct.colorKey}`}
+                        className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">Price</label>
+                        <Input
+                          disabled
+                          value={formatPrice(editingProduct.priceStart, editingProduct.priceEnd)}
+                          className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">Stock</label>
+                        <Input
+                          disabled
+                          value={String(editingProduct.totalStock)}
+                          className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Image Management */}
-                <div className="space-y-3 pt-2 border-t">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">
+                {/* ── SKU Breakdown (Read-Only) ─────────────────────── */}
+                <div className="border-t pt-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Lock className="h-3 w-3" />
+                    Sizes &amp; Stock
+                  </p>
+                  {detailLoading ? (
+                    <div className="space-y-1.5">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <Skeleton key={i} className="h-6 w-full" />
+                      ))}
+                    </div>
+                  ) : detail?.skus && detail.skus.length > 0 ? (
+                    <div className="rounded-md border text-sm">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-muted/50">
+                            <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">Size</th>
+                            <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">Price</th>
+                            <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">Sale</th>
+                            <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">Stock</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {detail.skus.map((sku) => (
+                            <tr key={sku.id} className="border-b last:border-0">
+                              <td className="px-3 py-1.5 font-medium">{sku.sizeLabel}</td>
+                              <td className="px-3 py-1.5 text-right text-muted-foreground">${sku.price.toFixed(2)}</td>
+                              <td className="px-3 py-1.5 text-right">
+                                {sku.onSale ? (
+                                  <span className="text-green-600 font-medium">${sku.salePrice.toFixed(2)}</span>
+                                ) : (
+                                  <span className="text-muted-foreground">—</span>
+                                )}
+                              </td>
+                              <td className={`px-3 py-1.5 text-right font-medium ${sku.stockQuantity === 0 ? "text-destructive" : ""}`}>
+                                {sku.stockQuantity}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No SKU data available.</p>
+                  )}
+                </div>
+
+                {/* ── Enrichment (Editable) ─────────────────────────── */}
+                <div className="border-t pt-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    Enrichment
+                  </p>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Web Description</label>
+                      <textarea
+                        value={formData.webDescription}
+                        onChange={(e) =>
+                          setFormData({ ...formData, webDescription: e.target.value })
+                        }
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="topSelling"
+                          checked={formData.topSelling}
+                          onChange={(e) =>
+                            setFormData({ ...formData, topSelling: e.target.checked })
+                          }
+                          className="h-4 w-4 rounded border-input"
+                        />
+                        <label htmlFor="topSelling" className="text-sm">
+                          Top Selling
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="featured"
+                          checked={formData.featured}
+                          onChange={(e) =>
+                            setFormData({ ...formData, featured: e.target.checked })
+                          }
+                          className="h-4 w-4 rounded border-input"
+                        />
+                        <label htmlFor="featured" className="text-sm flex items-center gap-1">
+                          <Star className="h-3.5 w-3.5" />
+                          Featured
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Image Management ──────────────────────────────── */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Product Images
-                    </label>
+                    </p>
                     <Button
                       type="button"
                       variant="outline"
@@ -411,7 +531,7 @@ export default function ManageProductsPage() {
                       </div>
                     )}
                     {editingProduct.images.length > 0 ? (
-                      editingProduct.images.map((url) => (
+                      editingProduct.images.map((url, idx) => (
                         <div
                           key={url}
                           className="group relative aspect-square rounded-md border overflow-hidden bg-muted"
@@ -423,6 +543,11 @@ export default function ManageProductsPage() {
                             className="object-cover"
                             unoptimized
                           />
+                          {idx === 0 && (
+                            <span className="absolute bottom-1 left-1 z-10 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                              Primary
+                            </span>
+                          )}
                           <button
                             type="button"
                             onClick={() => handleRemoveImage(url)}

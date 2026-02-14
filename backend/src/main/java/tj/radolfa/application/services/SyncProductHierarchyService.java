@@ -157,6 +157,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                 priceEnd,
                 totalStock,
                 false,  // topSelling — enrichment field, not set during ERP sync
+                false,  // featured — enrichment field, not set during ERP sync
                 variant.getLastSyncAt()
         );
     }

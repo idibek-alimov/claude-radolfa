@@ -40,7 +40,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         // ---- Grid queries with SKU aggregates ----
         // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
         //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
-        //                 [9]=totalStock, [10]=colorHexCode
+        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
 
         /**
          * Paginated grid: variant card data with aggregated price/stock from SKUs.
@@ -52,12 +52,12 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
                                COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.id ASC
                         """)
         Page<Object[]> findGridPage(Pageable pageable);
@@ -71,13 +71,13 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
                                COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE pb.category.id IN :categoryIds
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.id ASC
                         """)
         Page<Object[]> findGridByCategoryIds(@Param("categoryIds") List<Long> categoryIds, Pageable pageable);
@@ -91,7 +91,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
                                COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -99,7 +99,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                            OR LOWER(lv.color.colorKey) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.webDescription) LIKE LOWER(CONCAT('%', :query, '%'))
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.id ASC
                         """)
         Page<Object[]> searchGrid(@Param("query") String query, Pageable pageable);
@@ -127,13 +127,13 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
                                COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE lv.featured = TRUE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.updatedAt DESC
                         """)
         Page<Object[]> findFeaturedGrid(Pageable pageable);
@@ -147,12 +147,12 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
                                COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.createdAt
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured, lv.createdAt
                         ORDER BY lv.createdAt DESC
                         """)
         Page<Object[]> findNewArrivalsGrid(Pageable pageable);
@@ -166,13 +166,13 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
                                COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         JOIN lv.skus s
                         WHERE s.salePrice IS NOT NULL AND s.salePrice < s.price
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.updatedAt DESC
                         """)
         Page<Object[]> findOnSaleGrid(Pageable pageable);

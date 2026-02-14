@@ -24,5 +24,6 @@ public record ListingVariantDto(
                 BigDecimal priceStart,
                 BigDecimal priceEnd,
                 Integer totalStock,
-                boolean topSelling) {
+                boolean topSelling,
+                boolean featured) {
 }

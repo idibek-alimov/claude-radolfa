@@ -51,13 +51,13 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                         String colorKey, String colorHexCode,
                         String description, List<String> images,
                         Double priceStart, Double priceEnd, Integer totalStock,
-                        boolean topSelling, Instant lastSyncAt) {
+                        boolean topSelling, boolean featured, Instant lastSyncAt) {
                 try {
                         ListingDocument doc = new ListingDocument(
                                         variantId, slug, name, category,
                                         colorKey, colorHexCode, description,
                                         images, priceStart, priceEnd, totalStock,
-                                        topSelling, lastSyncAt);
+                                        topSelling, featured, lastSyncAt);
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
                 } catch (Exception e) {
@@ -146,7 +146,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,
                                 doc.getPriceEnd() != null ? BigDecimal.valueOf(doc.getPriceEnd()) : null,
                                 doc.getTotalStock(),
-                                doc.getTopSelling() != null && doc.getTopSelling()
+                                doc.getTopSelling() != null && doc.getTopSelling(),
+                                doc.getFeatured() != null && doc.getFeatured()
                 );
         }
 }

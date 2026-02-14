@@ -29,7 +29,7 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
                       String colorKey, String colorHexCode,
                       String description, List<String> images,
                       Double priceStart, Double priceEnd, Integer totalStock,
-                      boolean topSelling, Instant lastSyncAt) {
+                      boolean topSelling, boolean featured, Instant lastSyncAt) {
         LOG.info("[LISTING-ES-STUB] Would index variant id={}, slug={}", variantId, slug);
     }
 

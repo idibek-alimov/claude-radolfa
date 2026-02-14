@@ -24,12 +24,13 @@ public interface ListingIndexPort {
      * @param priceEnd     highest sale price among SKUs
      * @param totalStock   sum of all SKU stock
      * @param topSelling   whether this variant is marked as top-selling
+     * @param featured     whether this variant is marked as featured
      */
     void index(Long variantId, String slug, String name, String category,
                String colorKey, String colorHexCode,
                String description, java.util.List<String> images,
                Double priceStart, Double priceEnd, Integer totalStock,
-               boolean topSelling, java.time.Instant lastSyncAt);
+               boolean topSelling, boolean featured, java.time.Instant lastSyncAt);
 
     /**
      * Remove a listing variant from the search index.

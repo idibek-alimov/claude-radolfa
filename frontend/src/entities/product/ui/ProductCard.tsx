@@ -59,7 +59,7 @@ export default function ProductCard({ listing }: ProductCardProps) {
             {listing.name ?? "—"}
           </h3>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
+          <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
             {listing.webDescription ?? "No description yet."}
           </p>
 

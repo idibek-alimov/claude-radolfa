@@ -108,7 +108,7 @@ class ListingControllerTest {
                 "A red cotton tee",
                 List.of("https://s3/img1.jpg"),
                 new BigDecimal("24.99"), new BigDecimal("29.99"), 50,
-                false);
+                false, false);
 
         @Override
         public PageResult<ListingVariantDto> getPage(int page, int limit) {
@@ -125,6 +125,7 @@ class ListingControllerTest {
                     "A red cotton tee",
                     List.of("https://s3/img1.jpg"),
                     new BigDecimal("24.99"), new BigDecimal("29.99"), 50,
+                    false, false,
                     List.of(new SkuDto(
                             100L, "TPL-001-RED-S", "S", 50,
                             new BigDecimal("29.99"), new BigDecimal("24.99"),
