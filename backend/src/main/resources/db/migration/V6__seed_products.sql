@@ -75,6 +75,40 @@ DECLARE
         'TPL-TOTE-001'
     ];
 
+    -- Categories per product
+    v_categories   TEXT[] := ARRAY[
+        'Tops',         -- Essential Cotton T-Shirt
+        'Tops',         -- Premium Slim Fit Hoodie
+        'Bottoms',      -- Stretch Denim Jeans
+        'Outerwear',    -- Lightweight Windbreaker
+        'Bottoms',      -- Pleated Midi Skirt
+        'Dresses',      -- Sleeveless Summer Dress
+        'Outerwear',    -- Tailored Business Suit
+        'Tops',         -- Organic Wool Sweater
+        'Tops',         -- Heavyweight Knit Cardigan
+        'Outerwear',    -- Modern Cut Blazer
+        'Outerwear',    -- All-Season Trench Coat
+        'Bottoms',      -- Active Performance Shorts
+        'Bottoms',      -- Quick-Dry Swim Trunks
+        'Sleepwear',    -- Bamboo Breathable Pajamas
+        'Tops',         -- Classic Polo Shirt
+        'Tops',         -- Linen Button-Down Shirt
+        'Bottoms',      -- Cargo Jogger Pants
+        'Tops',         -- Fleece Quarter-Zip
+        'Accessories',  -- Silk Patterned Tie
+        'Accessories',  -- Soft Merino Wool Scarf
+        'Footwear',     -- Classic Canvas Sneakers
+        'Footwear',     -- Rugged Waterproof Boots
+        'Footwear',     -- Orthopedic Leather Sandals
+        'Accessories',  -- Structured Baseball Cap
+        'Accessories',  -- Waterproof Laptop Backpack
+        'Accessories',  -- Minimalist Leather Wallet
+        'Accessories',  -- Full Grain Leather Belt
+        'Accessories',  -- Vintage Aviator Sunglasses
+        'Accessories',  -- Minimalist Analog Watch
+        'Accessories'   -- Casual Canvas Tote Bag
+    ];
+
     -- Base prices per product (USD)
     v_prices       NUMERIC[] := ARRAY[
         25.00, 65.00, 80.00, 95.00, 55.00,
@@ -223,8 +257,8 @@ BEGIN
         -- ============================================================
         -- Insert product_base
         -- ============================================================
-        INSERT INTO product_bases (erp_template_code, name)
-        VALUES (v_codes[i], v_names[i])
+        INSERT INTO product_bases (erp_template_code, name, category)
+        VALUES (v_codes[i], v_names[i], v_categories[i])
         RETURNING id INTO v_base_id;
 
         -- ============================================================

@@ -88,6 +88,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
 
                         // Swagger / OpenAPI endpoints
                         .requestMatchers("/swagger-ui/**").permitAll()
@@ -109,6 +111,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/listings/*").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/listings/*/images").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/listings/*/images").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/colors/*").hasRole("MANAGER")
 
                         // ============================================================
                         // USER role: Profile, wishlist, order history

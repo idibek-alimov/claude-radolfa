@@ -13,7 +13,9 @@ public record ListingVariantDetailDto(
         Long id,
         String slug,
         String name,
+        String category,
         String colorKey,
+        String colorHexCode,
         String webDescription,
         List<String> images,
         BigDecimal priceStart,
@@ -29,6 +31,7 @@ public record ListingVariantDetailDto(
     public record SiblingVariant(
             String slug,
             String colorKey,
+            String colorHexCode,
             String thumbnail
     ) {}
 }

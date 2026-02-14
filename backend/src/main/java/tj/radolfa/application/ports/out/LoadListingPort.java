@@ -35,4 +35,9 @@ public interface LoadListingPort {
      * SQL LIKE fallback autocomplete when Elasticsearch is unavailable.
      */
     List<String> autocomplete(String prefix, int limit);
+
+    /**
+     * Paginated grid filtered by a set of category IDs (category + descendants).
+     */
+    PageResult<ListingVariantDto> loadByCategoryIds(List<Long> categoryIds, int page, int limit);
 }

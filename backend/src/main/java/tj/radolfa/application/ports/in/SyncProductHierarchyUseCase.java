@@ -29,6 +29,7 @@ public interface SyncProductHierarchyUseCase {
     record HierarchySyncCommand(
             String templateCode,
             String templateName,
+            String category,
             List<VariantCommand> variants
     ) {
         public record VariantCommand(

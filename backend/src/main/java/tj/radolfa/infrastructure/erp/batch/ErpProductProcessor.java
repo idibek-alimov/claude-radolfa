@@ -50,6 +50,7 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
         var command = new HierarchySyncCommand(
                 snapshot.erpId(),
                 snapshot.name(),
+                snapshot.category(),
                 List.of(variantCommand)
         );
 

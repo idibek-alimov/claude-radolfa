@@ -22,24 +22,29 @@ public interface ProductHierarchyMapper {
     // ---- ProductBase ----
 
     @Mapping(target = "variants", ignore = true)
+    @Mapping(target = "category", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     ProductBaseEntity toBaseEntity(ProductBase domain);
 
-    @Mapping(target = ".", source = "entity")
     default ProductBase toProductBase(ProductBaseEntity entity) {
         if (entity == null) return null;
+        String categoryName = entity.getCategory() != null
+                ? entity.getCategory().getName()
+                : null;
         return new ProductBase(
                 entity.getId(),
                 entity.getErpTemplateCode(),
-                entity.getName()
+                entity.getName(),
+                categoryName
         );
     }
 
     // ---- ListingVariant ----
 
     @Mapping(target = "productBase", ignore = true)
+    @Mapping(target = "color", ignore = true)
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "skus", ignore = true)
     @Mapping(target = "version", ignore = true)
@@ -58,7 +63,7 @@ public interface ProductHierarchyMapper {
         return new ListingVariant(
                 entity.getId(),
                 entity.getProductBase() != null ? entity.getProductBase().getId() : null,
-                entity.getColorKey(),
+                entity.getColor() != null ? entity.getColor().getColorKey() : null,
                 entity.getSlug(),
                 entity.getWebDescription(),
                 imageUrls,

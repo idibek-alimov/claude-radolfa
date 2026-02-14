@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
+import tj.radolfa.application.ports.in.SyncCategoriesUseCase.SyncCategoriesCommand;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase.SyncLoyaltyCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
@@ -15,9 +17,13 @@ import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySync
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
 import tj.radolfa.application.ports.out.LogSyncEventPort;
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
+import tj.radolfa.infrastructure.web.dto.SyncCategoriesPayload;
 import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
+
+import java.util.List;
 
 /**
  * REST adapter for ERP product synchronisation.
@@ -38,15 +44,18 @@ public class ErpSyncController {
     private static final Logger LOG = LoggerFactory.getLogger(ErpSyncController.class);
 
     private final SyncProductHierarchyUseCase syncUseCase;
+    private final SyncCategoriesUseCase      syncCategoriesUseCase;
     private final SyncLoyaltyPointsUseCase   loyaltyUseCase;
     private final LogSyncEventPort            logSyncEvent;
 
     public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
+                             SyncCategoriesUseCase      syncCategoriesUseCase,
                              SyncLoyaltyPointsUseCase   loyaltyUseCase,
                              LogSyncEventPort            logSyncEvent) {
-        this.syncUseCase    = syncUseCase;
-        this.loyaltyUseCase = loyaltyUseCase;
-        this.logSyncEvent   = logSyncEvent;
+        this.syncUseCase           = syncUseCase;
+        this.syncCategoriesUseCase = syncCategoriesUseCase;
+        this.loyaltyUseCase        = loyaltyUseCase;
+        this.logSyncEvent          = logSyncEvent;
     }
 
     /**
@@ -82,6 +91,28 @@ public class ErpSyncController {
     }
 
     /**
+     * Syncs the category hierarchy from ERPNext.
+     * Must be called BEFORE product sync to ensure categories exist.
+     */
+    @PostMapping("/categories")
+    @PreAuthorize("hasRole('SYSTEM')")
+    public ResponseEntity<List<CategoryView>> syncCategories(
+            @Valid @RequestBody SyncCategoriesPayload payload) {
+
+        LOG.info("[ERP-SYNC] Received category sync with {} categories",
+                payload.categories().size());
+
+        var command = new SyncCategoriesCommand(
+                payload.categories().stream()
+                        .map(cp -> new SyncCategoriesCommand.CategoryPayload(cp.name(), cp.parentName()))
+                        .toList()
+        );
+
+        List<CategoryView> result = syncCategoriesUseCase.execute(command);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * Syncs loyalty points for a user, looked up by phone number.
      * If the user doesn't exist, a warning is logged and 204 is returned.
      */
@@ -105,6 +136,7 @@ public class ErpSyncController {
         return new HierarchySyncCommand(
                 payload.templateCode(),
                 payload.templateName(),
+                payload.category(),
                 variants
         );
     }

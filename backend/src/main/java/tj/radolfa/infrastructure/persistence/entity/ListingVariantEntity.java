@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "listing_variants", uniqueConstraints = @UniqueConstraint(columnNames = { "product_base_id",
-        "color_key" }))
+        "color_id" }))
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
@@ -27,8 +27,9 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @JoinColumn(name = "product_base_id", nullable = false)
     private ProductBaseEntity productBase;
 
-    @Column(name = "color_key", nullable = false, length = 64)
-    private String colorKey;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "color_id", nullable = false)
+    private ColorEntity color;
 
     @Column(name = "slug", nullable = false, unique = true, length = 255)
     private String slug;

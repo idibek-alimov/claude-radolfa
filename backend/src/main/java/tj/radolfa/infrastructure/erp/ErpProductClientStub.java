@@ -20,9 +20,9 @@ import java.util.List;
 public class ErpProductClientStub implements ErpProductClient {
 
     private static final List<ErpProductSnapshot> PAGE_ONE = List.of(
-            new ErpProductSnapshot("SKU-001", "Radolfa T-Shirt",  new BigDecimal("29.99"), 50),
-            new ErpProductSnapshot("SKU-002", "Denim Jacket",     new BigDecimal("89.50"), 12),
-            new ErpProductSnapshot("SKU-003", "Summer Hat",       new BigDecimal("15.00"), 30)
+            new ErpProductSnapshot("SKU-001", "Radolfa T-Shirt",  "Tops",        new BigDecimal("29.99"), 50),
+            new ErpProductSnapshot("SKU-002", "Denim Jacket",     "Outerwear",   new BigDecimal("89.50"), 12),
+            new ErpProductSnapshot("SKU-003", "Summer Hat",       "Accessories", new BigDecimal("15.00"), 30)
     );
 
     @Override

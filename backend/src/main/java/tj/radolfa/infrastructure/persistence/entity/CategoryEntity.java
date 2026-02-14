@@ -10,27 +10,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "product_bases")
+@Table(name = "categories")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductBaseEntity extends BaseAuditEntity {
+public class CategoryEntity extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "erp_template_code", nullable = false, unique = true, length = 64)
-    private String erpTemplateCode;
-
-    @Column(name = "name", length = 255)
+    @Column(nullable = false, unique = true, length = 128)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private CategoryEntity category;
+    @Column(nullable = false, unique = true, length = 128)
+    private String slug;
 
-    @OneToMany(mappedBy = "productBase", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ListingVariantEntity> variants = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private CategoryEntity parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    private List<CategoryEntity> children = new ArrayList<>();
 }

@@ -80,7 +80,7 @@ public class SearchController {
                         variant.getId(),
                         variant.getSlug(),
                         variant.getProductBase().getName(),
-                        variant.getColorKey(),
+                        variant.getColor() != null ? variant.getColor().getColorKey() : null,
                         variant.getWebDescription(),
                         images,
                         priceStart != null ? priceStart.doubleValue() : null,

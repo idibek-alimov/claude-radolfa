@@ -9,10 +9,14 @@ import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
+import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductHierarchyMapper;
+import tj.radolfa.infrastructure.persistence.repository.CategoryRepository;
+import tj.radolfa.infrastructure.persistence.repository.ColorRepository;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
@@ -29,16 +33,22 @@ public class ProductHierarchyAdapter
     private final ProductBaseRepository    baseRepo;
     private final ListingVariantRepository variantRepo;
     private final SkuRepository            skuRepo;
+    private final CategoryRepository       categoryRepo;
+    private final ColorRepository          colorRepo;
     private final ProductHierarchyMapper   mapper;
 
     public ProductHierarchyAdapter(ProductBaseRepository baseRepo,
                                    ListingVariantRepository variantRepo,
                                    SkuRepository skuRepo,
+                                   CategoryRepository categoryRepo,
+                                   ColorRepository colorRepo,
                                    ProductHierarchyMapper mapper) {
-        this.baseRepo    = baseRepo;
-        this.variantRepo = variantRepo;
-        this.skuRepo     = skuRepo;
-        this.mapper      = mapper;
+        this.baseRepo     = baseRepo;
+        this.variantRepo  = variantRepo;
+        this.skuRepo      = skuRepo;
+        this.categoryRepo = categoryRepo;
+        this.colorRepo    = colorRepo;
+        this.mapper       = mapper;
     }
 
     // ---- LoadProductBasePort ----
@@ -82,6 +92,16 @@ public class ProductHierarchyAdapter
             entity = mapper.toBaseEntity(base);
         }
 
+        // Resolve category String -> CategoryEntity
+        if (base.getCategory() != null) {
+            CategoryEntity categoryEntity = categoryRepo.findByName(base.getCategory())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Category not found: " + base.getCategory() + ". Sync categories first."));
+            entity.setCategory(categoryEntity);
+        } else {
+            entity.setCategory(null);
+        }
+
         return mapper.toProductBase(baseRepo.save(entity));
     }
 
@@ -104,7 +124,33 @@ public class ProductHierarchyAdapter
             entity.setProductBase(baseRef);
         }
 
+        // Resolve colorKey String -> ColorEntity (auto-create if missing)
+        if (variant.getColorKey() != null) {
+            ColorEntity colorEntity = colorRepo.findByColorKey(variant.getColorKey())
+                    .orElseGet(() -> {
+                        ColorEntity newColor = new ColorEntity();
+                        newColor.setColorKey(variant.getColorKey());
+                        newColor.setDisplayName(humanize(variant.getColorKey()));
+                        return colorRepo.save(newColor);
+                    });
+            entity.setColor(colorEntity);
+        }
+
         return mapper.toListingVariant(variantRepo.save(entity));
+    }
+
+    private String humanize(String colorKey) {
+        if (colorKey == null) return null;
+        String[] words = colorKey.split("-");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (!sb.isEmpty()) sb.append(' ');
+            if (!word.isEmpty()) {
+                sb.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) sb.append(word.substring(1));
+            }
+        }
+        return sb.toString();
     }
 
     @Override

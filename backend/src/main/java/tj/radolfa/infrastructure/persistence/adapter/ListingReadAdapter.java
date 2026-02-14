@@ -2,7 +2,6 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
@@ -64,6 +63,12 @@ public class ListingReadAdapter implements LoadListingPort {
                 return variantRepo.autocompleteNames(prefix, PageRequest.of(0, limit));
         }
 
+        @Override
+        public PageResult<ListingVariantDto> loadByCategoryIds(List<Long> categoryIds, int page, int limit) {
+                Page<Object[]> raw = variantRepo.findGridByCategoryIds(categoryIds, PageRequest.of(page - 1, limit));
+                return toGridResult(raw, page, limit);
+        }
+
         // ---- Grid helpers ----
 
         private PageResult<ListingVariantDto> toGridResult(Page<Object[]> raw, int page, int limit) {
@@ -81,19 +86,24 @@ public class ListingReadAdapter implements LoadListingPort {
                                 (long) page * limit < raw.getTotalElements());
         }
 
+        // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
+        //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
+        //                 [9]=totalStock, [10]=colorHexCode
         private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
                 Long id = (Long) row[0];
                 return new ListingVariantDto(
                                 id,
-                                (String) row[1],
-                                (String) row[2],
-                                (String) row[3],
-                                (String) row[4],
+                                (String) row[1],   // slug
+                                (String) row[2],   // name
+                                (String) row[3],   // category
+                                (String) row[4],   // colorKey
+                                (String) row[10],  // colorHexCode
+                                (String) row[5],   // webDescription
                                 imageMap.getOrDefault(id, List.of()),
-                                toBigDecimal(row[6]),
-                                toBigDecimal(row[7]),
-                                toInteger(row[8]),
-                                (Boolean) row[5]);
+                                toBigDecimal(row[7]),  // priceStart
+                                toBigDecimal(row[8]),  // priceEnd
+                                toInteger(row[9]),     // totalStock
+                                (Boolean) row[6]);     // topSelling
         }
 
         // ---- Detail helpers ----
@@ -125,7 +135,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
                                 .sum();
 
-                // Siblings: load IDs, slugs, colorKeys — then batch-load thumbnails
+                // Siblings: load IDs, slugs, colorKeys, hexCodes — then batch-load thumbnails
                 Long baseId = entity.getProductBase().getId();
                 List<Object[]> siblingRows = variantRepo.findSiblings(baseId, entity.getId());
 
@@ -140,17 +150,30 @@ public class ListingReadAdapter implements LoadListingPort {
                                         List<String> sibImages = siblingImageMap.getOrDefault(sibId, List.of());
                                         String thumbnail = sibImages.isEmpty() ? null : sibImages.get(0);
                                         return new ListingVariantDetailDto.SiblingVariant(
-                                                        (String) row[1],
-                                                        (String) row[2],
+                                                        (String) row[1],   // slug
+                                                        (String) row[2],   // colorKey
+                                                        (String) row[3],   // colorHexCode
                                                         thumbnail);
                                 })
                                 .toList();
+
+                String categoryName = entity.getProductBase().getCategory() != null
+                                ? entity.getProductBase().getCategory().getName()
+                                : null;
+                String colorKey = entity.getColor() != null
+                                ? entity.getColor().getColorKey()
+                                : null;
+                String colorHexCode = entity.getColor() != null
+                                ? entity.getColor().getHexCode()
+                                : null;
 
                 return new ListingVariantDetailDto(
                                 entity.getId(),
                                 entity.getSlug(),
                                 entity.getProductBase().getName(),
-                                entity.getColorKey(),
+                                categoryName,
+                                colorKey,
+                                colorHexCode,
                                 entity.getWebDescription(),
                                 images,
                                 priceStart,

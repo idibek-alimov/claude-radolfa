@@ -14,7 +14,6 @@ import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 import tj.radolfa.infrastructure.web.dto.SkuDto;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,7 +104,7 @@ class ListingControllerTest {
     static class FakeGetListingUseCase implements GetListingUseCase {
 
         private static final ListingVariantDto GRID_ITEM = new ListingVariantDto(
-                1L, "tpl-001-red", "T-Shirt", "red",
+                1L, "tpl-001-red", "T-Shirt", "Tops", "red", null,
                 "A red cotton tee",
                 List.of("https://s3/img1.jpg"),
                 new BigDecimal("24.99"), new BigDecimal("29.99"), 50,
@@ -122,7 +121,7 @@ class ListingControllerTest {
                 return Optional.empty();
 
             return Optional.of(new ListingVariantDetailDto(
-                    1L, "tpl-001-red", "T-Shirt", "red",
+                    1L, "tpl-001-red", "T-Shirt", "Tops", "red", null,
                     "A red cotton tee",
                     List.of("https://s3/img1.jpg"),
                     new BigDecimal("24.99"), new BigDecimal("29.99"), 50,
@@ -131,7 +130,7 @@ class ListingControllerTest {
                             new BigDecimal("29.99"), new BigDecimal("24.99"),
                             true, null)),
                     List.of(new ListingVariantDetailDto.SiblingVariant(
-                            "tpl-001-blue", "blue", "https://s3/blue-thumb.jpg"))));
+                            "tpl-001-blue", "blue", null, "https://s3/blue-thumb.jpg"))));
         }
 
         @Override

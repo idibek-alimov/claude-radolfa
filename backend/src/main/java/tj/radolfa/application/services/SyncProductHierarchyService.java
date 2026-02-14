@@ -64,9 +64,9 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
 
         // --- Tier 1: ProductBase ---
         ProductBase base = loadBasePort.findByErpTemplateCode(command.templateCode())
-                .orElseGet(() -> new ProductBase(null, command.templateCode(), null));
+                .orElseGet(() -> new ProductBase(null, command.templateCode(), null, null));
 
-        base.updateFromErp(command.templateName());
+        base.updateFromErp(command.templateName(), command.category());
         ProductBase savedBase = savePort.saveBase(base);
 
         // --- Tier 2 + 3: Variants and SKUs ---

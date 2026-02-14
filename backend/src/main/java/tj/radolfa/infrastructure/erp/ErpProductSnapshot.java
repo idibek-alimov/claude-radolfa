@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 public record ErpProductSnapshot(
         String     erpId,
         String     name,
+        String     category,
         BigDecimal price,
         Integer    stock
 ) {}

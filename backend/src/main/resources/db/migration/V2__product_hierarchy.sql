@@ -12,6 +12,7 @@ CREATE TABLE product_bases (
     id                  BIGSERIAL       PRIMARY KEY,
     erp_template_code   VARCHAR(64)     NOT NULL UNIQUE,
     name                VARCHAR(255),
+    category            VARCHAR(128),
     version             BIGINT          NOT NULL DEFAULT 0,
     created_at          TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ     NOT NULL DEFAULT NOW()

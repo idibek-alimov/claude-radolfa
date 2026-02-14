@@ -135,7 +135,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getId(),
                                 doc.getSlug(),
                                 doc.getName(),
+                                null, // category not yet in search index
                                 doc.getColorKey(),
+                                null, // colorHexCode not yet in search index
                                 doc.getWebDescription(),
                                 doc.getImages() != null ? doc.getImages() : List.of(),
                                 doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,

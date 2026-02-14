@@ -19,6 +19,7 @@ public record ErpHierarchyPayload(
 
         @NotBlank String templateCode,
         @NotBlank String templateName,
+        String category,
         @NotEmpty @Valid List<VariantPayload> variants
 
 ) {

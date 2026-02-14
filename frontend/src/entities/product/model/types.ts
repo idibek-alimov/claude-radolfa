@@ -33,7 +33,9 @@ export interface ListingVariant {
   id: number;
   slug: string;
   name: string;
+  category: string;
   colorKey: string;
+  colorHexCode: string | null;
   webDescription: string;
   images: string[];
   priceStart: number;
@@ -49,6 +51,7 @@ export interface ListingVariant {
 export interface SiblingVariant {
   slug: string;
   colorKey: string;
+  colorHexCode: string | null;
   thumbnail: string;
 }
 
@@ -90,4 +93,24 @@ export interface CollectionPage {
   key: string;
   title: string;
   page: PaginatedListings;
+}
+
+/**
+ * Category tree node returned by GET /api/v1/categories.
+ */
+export interface CategoryTree {
+  id: number;
+  name: string;
+  slug: string;
+  children: CategoryTree[];
+}
+
+/**
+ * Color entry returned by GET /api/v1/colors.
+ */
+export interface Color {
+  id: number;
+  colorKey: string;
+  displayName: string | null;
+  hexCode: string | null;
 }

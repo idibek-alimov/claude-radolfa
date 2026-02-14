@@ -83,19 +83,24 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
                 .toList();
     }
 
+    // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
+    //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
+    //                 [9]=totalStock, [10]=colorHexCode
     private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
         Long id = (Long) row[0];
         return new ListingVariantDto(
                 id,
-                (String) row[1],
-                (String) row[2],
-                (String) row[3],
-                (String) row[4],
+                (String) row[1],   // slug
+                (String) row[2],   // name
+                (String) row[3],   // category
+                (String) row[4],   // colorKey
+                (String) row[10],  // colorHexCode
+                (String) row[5],   // webDescription
                 imageMap.getOrDefault(id, List.of()),
-                toBigDecimal(row[6]),
-                toBigDecimal(row[7]),
-                toInteger(row[8]),
-                (Boolean) row[5]);
+                toBigDecimal(row[7]),  // priceStart
+                toBigDecimal(row[8]),  // priceEnd
+                toInteger(row[9]),     // totalStock
+                (Boolean) row[6]);     // topSelling
     }
 
     private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {
