@@ -6,12 +6,20 @@ import tj.radolfa.application.ports.out.SaveCategoryPort;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.repository.CategoryRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CategoryAdapter.class);
+    private static final int MAX_DEPTH = 10;
 
     private final CategoryRepository categoryRepo;
 
@@ -47,12 +55,25 @@ public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort {
     @Override
     public List<Long> getAllDescendantIds(Long categoryId) {
         List<Long> result = new ArrayList<>();
+        Set<Long> visited = new HashSet<>();
+        collectDescendants(categoryId, result, visited, 0);
+        return result;
+    }
+
+    private void collectDescendants(Long categoryId, List<Long> result, Set<Long> visited, int depth) {
+        if (depth > MAX_DEPTH) {
+            LOG.warn("[CATEGORY] Max depth {} exceeded at categoryId={}, stopping recursion", MAX_DEPTH, categoryId);
+            return;
+        }
+        if (!visited.add(categoryId)) {
+            LOG.warn("[CATEGORY] Cycle detected at categoryId={}, skipping", categoryId);
+            return;
+        }
         result.add(categoryId);
         List<CategoryEntity> children = categoryRepo.findByParentId(categoryId);
         for (CategoryEntity child : children) {
-            result.addAll(getAllDescendantIds(child.getId()));
+            collectDescendants(child.getId(), result, visited, depth + 1);
         }
-        return result;
     }
 
     @Override

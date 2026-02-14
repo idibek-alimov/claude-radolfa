@@ -102,14 +102,21 @@ public class ErpSyncController {
         LOG.info("[ERP-SYNC] Received category sync with {} categories",
                 payload.categories().size());
 
-        var command = new SyncCategoriesCommand(
-                payload.categories().stream()
-                        .map(cp -> new SyncCategoriesCommand.CategoryPayload(cp.name(), cp.parentName()))
-                        .toList()
-        );
+        try {
+            var command = new SyncCategoriesCommand(
+                    payload.categories().stream()
+                            .map(cp -> new SyncCategoriesCommand.CategoryPayload(cp.name(), cp.parentName()))
+                            .toList()
+            );
 
-        List<CategoryView> result = syncCategoriesUseCase.execute(command);
-        return ResponseEntity.ok(result);
+            List<CategoryView> result = syncCategoriesUseCase.execute(command);
+            logSyncEvent.log("CATEGORIES", true, null);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            LOG.error("[ERP-SYNC] Failed to sync categories: {}", ex.getMessage(), ex);
+            logSyncEvent.log("CATEGORIES", false, ex.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -122,8 +129,17 @@ public class ErpSyncController {
             @Valid @RequestBody SyncLoyaltyRequestDto request) {
 
         LOG.info("[LOYALTY-SYNC] Received points sync for phone={}", request.phone());
-        loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
-        return ResponseEntity.noContent().build();
+
+        try {
+            loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
+            logSyncEvent.log("LOYALTY:" + request.phone(), true, null);
+            return ResponseEntity.noContent().build();
+        } catch (Exception ex) {
+            LOG.error("[LOYALTY-SYNC] Failed to sync points for phone={}: {}",
+                    request.phone(), ex.getMessage(), ex);
+            logSyncEvent.log("LOYALTY:" + request.phone(), false, ex.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     // ---- Mapping: DTO → Command ----

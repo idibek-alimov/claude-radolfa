@@ -20,7 +20,20 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         @Param("productBaseId") Long productBaseId,
                         @Param("colorKey") String colorKey);
 
-        Optional<ListingVariantEntity> findBySlug(String slug);
+        /**
+     * Detail page query: eagerly fetches productBase, category, and color
+     * in a single SQL JOIN to avoid N+1 on the detail page.
+     */
+    @Query("""
+                    SELECT lv FROM ListingVariantEntity lv
+                    JOIN FETCH lv.productBase pb
+                    LEFT JOIN FETCH pb.category
+                    JOIN FETCH lv.color
+                    WHERE lv.slug = :slug
+                    """)
+    Optional<ListingVariantEntity> findDetailBySlug(@Param("slug") String slug);
+
+    Optional<ListingVariantEntity> findBySlug(String slug);
 
         List<ListingVariantEntity> findByProductBaseId(Long productBaseId);
 

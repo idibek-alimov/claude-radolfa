@@ -49,7 +49,7 @@ public class ListingReadAdapter implements LoadListingPort {
 
         @Override
         public Optional<ListingVariantDetailDto> loadBySlug(String slug) {
-                return variantRepo.findBySlug(slug).map(this::toDetailDto);
+                return variantRepo.findDetailBySlug(slug).map(this::toDetailDto);
         }
 
         @Override

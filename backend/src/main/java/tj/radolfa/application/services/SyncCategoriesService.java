@@ -12,6 +12,9 @@ import tj.radolfa.application.ports.out.SaveCategoryPort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class SyncCategoriesService implements SyncCategoriesUseCase {
@@ -32,10 +35,14 @@ public class SyncCategoriesService implements SyncCategoriesUseCase {
     public List<CategoryView> execute(SyncCategoriesCommand command) {
         LOG.info("[CATEGORY-SYNC] Processing {} categories", command.categories().size());
 
+        // Pre-fetch all existing categories into a Map to avoid per-iteration DB calls
+        Map<String, CategoryView> existingByName = loadCategoryPort.findAll().stream()
+                .collect(Collectors.toMap(CategoryView::name, Function.identity()));
+
         List<CategoryView> results = new ArrayList<>();
 
         for (SyncCategoriesCommand.CategoryPayload payload : command.categories()) {
-            CategoryView existing = loadCategoryPort.findByName(payload.name()).orElse(null);
+            CategoryView existing = existingByName.get(payload.name());
 
             if (existing != null) {
                 results.add(existing);
@@ -44,9 +51,8 @@ public class SyncCategoriesService implements SyncCategoriesUseCase {
 
             Long parentId = null;
             if (payload.parentName() != null) {
-                parentId = loadCategoryPort.findByName(payload.parentName())
-                        .map(CategoryView::id)
-                        .orElse(null);
+                CategoryView parent = existingByName.get(payload.parentName());
+                parentId = parent != null ? parent.id() : null;
                 if (parentId == null) {
                     LOG.warn("[CATEGORY-SYNC] Parent '{}' not found for category '{}', creating as root",
                             payload.parentName(), payload.name());
@@ -56,6 +62,8 @@ public class SyncCategoriesService implements SyncCategoriesUseCase {
             String slug = slugify(payload.name());
             CategoryView saved = saveCategoryPort.save(payload.name(), slug, parentId);
             results.add(saved);
+            // Update the map so subsequent iterations can find this newly created category
+            existingByName.put(saved.name(), saved);
 
             LOG.debug("[CATEGORY-SYNC] Created category: name={}, slug={}, parentId={}",
                     payload.name(), slug, parentId);
