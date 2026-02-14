@@ -34,7 +34,7 @@ spring:
     jdbc:
       initialize-schema: never   # Spring Batch manages its own metadata tables
     job:
-      launch:
+      # launch:
         enabled: false          # Jobs are triggered by the scheduler, not on startup
 
   # --- Elasticsearch -------------------------------------------------

@@ -26,23 +26,23 @@ import org.springframework.stereotype.Component;
  * is confirmed.
  */
 @Component
-@Profile({"dev", "test"})
+@Profile({ "dev", "test" })
 public class ErpSyncScheduler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErpSyncScheduler.class);
 
     private final JobLauncher jobLauncher;
-    private final Job         erpInitialImportJob;
+    private final Job erpInitialImportJob;
 
     public ErpSyncScheduler(JobLauncher jobLauncher, Job erpInitialImportJob) {
-        this.jobLauncher        = jobLauncher;
+        this.jobLauncher = jobLauncher;
         this.erpInitialImportJob = erpInitialImportJob;
     }
 
     /**
      * Fires every 3 600 000 ms (one hour).
      */
-    @Scheduled(fixedRate = 3_600_000)
+    @Scheduled(fixedDelay = 3_600_000)
     public void runFullSync() {
         LOG.info("[ERP-SCHEDULER] Starting erpInitialImportJob ...");
         try {
@@ -54,7 +54,7 @@ public class ErpSyncScheduler {
             LOG.info("[ERP-SCHEDULER] erpInitialImportJob finished.");
         } catch (Exception ex) {
             // Log and swallow – the application must not crash because of a single
-            // failed sync cycle.  Alerting is handled by log-based monitors.
+            // failed sync cycle. Alerting is handled by log-based monitors.
             LOG.error("[ERP-SCHEDULER] erpInitialImportJob failed: {}", ex.getMessage(), ex);
         }
     }
