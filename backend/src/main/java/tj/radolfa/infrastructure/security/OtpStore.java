@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
@@ -89,8 +90,9 @@ public class OtpStore {
 
     /**
      * Clears expired OTPs from the store.
-     * Can be called periodically to prevent memory growth.
+     * Runs automatically every 10 minutes to prevent memory growth.
      */
+    @Scheduled(fixedRate = 600_000)
     public void cleanupExpired() {
         Instant now = Instant.now();
         store.entrySet().removeIf(entry -> now.isAfter(entry.getValue().expiry()));

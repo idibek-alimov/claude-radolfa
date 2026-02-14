@@ -76,16 +76,27 @@ public class SearchController {
                         .map(ListingVariantImageEntity::getImageUrl)
                         .toList();
 
+                String category = variant.getProductBase().getCategory() != null
+                        ? variant.getProductBase().getCategory().getName()
+                        : null;
+                String colorKey = variant.getColor() != null
+                        ? variant.getColor().getColorKey() : null;
+                String colorHexCode = variant.getColor() != null
+                        ? variant.getColor().getHexCode() : null;
+
                 indexPort.index(
                         variant.getId(),
                         variant.getSlug(),
                         variant.getProductBase().getName(),
-                        variant.getColor() != null ? variant.getColor().getColorKey() : null,
+                        category,
+                        colorKey,
+                        colorHexCode,
                         variant.getWebDescription(),
                         images,
                         priceStart != null ? priceStart.doubleValue() : null,
                         priceEnd != null ? priceEnd.doubleValue() : null,
                         totalStock,
+                        variant.isTopSelling(),
                         variant.getLastSyncAt()
                 );
                 indexed++;

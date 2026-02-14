@@ -47,14 +47,17 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         // ---- ListingIndexPort (write) ----
 
         @Override
-        public void index(Long variantId, String slug, String name, String colorKey,
+        public void index(Long variantId, String slug, String name, String category,
+                        String colorKey, String colorHexCode,
                         String description, List<String> images,
                         Double priceStart, Double priceEnd, Integer totalStock,
-                        Instant lastSyncAt) {
+                        boolean topSelling, Instant lastSyncAt) {
                 try {
                         ListingDocument doc = new ListingDocument(
-                                        variantId, slug, name, colorKey, description,
-                                        images, priceStart, priceEnd, totalStock, lastSyncAt);
+                                        variantId, slug, name, category,
+                                        colorKey, colorHexCode, description,
+                                        images, priceStart, priceEnd, totalStock,
+                                        topSelling, lastSyncAt);
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
                 } catch (Exception e) {
@@ -135,15 +138,15 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getId(),
                                 doc.getSlug(),
                                 doc.getName(),
-                                null, // category not yet in search index
+                                doc.getCategory(),
                                 doc.getColorKey(),
-                                null, // colorHexCode not yet in search index
+                                doc.getColorHexCode(),
                                 doc.getWebDescription(),
                                 doc.getImages() != null ? doc.getImages() : List.of(),
                                 doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,
                                 doc.getPriceEnd() != null ? BigDecimal.valueOf(doc.getPriceEnd()) : null,
                                 doc.getTotalStock(),
-                                false // topSelling not yet in search index
+                                doc.getTopSelling() != null && doc.getTopSelling()
                 );
         }
 }

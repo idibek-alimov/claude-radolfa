@@ -12,20 +12,24 @@ public interface ListingIndexPort {
     /**
      * Upsert a listing variant document into the search index.
      *
-     * @param variantId   the ListingVariant id to index
-     * @param slug        the variant slug
-     * @param name        the ProductBase name (denormalized)
-     * @param colorKey    the colour key
-     * @param description web description (may be null)
-     * @param images      image URLs
-     * @param priceStart  lowest sale price among SKUs
-     * @param priceEnd    highest sale price among SKUs
-     * @param totalStock  sum of all SKU stock
+     * @param variantId    the ListingVariant id to index
+     * @param slug         the variant slug
+     * @param name         the ProductBase name (denormalized)
+     * @param category     category name (may be null)
+     * @param colorKey     the colour key
+     * @param colorHexCode hex code for the colour swatch (may be null)
+     * @param description  web description (may be null)
+     * @param images       image URLs
+     * @param priceStart   lowest sale price among SKUs
+     * @param priceEnd     highest sale price among SKUs
+     * @param totalStock   sum of all SKU stock
+     * @param topSelling   whether this variant is marked as top-selling
      */
-    void index(Long variantId, String slug, String name, String colorKey,
+    void index(Long variantId, String slug, String name, String category,
+               String colorKey, String colorHexCode,
                String description, java.util.List<String> images,
                Double priceStart, Double priceEnd, Integer totalStock,
-               java.time.Instant lastSyncAt);
+               boolean topSelling, java.time.Instant lastSyncAt);
 
     /**
      * Remove a listing variant from the search index.

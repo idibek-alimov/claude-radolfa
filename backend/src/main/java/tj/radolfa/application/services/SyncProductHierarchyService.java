@@ -114,7 +114,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
             }
 
             // Index into Elasticsearch (fire-and-forget)
-            indexVariant(savedVariant, command.templateName(), savedSkus);
+            indexVariant(savedVariant, command.templateName(), savedBase.getCategory(), savedSkus);
         }
 
         LOG.info("[HIERARCHY-SYNC] Completed template={}, variants={}",
@@ -123,7 +123,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
         return savedBase;
     }
 
-    private void indexVariant(ListingVariant variant, String productName, List<Sku> skus) {
+    private void indexVariant(ListingVariant variant, String productName, String category, List<Sku> skus) {
         Double priceStart = skus.stream()
                 .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
                 .filter(java.util.Objects::nonNull)
@@ -148,12 +148,15 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                 variant.getId(),
                 variant.getSlug(),
                 productName,
+                category,
                 variant.getColorKey(),
+                null,   // colorHexCode — not available in domain layer; backfilled by reindex
                 variant.getWebDescription(),
                 variant.getImages(),
                 priceStart,
                 priceEnd,
                 totalStock,
+                false,  // topSelling — enrichment field, not set during ERP sync
                 variant.getLastSyncAt()
         );
     }
