@@ -12,10 +12,8 @@ import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
-import tj.radolfa.domain.model.ProductBase;
-import tj.radolfa.domain.model.Sku;
-
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 
 import java.util.ArrayList;

@@ -92,11 +92,16 @@ public class ProductHierarchyAdapter
             entity = mapper.toBaseEntity(base);
         }
 
-        // Resolve category String -> CategoryEntity
-        if (base.getCategory() != null) {
+        // Resolve category String -> CategoryEntity (find-or-create placeholder)
+        if (base.getCategory() != null && !base.getCategory().isBlank()) {
             CategoryEntity categoryEntity = categoryRepo.findByName(base.getCategory())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Category not found: " + base.getCategory() + ". Sync categories first."));
+                    .orElseGet(() -> {
+                        CategoryEntity placeholder = new CategoryEntity();
+                        placeholder.setName(base.getCategory());
+                        placeholder.setSlug(slugify(base.getCategory()));
+                        // parent = null → top-level placeholder
+                        return categoryRepo.save(placeholder);
+                    });
             entity.setCategory(categoryEntity);
         } else {
             entity.setCategory(null);
@@ -137,6 +142,13 @@ public class ProductHierarchyAdapter
         }
 
         return mapper.toListingVariant(variantRepo.save(entity));
+    }
+
+    private String slugify(String name) {
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
     }
 
     private String humanize(String colorKey) {
