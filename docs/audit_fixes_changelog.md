@@ -15,3 +15,4 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 7 | **F5.1** No error boundary | MEDIUM | Created `app/error.tsx` with recovery UI |
 | 8 | **2.5** OtpAuthService logs PII in plain text | MEDIUM | Added `mask()` helper — all phone log statements now show `+992***4567` format |
 | 9 | **2.2 / 2.3** Sync services missing concurrency protection | MEDIUM | Set `Isolation.SERIALIZABLE` on `SyncProductHierarchyService` and `SyncCategoriesService` |
+| 10 | **F9.1** No phone format validation in LoginForm | MEDIUM | Added regex check for Tajik phone format (`+992XXXXXXXXX`) with user-friendly error message |

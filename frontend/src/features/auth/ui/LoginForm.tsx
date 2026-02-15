@@ -41,11 +41,17 @@ export default function LoginForm() {
 
   const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone.trim()) {
+    const trimmed = phone.trim();
+    if (!trimmed) {
       setError("Phone number is required");
       return;
     }
-    sendOtpMutation.mutate({ phone });
+    // Tajik phone: +992 followed by 9 digits
+    if (!/^\+?992\d{9}$/.test(trimmed.replace(/[\s-]/g, ""))) {
+      setError("Enter a valid Tajik phone number (e.g. +992 123 456 789)");
+      return;
+    }
+    sendOtpMutation.mutate({ phone: trimmed });
   };
 
   const handleVerifyOtp = (e: React.FormEvent) => {
