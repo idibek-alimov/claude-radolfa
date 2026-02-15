@@ -11,11 +11,9 @@ public record UserDto(
         String role,
         String name,
         String email,
-        int loyaltyPoints
+        int loyaltyPoints,
+        boolean enabled
 ) {
-    /**
-     * Creates a UserDto from a domain User.
-     */
     public static UserDto fromDomain(User user) {
         return new UserDto(
                 user.id(),
@@ -23,7 +21,8 @@ public record UserDto(
                 user.role().name(),
                 user.name(),
                 user.email(),
-                user.loyaltyPoints()
+                user.loyaltyPoints(),
+                user.enabled()
         );
     }
 }

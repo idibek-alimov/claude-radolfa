@@ -29,6 +29,7 @@ tj/radolfa/infrastructure/web/dto/ErpHierarchyPayload.class
 tj/radolfa/infrastructure/persistence/adapter/OrderRepositoryAdapter.class
 tj/radolfa/infrastructure/web/dto/ErpHierarchyPayload$ItemPayload.class
 tj/radolfa/infrastructure/security/OtpStore.class
+tj/radolfa/application/services/ToggleUserStatusService.class
 tj/radolfa/application/ports/out/SaveUserPort.class
 tj/radolfa/application/ports/out/LoadSkuPort.class
 tj/radolfa/infrastructure/persistence/entity/ListingVariantImageEntity.class
@@ -100,6 +101,8 @@ tj/radolfa/infrastructure/persistence/entity/UserEntity.class
 tj/radolfa/infrastructure/persistence/entity/ErpSyncLogEntity.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDetailDto$SiblingVariant.class
 tj/radolfa/application/ports/out/ProcessedImage.class
+tj/radolfa/application/services/ChangeUserRoleService.class
+tj/radolfa/application/services/ListUsersService.class
 tj/radolfa/infrastructure/erp/batch/ErpProductProcessor.class
 tj/radolfa/infrastructure/security/JwtProperties.class
 tj/radolfa/domain/model/Sku.class
@@ -152,8 +155,12 @@ tj/radolfa/domain/exception/ErpLockViolationException.class
 tj/radolfa/infrastructure/persistence/entity/CategoryEntity.class
 tj/radolfa/infrastructure/persistence/adapter/ProductHierarchyAdapter.class
 tj/radolfa/infrastructure/s3/S3ImageUploader.class
+tj/radolfa/application/ports/in/ListUsersUseCase.class
+tj/radolfa/application/ports/in/ToggleUserStatusUseCase.class
+tj/radolfa/application/ports/in/ChangeUserRoleUseCase.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase$HierarchySyncCommand$SkuCommand.class
 tj/radolfa/application/ports/out/ImageProcessingPort.class
+tj/radolfa/application/ports/out/SearchUsersPort.class
 tj/radolfa/infrastructure/erp/batch/ErpProductWriter.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase$HierarchySyncCommand$VariantCommand.class
 tj/radolfa/infrastructure/security/RateLimitProperties.class

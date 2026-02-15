@@ -2,7 +2,6 @@ package tj.radolfa.domain.model;
 
 /**
  * Immutable domain representation of an application user.
- * Now includes profile information (name, email).
  */
 public record User(
                 Long id,
@@ -11,5 +10,6 @@ public record User(
                 String name,
                 String email,
                 int loyaltyPoints,
+                boolean enabled,
                 Long version) {
 }

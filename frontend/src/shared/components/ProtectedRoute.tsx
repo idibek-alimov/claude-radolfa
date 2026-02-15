@@ -9,25 +9,21 @@ interface ProtectedRouteProps {
     requiredRole?: "USER" | "MANAGER" | "SYSTEM";
 }
 
-/**
- * Protected route wrapper component.
- * 
- * Checks authentication status and optionally verifies user role.
- * Redirects to /login if not authenticated or if role doesn't match.
- * 
- * @example
- * ```tsx
- * // Require any authenticated user
- * <ProtectedRoute>
- *   <ProfilePage />
- * </ProtectedRoute>
- * 
- * // Require MANAGER role
- * <ProtectedRoute requiredRole="MANAGER">
- *   <ManageProductsPage />
- * </ProtectedRoute>
- * ```
- */
+const ROLE_HIERARCHY: Record<string, number> = {
+    USER: 0,
+    MANAGER: 1,
+    SYSTEM: 2,
+};
+
+function hasRequiredRole(
+    userRole: string | undefined,
+    requiredRole: string | undefined
+): boolean {
+    if (!requiredRole) return true;
+    if (!userRole) return false;
+    return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[requiredRole] ?? 0);
+}
+
 export default function ProtectedRoute({
     children,
     requiredRole,
@@ -44,7 +40,7 @@ export default function ProtectedRoute({
             }
 
             // Check role if required
-            if (requiredRole && user?.role !== requiredRole) {
+            if (!hasRequiredRole(user?.role, requiredRole)) {
                 router.push("/");
             }
         }
@@ -68,7 +64,7 @@ export default function ProtectedRoute({
     }
 
     // Wrong role
-    if (requiredRole && user?.role !== requiredRole) {
+    if (!hasRequiredRole(user?.role, requiredRole)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">

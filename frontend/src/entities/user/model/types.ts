@@ -49,4 +49,6 @@ export interface User {
   email?: string;
   /** Loyalty points synced from ERPNext. */
   loyaltyPoints: number;
+  /** Whether the user account is active. */
+  enabled: boolean;
 }

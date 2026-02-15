@@ -16,6 +16,7 @@ export interface User {
   name?: string;
   email?: string;
   loyaltyPoints: number;
+  enabled: boolean;
 }
 
 export interface AuthResponse {

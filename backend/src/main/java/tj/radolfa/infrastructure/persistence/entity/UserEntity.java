@@ -39,4 +39,7 @@ public class UserEntity extends BaseAuditEntity {
 
     @Column(name = "loyalty_points", nullable = false)
     private int loyaltyPoints;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 }

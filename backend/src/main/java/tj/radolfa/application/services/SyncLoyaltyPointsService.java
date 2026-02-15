@@ -40,6 +40,7 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
                 user.name(),
                 user.email(),
                 command.points(),
+                user.enabled(),
                 user.version());
 
         saveUserPort.save(updated);

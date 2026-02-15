@@ -95,11 +95,11 @@ function DesktopAuth() {
             My Profile
           </Link>
         </DropdownMenuItem>
-        {user.role === "MANAGER" && (
+        {(user.role === "MANAGER" || user.role === "SYSTEM") && (
           <DropdownMenuItem asChild>
             <Link href="/manage" className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
-              Manage Products
+              Management
             </Link>
           </DropdownMenuItem>
         )}
@@ -141,14 +141,14 @@ function MobileMenu() {
           {/* Categories accordion */}
           <MegaMenuMobile />
 
-          {user?.role === "MANAGER" && (
+          {(user?.role === "MANAGER" || user?.role === "SYSTEM") && (
             <SheetClose asChild>
               <Link
                 href="/manage"
                 className="flex items-center gap-2.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors py-2.5 px-2 rounded-lg hover:bg-purple-50"
               >
                 <Settings className="h-4 w-4" />
-                Manage Products
+                Management
               </Link>
             </SheetClose>
           )}

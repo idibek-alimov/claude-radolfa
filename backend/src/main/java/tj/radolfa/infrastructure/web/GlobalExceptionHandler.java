@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,6 +78,24 @@ public class GlobalExceptionHandler {
         LOG.warn("[VALIDATION] Illegal argument: {}", ex.getMessage());
         return ResponseEntity.badRequest()
                 .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles unique constraint violations (e.g. duplicate email).
+     * Returns 409 Conflict.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<MessageResponseDto> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        LOG.warn("[CONSTRAINT] Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+
+        String message = "A conflict occurred with existing data.";
+        String cause = ex.getMostSpecificCause().getMessage();
+        if (cause != null && cause.contains("email")) {
+            message = "This email address is already in use.";
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(message));
     }
 
     /**

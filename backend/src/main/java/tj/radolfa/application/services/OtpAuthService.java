@@ -81,6 +81,11 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
         User user = loadUserPort.loadByPhone(normalized.value())
                 .orElseGet(() -> createNewUser(normalized));
 
+        if (!user.enabled()) {
+            LOG.warn("[AUTH] Blocked user attempted login: phone={}", normalized);
+            return Optional.empty();
+        }
+
         // Generate JWT
         String token = jwtUtil.generateToken(user.id(), user.phone().value(), user.role());
         LOG.info("[AUTH] User authenticated: phone={}, role={}", user.phone(), user.role());
@@ -96,7 +101,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
      * Creates a new user with default USER role.
      */
     private User createNewUser(PhoneNumber phone) {
-        User newUser = new User(null, phone, UserRole.USER, null, null, 0, null);
+        User newUser = new User(null, phone, UserRole.USER, null, null, 0, true, null);
         User saved = saveUserPort.save(newUser);
         LOG.info("[AUTH] Created new user: phone={}, id={}", phone, saved.id());
         return saved;
