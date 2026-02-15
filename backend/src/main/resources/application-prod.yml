@@ -1,0 +1,23 @@
+# ================================================================
+# Radolfa – PROD Profile Overrides
+# ================================================================
+# Activated via SPRING_PROFILES_ACTIVE=prod.
+# Tightened logging, no SQL output, restricted CORS.
+
+spring:
+  jpa:
+    show-sql: false
+
+# --- Logging --------------------------------------------------------
+logging:
+  level:
+    root: WARN
+    tj.radolfa: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
+# --- Actuator (restrict in production) ------------------------------
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
