@@ -15,6 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.domain.model.User;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -39,9 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String CLAIM_USER_ID = "userId";
 
     private final JwtUtil jwtUtil;
+    private final LoadUserPort loadUserPort;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, LoadUserPort loadUserPort) {
         this.jwtUtil = jwtUtil;
+        this.loadUserPort = loadUserPort;
     }
 
     @Override
@@ -90,19 +95,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String role = claims.get(CLAIM_ROLE, String.class);
             Long userId = claims.get(CLAIM_USER_ID, Long.class);
 
-            if (phone != null && role != null) {
-                // Create authority with ROLE_ prefix for Spring Security
-                List<SimpleGrantedAuthority> authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_" + role));
-
-                // Create authentication token with user details as principal
-                JwtAuthenticatedUser principal = new JwtAuthenticatedUser(userId, phone, role);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
-                        authorities);
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-                LOG.debug("[JWT] Authenticated user: phone={}, role={}", phone, role);
+            if (phone == null || role == null) {
+                return;
             }
+
+            // Verify the user is still active (not blocked)
+            var user = loadUserPort.loadById(userId);
+            if (user.isEmpty() || !user.get().enabled()) {
+                LOG.warn("[JWT] Rejected token for disabled/missing user: userId={}", userId);
+                return;
+            }
+
+            // Create authority with ROLE_ prefix for Spring Security
+            List<SimpleGrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + role));
+
+            // Create authentication token with user details as principal
+            JwtAuthenticatedUser principal = new JwtAuthenticatedUser(userId, phone, role);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
+                    authorities);
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            LOG.debug("[JWT] Authenticated user: phone={}, role={}", phone, role);
         });
     }
 
