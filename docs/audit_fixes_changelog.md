@@ -21,3 +21,4 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 13 | **6.2** Sync endpoints missing caller identity | MEDIUM | Added `@AuthenticationPrincipal` to all 4 sync endpoints — caller phone logged in every sync event |
 | 14 | **5.2** Single long-lived JWT allows stale roles | HIGH | Replaced 24h token with 15min access + 7-day refresh token pair. Refresh loads role fresh from DB. Tokens differentiated by `type` claim. Frontend interceptor silently refreshes before redirecting to login |
 | 15 | **6.4** Missing idempotency keys on sync endpoints | MEDIUM | Added `Idempotency-Key` header requirement on `/sync/orders` and `/sync/loyalty`. New `erp_sync_idempotency` table with unique constraint. Returns 409 on duplicate, 400 if header missing. Product/category syncs unchanged (naturally idempotent) |
+| 16 | **2.1** Deprecated `CreateOrderService` still wired | MEDIUM | Deleted `CreateOrderService` and `CreateOrderUseCase` — dead code with no references |

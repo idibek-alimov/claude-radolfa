@@ -129,7 +129,6 @@ tj/radolfa/application/ports/out/LoadListingVariantPort.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase.class
 tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase$SyncLoyaltyCommand.class
 tj/radolfa/application/ports/out/LoadHomeCollectionsPort.class
-tj/radolfa/application/ports/in/CreateOrderUseCase.class
 tj/radolfa/application/ports/in/GetMyOrdersUseCase.class
 tj/radolfa/infrastructure/web/OrderController.class
 tj/radolfa/application/ports/in/SendOtpUseCase.class
@@ -154,7 +153,6 @@ tj/radolfa/application/ports/in/VerifyOtpUseCase$AuthResult.class
 tj/radolfa/application/ports/in/GetHomeCollectionsUseCase.class
 tj/radolfa/application/ports/out/LoadCategoryPort.class
 tj/radolfa/application/services/UpdateUserProfileService.class
-tj/radolfa/application/services/CreateOrderService.class
 tj/radolfa/infrastructure/security/OtpStore$OtpEntry.class
 tj/radolfa/infrastructure/search/ListingSearchStub.class
 tj/radolfa/infrastructure/persistence/mappers/OrderMapperImpl.class
