@@ -9,5 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "radolfa.security.jwt")
 public record JwtProperties(
         String secret,
-        long expirationMs
+        long expirationMs,
+        long refreshExpirationMs
 ) {}

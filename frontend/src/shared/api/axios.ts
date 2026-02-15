@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 /**
  * Single Axios instance shared across the entire app.
@@ -22,16 +22,75 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let failedQueue: {
+  resolve: (value: unknown) => void;
+  reject: (reason: unknown) => void;
+  config: InternalAxiosRequestConfig;
+}[] = [];
+
+function processQueue(error: AxiosError | null) {
+  failedQueue.forEach(({ resolve, reject, config }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(apiClient(config));
+    }
+  });
+  failedQueue = [];
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Avoid redirect loops if already on login page
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+  async (error: AxiosError) => {
+    const originalRequest = error.config;
+
+    // Only attempt refresh on 401, and not for auth endpoints themselves
+    if (
+      error.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest.url?.includes("/api/v1/auth/refresh") ||
+      originalRequest.url?.includes("/api/v1/auth/login") ||
+      originalRequest.url?.includes("/api/v1/auth/verify")
+    ) {
+      return Promise.reject(error);
+    }
+
+    // If already refreshing, queue this request
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject, config: originalRequest });
+      });
+    }
+
+    isRefreshing = true;
+
+    try {
+      await axios.post(
+        `${API_BASE}/api/v1/auth/refresh`,
+        {},
+        { withCredentials: true }
+      );
+
+      processQueue(null);
+
+      // Retry the original request with new cookies
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError as AxiosError);
+
+      // Refresh failed — redirect to login
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login")
+      ) {
         window.location.href = "/login";
       }
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
     }
-    return Promise.reject(error);
   }
 );
 

@@ -1,5 +1,6 @@
 package tj.radolfa.infrastructure.web;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import tj.radolfa.application.ports.in.VerifyOtpUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.infrastructure.security.AuthCookieManager;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
+import tj.radolfa.infrastructure.security.JwtUtil;
 import tj.radolfa.infrastructure.security.RateLimitProperties;
 import tj.radolfa.infrastructure.security.RateLimiterService;
 import tj.radolfa.infrastructure.web.dto.*;
@@ -46,6 +48,7 @@ public class AuthController {
     private final VerifyOtpUseCase verifyOtpUseCase;
     private final LoadUserPort loadUserPort;
     private final AuthCookieManager cookieManager;
+    private final JwtUtil jwtUtil;
     private final RateLimiterService rateLimiter;
     private final RateLimitProperties rateLimitProps;
 
@@ -53,12 +56,14 @@ public class AuthController {
                           VerifyOtpUseCase verifyOtpUseCase,
                           LoadUserPort loadUserPort,
                           AuthCookieManager cookieManager,
+                          JwtUtil jwtUtil,
                           RateLimiterService rateLimiter,
                           RateLimitProperties rateLimitProps) {
         this.sendOtpUseCase = sendOtpUseCase;
         this.verifyOtpUseCase = verifyOtpUseCase;
         this.loadUserPort = loadUserPort;
         this.cookieManager = cookieManager;
+        this.jwtUtil = jwtUtil;
         this.rateLimiter = rateLimiter;
         this.rateLimitProps = rateLimitProps;
     }
@@ -109,10 +114,7 @@ public class AuthController {
     // ----------------------------------------------------------------
 
     /**
-     * Verifies the OTP and issues a JWT token upon success.
-     *
-     * <p>If the phone number is new, a new user is automatically created
-     * with the default USER role.
+     * Verifies the OTP and issues both access and refresh JWT tokens upon success.
      *
      * @param request contains phone number and OTP
      * @return 200 OK with JWT token and user info, or 401 if verification fails
@@ -145,12 +147,15 @@ public class AuthController {
             LOG.info("[AUTH] OTP verified successfully for phone={}", maskPhone(request.phone()));
             var result = authResult.get();
 
+            String refreshToken = jwtUtil.generateRefreshToken(result.user().id());
+
             AuthResponseDto response = AuthResponseDto.bearer(
                     result.token(),
                     UserDto.fromDomain(result.user())
             );
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookieManager.createLoginCookie(result.token()).toString())
+                    .header(HttpHeaders.SET_COOKIE, cookieManager.createRefreshLoginCookie(refreshToken).toString())
                     .body(response);
         } else {
             LOG.warn("[AUTH] OTP verification failed for phone={}", maskPhone(request.phone()));
@@ -178,19 +183,74 @@ public class AuthController {
     }
 
     // ----------------------------------------------------------------
-    // Step 4: Logout (clear cookie)
+    // Step 4: Refresh access token
+    // ----------------------------------------------------------------
+
+    /**
+     * Uses a valid refresh token to issue a new access + refresh token pair.
+     * The user's role and enabled status are loaded fresh from the database.
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest httpRequest) {
+        String refreshToken = extractRefreshTokenFromCookie(httpRequest);
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(MessageResponseDto.error("No refresh token"));
+        }
+
+        var userIdOpt = jwtUtil.validateRefreshToken(refreshToken);
+        if (userIdOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(MessageResponseDto.error("Invalid or expired refresh token"));
+        }
+
+        var userOpt = loadUserPort.loadById(userIdOpt.get());
+        if (userOpt.isEmpty() || !userOpt.get().enabled()) {
+            LOG.warn("[AUTH] Refresh rejected for disabled/missing user: userId={}", userIdOpt.get());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .header(HttpHeaders.SET_COOKIE, cookieManager.createLogoutCookie().toString())
+                    .header(HttpHeaders.SET_COOKIE, cookieManager.createRefreshLogoutCookie().toString())
+                    .body(MessageResponseDto.error("User is disabled or not found"));
+        }
+
+        var user = userOpt.get();
+        String newAccessToken = jwtUtil.generateToken(user.id(), user.phone().value(), user.role());
+        String newRefreshToken = jwtUtil.generateRefreshToken(user.id());
+
+        LOG.debug("[AUTH] Tokens refreshed for userId={}", user.id());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookieManager.createLoginCookie(newAccessToken).toString())
+                .header(HttpHeaders.SET_COOKIE, cookieManager.createRefreshLoginCookie(newRefreshToken).toString())
+                .body(MessageResponseDto.success("Tokens refreshed"));
+    }
+
+    // ----------------------------------------------------------------
+    // Step 5: Logout (clear both cookies)
     // ----------------------------------------------------------------
 
     @PostMapping("/logout")
     public ResponseEntity<MessageResponseDto> logout() {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookieManager.createLogoutCookie().toString())
+                .header(HttpHeaders.SET_COOKIE, cookieManager.createRefreshLogoutCookie().toString())
                 .body(MessageResponseDto.success("Logged out"));
     }
 
     // ----------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------
+
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return null;
+        for (Cookie cookie : cookies) {
+            if (AuthCookieManager.REFRESH_COOKIE_NAME.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
 
     /**
      * Extracts client IP, respecting X-Forwarded-For from reverse proxies (Nginx).

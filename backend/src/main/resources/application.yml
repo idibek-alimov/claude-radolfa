@@ -62,7 +62,8 @@ radolfa:
   security:
     jwt:
       secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-32-characters-long-for-hs256}
-      expiration-ms: ${JWT_EXPIRATION_MS:86400000}   # 24 hours default
+      expiration-ms: ${JWT_EXPIRATION_MS:900000}        # 15 minutes (access token)
+      refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}  # 7 days (refresh token)
     otp:
       expiration-seconds: 300   # 5 minutes
       length: 4

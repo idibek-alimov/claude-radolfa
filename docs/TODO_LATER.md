@@ -13,3 +13,8 @@ Items discovered during audit fixes that should be addressed later.
 - **Context:** Fix for issue 6.3 (silent order skip) now returns a `SyncResult` with SKIPPED status and a 422 response so the ERP caller knows to retry. However, there's no server-side persistence of skipped orders for reconciliation.
 - **Improvement:** Create an `erp_pending_sync` table that stores skipped order payloads. Add a scheduled job or admin endpoint to retry pending syncs once the missing user is created.
 - **Priority:** MEDIUM (depends on how often users are created after their first order)
+
+### 3. Token blacklist for immediate revocation
+- **Context:** The refresh token implementation (fix #14) rotates tokens on each refresh and checks user enabled status from DB. However, if a user is blocked mid-session, their current access token remains valid until it expires (up to 15 minutes).
+- **Improvement:** Add a Redis-based token blacklist. When a user is blocked or their role changes, add their current token `jti` to the blacklist. The `JwtAuthenticationFilter` would check the blacklist on each request.
+- **Priority:** LOW (15-minute window is acceptable for most cases; the enabled check on refresh already prevents new tokens)

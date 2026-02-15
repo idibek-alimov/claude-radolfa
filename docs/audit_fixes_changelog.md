@@ -19,3 +19,4 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 11 | **4.3** UserController invalid role returns 500 | MEDIUM | Catch `IllegalArgumentException` on `UserRole.valueOf()` — returns 400 instead of 500 |
 | 12 | **F1.2 / F1.3** Missing page metadata + admin noindex | MEDIUM | Added `metadata` to all pages. Admin layout has `robots: noindex`. Dynamic product page uses `generateMetadata` |
 | 13 | **6.2** Sync endpoints missing caller identity | MEDIUM | Added `@AuthenticationPrincipal` to all 4 sync endpoints — caller phone logged in every sync event |
+| 14 | **5.2** Single long-lived JWT allows stale roles | HIGH | Replaced 24h token with 15min access + 7-day refresh token pair. Refresh loads role fresh from DB. Tokens differentiated by `type` claim. Frontend interceptor silently refreshes before redirecting to login |

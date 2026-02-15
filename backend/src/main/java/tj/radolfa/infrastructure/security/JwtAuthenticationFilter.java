@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * If successful, sets the SecurityContext with the authenticated user.
      */
     private void authenticateFromToken(String token) {
-        jwtUtil.validateToken(token).ifPresent(claims -> {
+        jwtUtil.validateAccessToken(token).ifPresent(claims -> {
             String phone = claims.getSubject();
             String role = claims.get(CLAIM_ROLE, String.class);
             Long userId = claims.get(CLAIM_USER_ID, Long.class);
