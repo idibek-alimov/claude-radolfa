@@ -3,6 +3,7 @@ package tj.radolfa.application.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
@@ -31,7 +32,7 @@ public class SyncCategoriesService implements SyncCategoriesUseCase {
     }
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public List<CategoryView> execute(SyncCategoriesCommand command) {
         LOG.info("[CATEGORY-SYNC] Processing {} categories", command.categories().size());
 
