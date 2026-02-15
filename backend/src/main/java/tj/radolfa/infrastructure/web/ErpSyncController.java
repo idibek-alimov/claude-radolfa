@@ -5,7 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 
 import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
 import tj.radolfa.application.ports.in.SyncCategoriesUseCase.SyncCategoriesCommand;
@@ -73,10 +76,11 @@ public class ErpSyncController {
     @PostMapping("/products")
     @PreAuthorize("hasRole('SYSTEM')")
     public ResponseEntity<SyncResultDto> syncProducts(
+            @AuthenticationPrincipal JwtAuthenticatedUser caller,
             @Valid @RequestBody ErpHierarchyPayload payload) {
 
-        LOG.info("[ERP-SYNC] Received hierarchy sync for template={}",
-                payload.templateCode());
+        LOG.info("[ERP-SYNC] Received hierarchy sync for template={}, caller={}",
+                payload.templateCode(), caller.phone());
 
         int synced = 0;
         int errors = 0;
@@ -104,10 +108,11 @@ public class ErpSyncController {
     @PostMapping("/categories")
     @PreAuthorize("hasRole('SYSTEM')")
     public ResponseEntity<List<CategoryView>> syncCategories(
+            @AuthenticationPrincipal JwtAuthenticatedUser caller,
             @Valid @RequestBody SyncCategoriesPayload payload) {
 
-        LOG.info("[ERP-SYNC] Received category sync with {} categories",
-                payload.categories().size());
+        LOG.info("[ERP-SYNC] Received category sync with {} categories, caller={}",
+                payload.categories().size(), caller.phone());
 
         try {
             var command = new SyncCategoriesCommand(
@@ -133,9 +138,11 @@ public class ErpSyncController {
     @PostMapping("/loyalty")
     @PreAuthorize("hasRole('SYSTEM')")
     public ResponseEntity<Void> syncLoyaltyPoints(
+            @AuthenticationPrincipal JwtAuthenticatedUser caller,
             @Valid @RequestBody SyncLoyaltyRequestDto request) {
 
-        LOG.info("[LOYALTY-SYNC] Received points sync for phone={}", request.phone());
+        LOG.info("[LOYALTY-SYNC] Received points sync for phone={}, caller={}",
+                request.phone(), caller.phone());
 
         try {
             loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
@@ -156,10 +163,11 @@ public class ErpSyncController {
     @PostMapping("/orders")
     @PreAuthorize("hasRole('SYSTEM')")
     public ResponseEntity<SyncResultDto> syncOrder(
+            @AuthenticationPrincipal JwtAuthenticatedUser caller,
             @Valid @RequestBody SyncOrderPayload payload) {
 
-        LOG.info("[ORDER-SYNC] Received order sync for erpOrderId={}, phone={}",
-                payload.erpOrderId(), payload.customerPhone());
+        LOG.info("[ORDER-SYNC] Received order sync for erpOrderId={}, phone={}, caller={}",
+                payload.erpOrderId(), payload.customerPhone(), caller.phone());
 
         int synced = 0;
         int errors = 0;

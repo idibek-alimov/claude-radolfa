@@ -18,3 +18,4 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 10 | **F9.1** No phone format validation in LoginForm | MEDIUM | Added regex check for Tajik phone format (`+992XXXXXXXXX`) with user-friendly error message |
 | 11 | **4.3** UserController invalid role returns 500 | MEDIUM | Catch `IllegalArgumentException` on `UserRole.valueOf()` — returns 400 instead of 500 |
 | 12 | **F1.2 / F1.3** Missing page metadata + admin noindex | MEDIUM | Added `metadata` to all pages. Admin layout has `robots: noindex`. Dynamic product page uses `generateMetadata` |
+| 13 | **6.2** Sync endpoints missing caller identity | MEDIUM | Added `@AuthenticationPrincipal` to all 4 sync endpoints — caller phone logged in every sync event |
