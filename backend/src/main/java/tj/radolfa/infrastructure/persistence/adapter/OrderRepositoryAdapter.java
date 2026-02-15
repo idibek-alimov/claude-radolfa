@@ -41,14 +41,17 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
     }
 
     @Override
+    public Optional<Order> loadByErpOrderId(String erpOrderId) {
+        return repository.findByErpOrderId(erpOrderId)
+                .map(mapper::toOrder);
+    }
+
+    @Override
     public Order save(Order order) {
         var entity = mapper.toEntity(order);
 
-        // Resolve the ManyToOne user reference without a SELECT query.
-        // getReference() returns a lazy proxy that Hibernate uses for the FK column.
         entity.setUser(em.getReference(UserEntity.class, order.userId()));
 
-        // Wire bidirectional OrderItem → Order back-pointer
         if (entity.getItems() != null) {
             entity.getItems().forEach(item -> item.setOrder(entity));
         }

@@ -13,16 +13,9 @@ import java.math.BigDecimal;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
-    /** Entity -> Domain. Extracts userId from the ManyToOne relationship. */
     @Mapping(source = "user.id", target = "userId")
     Order toOrder(OrderEntity entity);
 
-    /**
-     * Domain -> Entity.
-     * The {@code user} relationship is set by the adapter (requires a managed
-     * reference).
-     * Audit fields and version are managed by JPA lifecycle hooks.
-     */
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -34,7 +27,7 @@ public interface OrderMapper {
     OrderItem toOrderItem(OrderItemEntity entity);
 
     @Mapping(target = "priceAtPurchase", source = "price")
-    @Mapping(target = "id", ignore = true) // Generated
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "order", ignore = true)
     OrderItemEntity toEntity(OrderItem item);
 

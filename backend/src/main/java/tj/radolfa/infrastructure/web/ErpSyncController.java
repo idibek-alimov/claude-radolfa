@@ -11,6 +11,9 @@ import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
 import tj.radolfa.application.ports.in.SyncCategoriesUseCase.SyncCategoriesCommand;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase.SyncLoyaltyCommand;
+import tj.radolfa.application.ports.in.SyncOrdersUseCase;
+import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderCommand;
+import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderItemCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
@@ -21,6 +24,7 @@ import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
 import tj.radolfa.infrastructure.web.dto.SyncCategoriesPayload;
 import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
+import tj.radolfa.infrastructure.web.dto.SyncOrderPayload;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
 
 import java.util.List;
@@ -46,15 +50,18 @@ public class ErpSyncController {
     private final SyncProductHierarchyUseCase syncUseCase;
     private final SyncCategoriesUseCase      syncCategoriesUseCase;
     private final SyncLoyaltyPointsUseCase   loyaltyUseCase;
+    private final SyncOrdersUseCase          syncOrdersUseCase;
     private final LogSyncEventPort            logSyncEvent;
 
     public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
                              SyncCategoriesUseCase      syncCategoriesUseCase,
                              SyncLoyaltyPointsUseCase   loyaltyUseCase,
+                             SyncOrdersUseCase          syncOrdersUseCase,
                              LogSyncEventPort            logSyncEvent) {
         this.syncUseCase           = syncUseCase;
         this.syncCategoriesUseCase = syncCategoriesUseCase;
         this.loyaltyUseCase        = loyaltyUseCase;
+        this.syncOrdersUseCase     = syncOrdersUseCase;
         this.logSyncEvent          = logSyncEvent;
     }
 
@@ -140,6 +147,47 @@ public class ErpSyncController {
             logSyncEvent.log("LOYALTY:" + request.phone(), false, ex.getMessage());
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    /**
+     * Syncs an order from ERPNext. Upserts by erp_order_id.
+     * Matches user by phone number. Skips if user not found.
+     */
+    @PostMapping("/orders")
+    @PreAuthorize("hasRole('SYSTEM')")
+    public ResponseEntity<SyncResultDto> syncOrder(
+            @Valid @RequestBody SyncOrderPayload payload) {
+
+        LOG.info("[ORDER-SYNC] Received order sync for erpOrderId={}, phone={}",
+                payload.erpOrderId(), payload.customerPhone());
+
+        int synced = 0;
+        int errors = 0;
+
+        try {
+            var items = payload.items().stream()
+                    .map(ip -> new SyncOrderItemCommand(
+                            ip.erpItemCode(), ip.productName(), ip.quantity(), ip.price()))
+                    .toList();
+
+            var command = new SyncOrderCommand(
+                    payload.erpOrderId(),
+                    payload.customerPhone(),
+                    payload.status(),
+                    payload.totalAmount(),
+                    items);
+
+            syncOrdersUseCase.execute(command);
+            logSyncEvent.log("ORDER:" + payload.erpOrderId(), true, null);
+            synced = 1;
+        } catch (Exception ex) {
+            LOG.error("[ORDER-SYNC] Failed to sync order={}: {}",
+                    payload.erpOrderId(), ex.getMessage(), ex);
+            logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, ex.getMessage());
+            errors = 1;
+        }
+
+        return ResponseEntity.ok(new SyncResultDto(synced, errors));
     }
 
     // ---- Mapping: DTO → Command ----

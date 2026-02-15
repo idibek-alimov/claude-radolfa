@@ -8,4 +8,6 @@ public interface LoadOrderPort {
     List<Order> loadByUserId(Long userId);
 
     Optional<Order> loadById(Long id);
+
+    Optional<Order> loadByErpOrderId(String erpOrderId);
 }

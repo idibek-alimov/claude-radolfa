@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @deprecated Order creation is now handled via ERP sync only.
+ * Kept for backward compatibility but no longer exposed via REST.
+ */
+@Deprecated
 @Service
 public class CreateOrderService implements CreateOrderUseCase {
 
@@ -38,7 +43,6 @@ public class CreateOrderService implements CreateOrderUseCase {
             tj.radolfa.domain.model.Sku sku = loadSkuPort.findByErpItemCode(skuCode)
                     .orElseThrow(() -> new IllegalArgumentException("SKU not found: " + skuCode));
 
-            // Use Sale Price if available and active
             Money price = sku.getSalePrice() != null ? sku.getSalePrice() : sku.getPrice();
             if (price == null)
                 price = Money.ZERO;
@@ -49,7 +53,8 @@ public class CreateOrderService implements CreateOrderUseCase {
             orderItems.add(new OrderItem(
                     null,
                     sku.getId(),
-                    sku.getSizeLabel(), // Or product name + size? Keeping simple for now
+                    skuCode,
+                    sku.getSizeLabel(),
                     quantity,
                     price));
         }
@@ -57,6 +62,7 @@ public class CreateOrderService implements CreateOrderUseCase {
         Order order = new Order(
                 null,
                 userId,
+                null,
                 OrderStatus.PENDING,
                 total,
                 orderItems,

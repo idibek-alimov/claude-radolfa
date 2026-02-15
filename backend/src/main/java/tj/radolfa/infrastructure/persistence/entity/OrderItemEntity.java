@@ -22,8 +22,11 @@ public class OrderItemEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private OrderEntity order;
 
-    @Column(name = "sku_id", nullable = false)
+    @Column(name = "sku_id")
     private Long skuId;
+
+    @Column(name = "erp_item_code", length = 128)
+    private String erpItemCode;
 
     @Column(name = "product_name")
     private String productName;

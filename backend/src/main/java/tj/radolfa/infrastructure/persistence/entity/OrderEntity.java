@@ -13,14 +13,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * JPA persistence model for the {@code orders} table.
- *
- * Extends {@link BaseAuditEntity} for optimistic locking ({@code @Version})
- * and standardised {@code created_at}/{@code updated_at} timestamps.
- *
- * {@code @SQLRestriction} hides soft-deleted rows from all standard queries.
- */
 @Entity
 @Table(name = "orders")
 @SQLRestriction("deleted_at IS NULL")
@@ -37,6 +29,9 @@ public class OrderEntity extends BaseAuditEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
+    @Column(name = "erp_order_id", unique = true, length = 64)
+    private String erpOrderId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
