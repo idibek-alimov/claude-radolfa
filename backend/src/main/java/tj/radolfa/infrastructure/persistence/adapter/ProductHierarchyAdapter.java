@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.SaveListingVariantPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
+import tj.radolfa.domain.util.SlugUtils;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
@@ -134,7 +135,7 @@ public class ProductHierarchyAdapter
                     .orElseGet(() -> {
                         CategoryEntity placeholder = new CategoryEntity();
                         placeholder.setName(base.getCategory());
-                        placeholder.setSlug(slugify(base.getCategory()));
+                        placeholder.setSlug(SlugUtils.slugify(base.getCategory()));
                         // parent = null → top-level placeholder
                         return categoryRepo.save(placeholder);
                     });
@@ -180,12 +181,6 @@ public class ProductHierarchyAdapter
         return mapper.toListingVariant(variantRepo.save(entity));
     }
 
-    private String slugify(String name) {
-        return name.toLowerCase()
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-    }
 
     private String humanize(String colorKey) {
         if (colorKey == null) return null;

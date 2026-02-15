@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
+import tj.radolfa.domain.util.SlugUtils;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.application.ports.out.SaveCategoryPort;
@@ -60,7 +61,7 @@ public class SyncCategoriesService implements SyncCategoriesUseCase {
                 }
             }
 
-            String slug = slugify(payload.name());
+            String slug = SlugUtils.slugify(payload.name());
             CategoryView saved = saveCategoryPort.save(payload.name(), slug, parentId);
             results.add(saved);
             // Update the map so subsequent iterations can find this newly created category
@@ -74,10 +75,4 @@ public class SyncCategoriesService implements SyncCategoriesUseCase {
         return results;
     }
 
-    private String slugify(String name) {
-        return name.toLowerCase()
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-    }
 }
