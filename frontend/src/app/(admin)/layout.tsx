@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { Navbar } from "@/widgets/Navbar";
+
+export const metadata: Metadata = {
+  title: "Admin — Radolfa",
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({
   children,

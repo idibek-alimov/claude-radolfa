@@ -82,7 +82,12 @@ public class UserController {
     public ResponseEntity<UserDto> changeUserRole(
             @PathVariable Long id,
             @RequestParam String role) {
-        UserRole newRole = UserRole.valueOf(role.toUpperCase());
+        UserRole newRole;
+        try {
+            newRole = UserRole.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
         var updatedUser = changeUserRoleUseCase.execute(id, newRole);
         return ResponseEntity.ok(UserDto.fromDomain(updatedUser));
     }

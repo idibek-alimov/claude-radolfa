@@ -16,3 +16,5 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 8 | **2.5** OtpAuthService logs PII in plain text | MEDIUM | Added `mask()` helper — all phone log statements now show `+992***4567` format |
 | 9 | **2.2 / 2.3** Sync services missing concurrency protection | MEDIUM | Set `Isolation.SERIALIZABLE` on `SyncProductHierarchyService` and `SyncCategoriesService` |
 | 10 | **F9.1** No phone format validation in LoginForm | MEDIUM | Added regex check for Tajik phone format (`+992XXXXXXXXX`) with user-friendly error message |
+| 11 | **4.3** UserController invalid role returns 500 | MEDIUM | Catch `IllegalArgumentException` on `UserRole.valueOf()` — returns 400 instead of 500 |
+| 12 | **F1.2 / F1.3** Missing page metadata + admin noindex | MEDIUM | Added `metadata` to all pages. Admin layout has `robots: noindex`. Dynamic product page uses `generateMetadata` |
