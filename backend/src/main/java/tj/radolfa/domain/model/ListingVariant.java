@@ -25,6 +25,8 @@ public class ListingVariant {
     // Enrichment fields — never overwritten by ERP sync
     private String       webDescription;
     private List<String> images;
+    private boolean      topSelling;
+    private boolean      featured;
 
     // Audit
     private Instant lastSyncAt;
@@ -35,6 +37,8 @@ public class ListingVariant {
                           String slug,
                           String webDescription,
                           List<String> images,
+                          boolean topSelling,
+                          boolean featured,
                           Instant lastSyncAt) {
         this.id             = id;
         this.productBaseId  = productBaseId;
@@ -42,6 +46,8 @@ public class ListingVariant {
         this.slug           = slug;
         this.webDescription = webDescription;
         this.images         = new ArrayList<>(images != null ? images : List.of());
+        this.topSelling     = topSelling;
+        this.featured       = featured;
         this.lastSyncAt     = lastSyncAt;
     }
 
@@ -76,6 +82,18 @@ public class ListingVariant {
         this.images.add(url);
     }
 
+    public void removeImage(String url) {
+        this.images.remove(url);
+    }
+
+    public void updateTopSelling(boolean topSelling) {
+        this.topSelling = topSelling;
+    }
+
+    public void updateFeatured(boolean featured) {
+        this.featured = featured;
+    }
+
     // ---- Queries ----
 
     public boolean hasEnrichment() {
@@ -90,5 +108,7 @@ public class ListingVariant {
     public String       getSlug()           { return slug; }
     public String       getWebDescription() { return webDescription; }
     public List<String> getImages()         { return Collections.unmodifiableList(images); }
+    public boolean      isTopSelling()      { return topSelling; }
+    public boolean      isFeatured()        { return featured; }
     public Instant      getLastSyncAt()     { return lastSyncAt; }
 }

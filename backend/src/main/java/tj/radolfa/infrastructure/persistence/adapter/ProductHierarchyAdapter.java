@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.SaveListingVariantPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.ProductBase;
@@ -12,6 +13,7 @@ import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductHierarchyMapper;
@@ -21,6 +23,7 @@ import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository
 import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,7 +31,8 @@ import java.util.Optional;
  */
 @Component
 public class ProductHierarchyAdapter
-        implements LoadProductBasePort, LoadListingVariantPort, LoadSkuPort, SaveProductHierarchyPort {
+        implements LoadProductBasePort, LoadListingVariantPort, LoadSkuPort,
+                   SaveProductHierarchyPort, SaveListingVariantPort {
 
     private final ProductBaseRepository    baseRepo;
     private final ListingVariantRepository variantRepo;
@@ -65,6 +69,38 @@ public class ProductHierarchyAdapter
     public Optional<ListingVariant> findByProductBaseIdAndColorKey(Long productBaseId, String colorKey) {
         return variantRepo.findByProductBaseIdAndColorKey(productBaseId, colorKey)
                 .map(mapper::toListingVariant);
+    }
+
+    @Override
+    public Optional<ListingVariant> findBySlug(String slug) {
+        return variantRepo.findBySlug(slug)
+                .map(mapper::toListingVariant);
+    }
+
+    // ---- SaveListingVariantPort ----
+
+    @Override
+    public void save(ListingVariant variant) {
+        ListingVariantEntity entity = variantRepo.findById(variant.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "ListingVariant not found: " + variant.getId()));
+
+        entity.setWebDescription(variant.getWebDescription());
+        entity.setTopSelling(variant.isTopSelling());
+        entity.setFeatured(variant.isFeatured());
+
+        // Sync images: replace with domain's current list
+        entity.getImages().clear();
+        List<String> domainImages = variant.getImages();
+        for (int i = 0; i < domainImages.size(); i++) {
+            ListingVariantImageEntity img = new ListingVariantImageEntity();
+            img.setListingVariant(entity);
+            img.setImageUrl(domainImages.get(i));
+            img.setSortOrder(i + 1);
+            entity.getImages().add(img);
+        }
+
+        variantRepo.save(entity);
     }
 
     // ---- LoadSkuPort ----

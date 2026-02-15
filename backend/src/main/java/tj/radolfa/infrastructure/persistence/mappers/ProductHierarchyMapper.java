@@ -67,6 +67,8 @@ public interface ProductHierarchyMapper {
                 entity.getSlug(),
                 entity.getWebDescription(),
                 imageUrls,
+                entity.isTopSelling(),
+                entity.isFeatured(),
                 entity.getLastSyncAt()
         );
     }

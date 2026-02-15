@@ -9,6 +9,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/s3/S3ImageUploaderStub.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/ColorController.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/AuthController.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/SaveListingVariantPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/LogSyncEventPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/OrderItem.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/ListingVariantEntity.java
