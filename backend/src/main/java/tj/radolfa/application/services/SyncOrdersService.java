@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Money;
@@ -24,13 +25,16 @@ public class SyncOrdersService implements SyncOrdersUseCase {
     private final LoadOrderPort loadOrderPort;
     private final SaveOrderPort saveOrderPort;
     private final LoadUserPort loadUserPort;
+    private final LoadSkuPort loadSkuPort;
 
     public SyncOrdersService(LoadOrderPort loadOrderPort,
                              SaveOrderPort saveOrderPort,
-                             LoadUserPort loadUserPort) {
+                             LoadUserPort loadUserPort,
+                             LoadSkuPort loadSkuPort) {
         this.loadOrderPort = loadOrderPort;
         this.saveOrderPort = saveOrderPort;
         this.loadUserPort = loadUserPort;
+        this.loadSkuPort = loadSkuPort;
     }
 
     @Override
@@ -48,13 +52,22 @@ public class SyncOrdersService implements SyncOrdersUseCase {
         Money totalAmount = Money.of(command.totalAmount());
 
         List<OrderItem> items = command.items().stream()
-                .map(item -> new OrderItem(
-                        null,
-                        null,
-                        item.erpItemCode(),
-                        item.productName(),
-                        item.quantity(),
-                        Money.of(item.price())))
+                .map(item -> {
+                    Long skuId = loadSkuPort.findByErpItemCode(item.erpItemCode())
+                            .map(sku -> sku.getId())
+                            .orElseGet(() -> {
+                                LOG.warn("[ORDER-SYNC] No SKU found for erpItemCode={}, order={}",
+                                        item.erpItemCode(), command.erpOrderId());
+                                return null;
+                            });
+                    return new OrderItem(
+                            null,
+                            skuId,
+                            item.erpItemCode(),
+                            item.productName(),
+                            item.quantity(),
+                            Money.of(item.price()));
+                })
                 .toList();
 
         var existingOpt = loadOrderPort.loadByErpOrderId(command.erpOrderId());
