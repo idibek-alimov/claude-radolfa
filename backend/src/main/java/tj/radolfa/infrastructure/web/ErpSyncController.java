@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.web;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,10 +22,12 @@ import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
+import tj.radolfa.application.ports.out.IdempotencyPort;
 import tj.radolfa.application.ports.out.LogSyncEventPort;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
+import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.SyncCategoriesPayload;
 import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
 import tj.radolfa.infrastructure.web.dto.SyncOrderPayload;
@@ -50,22 +53,29 @@ public class ErpSyncController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErpSyncController.class);
 
+    private static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
+    private static final String EVENT_ORDER = "ORDER";
+    private static final String EVENT_LOYALTY = "LOYALTY";
+
     private final SyncProductHierarchyUseCase syncUseCase;
     private final SyncCategoriesUseCase      syncCategoriesUseCase;
     private final SyncLoyaltyPointsUseCase   loyaltyUseCase;
     private final SyncOrdersUseCase          syncOrdersUseCase;
     private final LogSyncEventPort            logSyncEvent;
+    private final IdempotencyPort             idempotencyPort;
 
     public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
                              SyncCategoriesUseCase      syncCategoriesUseCase,
                              SyncLoyaltyPointsUseCase   loyaltyUseCase,
                              SyncOrdersUseCase          syncOrdersUseCase,
-                             LogSyncEventPort            logSyncEvent) {
+                             LogSyncEventPort            logSyncEvent,
+                             IdempotencyPort             idempotencyPort) {
         this.syncUseCase           = syncUseCase;
         this.syncCategoriesUseCase = syncCategoriesUseCase;
         this.loyaltyUseCase        = loyaltyUseCase;
         this.syncOrdersUseCase     = syncOrdersUseCase;
         this.logSyncEvent          = logSyncEvent;
+        this.idempotencyPort       = idempotencyPort;
     }
 
     /**
@@ -133,13 +143,25 @@ public class ErpSyncController {
 
     /**
      * Syncs loyalty points for a user, looked up by phone number.
-     * If the user doesn't exist, a warning is logged and 204 is returned.
+     * Requires an {@code Idempotency-Key} header to prevent double-counting on retries.
      */
     @PostMapping("/loyalty")
     @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<Void> syncLoyaltyPoints(
+    public ResponseEntity<?> syncLoyaltyPoints(
             @AuthenticationPrincipal JwtAuthenticatedUser caller,
+            @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
             @Valid @RequestBody SyncLoyaltyRequestDto request) {
+
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+        }
+
+        if (idempotencyPort.exists(idempotencyKey, EVENT_LOYALTY)) {
+            LOG.info("[LOYALTY-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(MessageResponseDto.error("Duplicate request — already processed"));
+        }
 
         LOG.info("[LOYALTY-SYNC] Received points sync for phone={}, caller={}",
                 request.phone(), caller.phone());
@@ -147,24 +169,38 @@ public class ErpSyncController {
         try {
             loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
             logSyncEvent.log("LOYALTY:" + request.phone(), true, null);
+            idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 204);
             return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             LOG.error("[LOYALTY-SYNC] Failed to sync points for phone={}: {}",
                     request.phone(), ex.getMessage(), ex);
             logSyncEvent.log("LOYALTY:" + request.phone(), false, ex.getMessage());
+            idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 500);
             return ResponseEntity.internalServerError().build();
         }
     }
 
     /**
      * Syncs an order from ERPNext. Upserts by erp_order_id.
-     * Matches user by phone number. Skips if user not found.
+     * Requires an {@code Idempotency-Key} header to prevent duplicate order creation.
      */
     @PostMapping("/orders")
     @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<SyncResultDto> syncOrder(
+    public ResponseEntity<?> syncOrder(
             @AuthenticationPrincipal JwtAuthenticatedUser caller,
+            @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
             @Valid @RequestBody SyncOrderPayload payload) {
+
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+        }
+
+        if (idempotencyPort.exists(idempotencyKey, EVENT_ORDER)) {
+            LOG.info("[ORDER-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(MessageResponseDto.error("Duplicate request — already processed"));
+        }
 
         LOG.info("[ORDER-SYNC] Received order sync for erpOrderId={}, phone={}, caller={}",
                 payload.erpOrderId(), payload.customerPhone(), caller.phone());
@@ -190,16 +226,19 @@ public class ErpSyncController {
             if (result.status() == SyncOrdersUseCase.SyncStatus.SKIPPED) {
                 LOG.warn("[ORDER-SYNC] Skipped: {}", result.message());
                 logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, result.message());
+                idempotencyPort.save(idempotencyKey, EVENT_ORDER, 422);
                 return ResponseEntity.unprocessableEntity()
                         .body(new SyncResultDto(0, 0, result.message()));
             }
 
             logSyncEvent.log("ORDER:" + payload.erpOrderId(), true, null);
+            idempotencyPort.save(idempotencyKey, EVENT_ORDER, 200);
             synced = 1;
         } catch (Exception ex) {
             LOG.error("[ORDER-SYNC] Failed to sync order={}: {}",
                     payload.erpOrderId(), ex.getMessage(), ex);
             logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, ex.getMessage());
+            idempotencyPort.save(idempotencyKey, EVENT_ORDER, 500);
             errors = 1;
         }
 
