@@ -177,7 +177,15 @@ public class ErpSyncController {
                     payload.totalAmount(),
                     items);
 
-            syncOrdersUseCase.execute(command);
+            var result = syncOrdersUseCase.execute(command);
+
+            if (result.status() == SyncOrdersUseCase.SyncStatus.SKIPPED) {
+                LOG.warn("[ORDER-SYNC] Skipped: {}", result.message());
+                logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, result.message());
+                return ResponseEntity.unprocessableEntity()
+                        .body(new SyncResultDto(0, 0, result.message()));
+            }
+
             logSyncEvent.log("ORDER:" + payload.erpOrderId(), true, null);
             synced = 1;
         } catch (Exception ex) {
@@ -187,7 +195,7 @@ public class ErpSyncController {
             errors = 1;
         }
 
-        return ResponseEntity.ok(new SyncResultDto(synced, errors));
+        return ResponseEntity.ok(new SyncResultDto(synced, errors, null));
     }
 
     // ---- Mapping: DTO → Command ----

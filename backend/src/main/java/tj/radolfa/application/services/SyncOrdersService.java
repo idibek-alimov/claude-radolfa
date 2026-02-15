@@ -39,12 +39,13 @@ public class SyncOrdersService implements SyncOrdersUseCase {
 
     @Override
     @Transactional
-    public void execute(SyncOrderCommand command) {
+    public SyncResult execute(SyncOrderCommand command) {
         var userOpt = loadUserPort.loadByPhone(command.customerPhone());
         if (userOpt.isEmpty()) {
-            LOG.warn("[ORDER-SYNC] No user found for phone={}. Skipping order={}",
-                    command.customerPhone(), command.erpOrderId());
-            return;
+            String reason = "No user found for phone=" + command.customerPhone()
+                    + ", order=" + command.erpOrderId();
+            LOG.warn("[ORDER-SYNC] {}", reason);
+            return SyncResult.skipped(reason);
         }
 
         var user = userOpt.get();
@@ -73,7 +74,6 @@ public class SyncOrdersService implements SyncOrdersUseCase {
         var existingOpt = loadOrderPort.loadByErpOrderId(command.erpOrderId());
 
         if (existingOpt.isPresent()) {
-            // Update existing order (status, total, items)
             var existing = existingOpt.get();
             Order updated = new Order(
                     existing.id(),
@@ -86,7 +86,6 @@ public class SyncOrdersService implements SyncOrdersUseCase {
             saveOrderPort.save(updated);
             LOG.info("[ORDER-SYNC] Updated order erpId={}, status={}", command.erpOrderId(), status);
         } else {
-            // Create new order
             Order newOrder = new Order(
                     null,
                     user.id(),
@@ -98,6 +97,8 @@ public class SyncOrdersService implements SyncOrdersUseCase {
             saveOrderPort.save(newOrder);
             LOG.info("[ORDER-SYNC] Created order erpId={} for phone={}", command.erpOrderId(), command.customerPhone());
         }
+
+        return SyncResult.synced(command.erpOrderId());
     }
 
     private OrderStatus parseStatus(String status) {

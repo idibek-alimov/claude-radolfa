@@ -20,5 +20,18 @@ public interface SyncOrdersUseCase {
             BigDecimal price) {
     }
 
-    void execute(SyncOrderCommand command);
+    enum SyncStatus { SYNCED, SKIPPED }
+
+    record SyncResult(SyncStatus status, String message) {
+
+        public static SyncResult synced(String erpOrderId) {
+            return new SyncResult(SyncStatus.SYNCED, "Order synced: " + erpOrderId);
+        }
+
+        public static SyncResult skipped(String reason) {
+            return new SyncResult(SyncStatus.SKIPPED, reason);
+        }
+    }
+
+    SyncResult execute(SyncOrderCommand command);
 }
