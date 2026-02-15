@@ -1,5 +1,9 @@
 /** Auth feature types */
 
+import type { User } from "@/entities/user";
+
+export type { User };
+
 export interface LoginRequest {
   phone: string;
 }
@@ -7,16 +11,6 @@ export interface LoginRequest {
 export interface VerifyOtpRequest {
   phone: string;
   otp: string;
-}
-
-export interface User {
-  id: number;
-  phone: string;
-  role: "USER" | "MANAGER" | "SYSTEM";
-  name?: string;
-  email?: string;
-  loyaltyPoints: number;
-  enabled: boolean;
 }
 
 export interface AuthResponse {

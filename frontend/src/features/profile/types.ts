@@ -1,3 +1,7 @@
+import type { User } from "@/entities/user";
+
+export type { User };
+
 export interface OrderItem {
     productName: string;
     quantity: number;
@@ -15,14 +19,4 @@ export interface Order {
 export interface UpdateProfileRequest {
     name: string;
     email: string;
-}
-
-export interface User {
-    id: number;
-    phone: string;
-    role: "USER" | "MANAGER" | "SYSTEM";
-    name?: string;
-    email?: string;
-    loyaltyPoints: number;
-    enabled: boolean;
 }
