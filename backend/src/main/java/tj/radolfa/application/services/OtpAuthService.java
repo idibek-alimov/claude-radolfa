@@ -60,7 +60,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     public void execute(String phone) {
         PhoneNumber normalized = PhoneNumber.of(phone);
         otpStore.generateOtp(normalized.value());
-        LOG.info("[AUTH] OTP sent to phone={}", normalized);
+        LOG.info("[AUTH] OTP sent to phone={}", mask(normalized));
     }
 
     // ----------------------------------------------------------------
@@ -73,7 +73,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
         PhoneNumber normalized = PhoneNumber.of(phone);
 
         if (!otpStore.verifyOtp(normalized.value(), otp)) {
-            LOG.warn("[AUTH] OTP verification failed for phone={}", normalized);
+            LOG.warn("[AUTH] OTP verification failed for phone={}", mask(normalized));
             return Optional.empty();
         }
 
@@ -82,13 +82,13 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
                 .orElseGet(() -> createNewUser(normalized));
 
         if (!user.enabled()) {
-            LOG.warn("[AUTH] Blocked user attempted login: phone={}", normalized);
+            LOG.warn("[AUTH] Blocked user attempted login: phone={}", mask(normalized));
             return Optional.empty();
         }
 
         // Generate JWT
         String token = jwtUtil.generateToken(user.id(), user.phone().value(), user.role());
-        LOG.info("[AUTH] User authenticated: phone={}, role={}", user.phone(), user.role());
+        LOG.info("[AUTH] User authenticated: phone={}, role={}", mask(user.phone()), user.role());
 
         return Optional.of(new AuthResult(token, user));
     }
@@ -97,13 +97,21 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     // Helpers
     // ----------------------------------------------------------------
 
+    private static String mask(PhoneNumber phone) {
+        if (phone == null) return "***";
+        String v = phone.value();
+        if (v.length() <= 4) return "***";
+        return v.substring(0, v.length() - 4).replaceAll("\\d", "*")
+                + v.substring(v.length() - 4);
+    }
+
     /**
      * Creates a new user with default USER role.
      */
     private User createNewUser(PhoneNumber phone) {
         User newUser = new User(null, phone, UserRole.USER, null, null, 0, true, null);
         User saved = saveUserPort.save(newUser);
-        LOG.info("[AUTH] Created new user: phone={}, id={}", phone, saved.id());
+        LOG.info("[AUTH] Created new user: phone={}, id={}", mask(phone), saved.id());
         return saved;
     }
 }

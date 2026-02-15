@@ -13,3 +13,4 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 5 | **6.3** SyncOrdersService silently skips orders | HIGH | Changed `execute()` to return `SyncResult` (SYNCED/SKIPPED). Controller returns 422 with skip reason |
 | 6 | **F1.1** Duplicate User type definitions | HIGH | Removed duplicates from `features/auth` and `features/profile` — both now re-export from `@/entities/user` |
 | 7 | **F5.1** No error boundary | MEDIUM | Created `app/error.tsx` with recovery UI |
+| 8 | **2.5** OtpAuthService logs PII in plain text | MEDIUM | Added `mask()` helper — all phone log statements now show `+992***4567` format |
