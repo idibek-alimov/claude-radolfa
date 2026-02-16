@@ -38,3 +38,24 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 30 | **F5.2** Missing 404 handling for product detail | MEDIUM | Replaced inline error message with `notFound()` from `next/navigation`. Created `app/not-found.tsx` with "Back to home" link as the global 404 boundary |
 | 31 | **F6.2** Color-only status indicators | MEDIUM | Reviewed — no change needed. All badges already include text labels (`MANAGER`, `Top Seller`, `Featured`) and icons alongside colors — not color-only |
 | 32 | **F8.1** Division by zero in image carousel | MEDIUM | Added `if (imageCount <= 0) return` guard in `goToImage` callback — prevents modulo-by-zero when listing has no images |
+| 33 | **1.1** Missing validation in ProductBase | LOW | Added `erpTemplateCode` blank guard in constructor. `name`/`category` remain nullable by design (ERP-locked). Added Javadoc documenting the nullability contract |
+| 34 | **1.4** ListingVariant.addImage() unbounded | LOW | Added `MAX_IMAGES = 20` cap and blank URL guard in `addImage()` — throws `IllegalStateException` / `IllegalArgumentException` |
+| 35 | **2.6** ChangeUserRoleService redundant ternary | LOW | Simplified `user.role() == newRole ? user.role() : newRole` to just `newRole` — the ternary was a no-op |
+| 36 | **3.5** Auto-creates placeholder colors without warning | LOW | Added `LOG.warn` when auto-creating colors during product sync — auto-creation kept (colors arrive embedded in product data, no separate sync step) |
+| 37 | **4.4** AuthController leaks OTP generation details | LOW | Removed "Check console logs in DEV mode" from login response message |
+| 38 | **4.6** GlobalExceptionHandler missing domain exception handlers | LOW | Added handlers for `ErpLockViolationException` (403), `OptimisticLockException` (409), `ImageProcessingException` (422), and `IllegalStateException` (422) |
+| 39 | **5.3** RateLimiterService uses wall clock time | LOW | Replaced `System.currentTimeMillis()` with `System.nanoTime()` for monotonic timing — prevents rate limit bypass via clock adjustment |
+| 40 | **5.4** OTP store uses in-memory storage | LOW | Reviewed — no change needed. Acceptable for single-VPS deployment. Redis migration deferred to horizontal scaling phase |
+| 41 | **6.1** SyncProductHierarchyService doesn't log sync events | LOW | Reviewed — no change needed. Service already logs at INFO level (start/complete). Structured audit logging is handled at the controller layer as designed |
+| 42 | **7.3** JWT secret lacks length validation | LOW | Added compact constructor validation in `JwtProperties` — app fails fast at startup if secret is shorter than 32 characters |
+| 43 | **9.2** Money.multiply() only accepts int | LOW | Reviewed — no change needed. E-commerce quantities are always whole numbers. Adding a `BigDecimal` overload is YAGNI |
+| 44 | **9.3** Redundant null checks in mappers | LOW | Reviewed — no change needed. Null checks are in hand-written `default` methods (not MapStruct-generated), so they are necessary |
+| 45 | **3.6** UserMapper missing null safety | LOW | Reviewed — no change needed. `PhoneNumber.of()` validates at construction. MapStruct handles null mapping in generated code |
+| 46 | **3.7** ProductHierarchyMapper fragile color key mapping | LOW | Reviewed — no change needed. Color key is read from the entity's FK relationship which is the source of truth. Staleness is only possible if the color key is renamed, which is an admin action requiring a full resync |
+| 47 | **F4.2** Inconsistent error toast usage | LOW | Reviewed — partially addressed by fix #29 (`getErrorMessage`). Remaining `console.error` vs `toast.error` differences are intentional (developer logging vs user feedback) |
+| 48 | **F6.1** Missing aria-labels on icon buttons | LOW | Added `aria-label="Remove image"` to the X icon button in manage page image carousel |
+| 49 | **F7.1** Image optimization disabled | LOW | Reviewed — no change needed. `unoptimized` is required for external S3 URLs as per CLAUDE.md. Optimization should happen at the Java resize step before S3 upload |
+| 50 | **F7.2** MegaMenu short stale time | LOW | Increased category tree `staleTime` from 5 minutes to 30 minutes in both desktop and mobile MegaMenu queries |
+| 51 | **F8.2** UserManagementTable unsafe role fallback | LOW | Replaced `currentUser?.role ?? ""` with explicit `currentUser &&` null guard — button only renders when user is confirmed present |
+| 52 | **F10.1** No logout confirmation | LOW | Reviewed — no change needed. One-click logout is standard UX for e-commerce. Accidental clicks are low-risk since re-login is simple (OTP-based) |
+| 53 | **F10.2** No search history persistence | LOW | Reviewed — deferred. Nice-to-have UX enhancement, not a bug. Can be added later with `localStorage` |

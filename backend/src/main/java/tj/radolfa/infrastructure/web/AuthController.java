@@ -105,7 +105,7 @@ public class AuthController {
         sendOtpUseCase.execute(request.phone());
 
         return ResponseEntity.ok(MessageResponseDto.success(
-                "OTP sent successfully. Check console logs in DEV mode."
+                "OTP sent successfully."
         ));
     }
 

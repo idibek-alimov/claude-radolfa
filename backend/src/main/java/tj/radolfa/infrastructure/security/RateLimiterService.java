@@ -25,17 +25,17 @@ public class RateLimiterService {
 
     private static class RateWindow {
         int count;
-        final long windowStartMs;
-        final long windowDurationMs;
+        final long windowStartNs;
+        final long windowDurationNs;
 
-        RateWindow(long windowStartMs, long windowDurationMs) {
+        RateWindow(long windowStartNs, long windowDurationNs) {
             this.count = 1;
-            this.windowStartMs = windowStartMs;
-            this.windowDurationMs = windowDurationMs;
+            this.windowStartNs = windowStartNs;
+            this.windowDurationNs = windowDurationNs;
         }
 
         boolean isExpired(long now) {
-            return now - windowStartMs >= windowDurationMs;
+            return now - windowStartNs >= windowDurationNs;
         }
     }
 
@@ -48,13 +48,13 @@ public class RateLimiterService {
      * @return {@code true} if the request is allowed, {@code false} if rate-limited
      */
     public boolean tryConsume(String key, int maxRequests, Duration window) {
-        long windowMs = window.toMillis();
-        long now = System.currentTimeMillis();
+        long windowNs = window.toNanos();
+        long now = System.nanoTime();
         int[] captured = {0};
 
         windows.compute(key, (k, existing) -> {
             if (existing == null || existing.isExpired(now)) {
-                var rw = new RateWindow(now, windowMs);
+                var rw = new RateWindow(now, windowNs);
                 captured[0] = rw.count;
                 return rw;
             }
@@ -71,7 +71,7 @@ public class RateLimiterService {
      */
     @Scheduled(fixedRate = 300_000)
     void evictExpiredWindows() {
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
         int before = windows.size();
         windows.entrySet().removeIf(e -> e.getValue().isExpired(now));
         int evicted = before - windows.size();

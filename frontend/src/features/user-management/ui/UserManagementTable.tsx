@@ -154,7 +154,7 @@ export function UserManagementTable() {
                     )}
                   </TableCell>
                   <TableCell className="text-right pr-4">
-                    {canToggleStatus(currentUser?.role ?? "", currentUser?.id ?? null, user) && (
+                    {currentUser && canToggleStatus(currentUser.role, currentUser.id, user) && (
                       <Button
                         variant={user.enabled ? "outline" : "default"}
                         size="sm"

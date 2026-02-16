@@ -1,5 +1,7 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -33,6 +35,8 @@ import java.util.Optional;
 public class ProductHierarchyAdapter
         implements LoadProductBasePort, LoadListingVariantPort, LoadSkuPort,
                    SaveProductHierarchyPort, SaveListingVariantPort {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ProductHierarchyAdapter.class);
 
     private final ProductBaseRepository    baseRepo;
     private final ListingVariantRepository variantRepo;
@@ -166,6 +170,8 @@ public class ProductHierarchyAdapter
         if (variant.getColorKey() != null) {
             ColorEntity colorEntity = colorRepo.findByColorKey(variant.getColorKey())
                     .orElseGet(() -> {
+                        LOG.warn("[PRODUCT-SYNC] Auto-creating color '{}' — hex code not set",
+                                variant.getColorKey());
                         ColorEntity newColor = new ColorEntity();
                         newColor.setColorKey(variant.getColorKey());
                         newColor.setDisplayName(humanize(variant.getColorKey()));

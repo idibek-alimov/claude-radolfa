@@ -78,7 +78,15 @@ public class ListingVariant {
         this.webDescription = webDescription;
     }
 
+    private static final int MAX_IMAGES = 20;
+
     public void addImage(String url) {
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("Image URL must not be blank");
+        }
+        if (this.images.size() >= MAX_IMAGES) {
+            throw new IllegalStateException("Maximum of " + MAX_IMAGES + " images reached");
+        }
         this.images.add(url);
     }
 

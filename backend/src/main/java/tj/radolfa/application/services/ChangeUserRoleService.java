@@ -36,7 +36,7 @@ public class ChangeUserRoleService implements ChangeUserRoleUseCase {
         User updated = new User(
                 user.id(),
                 user.phone(),
-                user.role() == newRole ? user.role() : newRole,
+                newRole,
                 user.name(),
                 user.email(),
                 user.loyaltyPoints(),

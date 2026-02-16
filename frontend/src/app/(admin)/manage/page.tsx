@@ -575,6 +575,7 @@ function ProductManagement() {
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(url)}
+                          aria-label="Remove image"
                           className="absolute top-1 right-1 z-10 rounded-full bg-destructive p-1 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />

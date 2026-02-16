@@ -18,3 +18,8 @@ Items discovered during audit fixes that should be addressed later.
 - **Context:** The refresh token implementation (fix #14) rotates tokens on each refresh and checks user enabled status from DB. However, if a user is blocked mid-session, their current access token remains valid until it expires (up to 15 minutes).
 - **Improvement:** Add a Redis-based token blacklist. When a user is blocked or their role changes, add their current token `jti` to the blacklist. The `JwtAuthenticationFilter` would check the blacklist on each request.
 - **Priority:** LOW (15-minute window is acceptable for most cases; the enabled check on refresh already prevents new tokens)
+
+### 4. Migrate OTP and rate limiter storage to Redis
+- **Context:** Both `OtpStore` and `RateLimiterService` use in-memory `ConcurrentHashMap`. Works for single-VPS but breaks in multi-instance deployment (OTP verified on wrong instance, rate limits not shared).
+- **Improvement:** Move both to Redis-backed implementations when scaling beyond a single instance.
+- **Priority:** LOW (single-VPS deployment for now)

@@ -14,7 +14,7 @@ export function MegaMenu() {
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories", "tree"],
     queryFn: fetchCategoryTree,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
   });
 
   const [activeL1, setActiveL1] = useState<string | null>(null);
@@ -171,7 +171,7 @@ export function MegaMenuMobile() {
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories", "tree"],
     queryFn: fetchCategoryTree,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
   });
 
   const [activeL1, setActiveL1] = useState<string | null>(null);

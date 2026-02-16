@@ -10,8 +10,11 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tj.radolfa.domain.exception.ErpLockViolationException;
+import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.HashMap;
@@ -96,6 +99,50 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(message));
+    }
+
+    /**
+     * Handles ERP lock violations (e.g. manual edit of price/name).
+     * Returns 403 Forbidden.
+     */
+    @ExceptionHandler(ErpLockViolationException.class)
+    public ResponseEntity<MessageResponseDto> handleErpLockViolation(ErpLockViolationException ex) {
+        LOG.warn("[ERP-LOCK] {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles optimistic lock conflicts (concurrent modification).
+     * Returns 409 Conflict.
+     */
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<MessageResponseDto> handleOptimisticLock(OptimisticLockException ex) {
+        LOG.warn("[CONFLICT] Optimistic lock failure: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error("This record was modified by another request. Please reload and try again."));
+    }
+
+    /**
+     * Handles image processing failures (resize, upload).
+     * Returns 422 Unprocessable Entity.
+     */
+    @ExceptionHandler(ImageProcessingException.class)
+    public ResponseEntity<MessageResponseDto> handleImageProcessing(ImageProcessingException ex) {
+        LOG.error("[IMAGE] Processing failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles illegal state exceptions (e.g. domain invariant violations).
+     * Returns 422 Unprocessable Entity.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<MessageResponseDto> handleIllegalState(IllegalStateException ex) {
+        LOG.warn("[STATE] Illegal state: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
     }
 
     /**

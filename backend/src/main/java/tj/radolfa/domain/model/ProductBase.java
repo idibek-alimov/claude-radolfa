@@ -18,7 +18,16 @@ public class ProductBase {
     private String name;
     private String category;
 
+    /**
+     * @param id               database PK ({@code null} for unsaved instances)
+     * @param erpTemplateCode  required — ERP template identity, must not be blank
+     * @param name             nullable — populated by ERP sync
+     * @param category         nullable — populated by ERP sync
+     */
     public ProductBase(Long id, String erpTemplateCode, String name, String category) {
+        if (erpTemplateCode == null || erpTemplateCode.isBlank()) {
+            throw new IllegalArgumentException("erpTemplateCode must not be blank");
+        }
         this.id              = id;
         this.erpTemplateCode = erpTemplateCode;
         this.name            = name;
