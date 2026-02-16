@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -157,16 +158,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
   if (isLoading) return <ProductDetailSkeleton />;
 
   if (isError || !listing) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <p className="text-destructive font-medium">
-          Product not found or an error occurred.
-        </p>
-        <p className="text-muted-foreground text-sm mt-2">
-          Slug: <span className="font-mono">{slug}</span>
-        </p>
-      </div>
-    );
+    notFound();
   }
 
   const mainImage =
