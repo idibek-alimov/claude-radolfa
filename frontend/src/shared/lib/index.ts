@@ -1,2 +1,2 @@
-export { cn } from "./utils";
+export { cn, getErrorMessage } from "./utils";
 export { formatPrice, formatDate } from "./format";

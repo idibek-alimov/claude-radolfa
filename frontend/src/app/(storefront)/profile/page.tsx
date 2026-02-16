@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { getErrorMessage } from "@/shared/lib";
 import { User, ShoppingBag, Star, AlertCircle } from "lucide-react";
 
 export default function ProfilePage() {
@@ -43,11 +44,10 @@ export default function ProfilePage() {
       const updatedUser = await updateProfile(formData);
       updateUser(updatedUser);
       setIsEditing(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setSaveError(
-        "Failed to update profile. " +
-          (err.response?.data?.message || err.message)
+        "Failed to update profile. " + getErrorMessage(err)
       );
     } finally {
       setSaving(false);

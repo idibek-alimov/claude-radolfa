@@ -30,6 +30,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { getErrorMessage } from "@/shared/lib";
 import { Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -69,8 +70,8 @@ export function UserManagementTable() {
           : `${updatedUser.phone} has been blocked`
       );
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to update user status");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Failed to update user status"));
     },
   });
 

@@ -42,6 +42,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { getErrorMessage } from "@/shared/lib";
 import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users } from "lucide-react";
 
 export default function ManagePage() {
@@ -146,8 +147,8 @@ function ProductManagement() {
       toast.success("Product updated");
       setIsDialogOpen(false);
     },
-    onError: (err: any) => {
-      setSaveError(err.message || "Failed to update");
+    onError: (err: unknown) => {
+      setSaveError(getErrorMessage(err, "Failed to update"));
     },
   });
 
@@ -158,7 +159,7 @@ function ProductManagement() {
       queryClient.invalidateQueries({ queryKey: ["listings"] });
       toast.success("Image uploaded. Processing in background.");
     },
-    onError: (err: any) => toast.error(err.message || "Upload failed"),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, "Upload failed")),
   });
 
   const deleteImageMutation = useMutation({
@@ -174,7 +175,7 @@ function ProductManagement() {
         });
       }
     },
-    onError: (err: any) => toast.error(err.message || "Failed to remove image"),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, "Failed to remove image")),
   });
 
   // ── Handlers ────────────────────────────────────────────────────
