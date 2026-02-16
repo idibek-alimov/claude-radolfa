@@ -43,7 +43,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users } from "lucide-react";
+import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ManagePage() {
   return (
@@ -362,6 +362,34 @@ function ProductManagement() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {data && data.totalElements > 0 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-muted-foreground">
+            {data.totalElements} product{data.totalElements !== 1 ? "s" : ""} total
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">Page {page}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data.hasMore}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
