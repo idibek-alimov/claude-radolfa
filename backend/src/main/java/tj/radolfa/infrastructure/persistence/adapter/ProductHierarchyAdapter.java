@@ -140,8 +140,10 @@ public class ProductHierarchyAdapter
                         return categoryRepo.save(placeholder);
                     });
             entity.setCategory(categoryEntity);
+            entity.setCategoryName(categoryEntity.getName());
         } else {
             entity.setCategory(null);
+            entity.setCategoryName(null);
         }
 
         return mapper.toProductBase(baseRepo.save(entity));

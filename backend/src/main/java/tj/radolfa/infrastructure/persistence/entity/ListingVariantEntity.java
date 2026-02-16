@@ -43,7 +43,7 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "featured", nullable = false)
     private boolean featured = false;
 
-    @OneToMany(mappedBy = "listingVariant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     private List<ListingVariantImageEntity> images = new ArrayList<>();
 
@@ -51,6 +51,6 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Instant lastSyncAt;
 
-    @OneToMany(mappedBy = "listingVariant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SkuEntity> skus = new ArrayList<>();
 }

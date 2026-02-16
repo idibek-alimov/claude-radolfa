@@ -31,6 +31,9 @@ public class ProductBaseEntity extends BaseAuditEntity {
     @JoinColumn(name = "category_id")
     private CategoryEntity category;
 
+    @Column(name = "category_name", length = 255)
+    private String categoryName;
+
     @OneToMany(mappedBy = "productBase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingVariantEntity> variants = new ArrayList<>();
 }

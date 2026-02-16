@@ -14,6 +14,9 @@ public class OrderItem {
                         String productName,
                         int quantity,
                         Money price) {
+                if (quantity <= 0) {
+                        throw new IllegalArgumentException("Quantity must be positive, got: " + quantity);
+                }
                 this.id = id;
                 this.skuId = skuId;
                 this.erpItemCode = erpItemCode;

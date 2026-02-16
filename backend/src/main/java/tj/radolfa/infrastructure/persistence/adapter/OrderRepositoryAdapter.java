@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
 import tj.radolfa.infrastructure.persistence.repository.OrderRepository;
@@ -53,7 +54,15 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
         entity.setUser(em.getReference(UserEntity.class, order.userId()));
 
         if (entity.getItems() != null) {
-            entity.getItems().forEach(item -> item.setOrder(entity));
+            for (int i = 0; i < entity.getItems().size(); i++) {
+                var item = entity.getItems().get(i);
+                item.setOrder(entity);
+
+                Long skuId = order.items().get(i).getSkuId();
+                if (skuId != null) {
+                    item.setSku(em.getReference(SkuEntity.class, skuId));
+                }
+            }
         }
 
         var saved = repository.save(entity);

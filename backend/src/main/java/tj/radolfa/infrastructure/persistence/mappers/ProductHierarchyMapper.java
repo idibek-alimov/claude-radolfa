@@ -23,6 +23,7 @@ public interface ProductHierarchyMapper {
 
     @Mapping(target = "variants", ignore = true)
     @Mapping(target = "category", ignore = true)
+    @Mapping(target = "categoryName", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -30,14 +31,11 @@ public interface ProductHierarchyMapper {
 
     default ProductBase toProductBase(ProductBaseEntity entity) {
         if (entity == null) return null;
-        String categoryName = entity.getCategory() != null
-                ? entity.getCategory().getName()
-                : null;
         return new ProductBase(
                 entity.getId(),
                 entity.getErpTemplateCode(),
                 entity.getName(),
-                categoryName
+                entity.getCategoryName()
         );
     }
 

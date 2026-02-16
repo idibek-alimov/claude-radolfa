@@ -24,3 +24,9 @@ Fixes applied based on `docs/codebase_audit_report.md`.
 | 16 | **2.1** Deprecated `CreateOrderService` still wired | MEDIUM | Deleted `CreateOrderService` and `CreateOrderUseCase` — dead code with no references |
 | 17 | **9.1** Slug generation duplicated in 2 places | LOW | Extracted `SlugUtils.slugify()` in `tj.radolfa.domain.util` — replaced private methods in `SyncCategoriesService` and `ProductHierarchyAdapter` |
 | 18 | **7.1 / 7.2** No profile-specific configs, ES URI hardcoded | LOW | Split into `application.yml` (shared), `application-dev.yml` (verbose SQL, localhost), `application-prod.yml` (tightened logging). All infra URIs now env-var driven with dev defaults |
+| 19 | **8.1** No search reindex endpoint | LOW | Already exists at `POST /api/v1/search/reindex` (`SYSTEM` role only) — no change needed |
+| 20 | **3.3** OrderItemEntity missing SKU foreign key | HIGH | Replaced raw `Long skuId` with `@ManyToOne SkuEntity sku` and FK constraint `fk_order_item_sku`. Updated `OrderMapper` mappings and `OrderRepositoryAdapter` to set SKU reference via `em.getReference()` |
+| 21 | **1.2** OrderItem missing quantity validation | MEDIUM | Added `if (quantity <= 0)` guard in `OrderItem` constructor — throws `IllegalArgumentException` for zero or negative values |
+| 22 | **1.3** Order record items list mutability | MEDIUM | Added compact constructor wrapping `items` with `Collections.unmodifiableList()` — null defaults to `List.of()` |
+| 23 | **3.1** ProductBaseEntity lossy category mapping | MEDIUM | Added denormalized `category_name` column to `ProductBaseEntity`. Adapter keeps it in sync when setting category FK. Mapper reads from denormalized column — survives category deletion |
+| 24 | **3.2** ListingVariantEntity N+1 query risk | MEDIUM | Added explicit `fetch = FetchType.LAZY` on all `@OneToMany` relationships in `ListingVariantEntity` and `OrderEntity` — prevents accidental eager loading via default `findById()`/`findAll()` |
