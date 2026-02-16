@@ -102,6 +102,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
 
   const goToImage = useCallback(
     (dir: 1 | -1) => {
+      if (imageCount <= 0) return;
       setSelectedImageIdx((prev) => (prev + dir + imageCount) % imageCount);
     },
     [imageCount],
