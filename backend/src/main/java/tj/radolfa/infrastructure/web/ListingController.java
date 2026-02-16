@@ -79,7 +79,7 @@ public class ListingController {
     @Operation(summary = "Update listing details", description = "Manager-enrichment: description, top-selling status")
     public ResponseEntity<Void> update(
             @PathVariable String slug,
-            @org.springframework.web.bind.annotation.RequestBody UpdateListingRequest request) {
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody UpdateListingRequest request) {
 
         updateListingUseCase.update(slug, new tj.radolfa.application.ports.in.UpdateListingUseCase.UpdateListingCommand(
                 request.webDescription,
@@ -94,7 +94,7 @@ public class ListingController {
     @Operation(summary = "Add image to listing", description = "Appends an image to the gallery")
     public ResponseEntity<Void> addImage(
             @PathVariable String slug,
-            @org.springframework.web.bind.annotation.RequestBody ImageUrlRequest request) {
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody ImageUrlRequest request) {
 
         updateListingUseCase.addImage(slug, request.url);
         return ResponseEntity.ok().build();
@@ -104,7 +104,7 @@ public class ListingController {
     @Operation(summary = "Remove image from listing", description = "Removes an image by URL")
     public ResponseEntity<Void> removeImage(
             @PathVariable String slug,
-            @org.springframework.web.bind.annotation.RequestBody ImageUrlRequest request) {
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody ImageUrlRequest request) {
 
         updateListingUseCase.removeImage(slug, request.url);
         return ResponseEntity.ok().build();
@@ -113,6 +113,12 @@ public class ListingController {
     public record UpdateListingRequest(String webDescription, Boolean topSelling, Boolean featured) {
     }
 
-    public record ImageUrlRequest(String url) {
+    public record ImageUrlRequest(
+            @jakarta.validation.constraints.NotBlank(message = "Image URL is required")
+            @jakarta.validation.constraints.Size(max = 2048, message = "Image URL must not exceed 2048 characters")
+            @jakarta.validation.constraints.Pattern(
+                    regexp = "^https://.+",
+                    message = "Image URL must use HTTPS")
+            String url) {
     }
 }
