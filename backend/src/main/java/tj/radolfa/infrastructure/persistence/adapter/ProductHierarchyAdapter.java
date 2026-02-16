@@ -8,7 +8,6 @@ import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.SaveListingVariantPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
-import tj.radolfa.domain.util.SlugUtils;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
@@ -132,13 +131,8 @@ public class ProductHierarchyAdapter
         // Resolve category String -> CategoryEntity (find-or-create placeholder)
         if (base.getCategory() != null && !base.getCategory().isBlank()) {
             CategoryEntity categoryEntity = categoryRepo.findByName(base.getCategory())
-                    .orElseGet(() -> {
-                        CategoryEntity placeholder = new CategoryEntity();
-                        placeholder.setName(base.getCategory());
-                        placeholder.setSlug(SlugUtils.slugify(base.getCategory()));
-                        // parent = null → top-level placeholder
-                        return categoryRepo.save(placeholder);
-                    });
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Category not found: '" + base.getCategory() + "'. Sync categories first."));
             entity.setCategory(categoryEntity);
             entity.setCategoryName(categoryEntity.getName());
         } else {
