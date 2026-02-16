@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
 import type { User } from "./types";
 
@@ -22,6 +24,8 @@ interface UseAuthReturn extends AuthState {
  * from the cookie-authenticated session. No tokens are stored client-side.
  */
 export function useAuth(): UseAuthReturn {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
@@ -67,8 +71,9 @@ export function useAuth(): UseAuthReturn {
       isAuthenticated: false,
       isLoading: false,
     });
-    window.location.href = "/";
-  }, []);
+    queryClient.clear();
+    router.push("/");
+  }, [router, queryClient]);
 
   const updateUser = useCallback((newUser: User) => {
     setAuthState((prev) => ({ ...prev, user: newUser }));
