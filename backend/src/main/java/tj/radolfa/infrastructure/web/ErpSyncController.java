@@ -19,6 +19,8 @@ import tj.radolfa.application.ports.in.SyncOrdersUseCase;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderCommand;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderItemCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.in.SyncUsersUseCase;
+import tj.radolfa.application.ports.in.SyncUsersUseCase.SyncUserCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
@@ -32,6 +34,8 @@ import tj.radolfa.infrastructure.web.dto.SyncCategoriesPayload;
 import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
 import tj.radolfa.infrastructure.web.dto.SyncOrderPayload;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
+import tj.radolfa.infrastructure.web.dto.SyncUserPayload;
+import tj.radolfa.domain.model.UserRole;
 
 import java.util.List;
 
@@ -61,6 +65,7 @@ public class ErpSyncController {
     private final SyncCategoriesUseCase      syncCategoriesUseCase;
     private final SyncLoyaltyPointsUseCase   loyaltyUseCase;
     private final SyncOrdersUseCase          syncOrdersUseCase;
+    private final SyncUsersUseCase           syncUsersUseCase;
     private final LogSyncEventPort            logSyncEvent;
     private final IdempotencyPort             idempotencyPort;
 
@@ -68,12 +73,14 @@ public class ErpSyncController {
                              SyncCategoriesUseCase      syncCategoriesUseCase,
                              SyncLoyaltyPointsUseCase   loyaltyUseCase,
                              SyncOrdersUseCase          syncOrdersUseCase,
+                             SyncUsersUseCase           syncUsersUseCase,
                              LogSyncEventPort            logSyncEvent,
                              IdempotencyPort             idempotencyPort) {
         this.syncUseCase           = syncUseCase;
         this.syncCategoriesUseCase = syncCategoriesUseCase;
         this.loyaltyUseCase        = loyaltyUseCase;
         this.syncOrdersUseCase     = syncOrdersUseCase;
+        this.syncUsersUseCase      = syncUsersUseCase;
         this.logSyncEvent          = logSyncEvent;
         this.idempotencyPort       = idempotencyPort;
     }
@@ -243,6 +250,63 @@ public class ErpSyncController {
         }
 
         return ResponseEntity.ok(new SyncResultDto(synced, errors, null));
+    }
+
+    /**
+     * Syncs a single user from ERPNext. Upserts by phone number.
+     */
+    @PostMapping("/users")
+    @PreAuthorize("hasRole('SYSTEM')")
+    public ResponseEntity<?> syncUser(
+            @AuthenticationPrincipal JwtAuthenticatedUser caller,
+            @Valid @RequestBody SyncUserPayload payload) {
+
+        LOG.info("[USER-SYNC] Received single user sync for phone={}, caller={}",
+                payload.phone(), caller.phone());
+
+        try {
+            syncUsersUseCase.executeOne(toUserCommand(payload));
+            logSyncEvent.log("USER:" + payload.phone(), true, null);
+            return ResponseEntity.ok(new SyncResultDto(1, 0));
+        } catch (Exception ex) {
+            LOG.error("[USER-SYNC] Failed to sync phone={}: {}",
+                    payload.phone(), ex.getMessage(), ex);
+            logSyncEvent.log("USER:" + payload.phone(), false, ex.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(new SyncResultDto(0, 1));
+        }
+    }
+
+    /**
+     * Syncs a batch of users from ERPNext. Each user is upserted by phone number.
+     */
+    @PostMapping("/users/batch")
+    @PreAuthorize("hasRole('SYSTEM')")
+    public ResponseEntity<SyncResultDto> syncUsersBatch(
+            @AuthenticationPrincipal JwtAuthenticatedUser caller,
+            @Valid @RequestBody List<SyncUserPayload> payloads) {
+
+        LOG.info("[USER-SYNC] Received batch user sync with {} users, caller={}",
+                payloads.size(), caller.phone());
+
+        var commands = payloads.stream().map(this::toUserCommand).toList();
+        var result = syncUsersUseCase.executeBatch(commands);
+
+        logSyncEvent.log("USER_BATCH", result.errors() == 0,
+                result.errors() > 0 ? result.errors() + " failures" : null);
+
+        LOG.info("[USER-SYNC] Batch completed -- synced={}, errors={}", result.synced(), result.errors());
+        return ResponseEntity.ok(new SyncResultDto(result.synced(), result.errors()));
+    }
+
+    private SyncUserCommand toUserCommand(SyncUserPayload payload) {
+        return new SyncUserCommand(
+                payload.phone(),
+                payload.name(),
+                payload.email(),
+                payload.role(),
+                payload.enabled(),
+                payload.loyaltyPoints());
     }
 
     // ---- Mapping: DTO → Command ----

@@ -13,6 +13,7 @@ tj/radolfa/infrastructure/erp/batch/ErpSyncJobConfig.class
 tj/radolfa/application/services/GetHomeCollectionsService.class
 tj/radolfa/infrastructure/persistence/adapter/OrderRepositoryAdapter.class
 tj/radolfa/infrastructure/security/OtpStore.class
+tj/radolfa/application/ports/in/SyncUsersUseCase$SyncResult.class
 tj/radolfa/infrastructure/persistence/entity/ListingVariantImageEntity.class
 tj/radolfa/infrastructure/web/dto/ColorDto.class
 tj/radolfa/application/services/SyncCategoriesService.class
@@ -46,6 +47,7 @@ tj/radolfa/application/ports/out/SaveColorPort.class
 tj/radolfa/domain/model/OrderStatus.class
 tj/radolfa/infrastructure/web/dto/OrderItemDto.class
 tj/radolfa/infrastructure/s3/S3ImageUploaderStub.class
+tj/radolfa/application/ports/in/SyncUsersUseCase.class
 tj/radolfa/infrastructure/security/RateLimiterService.class
 tj/radolfa/domain/util/SlugUtils.class
 tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase.class
@@ -146,12 +148,14 @@ tj/radolfa/application/ports/out/SaveListingVariantPort.class
 tj/radolfa/infrastructure/web/dto/UpdateUserProfileRequestDto.class
 tj/radolfa/application/services/GetMyOrdersService.class
 tj/radolfa/infrastructure/persistence/repository/ProductBaseRepository.class
+tj/radolfa/application/ports/in/SyncUsersUseCase$SyncUserCommand.class
 tj/radolfa/infrastructure/persistence/entity/ColorEntity.class
 tj/radolfa/application/services/GetListingService.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDetailDto$SiblingVariant.class
 tj/radolfa/application/ports/out/ProcessedImage.class
 tj/radolfa/application/services/ChangeUserRoleService.class
 tj/radolfa/infrastructure/erp/batch/ErpProductProcessor.class
+tj/radolfa/application/services/SyncUsersService.class
 tj/radolfa/application/ports/in/SyncOrdersUseCase$SyncResult.class
 tj/radolfa/infrastructure/security/JwtAuthenticationFilter.class
 tj/radolfa/infrastructure/persistence/mappers/ProductHierarchyMapper.class
@@ -159,6 +163,7 @@ tj/radolfa/domain/model/Order.class
 tj/radolfa/application/ports/in/VerifyOtpUseCase$AuthResult.class
 tj/radolfa/application/ports/in/GetHomeCollectionsUseCase.class
 tj/radolfa/application/ports/out/LoadCategoryPort.class
+tj/radolfa/infrastructure/web/dto/SyncUserPayload.class
 tj/radolfa/application/services/UpdateUserProfileService.class
 tj/radolfa/infrastructure/security/OtpStore$OtpEntry.class
 tj/radolfa/infrastructure/search/ListingSearchStub.class

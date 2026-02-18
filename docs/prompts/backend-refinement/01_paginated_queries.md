@@ -26,3 +26,5 @@ Migrate the product listing logic from "In-Memory Filtering/Pagination" to "Data
 - **Infrastructure Safety**: Use `spring-boot-starter-data-jpa` features rather than writing raw, unescaped SQL.
 - **Hexagonal Integrity**: Keep the pagination domain logic (like the `Page` object or custom DTOs) decoupled from JPA-specific classes in the application services.
 ---
+
+
