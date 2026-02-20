@@ -14,8 +14,9 @@
 # =============================================================================
 
 # Constants
-BACKEND_URL = "http://backend:8080/api/v1/sync/products"
-JWT_TOKEN = "YOUR_SYSTEM_JWT_TOKEN_HERE"
+_app_settings = frappe.get_doc("App Settings")
+BACKEND_URL = _app_settings.backend_url + "/api/v1/sync/products"
+SYSTEM_API_KEY = _app_settings.system_api_key
 
 
 def sync_item_to_radolfa(doc, method=None):
@@ -197,7 +198,7 @@ def _post_to_backend(payload, identifier):
     try:
         frappe.make_post_request(
             url=BACKEND_URL,
-            headers={"Authorization": "Bearer " + JWT_TOKEN},
+            headers={"X-Api-Key": SYSTEM_API_KEY},
             json=payload
         )
     except Exception as e:

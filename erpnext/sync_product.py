@@ -1,8 +1,9 @@
 # NO IMPORTS, NO AS_JSON, NO FORMATTING ATTRIBUTES
 
 # Constants
-BACKEND_URL = "http://localhost:8080/api/v1/sync/products"
-JWT_TOKEN = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIrOTkyOTAzNDU2Nzg5IiwidXNlcklkIjozLCJyb2xlIjoiU1lTVEVNIiwiaWF0IjoxNzcwNjYxNzExLCJleHAiOjE3NzA3NDgxMTF9.cticlzf7duQ3smomZzeM3ARWmcdZoYGxaXTp_I5jfnSeklzXTGC4mki-tkcvtAI2"
+app_settings = frappe.get_doc("App Settings")
+BACKEND_URL = app_settings.backend_url + "/api/v1/sync/products"
+SYSTEM_API_KEY = app_settings.system_api_key
 
 # 1. Fetch Price
 # Simple get_value call.
@@ -30,7 +31,7 @@ try:
     # b) Set the Content-Type to application/json automatically
     frappe.make_post_request(
         url=BACKEND_URL,
-        headers={"Authorization": "Bearer " + JWT_TOKEN},
+        headers={"X-Api-Key": SYSTEM_API_KEY},
         json=payload
     )
 

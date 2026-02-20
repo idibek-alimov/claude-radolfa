@@ -42,7 +42,8 @@ import java.util.List;
 /**
  * REST adapter for ERP product synchronisation.
  *
- * <p>Accepts a rich hierarchy payload from ERPNext:
+ * <p>
+ * Accepts a rich hierarchy payload from ERPNext:
  * Template → Variant (Colour) → Item (Size/SKU).
  *
  * <h3>Security</h3>
@@ -55,291 +56,291 @@ import java.util.List;
 @RequestMapping("/api/v1/sync")
 public class ErpSyncController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ErpSyncController.class);
+        private static final Logger LOG = LoggerFactory.getLogger(ErpSyncController.class);
 
-    private static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
-    private static final String EVENT_ORDER = "ORDER";
-    private static final String EVENT_LOYALTY = "LOYALTY";
+        private static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
+        private static final String EVENT_ORDER = "ORDER";
+        private static final String EVENT_LOYALTY = "LOYALTY";
 
-    private final SyncProductHierarchyUseCase syncUseCase;
-    private final SyncCategoriesUseCase      syncCategoriesUseCase;
-    private final SyncLoyaltyPointsUseCase   loyaltyUseCase;
-    private final SyncOrdersUseCase          syncOrdersUseCase;
-    private final SyncUsersUseCase           syncUsersUseCase;
-    private final LogSyncEventPort            logSyncEvent;
-    private final IdempotencyPort             idempotencyPort;
+        private final SyncProductHierarchyUseCase syncUseCase;
+        private final SyncCategoriesUseCase syncCategoriesUseCase;
+        private final SyncLoyaltyPointsUseCase loyaltyUseCase;
+        private final SyncOrdersUseCase syncOrdersUseCase;
+        private final SyncUsersUseCase syncUsersUseCase;
+        private final LogSyncEventPort logSyncEvent;
+        private final IdempotencyPort idempotencyPort;
 
-    public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
-                             SyncCategoriesUseCase      syncCategoriesUseCase,
-                             SyncLoyaltyPointsUseCase   loyaltyUseCase,
-                             SyncOrdersUseCase          syncOrdersUseCase,
-                             SyncUsersUseCase           syncUsersUseCase,
-                             LogSyncEventPort            logSyncEvent,
-                             IdempotencyPort             idempotencyPort) {
-        this.syncUseCase           = syncUseCase;
-        this.syncCategoriesUseCase = syncCategoriesUseCase;
-        this.loyaltyUseCase        = loyaltyUseCase;
-        this.syncOrdersUseCase     = syncOrdersUseCase;
-        this.syncUsersUseCase      = syncUsersUseCase;
-        this.logSyncEvent          = logSyncEvent;
-        this.idempotencyPort       = idempotencyPort;
-    }
-
-    /**
-     * Accepts a hierarchy payload, performs idempotent upsert
-     * across ProductBase → ListingVariant → Sku, and returns
-     * a summary of the operation.
-     */
-    @PostMapping("/products")
-    @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<SyncResultDto> syncProducts(
-            @AuthenticationPrincipal JwtAuthenticatedUser caller,
-            @Valid @RequestBody ErpHierarchyPayload payload) {
-
-        LOG.info("[ERP-SYNC] Received hierarchy sync for template={}, caller={}",
-                payload.templateCode(), caller.phone());
-
-        int synced = 0;
-        int errors = 0;
-
-        try {
-            HierarchySyncCommand command = toCommand(payload);
-            syncUseCase.execute(command);
-            logSyncEvent.log(payload.templateCode(), true, null);
-            synced = 1;
-        } catch (Exception ex) {
-            LOG.error("[ERP-SYNC] Failed to sync template={}: {}",
-                    payload.templateCode(), ex.getMessage(), ex);
-            logSyncEvent.log(payload.templateCode(), false, ex.getMessage());
-            errors = 1;
+        public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
+                        SyncCategoriesUseCase syncCategoriesUseCase,
+                        SyncLoyaltyPointsUseCase loyaltyUseCase,
+                        SyncOrdersUseCase syncOrdersUseCase,
+                        SyncUsersUseCase syncUsersUseCase,
+                        LogSyncEventPort logSyncEvent,
+                        IdempotencyPort idempotencyPort) {
+                this.syncUseCase = syncUseCase;
+                this.syncCategoriesUseCase = syncCategoriesUseCase;
+                this.loyaltyUseCase = loyaltyUseCase;
+                this.syncOrdersUseCase = syncOrdersUseCase;
+                this.syncUsersUseCase = syncUsersUseCase;
+                this.logSyncEvent = logSyncEvent;
+                this.idempotencyPort = idempotencyPort;
         }
 
-        LOG.info("[ERP-SYNC] Completed -- synced={}, errors={}", synced, errors);
-        return ResponseEntity.ok(new SyncResultDto(synced, errors));
-    }
+        /**
+         * Accepts a hierarchy payload, performs idempotent upsert
+         * across ProductBase → ListingVariant → Sku, and returns
+         * a summary of the operation.
+         */
+        @PostMapping("/products")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<SyncResultDto> syncProducts(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @Valid @RequestBody ErpHierarchyPayload payload) {
 
-    /**
-     * Syncs the category hierarchy from ERPNext.
-     * Must be called BEFORE product sync to ensure categories exist.
-     */
-    @PostMapping("/categories")
-    @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<List<CategoryView>> syncCategories(
-            @AuthenticationPrincipal JwtAuthenticatedUser caller,
-            @Valid @RequestBody SyncCategoriesPayload payload) {
+                LOG.info("[ERP-SYNC] Received hierarchy sync for template={}, caller={}",
+                                payload.templateCode(), caller.phone());
 
-        LOG.info("[ERP-SYNC] Received category sync with {} categories, caller={}",
-                payload.categories().size(), caller.phone());
+                int synced = 0;
+                int errors = 0;
 
-        try {
-            var command = new SyncCategoriesCommand(
-                    payload.categories().stream()
-                            .map(cp -> new SyncCategoriesCommand.CategoryPayload(cp.name(), cp.parentName()))
-                            .toList()
-            );
+                try {
+                        HierarchySyncCommand command = toCommand(payload);
+                        syncUseCase.execute(command);
+                        logSyncEvent.log(payload.templateCode(), true, null);
+                        synced = 1;
+                } catch (Exception ex) {
+                        LOG.error("[ERP-SYNC] Failed to sync template={}: {}",
+                                        payload.templateCode(), ex.getMessage(), ex);
+                        logSyncEvent.log(payload.templateCode(), false, ex.getMessage());
+                        errors = 1;
+                }
 
-            List<CategoryView> result = syncCategoriesUseCase.execute(command);
-            logSyncEvent.log("CATEGORIES", true, null);
-            return ResponseEntity.ok(result);
-        } catch (Exception ex) {
-            LOG.error("[ERP-SYNC] Failed to sync categories: {}", ex.getMessage(), ex);
-            logSyncEvent.log("CATEGORIES", false, ex.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * Syncs loyalty points for a user, looked up by phone number.
-     * Requires an {@code Idempotency-Key} header to prevent double-counting on retries.
-     */
-    @PostMapping("/loyalty")
-    @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<?> syncLoyaltyPoints(
-            @AuthenticationPrincipal JwtAuthenticatedUser caller,
-            @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
-            @Valid @RequestBody SyncLoyaltyRequestDto request) {
-
-        if (idempotencyKey == null || idempotencyKey.isBlank()) {
-            return ResponseEntity.badRequest()
-                    .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                LOG.info("[ERP-SYNC] Completed -- synced={}, errors={}", synced, errors);
+                return ResponseEntity.ok(new SyncResultDto(synced, errors));
         }
 
-        if (idempotencyPort.exists(idempotencyKey, EVENT_LOYALTY)) {
-            LOG.info("[LOYALTY-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(MessageResponseDto.error("Duplicate request — already processed"));
+        /**
+         * Syncs the category hierarchy from ERPNext.
+         * Must be called BEFORE product sync to ensure categories exist.
+         */
+        @PostMapping("/categories")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<List<CategoryView>> syncCategories(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @Valid @RequestBody SyncCategoriesPayload payload) {
+
+                LOG.info("[ERP-SYNC] Received category sync with {} categories, caller={}",
+                                payload.categories().size(), caller.phone());
+
+                try {
+                        var command = new SyncCategoriesCommand(
+                                        payload.categories().stream()
+                                                        .map(cp -> new SyncCategoriesCommand.CategoryPayload(cp.name(),
+                                                                        cp.parentName()))
+                                                        .toList());
+
+                        List<CategoryView> result = syncCategoriesUseCase.execute(command);
+                        logSyncEvent.log("CATEGORIES", true, null);
+                        return ResponseEntity.ok(result);
+                } catch (Exception ex) {
+                        LOG.error("[ERP-SYNC] Failed to sync categories: {}", ex.getMessage(), ex);
+                        logSyncEvent.log("CATEGORIES", false, ex.getMessage());
+                        return ResponseEntity.internalServerError().build();
+                }
         }
 
-        LOG.info("[LOYALTY-SYNC] Received points sync for phone={}, caller={}",
-                request.phone(), caller.phone());
+        /**
+         * Syncs loyalty points for a user, looked up by phone number.
+         * Requires an {@code Idempotency-Key} header to prevent double-counting on
+         * retries.
+         */
+        @PostMapping("/loyalty")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<?> syncLoyaltyPoints(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+                        @Valid @RequestBody SyncLoyaltyRequestDto request) {
 
-        try {
-            loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
-            logSyncEvent.log("LOYALTY:" + request.phone(), true, null);
-            idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 204);
-            return ResponseEntity.noContent().build();
-        } catch (Exception ex) {
-            LOG.error("[LOYALTY-SYNC] Failed to sync points for phone={}: {}",
-                    request.phone(), ex.getMessage(), ex);
-            logSyncEvent.log("LOYALTY:" + request.phone(), false, ex.getMessage());
-            idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 500);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                        .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                }
 
-    /**
-     * Syncs an order from ERPNext. Upserts by erp_order_id.
-     * Requires an {@code Idempotency-Key} header to prevent duplicate order creation.
-     */
-    @PostMapping("/orders")
-    @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<?> syncOrder(
-            @AuthenticationPrincipal JwtAuthenticatedUser caller,
-            @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
-            @Valid @RequestBody SyncOrderPayload payload) {
+                if (idempotencyPort.exists(idempotencyKey, EVENT_LOYALTY)) {
+                        LOG.info("[LOYALTY-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(MessageResponseDto.error("Duplicate request — already processed"));
+                }
 
-        if (idempotencyKey == null || idempotencyKey.isBlank()) {
-            return ResponseEntity.badRequest()
-                    .body(MessageResponseDto.error("Missing Idempotency-Key header"));
-        }
+                LOG.info("[LOYALTY-SYNC] Received points sync for phone={}, caller={}",
+                                request.phone(), caller.phone());
 
-        if (idempotencyPort.exists(idempotencyKey, EVENT_ORDER)) {
-            LOG.info("[ORDER-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(MessageResponseDto.error("Duplicate request — already processed"));
-        }
-
-        LOG.info("[ORDER-SYNC] Received order sync for erpOrderId={}, phone={}, caller={}",
-                payload.erpOrderId(), payload.customerPhone(), caller.phone());
-
-        int synced = 0;
-        int errors = 0;
-
-        try {
-            var items = payload.items().stream()
-                    .map(ip -> new SyncOrderItemCommand(
-                            ip.erpItemCode(), ip.productName(), ip.quantity(), ip.price()))
-                    .toList();
-
-            var command = new SyncOrderCommand(
-                    payload.erpOrderId(),
-                    payload.customerPhone(),
-                    payload.status(),
-                    payload.totalAmount(),
-                    items);
-
-            var result = syncOrdersUseCase.execute(command);
-
-            if (result.status() == SyncOrdersUseCase.SyncStatus.SKIPPED) {
-                LOG.warn("[ORDER-SYNC] Skipped: {}", result.message());
-                logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, result.message());
-                idempotencyPort.save(idempotencyKey, EVENT_ORDER, 422);
-                return ResponseEntity.unprocessableEntity()
-                        .body(new SyncResultDto(0, 0, result.message()));
-            }
-
-            logSyncEvent.log("ORDER:" + payload.erpOrderId(), true, null);
-            idempotencyPort.save(idempotencyKey, EVENT_ORDER, 200);
-            synced = 1;
-        } catch (Exception ex) {
-            LOG.error("[ORDER-SYNC] Failed to sync order={}: {}",
-                    payload.erpOrderId(), ex.getMessage(), ex);
-            logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, ex.getMessage());
-            idempotencyPort.save(idempotencyKey, EVENT_ORDER, 500);
-            errors = 1;
+                try {
+                        loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
+                        logSyncEvent.log("LOYALTY:" + request.phone(), true, null);
+                        idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 204);
+                        return ResponseEntity.noContent().build();
+                } catch (Exception ex) {
+                        LOG.error("[LOYALTY-SYNC] Failed to sync points for phone={}: {}",
+                                        request.phone(), ex.getMessage(), ex);
+                        logSyncEvent.log("LOYALTY:" + request.phone(), false, ex.getMessage());
+                        idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 500);
+                        return ResponseEntity.internalServerError().build();
+                }
         }
 
-        return ResponseEntity.ok(new SyncResultDto(synced, errors, null));
-    }
+        /**
+         * Syncs an order from ERPNext. Upserts by erp_order_id.
+         * Requires an {@code Idempotency-Key} header to prevent duplicate order
+         * creation.
+         */
+        @PostMapping("/orders")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<?> syncOrder(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+                        @Valid @RequestBody SyncOrderPayload payload) {
 
-    /**
-     * Syncs a single user from ERPNext. Upserts by phone number.
-     */
-    @PostMapping("/users")
-    @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<?> syncUser(
-            @AuthenticationPrincipal JwtAuthenticatedUser caller,
-            @Valid @RequestBody SyncUserPayload payload) {
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                        .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                }
 
-        LOG.info("[USER-SYNC] Received single user sync for phone={}, caller={}",
-                payload.phone(), caller.phone());
+                if (idempotencyPort.exists(idempotencyKey, EVENT_ORDER)) {
+                        LOG.info("[ORDER-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(MessageResponseDto.error("Duplicate request — already processed"));
+                }
 
-        try {
-            syncUsersUseCase.executeOne(toUserCommand(payload));
-            logSyncEvent.log("USER:" + payload.phone(), true, null);
-            return ResponseEntity.ok(new SyncResultDto(1, 0));
-        } catch (Exception ex) {
-            LOG.error("[USER-SYNC] Failed to sync phone={}: {}",
-                    payload.phone(), ex.getMessage(), ex);
-            logSyncEvent.log("USER:" + payload.phone(), false, ex.getMessage());
-            return ResponseEntity.internalServerError()
-                    .body(new SyncResultDto(0, 1));
+                LOG.info("[ORDER-SYNC] Received order sync for erpOrderId={}, phone={}, caller={}",
+                                payload.erpOrderId(), payload.customerPhone(), caller.phone());
+
+                int synced = 0;
+                int errors = 0;
+
+                try {
+                        var items = payload.items().stream()
+                                        .map(ip -> new SyncOrderItemCommand(
+                                                        ip.erpItemCode(), ip.productName(), ip.quantity(), ip.price()))
+                                        .toList();
+
+                        var command = new SyncOrderCommand(
+                                        payload.erpOrderId(),
+                                        payload.customerPhone(),
+                                        payload.status(),
+                                        payload.totalAmount(),
+                                        items);
+
+                        var result = syncOrdersUseCase.execute(command);
+
+                        if (result.status() == SyncOrdersUseCase.SyncStatus.SKIPPED) {
+                                LOG.warn("[ORDER-SYNC] Skipped: {}", result.message());
+                                logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, result.message());
+                                idempotencyPort.save(idempotencyKey, EVENT_ORDER, 422);
+                                return ResponseEntity.unprocessableEntity()
+                                                .body(new SyncResultDto(0, 0, result.message()));
+                        }
+
+                        logSyncEvent.log("ORDER:" + payload.erpOrderId(), true, null);
+                        idempotencyPort.save(idempotencyKey, EVENT_ORDER, 200);
+                        synced = 1;
+                } catch (Exception ex) {
+                        LOG.error("[ORDER-SYNC] Failed to sync order={}: {}",
+                                        payload.erpOrderId(), ex.getMessage(), ex);
+                        logSyncEvent.log("ORDER:" + payload.erpOrderId(), false, ex.getMessage());
+                        idempotencyPort.save(idempotencyKey, EVENT_ORDER, 500);
+                        errors = 1;
+                }
+
+                return ResponseEntity.ok(new SyncResultDto(synced, errors, null));
         }
-    }
 
-    /**
-     * Syncs a batch of users from ERPNext. Each user is upserted by phone number.
-     */
-    @PostMapping("/users/batch")
-    @PreAuthorize("hasRole('SYSTEM')")
-    public ResponseEntity<SyncResultDto> syncUsersBatch(
-            @AuthenticationPrincipal JwtAuthenticatedUser caller,
-            @Valid @RequestBody List<SyncUserPayload> payloads) {
+        /**
+         * Syncs a single user from ERPNext. Upserts by phone number.
+         */
+        @PostMapping("/users")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<?> syncUser(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @Valid @RequestBody SyncUserPayload payload) {
 
-        LOG.info("[USER-SYNC] Received batch user sync with {} users, caller={}",
-                payloads.size(), caller.phone());
+                LOG.info("[USER-SYNC] Received single user sync for phone={}, caller={}",
+                                payload.phone(), caller.phone());
 
-        var commands = payloads.stream().map(this::toUserCommand).toList();
-        var result = syncUsersUseCase.executeBatch(commands);
+                try {
+                        syncUsersUseCase.executeOne(toUserCommand(payload));
+                        logSyncEvent.log("USER:" + payload.phone(), true, null);
+                        return ResponseEntity.ok(new SyncResultDto(1, 0));
+                } catch (Exception ex) {
+                        LOG.error("[USER-SYNC] Failed to sync phone={}: {}",
+                                        payload.phone(), ex.getMessage(), ex);
+                        logSyncEvent.log("USER:" + payload.phone(), false, ex.getMessage());
+                        return ResponseEntity.internalServerError()
+                                        .body(new SyncResultDto(0, 1));
+                }
+        }
 
-        logSyncEvent.log("USER_BATCH", result.errors() == 0,
-                result.errors() > 0 ? result.errors() + " failures" : null);
+        /**
+         * Syncs a batch of users from ERPNext. Each user is upserted by phone number.
+         */
+        @PostMapping("/users/batch")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<SyncResultDto> syncUsersBatch(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @Valid @RequestBody List<SyncUserPayload> payloads) {
 
-        LOG.info("[USER-SYNC] Batch completed -- synced={}, errors={}", result.synced(), result.errors());
-        return ResponseEntity.ok(new SyncResultDto(result.synced(), result.errors()));
-    }
+                LOG.info("[USER-SYNC] Received batch user sync with {} users, caller={}",
+                                payloads.size(), caller.phone());
 
-    private SyncUserCommand toUserCommand(SyncUserPayload payload) {
-        return new SyncUserCommand(
-                payload.phone(),
-                payload.name(),
-                payload.email(),
-                payload.role(),
-                payload.enabled(),
-                payload.loyaltyPoints());
-    }
+                var commands = payloads.stream().map(this::toUserCommand).toList();
+                var result = syncUsersUseCase.executeBatch(commands);
 
-    // ---- Mapping: DTO → Command ----
+                logSyncEvent.log("USER_BATCH", result.errors() == 0,
+                                result.errors() > 0 ? result.errors() + " failures" : null);
 
-    private HierarchySyncCommand toCommand(ErpHierarchyPayload payload) {
-        var variants = payload.variants().stream()
-                .map(this::toVariantCommand)
-                .toList();
+                LOG.info("[USER-SYNC] Batch completed -- synced={}, errors={}", result.synced(), result.errors());
+                return ResponseEntity.ok(new SyncResultDto(result.synced(), result.errors()));
+        }
 
-        return new HierarchySyncCommand(
-                payload.templateCode(),
-                payload.templateName(),
-                payload.category(),
-                variants
-        );
-    }
+        private SyncUserCommand toUserCommand(SyncUserPayload payload) {
+                return new SyncUserCommand(
+                                payload.phone(),
+                                payload.name(),
+                                payload.email(),
+                                payload.role(),
+                                payload.enabled(),
+                                payload.loyaltyPoints());
+        }
 
-    private VariantCommand toVariantCommand(ErpHierarchyPayload.VariantPayload vp) {
-        var items = vp.items().stream()
-                .map(this::toSkuCommand)
-                .toList();
+        // ---- Mapping: DTO → Command ----
 
-        return new VariantCommand(vp.colorKey(), items);
-    }
+        private HierarchySyncCommand toCommand(ErpHierarchyPayload payload) {
+                var variants = payload.variants().stream()
+                                .map(this::toVariantCommand)
+                                .toList();
 
-    private SkuCommand toSkuCommand(ErpHierarchyPayload.ItemPayload ip) {
-        return new SkuCommand(
-                ip.erpItemCode(),
-                ip.sizeLabel(),
-                ip.stockQuantity(),
-                Money.of(ip.price().list()),
-                Money.of(ip.price().effective()),
-                ip.price().saleEndsAt()
-        );
-    }
+                return new HierarchySyncCommand(
+                                payload.templateCode(),
+                                payload.templateName(),
+                                payload.category(),
+                                variants);
+        }
+
+        private VariantCommand toVariantCommand(ErpHierarchyPayload.VariantPayload vp) {
+                var items = vp.items().stream()
+                                .map(this::toSkuCommand)
+                                .toList();
+
+                return new VariantCommand(vp.colorKey(), items);
+        }
+
+        private SkuCommand toSkuCommand(ErpHierarchyPayload.ItemPayload ip) {
+                return new SkuCommand(
+                                ip.erpItemCode(),
+                                ip.sizeLabel(),
+                                ip.stockQuantity(),
+                                Money.of(ip.price().list()),
+                                Money.of(ip.price().effective()),
+                                ip.price().saleEndsAt());
+        }
 }

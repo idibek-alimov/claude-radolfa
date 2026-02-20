@@ -71,5 +71,10 @@ radolfa:
       otp-verify-max-per-phone: 5
       otp-verify-window-minutes: 15
       ip-max-per-hour: 20
+    api-key:
+      # Long-lived key for machine-to-machine auth (ERPNext → Backend).
+      # Set SYSTEM_API_KEY env var in production (min 32 chars).
+      # ERPNext sends this as: X-Api-Key: <value>
+      system-key: ${SYSTEM_API_KEY:dev-system-api-key-change-this-in-production!!}
     cors:
       allowed-origins: []

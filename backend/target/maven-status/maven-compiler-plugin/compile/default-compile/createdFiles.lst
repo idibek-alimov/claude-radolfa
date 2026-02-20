@@ -135,8 +135,10 @@ tj/radolfa/application/ports/out/LoadListingVariantPort.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase.class
 tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase$SyncLoyaltyCommand.class
 tj/radolfa/application/ports/out/LoadHomeCollectionsPort.class
+tj/radolfa/infrastructure/security/ApiKeyAuthenticationFilter.class
 tj/radolfa/application/ports/in/GetMyOrdersUseCase.class
 tj/radolfa/infrastructure/web/OrderController.class
+tj/radolfa/infrastructure/security/ApiKeyProperties.class
 tj/radolfa/application/ports/in/SyncOrdersUseCase$SyncStatus.class
 tj/radolfa/application/ports/in/SendOtpUseCase.class
 tj/radolfa/infrastructure/persistence/adapter/ListingReadAdapter.class

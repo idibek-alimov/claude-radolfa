@@ -13,6 +13,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tj.radolfa.infrastructure.security.ApiKeyAuthenticationFilter;
+import tj.radolfa.infrastructure.security.ApiKeyProperties;
 import tj.radolfa.infrastructure.security.CorsProperties;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
 import tj.radolfa.infrastructure.security.JwtProperties;
@@ -52,15 +54,19 @@ import java.util.List;
                 JwtProperties.class,
                 OtpProperties.class,
                 CorsProperties.class,
-                RateLimitProperties.class
+                RateLimitProperties.class,
+                ApiKeyProperties.class
 })
 public class SecurityConfig {
 
+        private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final CorsProperties corsProperties;
 
-        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+        public SecurityConfig(ApiKeyAuthenticationFilter apiKeyAuthenticationFilter,
+                        JwtAuthenticationFilter jwtAuthenticationFilter,
                         CorsProperties corsProperties) {
+                this.apiKeyAuthenticationFilter = apiKeyAuthenticationFilter;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.corsProperties = corsProperties;
         }
@@ -78,7 +84,10 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                                // Add JWT filter before UsernamePasswordAuthenticationFilter
+                                // Add API key filter first (machine-to-machine clients, e.g. ERPNext)
+                                .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                                // Add JWT filter for browser / mobile clients
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                                 // Authorization rules
@@ -157,7 +166,9 @@ public class SecurityConfig {
                                 "Content-Type",
                                 "Accept",
                                 "Origin",
-                                "X-Requested-With"));
+                                "X-Requested-With",
+                                "X-Api-Key",
+                                "Idempotency-Key"));
 
                 // Exposed headers (allow frontend to read these)
                 configuration.setExposedHeaders(List.of(
