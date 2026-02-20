@@ -24,6 +24,7 @@ public class RadolfaApplication {
 
     @Bean
     public CommandLineRunner indexSeedData(SearchController searchController) {
+        // Useless comment
         return args -> {
             System.out.println("--- TEMPORARY HACK: Starting startup re-index ---");
             try {
