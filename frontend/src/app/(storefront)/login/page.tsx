@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/features/auth";
 
 export const metadata: Metadata = {
-  title: "Sign In — Radolfa",
-  description: "Sign in to your Radolfa account.",
+  title: "Log In — Radolfa",
+  description: "Log in to your Radolfa account.",
 };
 
 /**

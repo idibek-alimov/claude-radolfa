@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 export default function HeroBanner() {
   return (
-    <section className="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 overflow-hidden">
+    <section aria-label="Hero" className="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 overflow-hidden">
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl" />

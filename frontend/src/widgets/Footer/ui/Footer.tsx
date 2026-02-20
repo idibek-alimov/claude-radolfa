@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Package, Mail, Phone, MapPin } from "lucide-react";
+import { useAuth } from "@/features/auth";
 
 export default function Footer() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -19,40 +24,32 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <nav aria-label="Footer navigation">
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/" className="hover:text-white hover:underline transition-colors underline-offset-2">
                   Home
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/products"
-                  className="hover:text-white transition-colors"
-                >
+                <Link href="/products" className="hover:text-white hover:underline transition-colors underline-offset-2">
                   Products
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/login"
-                  className="hover:text-white transition-colors"
-                >
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/profile"
-                  className="hover:text-white transition-colors"
-                >
-                  My Account
-                </Link>
+                {isAuthenticated ? (
+                  <Link href="/profile" className="hover:text-white hover:underline transition-colors underline-offset-2">
+                    My Account
+                  </Link>
+                ) : (
+                  <Link href="/login" className="hover:text-white hover:underline transition-colors underline-offset-2">
+                    Log in
+                  </Link>
+                )}
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Contact */}
           <div>

@@ -64,7 +64,7 @@ function DesktopAuth() {
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors"
       >
         <User className="h-4 w-4" />
-        <span className="hidden lg:inline">Sign in</span>
+        <span className="hidden lg:inline">Log in</span>
       </Link>
     );
   }
@@ -200,7 +200,7 @@ function MobileMenu() {
                   className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary py-2.5 px-2 rounded-lg hover:bg-accent"
                 >
                   <User className="h-4 w-4" />
-                  Sign in
+                  Log in
                 </Link>
               </SheetClose>
             )}
@@ -214,7 +214,7 @@ function MobileMenu() {
 /* ── Main Navbar ───────────────────────────────────────────────── */
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <nav aria-label="Main navigation" className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ─── Desktop: single row ─────────────────────────────── */}
         <div className="hidden md:flex items-center h-16 gap-6">

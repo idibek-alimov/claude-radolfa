@@ -5,11 +5,9 @@ interface StockBadgeProps {
 }
 
 export default function StockBadge({ stock }: StockBadgeProps) {
-  const inStock = (stock ?? 0) > 0;
+  const qty = stock ?? 0;
 
-  return (
-    <Badge variant={inStock ? "success" : "destructive"}>
-      {inStock ? `${stock} in stock` : "Out of stock"}
-    </Badge>
-  );
+  if (qty === 0) return <Badge variant="destructive">Out of Stock</Badge>;
+  if (qty <= 5) return <Badge variant="warning">Low Stock</Badge>;
+  return <Badge variant="success">In Stock</Badge>;
 }

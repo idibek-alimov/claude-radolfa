@@ -84,23 +84,27 @@ function CollectionRow({ section }: { section: HomeSection }) {
       </motion.div>
 
       {/* Mobile horizontal scroll */}
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        className="flex md:hidden gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory"
-      >
-        {section.items.map((item) => (
-          <motion.div
-            key={item.slug}
-            variants={staggerItem}
-            className="min-w-[70vw] sm:min-w-[45vw] snap-start"
-          >
-            <ProductCard listing={item} />
-          </motion.div>
-        ))}
-      </motion.div>
+      <div className="relative md:hidden">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-none"
+        >
+          {section.items.map((item) => (
+            <motion.div
+              key={item.slug}
+              variants={staggerItem}
+              className="min-w-[70vw] sm:min-w-[45vw] snap-start"
+            >
+              <ProductCard listing={item} />
+            </motion.div>
+          ))}
+        </motion.div>
+        {/* Right-edge fade: visual cue that the list is scrollable */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent" />
+      </div>
     </section>
   );
 }

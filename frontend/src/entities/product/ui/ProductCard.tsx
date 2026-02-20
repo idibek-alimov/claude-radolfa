@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ImageOff } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
 import { Badge } from "@/shared/ui/badge";
 import StockBadge from "./StockBadge";
@@ -20,7 +21,7 @@ export default function ProductCard({ listing }: ProductCardProps) {
   const coverImage = listing.images[0] ?? null;
 
   return (
-    <Link href={`/products/${listing.slug}`} className="group block">
+    <Link href={`/products/${listing.slug}`} aria-label={listing.name ?? "View product"} className="group block">
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
@@ -47,8 +48,8 @@ export default function ProductCard({ listing }: ProductCardProps) {
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">No image</span>
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground/40">
+              <ImageOff className="h-10 w-10" strokeWidth={1.5} />
             </div>
           )}
         </div>

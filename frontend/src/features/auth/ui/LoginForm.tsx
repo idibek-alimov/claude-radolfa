@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { sendOtp, verifyOtp } from "../api";
 import OtpInput from "./OtpInput";
-import { Package, AlertCircle, ArrowLeft, Phone } from "lucide-react";
+import { Package, AlertCircle, ArrowLeft, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 
@@ -77,7 +77,7 @@ export default function LoginForm() {
             <span className="text-4xl font-bold">Radolfa</span>
           </div>
           <p className="text-xl text-indigo-200 max-w-md leading-relaxed">
-            Your trusted marketplace for premium products. Sign in to access
+            Your trusted marketplace for premium products. Log in to access
             your account, track orders, and more.
           </p>
         </div>
@@ -94,7 +94,7 @@ export default function LoginForm() {
 
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
-              {step === "phone" ? "Welcome back" : "Verify your phone"}
+              {step === "phone" ? "Log in" : "Verify your phone"}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               {step === "phone"
@@ -125,6 +125,7 @@ export default function LoginForm() {
                     id="phone"
                     type="tel"
                     required
+                    autoComplete="tel"
                     className="pl-10 h-11"
                     placeholder="+992 123 456 789"
                     value={phone}
@@ -138,7 +139,14 @@ export default function LoginForm() {
                 className="w-full h-11"
                 disabled={sendOtpMutation.isPending}
               >
-                {sendOtpMutation.isPending ? "Sending..." : "Send Verification Code"}
+                {sendOtpMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending…
+                  </>
+                ) : (
+                  "Send Verification Code"
+                )}
               </Button>
             </form>
           ) : (
@@ -169,7 +177,14 @@ export default function LoginForm() {
                   className="flex-1 h-11"
                   disabled={verifyOtpMutation.isPending}
                 >
-                  {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
+                  {verifyOtpMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying…
+                    </>
+                  ) : (
+                    "Verify"
+                  )}
                 </Button>
               </div>
             </form>
