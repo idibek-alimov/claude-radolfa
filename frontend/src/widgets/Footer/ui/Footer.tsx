@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Package, Mail, Phone, MapPin } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslations("footer");
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -12,19 +15,16 @@ export default function Footer() {
               <Package className="h-6 w-6 text-indigo-400" />
               <span className="text-xl font-bold">Radolfa</span>
             </Link>
-            <p className="text-sm leading-relaxed">
-              Your trusted marketplace for premium products. Quality guaranteed,
-              delivered with care.
-            </p>
+            <p className="text-sm leading-relaxed">{t("tagline")}</p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-white font-semibold mb-4">{t("quickLinks")}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/" className="hover:text-white transition-colors">
-                  Home
+                  {t("home")}
                 </Link>
               </li>
               <li>
@@ -32,7 +32,7 @@ export default function Footer() {
                   href="/products"
                   className="hover:text-white transition-colors"
                 >
-                  Products
+                  {t("products")}
                 </Link>
               </li>
               <li>
@@ -40,7 +40,7 @@ export default function Footer() {
                   href="/login"
                   className="hover:text-white transition-colors"
                 >
-                  Login
+                  {t("login")}
                 </Link>
               </li>
               <li>
@@ -48,7 +48,7 @@ export default function Footer() {
                   href="/profile"
                   className="hover:text-white transition-colors"
                 >
-                  My Account
+                  {t("myAccount")}
                 </Link>
               </li>
             </ul>
@@ -56,7 +56,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Contact</h3>
+            <h3 className="text-white font-semibold mb-4">{t("contact")}</h3>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-indigo-400 shrink-0" />
@@ -76,7 +76,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-10 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} Radolfa. All rights reserved.
+          &copy; {new Date().getFullYear()} Radolfa. {t("allRightsReserved")}
         </div>
       </div>
     </footer>

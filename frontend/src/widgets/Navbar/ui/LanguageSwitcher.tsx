@@ -3,8 +3,22 @@
 import { useState, useRef, useEffect } from "react";
 import { Globe, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 
 type Lang = "EN" | "RU" | "TJ";
+
+const LOCALE_TO_LANG: Record<string, Lang> = {
+  en: "EN",
+  ru: "RU",
+  tj: "TJ",
+};
+
+const LANG_TO_LOCALE: Record<Lang, string> = {
+  EN: "en",
+  RU: "ru",
+  TJ: "tj",
+};
 
 const LANGUAGES: { code: Lang; label: string }[] = [
   { code: "EN", label: "English" },
@@ -13,9 +27,11 @@ const LANGUAGES: { code: Lang; label: string }[] = [
 ];
 
 export default function LanguageSwitcher() {
-  const [current, setCurrent] = useState<Lang>("EN");
+  const locale = useLocale();
+  const current = LOCALE_TO_LANG[locale] ?? "RU";
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -28,8 +44,9 @@ export default function LanguageSwitcher() {
   }, []);
 
   const handleSelect = (code: Lang) => {
-    setCurrent(code);
+    document.cookie = `NEXT_LOCALE=${LANG_TO_LOCALE[code]}; path=/; max-age=31536000`;
     setIsOpen(false);
+    router.refresh();
   };
 
   return (

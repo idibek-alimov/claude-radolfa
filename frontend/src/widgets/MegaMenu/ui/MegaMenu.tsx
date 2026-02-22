@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { fetchCategoryTree } from "@/entities/product/api";
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { CategoryTree } from "@/entities/product/model/types";
 
@@ -168,6 +169,7 @@ function Level3Column({ parent }: { parent: CategoryTree | undefined }) {
 /* ── Mobile MegaMenu (Accordion) ──────────────────────────────── */
 
 export function MegaMenuMobile() {
+  const t = useTranslations("megaMenu");
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories", "tree"],
     queryFn: fetchCategoryTree,
@@ -201,7 +203,7 @@ export function MegaMenuMobile() {
   return (
     <div className="space-y-0.5">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-        Categories
+        {t("categories")}
       </p>
       {categories.map((l1) => (
         <div key={l1.id}>

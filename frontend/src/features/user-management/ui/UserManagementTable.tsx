@@ -33,8 +33,10 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
 import { Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export function UserManagementTable() {
+  const t = useTranslations("userManagement");
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
 
@@ -66,12 +68,12 @@ export function UserManagementTable() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast.success(
         updatedUser.enabled
-          ? `${updatedUser.phone} has been unblocked`
-          : `${updatedUser.phone} has been blocked`
+          ? t("unblocked", { phone: updatedUser.phone })
+          : t("blocked", { phone: updatedUser.phone })
       );
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to update user status"));
+      toast.error(getErrorMessage(err, t("failedToUpdateStatus")));
     },
   });
 
@@ -98,7 +100,7 @@ export function UserManagementTable() {
         <Input
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Search by phone or name..."
+          placeholder={t("searchPlaceholder")}
           className="pl-9"
         />
       </div>
@@ -115,14 +117,14 @@ export function UserManagementTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">ID</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Points</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right pr-4">Actions</TableHead>
+                <TableHead className="pl-4">{t("tableId")}</TableHead>
+                <TableHead>{t("tablePhone")}</TableHead>
+                <TableHead>{t("tableName")}</TableHead>
+                <TableHead>{t("tableEmail")}</TableHead>
+                <TableHead>{t("tableRole")}</TableHead>
+                <TableHead>{t("tablePoints")}</TableHead>
+                <TableHead>{t("tableStatus")}</TableHead>
+                <TableHead className="text-right pr-4">{t("tableActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -148,9 +150,9 @@ export function UserManagementTable() {
                   <TableCell className="text-sm">{user.loyaltyPoints}</TableCell>
                   <TableCell>
                     {user.enabled ? (
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant="success">{t("statusActive")}</Badge>
                     ) : (
-                      <Badge variant="destructive">Blocked</Badge>
+                      <Badge variant="destructive">{t("statusBlocked")}</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right pr-4">
@@ -165,12 +167,12 @@ export function UserManagementTable() {
                         {user.enabled ? (
                           <>
                             <ShieldOff className="h-3.5 w-3.5" />
-                            Block
+                            {t("actionBlock")}
                           </>
                         ) : (
                           <>
                             <ShieldCheck className="h-3.5 w-3.5" />
-                            Unblock
+                            {t("actionUnblock")}
                           </>
                         )}
                       </Button>
@@ -185,8 +187,8 @@ export function UserManagementTable() {
         {users.length === 0 && !isLoading && (
           <div className="p-12 text-center text-muted-foreground">
             {debouncedSearch
-              ? `No users matching "${debouncedSearch}"`
-              : "No users found."}
+              ? t("noUsersMatching", { search: debouncedSearch })
+              : t("noUsersFound")}
           </div>
         )}
       </div>
@@ -195,7 +197,7 @@ export function UserManagementTable() {
       {data && data.totalElements > 0 && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-muted-foreground">
-            {data.totalElements} user{data.totalElements !== 1 ? "s" : ""} total
+            {t("usersTotal", { count: data.totalElements })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -206,7 +208,7 @@ export function UserManagementTable() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">Page {page}</span>
+            <span className="text-sm text-muted-foreground">{t("page", { page })}</span>
             <Button
               variant="outline"
               size="sm"

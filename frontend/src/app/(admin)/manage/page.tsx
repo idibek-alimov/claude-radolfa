@@ -44,8 +44,11 @@ import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
 import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ManagePage() {
+  const t = useTranslations("manage");
+
   return (
     <ProtectedRoute requiredRole="MANAGER">
       <div className="min-h-screen bg-muted/30 py-10">
@@ -53,10 +56,10 @@ export default function ManagePage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Management Dashboard
+              {t("dashboardTitle")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage products and users.
+              {t("dashboardSubtitle")}
             </p>
           </div>
 
@@ -64,11 +67,11 @@ export default function ManagePage() {
             <TabsList>
               <TabsTrigger value="products" className="gap-1.5">
                 <Package className="h-4 w-4" />
-                Products
+                {t("tabProducts")}
               </TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5">
                 <Users className="h-4 w-4" />
-                Users
+                {t("tabUsers")}
               </TabsTrigger>
             </TabsList>
 
@@ -89,6 +92,7 @@ export default function ManagePage() {
 // ── Product Management (extracted from original page) ───────────────
 
 function ProductManagement() {
+  const t = useTranslations("manage");
   const queryClient = useQueryClient();
 
   // ── Query State ─────────────────────────────────────────────────
@@ -144,7 +148,7 @@ function ProductManagement() {
       updateListing(slug, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listings"] });
-      toast.success("Product updated");
+      toast.success(t("productUpdated"));
       setIsDialogOpen(false);
     },
     onError: (err: unknown) => {
@@ -157,9 +161,9 @@ function ProductManagement() {
       uploadListingImage(slug, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listings"] });
-      toast.success("Image uploaded. Processing in background.");
+      toast.success(t("imageUploaded"));
     },
-    onError: (err: unknown) => toast.error(getErrorMessage(err, "Upload failed")),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, t("uploadFailed"))),
   });
 
   const deleteImageMutation = useMutation({
@@ -167,7 +171,7 @@ function ProductManagement() {
       removeListingImage(slug, url),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["listings"] });
-      toast.success("Image removed");
+      toast.success(t("imageRemoved"));
       if (editingProduct) {
         setEditingProduct({
           ...editingProduct,
@@ -175,7 +179,7 @@ function ProductManagement() {
         });
       }
     },
-    onError: (err: unknown) => toast.error(getErrorMessage(err, "Failed to remove image")),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, t("failedToRemoveImage"))),
   });
 
   // ── Handlers ────────────────────────────────────────────────────
@@ -250,7 +254,7 @@ function ProductManagement() {
         <Input
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Search by name, slug..."
+          placeholder={t("searchByName")}
           className="pl-9"
         />
       </div>
@@ -267,13 +271,13 @@ function ProductManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4 w-[56px]">Image</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Slug / Key</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right pr-4">Actions</TableHead>
+                <TableHead className="pl-4 w-[56px]">{t("tableImage")}</TableHead>
+                <TableHead>{t("tableProduct")}</TableHead>
+                <TableHead>{t("tableSlugKey")}</TableHead>
+                <TableHead>{t("tablePrice")}</TableHead>
+                <TableHead>{t("tableStock")}</TableHead>
+                <TableHead>{t("tableStatus")}</TableHead>
+                <TableHead className="text-right pr-4">{t("tableActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -329,12 +333,12 @@ function ProductManagement() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {item.topSelling && (
-                        <Badge variant="success">Top Seller</Badge>
+                        <Badge variant="success">{t("topSeller")}</Badge>
                       )}
                       {item.featured && (
                         <Badge variant="default">
                           <Star className="h-3 w-3 mr-0.5" />
-                          Featured
+                          {t("featured")}
                         </Badge>
                       )}
                     </div>
@@ -357,8 +361,8 @@ function ProductManagement() {
         {listings.length === 0 && !isLoading && (
           <div className="p-12 text-center text-muted-foreground">
             {debouncedSearch
-              ? `No products matching "${debouncedSearch}"`
-              : "No products found."}
+              ? t("noProductsMatching", { search: debouncedSearch })
+              : t("noProductsFound")}
           </div>
         )}
       </div>
@@ -367,7 +371,7 @@ function ProductManagement() {
       {data && data.totalElements > 0 && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-muted-foreground">
-            {data.totalElements} product{data.totalElements !== 1 ? "s" : ""} total
+            {t("productsTotal", { count: data.totalElements })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -378,7 +382,7 @@ function ProductManagement() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">Page {page}</span>
+            <span className="text-sm text-muted-foreground">{t("page", { page })}</span>
             <Button
               variant="outline"
               size="sm"
@@ -395,9 +399,9 @@ function ProductManagement() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl px-8">
           <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
+            <DialogTitle>{t("editProductTitle")}</DialogTitle>
             <DialogDescription>
-              Update description and images. Price, stock, and basic details are synced from ERP and cannot be changed here.
+              {t("editProductDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -407,11 +411,11 @@ function ProductManagement() {
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <Lock className="h-3 w-3" />
-                  ERP-Synced Data
+                  {t("erpSyncedData")}
                 </p>
                 <div className="space-y-2">
                   <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Slug</label>
+                    <label className="text-xs text-muted-foreground">{t("slug")}</label>
                     <Input
                       disabled
                       value={editingProduct.slug}
@@ -419,7 +423,7 @@ function ProductManagement() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Name &amp; Color</label>
+                    <label className="text-xs text-muted-foreground">{t("nameAndColor")}</label>
                     <Input
                       disabled
                       value={`${editingProduct.name} — ${editingProduct.colorKey}`}
@@ -428,7 +432,7 @@ function ProductManagement() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Price</label>
+                      <label className="text-xs text-muted-foreground">{t("price")}</label>
                       <Input
                         disabled
                         value={formatPrice(editingProduct.priceStart, editingProduct.priceEnd)}
@@ -436,7 +440,7 @@ function ProductManagement() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Stock</label>
+                      <label className="text-xs text-muted-foreground">{t("stock")}</label>
                       <Input
                         disabled
                         value={String(editingProduct.totalStock)}
@@ -451,7 +455,7 @@ function ProductManagement() {
               <div className="border-t pt-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Lock className="h-3 w-3" />
-                  Sizes &amp; Stock
+                  {t("sizesAndStock")}
                 </p>
                 {detailLoading ? (
                   <div className="space-y-1.5">
@@ -464,10 +468,10 @@ function ProductManagement() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b bg-muted/50">
-                          <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">Size</th>
-                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">Price</th>
-                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">Sale</th>
-                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">Stock</th>
+                          <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("size")}</th>
+                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("price")}</th>
+                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("sale")}</th>
+                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("stock")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -491,18 +495,18 @@ function ProductManagement() {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No SKU data available.</p>
+                  <p className="text-sm text-muted-foreground">{t("noSkuData")}</p>
                 )}
               </div>
 
               {/* ── Enrichment (Editable) ─────────────────────────── */}
               <div className="border-t pt-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  Enrichment
+                  {t("enrichment")}
                 </p>
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Web Description</label>
+                    <label className="text-sm font-medium">{t("webDescription")}</label>
                     <textarea
                       value={formData.webDescription}
                       onChange={(e) =>
@@ -524,7 +528,7 @@ function ProductManagement() {
                         className="h-4 w-4 rounded border-input"
                       />
                       <label htmlFor="topSelling" className="text-sm">
-                        Top Selling
+                        {t("topSelling")}
                       </label>
                     </div>
                     <div className="flex items-center gap-2">
@@ -539,7 +543,7 @@ function ProductManagement() {
                       />
                       <label htmlFor="featured" className="text-sm flex items-center gap-1">
                         <Star className="h-3.5 w-3.5" />
-                        Featured
+                        {t("featured")}
                       </label>
                     </div>
                   </div>
@@ -550,7 +554,7 @@ function ProductManagement() {
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Product Images
+                    {t("productImages")}
                   </p>
                   <Button
                     type="button"
@@ -565,7 +569,7 @@ function ProductManagement() {
                     ) : (
                       <Upload className="h-3.5 w-3.5" />
                     )}
-                    {uploading ? "Uploading..." : "Add Image"}
+                    {uploading ? t("uploading") : t("addImage")}
                   </Button>
                   <input
                     ref={fileInputRef}
@@ -597,7 +601,7 @@ function ProductManagement() {
                         />
                         {idx === 0 && (
                           <span className="absolute bottom-1 left-1 z-10 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                            Primary
+                            {t("primary")}
                           </span>
                         )}
                         <button
@@ -613,7 +617,7 @@ function ProductManagement() {
                   ) : (
                     <div className="col-span-3 flex flex-col items-center justify-center rounded-md border border-dashed py-6 text-muted-foreground">
                       <Package className="h-8 w-8 mb-2" />
-                      <p className="text-sm">No images yet</p>
+                      <p className="text-sm">{t("noImagesYet")}</p>
                     </div>
                   )}
                 </div>
@@ -633,10 +637,10 @@ function ProductManagement() {
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Saving..." : "Save"}
+              {updateMutation.isPending ? t("saving") : t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

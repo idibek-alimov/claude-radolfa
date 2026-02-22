@@ -1,0 +1,173 @@
+{
+  "navbar": {
+    "signIn": "Войти",
+    "myProfile": "Мой профиль",
+    "management": "Управление",
+    "logout": "Выйти",
+    "openMenu": "Открыть меню",
+    "language": "Язык:"
+  },
+  "footer": {
+    "tagline": "Ваш надёжный маркетплейс для премиальных товаров. Качество гарантировано, доставка с заботой.",
+    "quickLinks": "Быстрые ссылки",
+    "home": "Главная",
+    "products": "Товары",
+    "login": "Войти",
+    "myAccount": "Мой аккаунт",
+    "contact": "Контакты",
+    "allRightsReserved": "Все права защищены."
+  },
+  "heroBanner": {
+    "heading": "Качественные товары,",
+    "headingAccent": "Доставка с заботой",
+    "subheading": "Откройте для себя нашу подборку премиальных товаров. Нам доверяют тысячи покупателей по всему Таджикистану.",
+    "cta": "Смотреть товары"
+  },
+  "trustBanner": {
+    "fastDelivery": {
+      "title": "Быстрая доставка",
+      "description": "Доставка по всему Таджикистану"
+    },
+    "securePayments": {
+      "title": "Безопасные платежи",
+      "description": "Ваши транзакции всегда защищены"
+    },
+    "qualityGuarantee": {
+      "title": "Гарантия качества",
+      "description": "Премиальные товары от надёжных поставщиков"
+    },
+    "customerSupport": {
+      "title": "Поддержка клиентов",
+      "description": "Мы всегда готовы помочь"
+    }
+  },
+  "productDetail": {
+    "home": "Главная",
+    "products": "Товары",
+    "noImage": "Изображение недоступно",
+    "priceFrom": "От",
+    "dependingOnSize": "в зависимости от размера",
+    "availableColours": "Доступные цвета",
+    "availableSizes": "Доступные размеры",
+    "description": "Описание",
+    "youMayAlsoLike": "Вам может понравиться"
+  },
+  "auth": {
+    "welcomeBack": "С возвращением",
+    "verifyYourPhone": "Подтвердите номер телефона",
+    "enterPhonePrompt": "Введите номер телефона для получения кода подтверждения",
+    "sentCodeTo": "Мы отправили код на {phone}",
+    "phoneNumber": "Номер телефона",
+    "sendVerificationCode": "Отправить код",
+    "sending": "Отправка...",
+    "enterDigitCode": "Введите 4-значный код",
+    "back": "Назад",
+    "verify": "Подтвердить",
+    "verifying": "Проверка...",
+    "tagline": "Ваш надёжный маркетплейс для премиальных товаров. Войдите, чтобы получить доступ к аккаунту, отслеживать заказы и многое другое.",
+    "phoneRequired": "Номер телефона обязателен",
+    "invalidPhone": "Введите корректный таджикский номер (например, +992 123 456 789)",
+    "otpRequired": "Код подтверждения обязателен",
+    "failedToSendOtp": "Не удалось отправить код",
+    "invalidOtp": "Неверный код"
+  },
+  "search": {
+    "placeholder": "Поиск товаров..."
+  },
+  "megaMenu": {
+    "categories": "Категории"
+  },
+  "manage": {
+    "dashboardTitle": "Панель управления",
+    "dashboardSubtitle": "Управление товарами и пользователями.",
+    "tabProducts": "Товары",
+    "tabUsers": "Пользователи",
+    "searchByName": "Поиск по названию, ключу...",
+    "tableImage": "Изображение",
+    "tableProduct": "Товар",
+    "tableSlugKey": "Ключ / Слаг",
+    "tablePrice": "Цена",
+    "tableStock": "Склад",
+    "tableStatus": "Статус",
+    "tableActions": "Действия",
+    "productUpdated": "Товар обновлён",
+    "imageUploaded": "Изображение загружено. Обработка в фоне.",
+    "uploadFailed": "Ошибка загрузки",
+    "imageRemoved": "Изображение удалено",
+    "failedToRemoveImage": "Не удалось удалить изображение",
+    "noProductsMatching": "Товары по запросу «{search}» не найдены",
+    "noProductsFound": "Товары не найдены.",
+    "productsTotal": "{count} товаров всего",
+    "page": "Страница {page}",
+    "editProductTitle": "Редактировать товар",
+    "editProductDesc": "Обновите описание и изображения. Цена, склад и основные данные синхронизируются из ERP и не могут быть изменены здесь.",
+    "erpSyncedData": "Данные из ERP",
+    "slug": "Слаг",
+    "nameAndColor": "Название и цвет",
+    "price": "Цена",
+    "stock": "Склад",
+    "sizesAndStock": "Размеры и склад",
+    "noSkuData": "Данные SKU недоступны.",
+    "size": "Размер",
+    "sale": "Скидка",
+    "primary": "Основное",
+    "enrichment": "Обогащение",
+    "webDescription": "Веб-описание",
+    "topSelling": "Топ продаж",
+    "featured": "Рекомендуемый",
+    "productImages": "Изображения товара",
+    "addImage": "Добавить изображение",
+    "uploading": "Загрузка...",
+    "noImagesYet": "Нет изображений",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "topSeller": "Топ продавец"
+  },
+  "profile": {
+    "yourProfile": "Ваш профиль",
+    "tabAccount": "Аккаунт",
+    "tabOrders": "Заказы",
+    "tabLoyalty": "Бонусы",
+    "accountInformation": "Информация об аккаунте",
+    "edit": "Редактировать",
+    "nameLabel": "Имя",
+    "emailLabel": "Эл. почта",
+    "saveChanges": "Сохранить",
+    "saving": "Сохранение...",
+    "cancel": "Отмена",
+    "phoneNumber": "Номер телефона",
+    "userId": "ID пользователя",
+    "notSet": "Не указано",
+    "orderHistory": "История заказов",
+    "noOrdersFound": "Заказы не найдены.",
+    "orderNumber": "Заказ #{id}",
+    "total": "Итого:",
+    "loyaltyPoints": "Бонусные баллы",
+    "availablePoints": "Доступные баллы",
+    "earnPoints": "Зарабатывайте баллы с каждой покупкой!",
+    "failedToUpdateProfile": "Не удалось обновить профиль."
+  },
+  "userManagement": {
+    "searchPlaceholder": "Поиск по телефону или имени...",
+    "tableId": "ID",
+    "tablePhone": "Телефон",
+    "tableName": "Имя",
+    "tableEmail": "Эл. почта",
+    "tableRole": "Роль",
+    "tablePoints": "Баллы",
+    "tableStatus": "Статус",
+    "tableActions": "Действия",
+    "statusActive": "Активен",
+    "statusBlocked": "Заблокирован",
+    "actionBlock": "Заблокировать",
+    "actionUnblock": "Разблокировать",
+    "unblocked": "{phone} разблокирован",
+    "blocked": "{phone} заблокирован",
+    "failedToUpdateStatus": "Не удалось обновить статус пользователя",
+    "noUsersMatching": "Пользователи по запросу «{search}» не найдены",
+    "noUsersFound": "Пользователи не найдены.",
+    "usersTotal": "{count} пользователей всего",
+    "page": "Страница {page}"
+  }
+}

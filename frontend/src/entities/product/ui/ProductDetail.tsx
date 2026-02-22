@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { fetchListingBySlug, fetchListings } from "@/entities/product/api";
 import type { Sku } from "@/entities/product";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/shared/ui/badge";
 import {
   Dialog,
@@ -75,6 +76,7 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ slug }: ProductDetailProps) {
+  const t = useTranslations("productDetail");
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -179,13 +181,13 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
+              <Link href="/">{t("home")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/products">Products</Link>
+              <Link href="/products">{t("products")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -224,7 +226,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <span className="text-muted-foreground">
-                  No image available
+                  {t("noImage")}
                 </span>
               </div>
             )}
@@ -306,11 +308,11 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             ) : (
               <>
                 <p className="text-4xl font-bold text-primary">
-                  From {formatPrice(listing.priceStart)}
+                  {t("priceFrom")} {formatPrice(listing.priceStart)}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {formatPrice(listing.priceStart)} –{" "}
-                  {formatPrice(listing.priceEnd)} depending on size
+                  {formatPrice(listing.priceEnd)} {t("dependingOnSize")}
                 </p>
               </>
             )}
@@ -332,7 +334,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
           {allSwatches.length > 1 && (
             <div className="pt-5 border-t">
               <h2 className="text-sm font-medium text-muted-foreground mb-3">
-                Available Colours
+                {t("availableColours")}
               </h2>
               <div className="flex gap-2 flex-wrap">
                 {allSwatches.map((swatch) => {
@@ -385,7 +387,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
           {listing.skus && listing.skus.length > 0 && (
             <div className="pt-5 border-t">
               <h2 className="text-sm font-medium text-muted-foreground mb-3">
-                Available Sizes
+                {t("availableSizes")}
               </h2>
               <div className="flex gap-2 flex-wrap">
                 {listing.skus.map((sku) => {
@@ -427,7 +429,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
           {listing.webDescription && (
             <div className="pt-5 border-t">
               <h2 className="text-sm font-medium text-muted-foreground mb-2">
-                Description
+                {t("description")}
               </h2>
               <p className="text-foreground leading-relaxed">
                 {listing.webDescription}
@@ -440,7 +442,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
       {/* ── Related products — "You May Also Like" ────────────────── */}
       <div className="mt-16 pt-16 border-t">
         <h2 className="text-2xl font-bold text-foreground mb-8">
-          You May Also Like
+          {t("youMayAlsoLike")}
         </h2>
 
         {relatedLoading ? (

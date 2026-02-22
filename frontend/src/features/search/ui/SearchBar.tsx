@@ -6,6 +6,7 @@ import { Search, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAutocomplete } from "@/entities/product";
 import type { SearchParams } from "@/features/search";
+import { useTranslations } from "next-intl";
 
 interface SearchBarProps {
   onSearch?: (params: SearchParams) => void;
@@ -13,6 +14,7 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ onSearch, compact = false }: SearchBarProps) {
+  const t = useTranslations("search");
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -130,7 +132,7 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
             onFocus={() => {
               if (suggestions.length > 0) setIsOpen(true);
             }}
-            placeholder="Search products..."
+            placeholder={t("placeholder")}
             className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground/60 py-2 text-sm"
             role="combobox"
             aria-expanded={isOpen}

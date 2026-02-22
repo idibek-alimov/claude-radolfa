@@ -7,10 +7,12 @@ import OtpInput from "./OtpInput";
 import { Package, AlertCircle, ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { useTranslations } from "next-intl";
 
 type Step = "phone" | "otp";
 
 export default function LoginForm() {
+  const t = useTranslations("auth");
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -23,7 +25,7 @@ export default function LoginForm() {
       setError(null);
     },
     onError: (err: Error) => {
-      setError(err.message || "Failed to send OTP");
+      setError(err.message || t("failedToSendOtp"));
     },
   });
 
@@ -35,7 +37,7 @@ export default function LoginForm() {
       window.location.href = "/";
     },
     onError: (err: Error) => {
-      setError(err.message || "Invalid OTP");
+      setError(err.message || t("invalidOtp"));
     },
   });
 
@@ -43,12 +45,12 @@ export default function LoginForm() {
     e.preventDefault();
     const trimmed = phone.trim();
     if (!trimmed) {
-      setError("Phone number is required");
+      setError(t("phoneRequired"));
       return;
     }
     // Tajik phone: +992 followed by 9 digits
     if (!/^\+?992\d{9}$/.test(trimmed.replace(/[\s-]/g, ""))) {
-      setError("Enter a valid Tajik phone number (e.g. +992 123 456 789)");
+      setError(t("invalidPhone"));
       return;
     }
     sendOtpMutation.mutate({ phone: trimmed });
@@ -57,7 +59,7 @@ export default function LoginForm() {
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp.trim()) {
-      setError("OTP is required");
+      setError(t("otpRequired"));
       return;
     }
     verifyOtpMutation.mutate({ phone, otp });
@@ -77,8 +79,7 @@ export default function LoginForm() {
             <span className="text-4xl font-bold">Radolfa</span>
           </div>
           <p className="text-xl text-indigo-200 max-w-md leading-relaxed">
-            Your trusted marketplace for premium products. Sign in to access
-            your account, track orders, and more.
+            {t("tagline")}
           </p>
         </div>
       </div>
@@ -94,12 +95,12 @@ export default function LoginForm() {
 
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
-              {step === "phone" ? "Welcome back" : "Verify your phone"}
+              {step === "phone" ? t("welcomeBack") : t("verifyYourPhone")}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               {step === "phone"
-                ? "Enter your phone number to receive a verification code"
-                : `We sent a code to ${phone}`}
+                ? t("enterPhonePrompt")
+                : t("sentCodeTo", { phone })}
             </p>
           </div>
 
@@ -117,7 +118,7 @@ export default function LoginForm() {
                   htmlFor="phone"
                   className="text-sm font-medium text-foreground"
                 >
-                  Phone Number
+                  {t("phoneNumber")}
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -138,14 +139,14 @@ export default function LoginForm() {
                 className="w-full h-11"
                 disabled={sendOtpMutation.isPending}
               >
-                {sendOtpMutation.isPending ? "Sending..." : "Send Verification Code"}
+                {sendOtpMutation.isPending ? t("sending") : t("sendVerificationCode")}
               </Button>
             </form>
           ) : (
             <form className="space-y-6" onSubmit={handleVerifyOtp}>
               <div className="space-y-4">
                 <label className="text-sm font-medium text-foreground block text-center">
-                  Enter the 4-digit code
+                  {t("enterDigitCode")}
                 </label>
                 <OtpInput value={otp} onChange={setOtp} />
               </div>
@@ -162,14 +163,14 @@ export default function LoginForm() {
                   }}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {t("back")}
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 h-11"
                   disabled={verifyOtpMutation.isPending}
                 >
-                  {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
+                  {verifyOtpMutation.isPending ? t("verifying") : t("verify")}
                 </Button>
               </div>
             </form>

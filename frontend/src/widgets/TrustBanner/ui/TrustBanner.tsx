@@ -1,29 +1,33 @@
 import { Truck, ShieldCheck, BadgeCheck, HeartHandshake } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import type { ElementType } from "react";
 
-const TRUST_ITEMS = [
-  {
-    icon: Truck,
-    title: "Fast Delivery",
-    description: "Nationwide shipping across Tajikistan",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Secure Payments",
-    description: "Your transactions are always protected",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Quality Guarantee",
-    description: "Premium products from trusted suppliers",
-  },
-  {
-    icon: HeartHandshake,
-    title: "Customer Support",
-    description: "We are here to help — always",
-  },
-];
+export default async function TrustBanner() {
+  const t = await getTranslations("trustBanner");
 
-export default function TrustBanner() {
+  const TRUST_ITEMS: { icon: ElementType; title: string; description: string }[] = [
+    {
+      icon: Truck,
+      title: t("fastDelivery.title"),
+      description: t("fastDelivery.description"),
+    },
+    {
+      icon: ShieldCheck,
+      title: t("securePayments.title"),
+      description: t("securePayments.description"),
+    },
+    {
+      icon: BadgeCheck,
+      title: t("qualityGuarantee.title"),
+      description: t("qualityGuarantee.description"),
+    },
+    {
+      icon: HeartHandshake,
+      title: t("customerSupport.title"),
+      description: t("customerSupport.description"),
+    },
+  ];
+
   return (
     <section className="border-y bg-muted/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

@@ -1,0 +1,173 @@
+{
+  "navbar": {
+    "signIn": "Sign in",
+    "myProfile": "My Profile",
+    "management": "Management",
+    "logout": "Logout",
+    "openMenu": "Open menu",
+    "language": "Language:"
+  },
+  "footer": {
+    "tagline": "Your trusted marketplace for premium products. Quality guaranteed, delivered with care.",
+    "quickLinks": "Quick Links",
+    "home": "Home",
+    "products": "Products",
+    "login": "Login",
+    "myAccount": "My Account",
+    "contact": "Contact",
+    "allRightsReserved": "All rights reserved."
+  },
+  "heroBanner": {
+    "heading": "Quality Products,",
+    "headingAccent": "Delivered with Care",
+    "subheading": "Discover our curated collection of premium products. Trusted by thousands of customers across Tajikistan.",
+    "cta": "Browse Products"
+  },
+  "trustBanner": {
+    "fastDelivery": {
+      "title": "Fast Delivery",
+      "description": "Nationwide shipping across Tajikistan"
+    },
+    "securePayments": {
+      "title": "Secure Payments",
+      "description": "Your transactions are always protected"
+    },
+    "qualityGuarantee": {
+      "title": "Quality Guarantee",
+      "description": "Premium products from trusted suppliers"
+    },
+    "customerSupport": {
+      "title": "Customer Support",
+      "description": "We are here to help — always"
+    }
+  },
+  "productDetail": {
+    "home": "Home",
+    "products": "Products",
+    "noImage": "No image available",
+    "priceFrom": "From",
+    "dependingOnSize": "depending on size",
+    "availableColours": "Available Colours",
+    "availableSizes": "Available Sizes",
+    "description": "Description",
+    "youMayAlsoLike": "You May Also Like"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "verifyYourPhone": "Verify your phone",
+    "enterPhonePrompt": "Enter your phone number to receive a verification code",
+    "sentCodeTo": "We sent a code to {phone}",
+    "phoneNumber": "Phone Number",
+    "sendVerificationCode": "Send Verification Code",
+    "sending": "Sending...",
+    "enterDigitCode": "Enter the 4-digit code",
+    "back": "Back",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "tagline": "Your trusted marketplace for premium products. Sign in to access your account, track orders, and more.",
+    "phoneRequired": "Phone number is required",
+    "invalidPhone": "Enter a valid Tajik phone number (e.g. +992 123 456 789)",
+    "otpRequired": "OTP is required",
+    "failedToSendOtp": "Failed to send OTP",
+    "invalidOtp": "Invalid OTP"
+  },
+  "search": {
+    "placeholder": "Search products..."
+  },
+  "megaMenu": {
+    "categories": "Categories"
+  },
+  "manage": {
+    "dashboardTitle": "Management Dashboard",
+    "dashboardSubtitle": "Manage products and users.",
+    "tabProducts": "Products",
+    "tabUsers": "Users",
+    "searchByName": "Search by name, slug...",
+    "tableImage": "Image",
+    "tableProduct": "Product",
+    "tableSlugKey": "Slug / Key",
+    "tablePrice": "Price",
+    "tableStock": "Stock",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "productUpdated": "Product updated",
+    "imageUploaded": "Image uploaded. Processing in background.",
+    "uploadFailed": "Upload failed",
+    "imageRemoved": "Image removed",
+    "failedToRemoveImage": "Failed to remove image",
+    "noProductsMatching": "No products matching \"{search}\"",
+    "noProductsFound": "No products found.",
+    "productsTotal": "{count, plural, one {# product total} other {# products total}}",
+    "page": "Page {page}",
+    "editProductTitle": "Edit Product",
+    "editProductDesc": "Update description and images. Price, stock, and basic details are synced from ERP and cannot be changed here.",
+    "erpSyncedData": "ERP-Synced Data",
+    "slug": "Slug",
+    "nameAndColor": "Name & Color",
+    "price": "Price",
+    "stock": "Stock",
+    "sizesAndStock": "Sizes & Stock",
+    "noSkuData": "No SKU data available.",
+    "size": "Size",
+    "sale": "Sale",
+    "primary": "Primary",
+    "enrichment": "Enrichment",
+    "webDescription": "Web Description",
+    "topSelling": "Top Selling",
+    "featured": "Featured",
+    "productImages": "Product Images",
+    "addImage": "Add Image",
+    "uploading": "Uploading...",
+    "noImagesYet": "No images yet",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "topSeller": "Top Seller"
+  },
+  "profile": {
+    "yourProfile": "Your Profile",
+    "tabAccount": "Account",
+    "tabOrders": "Orders",
+    "tabLoyalty": "Loyalty",
+    "accountInformation": "Account Information",
+    "edit": "Edit",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "phoneNumber": "Phone Number",
+    "userId": "User ID",
+    "notSet": "Not set",
+    "orderHistory": "Order History",
+    "noOrdersFound": "No orders found.",
+    "orderNumber": "Order #{id}",
+    "total": "Total:",
+    "loyaltyPoints": "Loyalty Points",
+    "availablePoints": "Available Points",
+    "earnPoints": "Earn points with every purchase!",
+    "failedToUpdateProfile": "Failed to update profile."
+  },
+  "userManagement": {
+    "searchPlaceholder": "Search by phone or name...",
+    "tableId": "ID",
+    "tablePhone": "Phone",
+    "tableName": "Name",
+    "tableEmail": "Email",
+    "tableRole": "Role",
+    "tablePoints": "Points",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "statusActive": "Active",
+    "statusBlocked": "Blocked",
+    "actionBlock": "Block",
+    "actionUnblock": "Unblock",
+    "unblocked": "{phone} has been unblocked",
+    "blocked": "{phone} has been blocked",
+    "failedToUpdateStatus": "Failed to update user status",
+    "noUsersMatching": "No users matching \"{search}\"",
+    "noUsersFound": "No users found.",
+    "usersTotal": "{count, plural, one {# user total} other {# users total}}",
+    "page": "Page {page}"
+  }
+}

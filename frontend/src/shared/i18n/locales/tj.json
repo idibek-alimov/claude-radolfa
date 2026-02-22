@@ -1,0 +1,173 @@
+{
+  "navbar": {
+    "signIn": "Воридшавӣ",
+    "myProfile": "Профили ман",
+    "management": "Идоракунӣ",
+    "logout": "Баромадан",
+    "openMenu": "Кушодани меню",
+    "language": "Забон:"
+  },
+  "footer": {
+    "tagline": "Бозори боэтимоди шумо барои молҳои беҳтарин. Сифат кафолат дода мешавад, расонидан бо ғамхорӣ.",
+    "quickLinks": "Пайвандҳои зуд",
+    "home": "Асосӣ",
+    "products": "Молҳо",
+    "login": "Воридшавӣ",
+    "myAccount": "Ҳисоби ман",
+    "contact": "Тамос",
+    "allRightsReserved": "Ҳамаи ҳуқуқҳо ҳифз карда шудаанд."
+  },
+  "heroBanner": {
+    "heading": "Молҳои сифатнок,",
+    "headingAccent": "Расонидан бо ғамхорӣ",
+    "subheading": "Маҷмӯаи интихобии молҳои беҳтаринро кашф кунед. Ҳазорон харидорон дар саросари Тоҷикистон ба мо боварӣ доранд.",
+    "cta": "Дидани молҳо"
+  },
+  "trustBanner": {
+    "fastDelivery": {
+      "title": "Расонидани зуд",
+      "description": "Расонидан дар саросари Тоҷикистон"
+    },
+    "securePayments": {
+      "title": "Пардохти бехатар",
+      "description": "Амалиётҳои шумо ҳамеша муҳофизат карда мешаванд"
+    },
+    "qualityGuarantee": {
+      "title": "Кафолати сифат",
+      "description": "Молҳои беҳтарин аз таъминкунандагони боэтимод"
+    },
+    "customerSupport": {
+      "title": "Дастгирии муштариён",
+      "description": "Мо ҳамеша омодаем кӯмак кунем"
+    }
+  },
+  "productDetail": {
+    "home": "Асосӣ",
+    "products": "Молҳо",
+    "noImage": "Акс мавҷуд нест",
+    "priceFrom": "Аз",
+    "dependingOnSize": "вобаста аз андоза",
+    "availableColours": "Рангҳои мавҷуд",
+    "availableSizes": "Андозаҳои мавҷуд",
+    "description": "Тавсиф",
+    "youMayAlsoLike": "Шояд писандед"
+  },
+  "auth": {
+    "welcomeBack": "Хуш омадед",
+    "verifyYourPhone": "Рақами телефонро тасдиқ кунед",
+    "enterPhonePrompt": "Рақами телефонро барои гирифтани рамз ворид кунед",
+    "sentCodeTo": "Мо рамзро ба {phone} фиристодем",
+    "phoneNumber": "Рақами телефон",
+    "sendVerificationCode": "Фиристодани рамз",
+    "sending": "Фиристода мешавад...",
+    "enterDigitCode": "Рамзи 4-рақамиро ворид кунед",
+    "back": "Бозгашт",
+    "verify": "Тасдиқ кардан",
+    "verifying": "Тасдиқ карда мешавад...",
+    "tagline": "Бозори боэтимоди шумо барои молҳои беҳтарин. Ворид шавед то ба ҳисоб дастрасӣ пайдо кунед, фармоишҳоро пайгирӣ кунед.",
+    "phoneRequired": "Рақами телефон лозим аст",
+    "invalidPhone": "Рақами дурусти тоҷикии телефон ворид кунед (масалан, +992 123 456 789)",
+    "otpRequired": "Рамзи тасдиқ лозим аст",
+    "failedToSendOtp": "Фиристодани рамз нокомёб шуд",
+    "invalidOtp": "Рамзи нодуруст"
+  },
+  "search": {
+    "placeholder": "Ҷустуҷӯи молҳо..."
+  },
+  "megaMenu": {
+    "categories": "Категорияҳо"
+  },
+  "manage": {
+    "dashboardTitle": "Лавҳаи идоракунӣ",
+    "dashboardSubtitle": "Идоракунии молҳо ва корбарон.",
+    "tabProducts": "Молҳо",
+    "tabUsers": "Корбарон",
+    "searchByName": "Ҷустуҷӯ аз рӯи ном, калид...",
+    "tableImage": "Акс",
+    "tableProduct": "Мол",
+    "tableSlugKey": "Калид / Слаг",
+    "tablePrice": "Нарх",
+    "tableStock": "Захира",
+    "tableStatus": "Ҳолат",
+    "tableActions": "Амалҳо",
+    "productUpdated": "Мол навсозӣ шуд",
+    "imageUploaded": "Акс бор карда шуд. Коркард дар замина.",
+    "uploadFailed": "Хатои борбарорӣ",
+    "imageRemoved": "Акс хорид карда шуд",
+    "failedToRemoveImage": "Хориди аксро нашуд",
+    "noProductsMatching": "Молҳо аз рӯи «{search}» ёфт нашуданд",
+    "noProductsFound": "Молҳо ёфт нашуданд.",
+    "productsTotal": "{count} молҳо ҷамъан",
+    "page": "Саҳифа {page}",
+    "editProductTitle": "Таҳрири мол",
+    "editProductDesc": "Тавсиф ва аксро навсозӣ кунед. Нарх, захира ва маълумоти асосӣ аз ERP синхронизатсия мешавад ва дар ин ҷо тағйир дода намешавад.",
+    "erpSyncedData": "Маълумоти ERP",
+    "slug": "Слаг",
+    "nameAndColor": "Ном ва ранг",
+    "price": "Нарх",
+    "stock": "Захира",
+    "sizesAndStock": "Андозаҳо ва захира",
+    "noSkuData": "Маълумоти SKU мавҷуд нест.",
+    "size": "Андоза",
+    "sale": "Тахфиф",
+    "primary": "Асосӣ",
+    "enrichment": "Ғанӣ кардан",
+    "webDescription": "Тавсифи веб",
+    "topSelling": "Бештар фурӯхта мешавад",
+    "featured": "Тавсияшуда",
+    "productImages": "Аксҳои мол",
+    "addImage": "Илова кардани акс",
+    "uploading": "Борбарорӣ...",
+    "noImagesYet": "Ҳоло акс нест",
+    "cancel": "Бекор кардан",
+    "save": "Захира кардан",
+    "saving": "Захира карда мешавад...",
+    "topSeller": "Пешсавдо"
+  },
+  "profile": {
+    "yourProfile": "Профили шумо",
+    "tabAccount": "Ҳисоб",
+    "tabOrders": "Фармоишҳо",
+    "tabLoyalty": "Бонусҳо",
+    "accountInformation": "Маълумоти ҳисоб",
+    "edit": "Таҳрир",
+    "nameLabel": "Ном",
+    "emailLabel": "Почтаи электронӣ",
+    "saveChanges": "Захира кардан",
+    "saving": "Захира карда мешавад...",
+    "cancel": "Бекор кардан",
+    "phoneNumber": "Рақами телефон",
+    "userId": "ID корбар",
+    "notSet": "Муайян нашудааст",
+    "orderHistory": "Таърихи фармоишҳо",
+    "noOrdersFound": "Фармоишҳо ёфт нашуданд.",
+    "orderNumber": "Фармоиш #{id}",
+    "total": "Ҷамъ:",
+    "loyaltyPoints": "Баллҳои бонус",
+    "availablePoints": "Баллҳои дастрас",
+    "earnPoints": "Бо ҳар харид балл гиред!",
+    "failedToUpdateProfile": "Навсозии профил нокомёб шуд."
+  },
+  "userManagement": {
+    "searchPlaceholder": "Ҷустуҷӯ аз рӯи телефон ё ном...",
+    "tableId": "ID",
+    "tablePhone": "Телефон",
+    "tableName": "Ном",
+    "tableEmail": "Почта",
+    "tableRole": "Нақш",
+    "tablePoints": "Баллҳо",
+    "tableStatus": "Ҳолат",
+    "tableActions": "Амалҳо",
+    "statusActive": "Фаъол",
+    "statusBlocked": "Маҳдуд",
+    "actionBlock": "Маҳдуд кардан",
+    "actionUnblock": "Озод кардан",
+    "unblocked": "{phone} озод карда шуд",
+    "blocked": "{phone} маҳдуд карда шуд",
+    "failedToUpdateStatus": "Навсозии ҳолати корбар нокомёб шуд",
+    "noUsersMatching": "Корбарон аз рӯи «{search}» ёфт нашуданд",
+    "noUsersFound": "Корбарон ёфт нашуданд.",
+    "usersTotal": "{count} корбарон ҷамъан",
+    "page": "Саҳифа {page}"
+  }
+}

@@ -28,6 +28,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { MegaMenu, MegaMenuMobile } from "@/widgets/MegaMenu";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslations } from "next-intl";
 
 /* ── User Avatar ───────────────────────────────────────────────── */
 function UserAvatar({ name, phone }: { name?: string; phone: string }) {
@@ -50,6 +51,7 @@ function UserAvatar({ name, phone }: { name?: string; phone: string }) {
 /* ── Desktop Auth Section ──────────────────────────────────────── */
 function DesktopAuth() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const t = useTranslations("navbar");
 
   if (isLoading) {
     return (
@@ -64,7 +66,7 @@ function DesktopAuth() {
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors"
       >
         <User className="h-4 w-4" />
-        <span className="hidden lg:inline">Sign in</span>
+        <span className="hidden lg:inline">{t("signIn")}</span>
       </Link>
     );
   }
@@ -92,14 +94,14 @@ function DesktopAuth() {
         <DropdownMenuItem asChild>
           <Link href="/profile" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
-            My Profile
+            {t("myProfile")}
           </Link>
         </DropdownMenuItem>
         {(user.role === "MANAGER" || user.role === "SYSTEM") && (
           <DropdownMenuItem asChild>
             <Link href="/manage" className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
-              Management
+              {t("management")}
             </Link>
           </DropdownMenuItem>
         )}
@@ -109,7 +111,7 @@ function DesktopAuth() {
           className="text-destructive cursor-pointer"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Logout
+          {t("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -119,12 +121,13 @@ function DesktopAuth() {
 /* ── Mobile Sheet (Auth, Lang, Manage — NO search) ─────────────── */
 function MobileMenu() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const t = useTranslations("navbar");
 
   return (
     <Sheet>
       <SheetTrigger className="p-2 rounded-lg hover:bg-accent transition-colors md:hidden">
         <Menu className="h-5 w-5" />
-        <span className="sr-only">Open menu</span>
+        <span className="sr-only">{t("openMenu")}</span>
       </SheetTrigger>
       <SheetContent side="right" className="w-80">
         <SheetHeader>
@@ -148,14 +151,14 @@ function MobileMenu() {
                 className="flex items-center gap-2.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors py-2.5 px-2 rounded-lg hover:bg-purple-50"
               >
                 <Settings className="h-4 w-4" />
-                Management
+                {t("management")}
               </Link>
             </SheetClose>
           )}
 
           {/* Language */}
           <div className="flex items-center gap-2 py-3 px-2">
-            <span className="text-xs text-muted-foreground">Language:</span>
+            <span className="text-xs text-muted-foreground">{t("language")}</span>
             <LanguageSwitcher />
           </div>
 
@@ -182,7 +185,7 @@ function MobileMenu() {
                     className="flex items-center gap-2 text-sm text-foreground hover:text-primary py-2.5 px-2 rounded-lg hover:bg-accent"
                   >
                     <User className="h-4 w-4" />
-                    My Profile
+                    {t("myProfile")}
                   </Link>
                 </SheetClose>
                 <button
@@ -190,7 +193,7 @@ function MobileMenu() {
                   className="flex items-center gap-2 text-sm text-destructive hover:text-destructive/80 py-2.5 px-2 rounded-lg hover:bg-red-50 w-full"
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  {t("logout")}
                 </button>
               </>
             ) : (
@@ -200,7 +203,7 @@ function MobileMenu() {
                   className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary py-2.5 px-2 rounded-lg hover:bg-accent"
                 >
                   <User className="h-4 w-4" />
-                  Sign in
+                  {t("signIn")}
                 </Link>
               </SheetClose>
             )}

@@ -12,8 +12,10 @@ import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
 import { User, ShoppingBag, Star, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
   const { user, updateUser } = useAuth();
 
   // Edit Form
@@ -46,9 +48,7 @@ export default function ProfilePage() {
       setIsEditing(false);
     } catch (err: unknown) {
       console.error(err);
-      setSaveError(
-        "Failed to update profile. " + getErrorMessage(err)
-      );
+      setSaveError(t("failedToUpdateProfile") + " " + getErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -77,7 +77,7 @@ export default function ProfilePage() {
               </Avatar>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-foreground">
-                  {user?.name || "Your Profile"}
+                  {user?.name || t("yourProfile")}
                 </h1>
                 <p className="text-sm text-muted-foreground">{user?.phone}</p>
               </div>
@@ -98,15 +98,15 @@ export default function ProfilePage() {
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="account" className="gap-1.5">
                 <User className="h-4 w-4" />
-                Account
+                {t("tabAccount")}
               </TabsTrigger>
               <TabsTrigger value="orders" className="gap-1.5">
                 <ShoppingBag className="h-4 w-4" />
-                Orders
+                {t("tabOrders")}
               </TabsTrigger>
               <TabsTrigger value="loyalty" className="gap-1.5">
                 <Star className="h-4 w-4" />
-                Loyalty
+                {t("tabLoyalty")}
               </TabsTrigger>
             </TabsList>
 
@@ -115,7 +115,7 @@ export default function ProfilePage() {
               <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-lg font-semibold text-foreground">
-                    Account Information
+                    {t("accountInformation")}
                   </h2>
                   {!isEditing && (
                     <Button
@@ -123,7 +123,7 @@ export default function ProfilePage() {
                       size="sm"
                       onClick={() => setIsEditing(true)}
                     >
-                      Edit
+                      {t("edit")}
                     </Button>
                   )}
                 </div>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
                   <div className="space-y-4 max-w-md">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">
-                        Name
+                        {t("nameLabel")}
                       </label>
                       <Input
                         value={formData.name}
@@ -143,7 +143,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">
-                        Email
+                        {t("emailLabel")}
                       </label>
                       <Input
                         type="email"
@@ -165,30 +165,30 @@ export default function ProfilePage() {
                         disabled={saving}
                         size="sm"
                       >
-                        {saving ? "Saving..." : "Save Changes"}
+                        {saving ? t("saving") : t("saveChanges")}
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsEditing(false)}
                       >
-                        Cancel
+                        {t("cancel")}
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <InfoField label="Phone Number" value={user?.phone} />
+                    <InfoField label={t("phoneNumber")} value={user?.phone} />
                     <InfoField
-                      label="Name"
-                      value={user?.name || "Not set"}
+                      label={t("nameLabel")}
+                      value={user?.name || t("notSet")}
                     />
                     <InfoField
-                      label="Email"
-                      value={user?.email || "Not set"}
+                      label={t("emailLabel")}
+                      value={user?.email || t("notSet")}
                     />
                     <InfoField
-                      label="User ID"
+                      label={t("userId")}
                       value={user?.id?.toString()}
                     />
                   </div>
@@ -200,7 +200,7 @@ export default function ProfilePage() {
             <TabsContent value="orders">
               <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
                 <h2 className="text-lg font-semibold text-foreground mb-6">
-                  Order History
+                  {t("orderHistory")}
                 </h2>
                 {loadingOrders ? (
                   <div className="space-y-4">
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                   </div>
                 ) : orders.length === 0 ? (
                   <p className="text-muted-foreground text-sm py-8 text-center">
-                    No orders found.
+                    {t("noOrdersFound")}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                         <div className="flex justify-between items-center mb-2">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">
-                              Order #{order.id}
+                              {t("orderNumber", { id: order.id })}
                             </span>
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full ${
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                             .join(", ")}
                         </p>
                         <p className="font-semibold text-sm text-right">
-                          Total: ${order.totalAmount}
+                          {t("total")} ${order.totalAmount}
                         </p>
                       </div>
                     ))}
@@ -261,17 +261,17 @@ export default function ProfilePage() {
             <TabsContent value="loyalty">
               <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
                 <h2 className="text-lg font-semibold text-foreground mb-6">
-                  Loyalty Points
+                  {t("loyaltyPoints")}
                 </h2>
                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm opacity-90">Available Points</p>
+                      <p className="text-sm opacity-90">{t("availablePoints")}</p>
                       <p className="text-4xl font-bold mt-1">
                         {user?.loyaltyPoints ?? 0}
                       </p>
                       <p className="text-xs opacity-75 mt-2">
-                        Earn points with every purchase!
+                        {t("earnPoints")}
                       </p>
                     </div>
                     <Star className="h-14 w-14 opacity-50" />
