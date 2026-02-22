@@ -83,9 +83,11 @@ public class OtpStore {
      * Generates a random numeric OTP of the configured length.
      */
     private String generateRandomOtp() {
-        int maxValue = (int) Math.pow(10, properties.length());
-        int otpNumber = random.nextInt(maxValue);
-        return String.format("%0" + properties.length() + "d", otpNumber);
+        // TODO: restore random OTP once SMS provider is configured
+        return "1234";
+        // int maxValue = (int) Math.pow(10, properties.length());
+        // int otpNumber = random.nextInt(maxValue);
+        // return String.format("%0" + properties.length() + "d", otpNumber);
     }
 
     /**
