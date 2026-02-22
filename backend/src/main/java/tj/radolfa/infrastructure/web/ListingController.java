@@ -3,19 +3,25 @@ package tj.radolfa.infrastructure.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import tj.radolfa.application.ports.in.GetListingUseCase;
+import tj.radolfa.application.ports.in.UploadImageUseCase;
+import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Public storefront API for the 3-tier product hierarchy.
@@ -30,11 +36,14 @@ public class ListingController {
 
     private final GetListingUseCase getListingUseCase;
     private final tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase;
+    private final UploadImageUseCase uploadImageUseCase;
 
     public ListingController(GetListingUseCase getListingUseCase,
-            tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase) {
+            tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase,
+            UploadImageUseCase uploadImageUseCase) {
         this.getListingUseCase = getListingUseCase;
         this.updateListingUseCase = updateListingUseCase;
+        this.uploadImageUseCase = uploadImageUseCase;
     }
 
     @GetMapping
@@ -90,14 +99,21 @@ public class ListingController {
         return ResponseEntity.ok().build();
     }
 
-    @org.springframework.web.bind.annotation.PostMapping("/{slug}/images")
-    @Operation(summary = "Add image to listing", description = "Appends an image to the gallery")
-    public ResponseEntity<Void> addImage(
+    @org.springframework.web.bind.annotation.PostMapping(value = "/{slug}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload image to listing", description = "Processes and uploads an image file to S3, then appends the URL to the gallery")
+    public ResponseEntity<Map<String, String>> addImage(
             @PathVariable String slug,
-            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody ImageUrlRequest request) {
+            @RequestParam("image") MultipartFile file) {
 
-        updateListingUseCase.addImage(slug, request.url);
-        return ResponseEntity.ok().build();
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            String url = uploadImageUseCase.upload(slug, file.getInputStream(), file.getOriginalFilename());
+            return ResponseEntity.ok(Map.of("url", url));
+        } catch (IOException e) {
+            throw new ImageProcessingException("Failed to read uploaded file", e);
+        }
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{slug}/images")

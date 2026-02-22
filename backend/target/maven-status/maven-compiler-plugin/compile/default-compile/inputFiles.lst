@@ -26,6 +26,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/UserEntity.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/SyncUsersService.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/repository/CategoryRepository.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/UploadImageService.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/User.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/CategoryController.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/SearchUsersPort.java
@@ -97,6 +98,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/LoadSkuPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/repository/OrderRepository.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/in/SyncOrdersUseCase.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/in/UploadImageUseCase.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/dto/MessageResponseDto.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/SkuEntity.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/security/ApiKeyAuthenticationFilter.java
