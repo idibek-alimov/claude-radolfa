@@ -1,0 +1,701 @@
+- Total Outstanding
+- Total Unallocated
+Acknowledge the error to resume scanning
+Acknowledge the error to resume scanning.
+Across
+Add New Address
+Additional Discount %
+Address not found
+Adjust the quantity or enable negative stock to continue.
+After returns
+All Caught Up!
+All Synchronized
+All invoices are synchronized
+All pending invoices are up to date
+Allocated {0} across {1} payment(s).
+Allocation amount for payment {0} exceeds outstanding invoices
+Allow Change Posting Date
+Allow Create Sales Order
+Allow Credit Sale
+Allow Customer Purchase Order
+Allow Duplicate Customer Names
+Allow Free Batch Return
+Allow Make New Payments
+Allow Mpesa Reconcile Payments
+Allow Multi Currency in POS
+Allow Partial Payment
+Allow Print Draft Invoices
+Allow Print Last Invoice
+Allow Reconcile Payments
+Allow Return
+Allow Return Without Invoice
+Allow Select Sales Order
+Allow Submissions in background job
+Allow User to Edit Item Discount
+Allow Write Off Change
+Allow Zero Rated Items
+Allow add New Items on New Line
+Allow user to edit Additional Discount
+Allow user to edit Rate
+Always fetch items from server (ignore local cache)
+An unexpected error occurred. Please check the console for details.
+App information
+Apply Customer Discount
+Apply For
+Apply For POS Profiles
+Apply Offer
+Apply Offers
+Apply Type
+Apps
+Are you sure you want to close? All entered data will be lost.
+Auto Apply
+Auto Create Referral For New Customers
+Auto Delete Draft Invoice
+Auto Fetch Coupon Gifts
+Auto Reconcile
+Auto Set Batch
+Auto Set Delivery Charges
+Auto reconciliation completed. Allocated: {0}{1}. Remaining outstanding: {0}{2}.
+Auto reconciliation is unavailable while offline.
+Available Credit
+Available QTY
+Average Ticket
+Awesome
+Back
+Background Submission Failed
+Background processing failed for Invoice {0}: {1}
+Background sync interval (seconds)
+Balance will be updated when connection is restored
+Barcode Structure
+Basic Information
+Batch Information
+Batch No Expiry Date
+Batch No. Available QTY
+Before returns
+Bill Ref Number
+Birthday
+Birthday (DD-MM-YYYY)
+Build Time:
+Built with Frappe
+Bundle
+Business Short Code
+Business Shortcode
+Cache Usage
+Cache cleared successfully
+Cache the values for n minutes
+Calculating...
+Camera Access Required
+Camera Scan Type
+Camera access was aborted. Please try again.
+Camera constraints not supported by your device. Trying fallback settings...
+Camera permission denied. Please allow camera access in your browser settings and refresh the page.
+Cancel Payment
+Cancel Sale
+Cancel Sale ?
+Cannot Save Offline Invoice: 
+Cannot Save Offline Payment: 
+Cannot add an item with zero or negative quantity.
+Cannot clear cache while offline
+Cannot reload items while offline. Please connect to the internet.
+Cash Drawer Snapshot
+Cash Mode of Payment
+Cash back to customers
+Cashback?
+Change Language
+Change Price
+Change Returned
+Change interface language
+Charges not found
+Check cache and performance
+Choose your preferred language for the POS interface
+Clear All
+Clear Cache
+Clear Search
+Clearing local cache...
+Click to refresh
+Close Dialog
+Close Scanner
+Close Settings
+Close Shift
+Closing POS Shift
+Code scanned successfully
+Company is required
+Confirm Close
+Confirm Mobile Number
+Connecting
+Context is required
+Continue Editing
+Cost Center is not set in pos profile {}
+Could not determine company currency. Please check Company and POS Profile settings.
+Could not fetch latest balance from server
+Coupon
+Coupon Based
+Coupons
+Create Only Sales Order
+Create POS Invoice instead of Sales Invoice
+Create POS Opening Shift
+Credit Change
+Credit Note {0} has no remaining balance to allocate.
+Credit Outstanding
+Credit Return?
+Credit Sale?
+Credit note {0} is already fully allocated
+Credit note {0} still has an unapplied balance of {1}
+Credit sales remaining to be collected
+Currency Configuration Error
+Currency is not correct, party account currency is {party_account_currency} and transaction currency is {currency}
+Currency is required
+Current User
+Custom Due Days
+Custom items per page
+Customer Balance
+Customer Name is required
+Customer already exists
+Customer already selected
+Customer balance unavailable offline
+Customer created successfully.
+Customer creation failed.
+Customer group is required
+Customer saved offline
+Customer territory is required
+Customer updated successfully.
+Customers not found
+Dark Mode
+Days until due
+Decimal Precision
+Decrease quantity
+Default Card View
+Default Loyalty Program
+Default Rate
+Default Rate is required
+Default Sales Order
+Default number of days after posting date when returns stay valid for this profile.
+Delete Invoice
+Delivery Charges
+Delivery Charges POS Profile
+Delivery Charges Rate
+Delivery Information
+Detecting formats:
+Difference (In Company Currency)
+Difference:
+Disable offline mode
+Discount %
+Discount limited by POS Profile
+Display Additional Notes
+Display Authorization Code
+Display Discount %
+Display Discount Amount
+Display Item Code
+Edit discount amount
+Edit discount percentage
+Edit item name
+Edit quantity
+Edit rate
+Edited
+Enable Camera Scanning
+Enable Return Validity
+Enable background sync
+Enable camera-based barcode and QR code scanning for mobile devices
+Enable return validity date enforcement for POS returns.
+Enable return validity enforcement for this POS Profile.
+End current session
+Error Loading Data
+Error accessing camera:
+Error adding offer to items
+Error calculating prices
+Error deleting offer from items
+Error fetching customer balance
+Error loading currencies
+Error processing payment
+Error removing price offer
+Error searching invoices
+Error submitting invoice: 
+Error submitting invoice: No response from server
+Error submitting invoice: {0}
+Error updating item details
+Every
+Expected Amount (In Company Currency)
+Expected Cash
+Expected cash on hand grouped by currency
+Failed to apply offers
+Failed to auto reconcile payments.
+Failed to clear cache
+Failed to load items. Please try again.
+Failed to reconcile Credit Note {0}: {1}
+Failed to reconcile Payment Entry {0}: {1}
+Failed to reload invoice from server
+Failed to reload items
+Fetch Items Directly from Server
+Final Customer Offer
+Fixing payment amounts for return invoice...
+Flash Off
+Flash On
+For 'Product Bundle' items, Warehouse, Serial No and Batch No will be considered from the 'Packing List' table. If Warehouse and Batch No are same for all packing items for any 'Product Bundle' item, those values can be entered in the main Item table; values will be copied to 'Packing List' table.
+For POS Closing Shift Payment Reconciliation
+Frappe School
+Frappe Support
+Free
+Free Qty
+Get Payments
+Give Item
+Give Item Row ID
+Give Product
+Given Quantity
+Go Offline
+Go Online
+Go to Frappe Desk
+Gross Sales
+Group not found
+Grouped totals for each payment method and currency
+Hide Close Shift
+Hide Expected Amount
+Hide Non Essential Fields
+Hide Variants Items
+Hide quantity decimals
+Hide zero rated items
+In stock: {0}
+Increase quantity
+IndexedDB
+Initialize your shift with opening balances
+Initializing application...
+Invalid POS Opening Shift data provided.
+Invalid closing amount
+Invoice Amount
+Invoice Change
+Invoice Currency
+Invoice ID
+Invoice Submission Failed
+Invoice is still in draft after background submission.
+Invoice saved offline
+Invoice submission failed
+Invoice {0} Deleted
+Invoice {0} does not exist
+Invoice {0} is Submitted
+Invoice {0} submission failed
+Invoices saved as POS Invoices
+Is Offer
+Is Offer Replace For item Row ID
+Item Code and Price List are required
+Item Price has been added or updated
+Item Rate Should Less Then
+Item Selector Settings
+Item code digits
+Item code starting position
+Item is out of stock
+Item not found
+Item order updated
+Item price updated
+Item {0} added to invoice
+Items Discounts
+Items Group
+Items added to invoice
+Items per page
+Items reloaded from server
+Language for POS Awesome interface
+Language will be changed to
+Last sync:
+Later
+Light Mode
+Limited
+Load Drafts
+Load More Invoices
+Load Sales Invoice
+Load previously saved invoices
+Loading app data...
+Loading customer data...
+Loading customer database...
+Loading details...
+Loading product catalog...
+Log out
+Loyalty Point
+Loyalty Point Offer Applied
+Loyalty Point Scheme
+MSISDN
+Manage and synchronize your offline transactions
+Max Discount Percentage Allowed 
+Max Quantity
+Maximum Amount
+Maximum available quantity is {0}. Quantity adjusted to match stock.
+Min Quantity
+Minimum Amount
+Mobile NO
+Mode
+Mode of Payment is required
+Mpesa C2B Register URL
+Mpesa Payment Register
+Multiple Items Found
+Negative values not allowed
+Net Sales
+Never
+New Offer Available
+New Price List Rate
+New version ready
+Next unit of measure
+No Print Formats Found
+No allocation made for credit note {0}
+No allocation made for payment {0}
+No allocation was recorded for Credit Note {0}.
+No allocation was recorded for Payment Entry {0}.
+No allocations were made.
+No batches available in {0} for {1}.
+No camera found on this device. Please ensure your device has a working camera.
+No cash expected for this shift.
+No cash mode configured
+No change returned recorded for this shift.
+No invoices found
+No invoices found. Try different search criteria.
+No invoices recorded for this shift.
+No items found
+No items in cart
+No notifications yet
+No offline invoices pending synchronization
+No outstanding credit invoices for this shift.
+No outstanding invoices available for allocation of credit note {0}
+No outstanding invoices available for allocation of payment {0}
+No outstanding invoices were available to reconcile Credit Note {0}.
+No outstanding invoices were available to reconcile Payment Entry {0}.
+No outstanding invoices were found for {0}.
+No payments registered for this shift.
+No pending offline invoices
+No response from server
+No returns were processed in this shift.
+No unallocated payments are available for reconciliation.
+No unallocated payments were available for reconciliation.
+No valid batches available in {0} for {1}.
+No.
+Nobile Number
+Number of characters to skip when a prefix is present.
+Number of decimal places encoded for the price.
+Number of decimal places encoded for the weight.
+Number of digits representing the price before decimal places.
+Number of digits representing the weight before decimal places.
+OK
+Offer
+Offer Applied
+Offer Name
+Offer item unavailable
+Offer?
+Offers
+Offers applied and invoice refreshed
+Offline Invoices
+Offline invoices status
+Offline invoices synced
+Only One Use Per Customer
+Open invoices
+OpenCV Off
+OpenCV On
+OpenCV image processing enabled - Enhanced barcode detection
+OpenCV processing disabled
+Optional default number of days after posting date when returns remain valid.
+Optional prefix value that all scale barcodes start with.
+Order ID
+Org Account Balance
+Outstanding Credit by Currency
+Overpayment Change
+Overpayment change deducted: {0}
+PAY
+POS Awesome
+POS Awesome Advance Settings
+POS Awesome Payments
+POS Awesome Payments is not enabled for this POS Profile
+POS Awesome Print Format Rule
+POS Awesome Settings
+POS Awesome credit redemption for Sales Invoice {0}
+POS Closing Shift
+POS Closing Shift Detail
+POS Closing Shift Taxes
+POS Closing Shift {} against {} between selected period
+POS Coupon
+POS Coupon Detail
+POS Coupons Detail
+POS Language
+POS Offer
+POS Offer Detail
+POS Offer is disable.
+POS Offers
+POS Offers Detail
+POS Opening Shift
+POS Opening Shift Detail
+POS Opening Shift is required
+POS Opening Shift is required to compute the overview.
+POS Opening Shift {0} is not for the same POS Profile
+POS Opening Shift {0} is not for the same company
+POS Payment Entry Reference
+POS Payments
+POS Profile is required
+POS Profiles
+POS Shift
+POS Shift {0} is not open
+POS lock is not available yet
+POS profile data is missing or invalid.
+POSA Sales Person Filter
+POSAwesome
+Paid Change
+Payment Entry is already created or payment account is not matched
+Payment Entry {0} has no unallocated amount remaining.
+Payment Gateway Account not found
+Payment Request took too long to respond. Please try requesting for payment again
+Payment name not found. Cannot open print view.
+Payment of {0} received successfully.
+Payment request status could not be retrieved. Please try again
+Payment saved offline
+Payment submitted but print function could not be executed. Payment name not found.
+Payment {0} is already fully allocated
+Payments are not open. Do you want to open payments and submit?
+Payments by Mode of Payment
+Pending Invoices
+Pending Sync
+Pending count updated from {0} to {1}
+Pending: {0}
+Pending: {0} | Synced: {1} | Draft: {2}
+Please allow camera access to scan codes
+Please configure a POS Profile first
+Please make a payment or select an payment
+Please request phone payment or use another payment method
+Please select Coupon Code Based POS Offer.
+Please select a customer
+Please select a customer before reconciling.
+Please select a customer first
+Please select an invoice
+Please select the correct POS Offer with the same company.
+Please set the customer's mobile number
+Please try again or enter the item manually.
+Please verify the barcode or check the item's availability.
+Please verify the barcode or search manually.
+Posawesome
+Position the QR code or barcode within the scanning area
+Prefix included in barcode
+Prefix length
+Previous unit of measure
+Price Discount Scheme 
+Price List is required
+Price decimals
+Price digits
+Price included in barcode
+Price starting position
+Pricing & Discounts
+Primary Customer Offer
+Print Draft
+Print Last Invoice
+Printed
+Processed returns impacting the shift totals
+Processing Payment
+Profile switching is not available yet
+Profiles List
+Promo Type
+QTY
+Qualified
+Qualifying Transaction / Item
+Quantity and Amount Conditions
+Quantity exceeds available stock
+Quotation {0} is Submitted
+Ready!
+Recent updates about your invoices
+Reconcile payment methods and close shift
+Reconciling Payments
+Redeem Credit
+Redeemed Customer Credit
+Referral Campaign
+Referral Code is required
+Referral Code {0} is disabled
+Referral Code {0} is not exists
+Referral Company
+Referral Name
+Register Status
+Reload Items
+Reload Now
+Remaining outstanding: {0} across {1} invoice(s).
+Remove Offer
+Remove item
+Remove local data and refresh
+Replace Cheapest Item
+Replace Same Item
+Reprint previous transaction
+Request
+Required columns cannot be hidden
+Reset item name
+Return Valid Until
+Return Valid Upto
+Return Validity Days
+Return count
+Return items must have negative quantities
+Return total must be negative
+Return window passed
+Return without Invoice
+Returns are only allowed until {0}
+Returns by Currency
+Review shift totals before submitting the closing entry
+Row ID
+Sales Invoice Reference
+Sales Order {0} is Submitted
+Sales Person not found
+Sales processed
+Save & Clear
+Saved as draft because: {0}
+Scale Barcode Settings
+Scan Error
+Scan QR Code/Barcode
+Scan with Camera
+Scanned Code:
+Scanning for: {0}
+Scanning items
+Search Items
+Search Mpesa Payments
+Search by Batch Number
+Search by Mobile
+Search by Name
+Search by Serial Number
+Search items or barcode
+Secure context (HTTPS) required for camera access. Please use HTTPS to access the camera.
+Select Columns to Display
+Select Payment
+Select Return Invoice
+Select S.O
+Select Sales Orders
+Select a customer
+Select a customer to use coupon
+Select items to apply offers
+Select items to sell
+Select which types of codes to scan with camera
+Selected POS Opening Shift should be open.
+Send invoice to submit after printing
+Serial
+Serial No QTY
+Server Cache Duration
+Setup complete!
+Shift Overview
+Show Template Items
+Show last invoice rate
+Shows the distribution of invoices per currency
+Sign out of session
+Skipped Payments
+Sorry, this coupon code cannot be used by this company
+Sorry, this coupon code cannot be used by this customer
+Sorry, this coupon code not exists
+Sorry, {0} have used this coupon before
+Starting position (1-indexed) of the item code within the barcode.
+Starting position (1-indexed) of the price segment.
+Starting position (1-indexed) of the weight segment.
+Stock Information
+Stock QTY
+Stock is lower than requested. Proceeding may create negative stock.
+Submit & Print
+Submit Payment 
+Successfully scanned:
+Switch Camera
+Switch theme appearance
+Switched to: 
+Sync All Invoices
+Sync Offline Invoices
+System Information
+System Status
+Tax Inclusive
+Tax and Charges
+Territory not found
+The app stores data locally for offline use. This is called cache.
+The invoice stayed in draft. Please review and submit it manually.
+The maximum discount allowed is
+The quantity for {0} has been adjusted to the maximum available stock.
+The system could not retrieve the item details. Please try again.
+There are no outstanding invoices to reconcile.
+These invoices will be synced when connection is restored
+Third Party Trans ID
+This Referral Code {0} not exists
+This Serial Number {0} has already been added!
+This barcode could not be matched to any item.
+This coupon already used !
+This invoice {0} cannot be deleted
+This is an item template. Please choose a variant.
+Tip: Clear cache regularly to free up space and keep the app fast.
+Toggle navigation drawer
+Total Change
+Total Invoices
+Total Invoices:
+Total Mpesa:
+Total Payments:
+Total Selected :
+Total Size
+Total number of digits used for the item code in the barcode.
+Totals by Invoice Currency
+Track how much cash was handed back to customers
+Trans Amount
+Trans Amount is required
+Trans ID
+Trans Time
+Try adjusting your search or filters
+UOM not found
+Unable to access camera even with basic settings. Please check your camera permissions and device compatibility.
+Unable to add offer item {0}. Please refresh and try again.
+Unable to add offer item. Please refresh and try again.
+Unable to add scanned item.
+Unable to cancel Journal Entry {0} linked to this invoice. Please cancel it manually and try again.
+Unable to create Journal Entry for customer credit.
+Unable to determine cash account for change payment entry.
+Unable to determine customer receivable account for change payment entry.
+Unable to fetch M-Pesa payments
+Unable to fetch draft invoices
+Unable to fetch draft orders
+Unable to fetch sales orders
+Unable to find exchange rate for {0} to {1}. Please create a Currency Exchange record manually
+Unable to load Credit Note {0}: {1}
+Unable to load Payment Entry {0}: {1}
+Unable to load the selected sales order
+Unable to print draft invoice
+Unable to resolve POS Opening Shift.
+Unable to submit the selected payment
+Unallocated
+Unknown error
+Unknown error during background submission
+Update Customer
+Updating...
+Upload pending transactions
+Usage
+Use Browser Local Storage
+Use Cashback
+Use Customer Credit
+Use Delivery Charges
+Use Limit Search
+Use POS Awesome Payments
+Use Percentage Discount
+Use QTY Input
+Use Redis cache on the server to speedup initial loads of POS Awesome 
+Use Search Limit for Items
+Use Server Cache
+Use Western numerals
+Use date range to search for older invoices
+User {} has been disabled. Please select valid user/cashier
+Using basic camera settings due to device limitations
+Using cached customer balance
+Variance %
+Verify closing amounts for each payment method
+View notifications
+View offline invoices
+Waiting for payment...
+Warning: High cache usage may affect performance.
+We'll let you know if an invoice fails to submit
+Weight decimals
+Weight digits
+Weight starting position
+Work without server connection
+Yes, Cancel sale
+Yes, Close
+You are not allowed to print draft invoices
+You are trying to return more quantity for item {0} than was sold.
+You can redeem credit up to
+You can redeem up to
+You have no notifications right now
+add
+cache used
+days
+localStorage
+modified_after must be a valid ISO datetime
+sales
+this item
+{0} (Qty: {1})
+{0} has only {1} in stock. You requested {2}. Adjust quantity or restock.
+{0} offline invoice{1} pending
+{0} offline invoice{1} saved as draft
+{0} offline invoice{1} synced
+{0} payment(s) were skipped.
+{0} {1} must be submitted before creating change payment entries.
+{0}: requested quantity exceeds available stock. Negative stock is allowed—proceed carefully.
