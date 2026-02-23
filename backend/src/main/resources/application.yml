@@ -56,6 +56,12 @@ management:
     health:
       show-details: always
 
+# --- ERPNext connection ----------------------------------------------
+erp:
+  base-url:   ${ERP_BASE_URL:http://localhost:8000}
+  api-key:    ${ERP_API_KEY:}
+  api-secret: ${ERP_API_SECRET:}
+
 # --- AWS / S3-compatible storage (Timeweb Cloud) ---------------------
 aws:
   s3:
