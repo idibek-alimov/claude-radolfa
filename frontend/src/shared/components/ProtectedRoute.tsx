@@ -87,7 +87,7 @@ export default function ProtectedRoute({
                         Access Denied
                     </h2>
                     <p className="text-gray-600 mb-6">
-                        You don't have permission to access this page. This page requires{" "}
+                        You don&apos;t have permission to access this page. This page requires{" "}
                         <span className="font-semibold">{requiredRole}</span> role.
                     </p>
                     <button
