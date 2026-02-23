@@ -17,6 +17,7 @@ import tj.radolfa.infrastructure.web.SearchController;
 @SpringBootApplication
 @EnableScheduling
 public class RadolfaApplication {
+    // test for CI/CD
 
     public static void main(String[] args) {
         SpringApplication.run(RadolfaApplication.class, args);
