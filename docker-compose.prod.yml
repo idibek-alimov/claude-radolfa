@@ -206,6 +206,8 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot:ro
+      # ERPNext static assets — mount bench at same absolute path so symlinks resolve
+      - /opt/frappe/frappe-bench:/opt/frappe/frappe-bench:ro
     extra_hosts:
       # Allows nginx to reach ERPNext gunicorn running on the VPS host
       - "host.docker.internal:host-gateway"
