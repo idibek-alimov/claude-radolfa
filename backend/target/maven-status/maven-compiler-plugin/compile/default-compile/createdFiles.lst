@@ -141,12 +141,14 @@ tj/radolfa/infrastructure/web/OrderController.class
 tj/radolfa/infrastructure/security/ApiKeyProperties.class
 tj/radolfa/application/ports/in/SyncOrdersUseCase$SyncStatus.class
 tj/radolfa/application/ports/in/SendOtpUseCase.class
+tj/radolfa/application/services/UploadImageService.class
 tj/radolfa/infrastructure/persistence/adapter/ListingReadAdapter.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDetailDto.class
 tj/radolfa/application/ports/in/GetListingUseCase.class
 tj/radolfa/application/ports/in/SyncCategoriesUseCase$SyncCategoriesCommand$CategoryPayload.class
 tj/radolfa/infrastructure/persistence/entity/OrderItemEntity.class
 tj/radolfa/application/ports/out/SaveListingVariantPort.class
+tj/radolfa/application/ports/in/UploadImageUseCase.class
 tj/radolfa/infrastructure/web/dto/UpdateUserProfileRequestDto.class
 tj/radolfa/application/services/GetMyOrdersService.class
 tj/radolfa/infrastructure/persistence/repository/ProductBaseRepository.class

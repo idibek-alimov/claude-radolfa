@@ -15,16 +15,17 @@ import java.nio.file.Path;
 /**
  * Development / test stub for {@link ImageUploadPort}.
  *
- * Does NOT contact AWS.  Writes the image bytes to a local
+ * Does NOT contact AWS. Writes the image bytes to a local
  * {@code ./uploads/} directory (relative to the working directory at
  * startup) and returns an {@code http://localhost:8080/uploads/...} URL
  * so that the full pipeline can be exercised without an AWS account.
  *
  * Activated under the {@code dev} and {@code test} profiles.
- * The production adapter ({@link S3ImageUploader}) is activated under {@code prod}.
+ * The production adapter ({@link S3ImageUploader}) is activated under
+ * {@code prod}.
  */
 @Component
-@Profile({"dev", "test"})
+@Profile("test")
 public class S3ImageUploaderStub implements ImageUploadPort {
 
     private static final Logger LOG = LoggerFactory.getLogger(S3ImageUploaderStub.class);

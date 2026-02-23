@@ -21,8 +21,16 @@ const nextConfig = {
     // S3 bucket domain — allow next/image to load product images from here.
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "s3.twcstorage.ru",
       },
       {
         protocol: "https",

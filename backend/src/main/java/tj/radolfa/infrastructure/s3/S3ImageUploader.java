@@ -9,7 +9,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import tj.radolfa.application.ports.out.ImageUploadPort;
@@ -36,21 +35,21 @@ import java.net.URI;
  * </pre>
  */
 @Component
-@Profile("prod")
+@Profile({ "dev", "prod" })
 public class S3ImageUploader implements ImageUploadPort {
 
     private final S3Client s3;
-    private final String   bucket;
-    private final String   endpointHost;
+    private final String bucket;
+    private final String endpointHost;
 
     public S3ImageUploader(
-            @Value("${aws.s3.bucket}")     String bucket,
-            @Value("${aws.s3.region}")     String region,
-            @Value("${aws.s3.endpoint}")   String endpoint,
+            @Value("${aws.s3.bucket}") String bucket,
+            @Value("${aws.s3.region}") String region,
+            @Value("${aws.s3.endpoint}") String endpoint,
             @Value("${aws.s3.access-key}") String accessKey,
             @Value("${aws.s3.secret-key}") String secretKey) {
 
-        this.bucket       = bucket;
+        this.bucket = bucket;
         this.endpointHost = URI.create(endpoint).getHost(); // e.g. "s3.twcstorage.ru"
 
         this.s3 = S3Client.builder()
@@ -74,7 +73,6 @@ public class S3ImageUploader implements ImageUploadPort {
                 .bucket(bucket)
                 .key(objectKey)
                 .contentType(contentType)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3.putObject(request, RequestBody.fromBytes(bytes));

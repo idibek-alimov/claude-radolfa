@@ -59,11 +59,11 @@ management:
 # --- AWS / S3-compatible storage (Timeweb Cloud) ---------------------
 aws:
   s3:
-    bucket:     ${AWS_S3_BUCKET:radolfa-dev-bucket}
+    bucket:     ${AWS_S3_BUCKET:96862269-2691-42c6-84ee-15f60b431da7}
     region:     ${AWS_S3_REGION:ru-1}
     endpoint:   ${AWS_S3_ENDPOINT:https://s3.twcstorage.ru}
-    access-key: ${AWS_ACCESS_KEY_ID:}
-    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+    access-key: ${AWS_ACCESS_KEY_ID:HQT82IRDRUYNZSS2FI8F}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:DDq31dE6ZkW1jRCS1LtDNgDkEwbaBt5R6gdUiOai}
 
 # --- Security / JWT --------------------------------------------------
 radolfa:
