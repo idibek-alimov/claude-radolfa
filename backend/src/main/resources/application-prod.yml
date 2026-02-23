@@ -21,3 +21,11 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# --- CORS (production origins) --------------------------------------
+radolfa:
+  security:
+    cors:
+      allowed-origins:
+        - https://radolfa.site
+        - https://www.radolfa.site
