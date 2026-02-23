@@ -12,7 +12,7 @@
 #   5. Initialises bench at /opt/frappe/frappe-bench
 #   6. Fetches ERPNext v15
 #   7. Fetches POSAwesome (defendicon/POS-Awesome-V15 — the maintained v15 fork)
-#   8. Creates site: erp.radolfa.ru with ERPNext + POSAwesome
+#   8. Creates site: erp.radolfa.site with ERPNext + POSAwesome
 #   9. Sets up Supervisor (NOT nginx — nginx is managed by docker-compose)
 #  10. Configures gunicorn workers (2 — tuned for 4 GB VPS)
 #  11. Enables the scheduler and sets maintenance mode off
@@ -30,7 +30,7 @@ set -euo pipefail
 # Configuration — edit before running
 # ---------------------------------------------------------------------------
 BENCH_DIR="/opt/frappe/frappe-bench"
-SITE_NAME="erp.radolfa.ru"
+SITE_NAME="erp.radolfa.site"
 FRAPPE_BRANCH="version-15"
 
 # Passwords — CHANGE THESE before running
@@ -203,7 +203,7 @@ bench --site "$SITE_NAME" set-maintenance-mode off
 bench --site "$SITE_NAME" enable-scheduler
 
 # Set site URL (important for links in emails and ERPNext internal URLs)
-bench --site "$SITE_NAME" set-config hostname "erp.radolfa.ru"
+bench --site "$SITE_NAME" set-config hostname "erp.radolfa.site"
 
 info "=== Step 11: Gunicorn workers (tuned for 4 GB VPS) ==="
 # bench config sub-commands vary by bench version — set directly in JSON instead
@@ -246,8 +246,8 @@ info "  Site name    : $SITE_NAME"
 info "  Bench dir    : $BENCH_DIR"
 info "  Gunicorn     : localhost:8000"
 info "  Socket.io    : localhost:9000"
-info "  Admin URL    : https://erp.radolfa.ru  (after SSL + nginx deploy)"
-info "  POSAwesome   : https://erp.radolfa.ru/posawesome  (after login)"
+info "  Admin URL    : https://erp.radolfa.site  (after SSL + nginx deploy)"
+info "  POSAwesome   : https://erp.radolfa.site/posawesome  (after login)"
 info "  Node.js      : $(node --version)"
 echo ""
 info "IMPORTANT — nginx is NOT managed by bench."

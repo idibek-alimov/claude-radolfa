@@ -9,9 +9,9 @@
 # Port 80 must be free — this script stops the nginx container if it's running.
 #
 # After this script, /etc/letsencrypt/live/* will contain certs for:
-#   radolfa.ru (+ www.radolfa.ru)
-#   api.radolfa.ru
-#   erp.radolfa.ru
+#   radolfa.site (+ www.radolfa.site)
+#   api.radolfa.site
+#   erp.radolfa.site
 #
 # Renewal: a cron job in infra/cron/certbot-renew handles auto-renewal.
 # The cron stops nginx, renews, then starts nginx again (<30 s downtime).
@@ -28,12 +28,12 @@ set -euo pipefail
 CERTBOT_EMAIL="alikcey.2001@gmail.com"
 
 DOMAINS=(
-    "radolfa.ru"
-    "api.radolfa.ru"
-    "erp.radolfa.ru"
+    "radolfa.site"
+    "api.radolfa.site"
+    "erp.radolfa.site"
 )
 
-WILDCARD_DOMAINS_RADOLFA="radolfa.ru,www.radolfa.ru"
+WILDCARD_DOMAINS_RADOLFA="radolfa.site,www.radolfa.site"
 APP_DIR="/opt/radolfa"
 COMPOSE_FILE="$APP_DIR/docker-compose.prod.yml"
 ENV_FILE="$APP_DIR/.env.production"
@@ -47,7 +47,7 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 [[ $EUID -ne 0 ]] && error "Run as root: sudo bash scripts/ssl-setup.sh"
 
 info "=== Checking DNS resolution ==="
-for domain in radolfa.ru api.radolfa.ru erp.radolfa.ru www.radolfa.ru; do
+for domain in radolfa.site api.radolfa.site erp.radolfa.site www.radolfa.site; do
     if ! host "$domain" &>/dev/null; then
         warn "DNS lookup failed for $domain — make sure A records point to this VPS before continuing."
     else
@@ -77,30 +77,30 @@ fi
 
 mkdir -p /var/www/certbot
 
-info "=== Obtaining certificate for radolfa.ru + www.radolfa.ru ==="
+info "=== Obtaining certificate for radolfa.site + www.radolfa.site ==="
 certbot certonly \
     --standalone \
     --non-interactive \
     --agree-tos \
     --email "$CERTBOT_EMAIL" \
-    -d radolfa.ru \
-    -d www.radolfa.ru
+    -d radolfa.site \
+    -d www.radolfa.site
 
-info "=== Obtaining certificate for api.radolfa.ru ==="
+info "=== Obtaining certificate for api.radolfa.site ==="
 certbot certonly \
     --standalone \
     --non-interactive \
     --agree-tos \
     --email "$CERTBOT_EMAIL" \
-    -d api.radolfa.ru
+    -d api.radolfa.site
 
-info "=== Obtaining certificate for erp.radolfa.ru ==="
+info "=== Obtaining certificate for erp.radolfa.site ==="
 certbot certonly \
     --standalone \
     --non-interactive \
     --agree-tos \
     --email "$CERTBOT_EMAIL" \
-    -d erp.radolfa.ru
+    -d erp.radolfa.site
 
 info "=== Certificate listing ==="
 certbot certificates

@@ -1,8 +1,8 @@
 # Radolfa — Production Deployment Guide
 
-**Domain:** radolfa.ru · api.radolfa.ru · erp.radolfa.ru
+**Domain:** radolfa.site · api.radolfa.site · erp.radolfa.site
 **VPS:** Ubuntu 22.04, 2 vCPU / 4 GB RAM
-**ERPNext site name:** `erp.radolfa.ru`
+**ERPNext site name:** `erp.radolfa.site`
 
 ---
 
@@ -58,18 +58,18 @@ At your domain registrar, create these A records pointing to your VPS IP:
 
 | Record | Type | Value |
 |---|---|---|
-| `radolfa.ru` | A | `185.207.65.241` |
-| `www.radolfa.ru` | A | `185.207.65.241` |
-| `api.radolfa.ru` | A | `185.207.65.241` |
-| `erp.radolfa.ru` | A | `185.207.65.241` |
+| `radolfa.site` | A | `185.207.65.241` |
+| `www.radolfa.site` | A | `185.207.65.241` |
+| `api.radolfa.site` | A | `185.207.65.241` |
+| `erp.radolfa.site` | A | `185.207.65.241` |
 
 TTL: 300 seconds (5 min) while deploying, raise to 3600 after.
 
 **Verify DNS propagation before continuing:**
 ```bash
-dig +short A radolfa.ru
-dig +short A api.radolfa.ru
-dig +short A erp.radolfa.ru
+dig +short A radolfa.site
+dig +short A api.radolfa.site
+dig +short A erp.radolfa.site
 ```
 All four must return your VPS IP before you run certbot.
 
@@ -176,7 +176,7 @@ This key authenticates backend-to-ERP calls. It must match `SYSTEM_API_KEY` in y
 > **Alternative — set via bench:**
 > ```bash
 > cd /opt/frappe/frappe-bench
-> bench --site erp.radolfa.ru set-config system_api_key "your_SYSTEM_API_KEY_value"
+> bench --site erp.radolfa.site set-config system_api_key "your_SYSTEM_API_KEY_value"
 > ```
 
 ---
@@ -253,7 +253,7 @@ sudo chmod 644 /etc/cron.d/radolfa-backup /etc/cron.d/certbot-renew
 
 ```bash
 # All four must return your VPS IP
-dig +short A radolfa.ru api.radolfa.ru erp.radolfa.ru www.radolfa.ru
+dig +short A radolfa.site api.radolfa.site erp.radolfa.site www.radolfa.site
 ```
 
 If any returns empty or wrong IP — **do not proceed**. Wait for DNS propagation.
@@ -279,7 +279,7 @@ Check: `sudo ss -tlnp | grep ':80'`
 sudo certbot certificates
 ```
 
-Expected output: 3 certificates listed for radolfa.ru, api.radolfa.ru, erp.radolfa.ru.
+Expected output: 3 certificates listed for radolfa.site, api.radolfa.site, erp.radolfa.site.
 
 ---
 
@@ -339,13 +339,13 @@ docker compose -f docker-compose.prod.yml logs <service-name> --tail=50
 
 ```bash
 # Nginx responding
-curl -I https://radolfa.ru
+curl -I https://radolfa.site
 
 # Backend API health
-curl -s https://api.radolfa.ru/actuator/health | python3 -m json.tool
+curl -s https://api.radolfa.site/actuator/health | python3 -m json.tool
 
 # ERPNext (should show ERPNext login page)
-curl -I https://erp.radolfa.ru
+curl -I https://erp.radolfa.site
 ```
 
 ---
@@ -390,7 +390,7 @@ Click **"New repository secret"** and add each of the following:
 | `VPS_DEPLOY_USER` | `deploy` |
 | `VPS_SSH_PRIVATE_KEY` | Contents of `~/.ssh/radolfa_github_deploy` (the private key, including the `-----BEGIN...` lines) |
 | `GHCR_TOKEN` | The GitHub PAT you created in 7.1 |
-| `NEXT_PUBLIC_API_BASE_URL` | `https://api.radolfa.ru` |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://api.radolfa.site` |
 
 ### 7.4 — (Optional) Set up production environment with approval gate
 
@@ -427,7 +427,7 @@ After everything is running, configure ERPNext to work with Radolfa.
 ```bash
 ssh -p 2222 deploy@185.207.65.241
 cd /opt/frappe/frappe-bench
-bench --site erp.radolfa.ru set-config host_name "https://erp.radolfa.ru"
+bench --site erp.radolfa.site set-config host_name "https://erp.radolfa.site"
 ```
 
 ### 8.2 — Sync initial data to Radolfa
@@ -436,15 +436,15 @@ Once you have products, categories, and users in ERPNext, trigger the sync via t
 
 ```bash
 # Sync product hierarchy (categories)
-curl -X POST https://api.radolfa.ru/api/erp-sync/product-hierarchy \
+curl -X POST https://api.radolfa.site/api/erp-sync/product-hierarchy \
   -H "X-System-Api-Key: <your_SYSTEM_API_KEY>"
 
 # Sync products
-curl -X POST https://api.radolfa.ru/api/erp-sync/products \
+curl -X POST https://api.radolfa.site/api/erp-sync/products \
   -H "X-System-Api-Key: <your_SYSTEM_API_KEY>"
 
 # Sync users/customers
-curl -X POST https://api.radolfa.ru/api/erp-sync/users \
+curl -X POST https://api.radolfa.site/api/erp-sync/users \
   -H "X-System-Api-Key: <your_SYSTEM_API_KEY>"
 ```
 
@@ -534,7 +534,7 @@ sudo supervisorctl restart all
 
 ## Troubleshooting
 
-### "502 Bad Gateway" on radolfa.ru
+### "502 Bad Gateway" on radolfa.site
 
 The frontend container is down or starting up.
 ```bash
@@ -542,14 +542,14 @@ docker compose -f /opt/radolfa/docker-compose.prod.yml ps frontend
 docker compose -f /opt/radolfa/docker-compose.prod.yml logs frontend --tail=30
 ```
 
-### "502 Bad Gateway" on api.radolfa.ru
+### "502 Bad Gateway" on api.radolfa.site
 
 The backend container is down. Check if it's still running Flyway migrations on startup (normal for ~90 s on first boot).
 ```bash
 docker compose -f /opt/radolfa/docker-compose.prod.yml logs backend --tail=50
 ```
 
-### "502 Bad Gateway" on erp.radolfa.ru
+### "502 Bad Gateway" on erp.radolfa.site
 
 ERPNext gunicorn is not running on host port 8000.
 ```bash

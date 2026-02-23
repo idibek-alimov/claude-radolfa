@@ -4,16 +4,16 @@
 
 | Component | Method | Host |
 |---|---|---|
-| Frontend (Next.js) | Docker container | radolfa.ru |
-| Backend (Spring Boot) | Docker container | api.radolfa.ru |
+| Frontend (Next.js) | Docker container | radolfa.site |
+| Backend (Spring Boot) | Docker container | api.radolfa.site |
 | Elasticsearch | Docker container | internal |
 | PostgreSQL | Docker container | internal |
-| ERPNext v15 | bare-metal bench + Supervisor | erp.radolfa.ru |
+| ERPNext v15 | bare-metal bench + Supervisor | erp.radolfa.site |
 | Nginx | Docker container | reverse proxy for all 3 |
 | SSL | Let's Encrypt (Certbot) | /etc/letsencrypt |
 
 **VPS**: Ubuntu 22.04, 2 vCPU / 4 GB RAM (test deployment)
-**ERPNext site name**: `erp.radolfa.ru`
+**ERPNext site name**: `erp.radolfa.site`
 
 ---
 
@@ -23,10 +23,10 @@ Before you start, ensure:
 
 - [ ] VPS is running Ubuntu 22.04
 - [ ] DNS A records point to the VPS IP:
-  - `radolfa.ru`     → VPS IP
-  - `www.radolfa.ru` → VPS IP
-  - `api.radolfa.ru` → VPS IP
-  - `erp.radolfa.ru` → VPS IP
+  - `radolfa.site`     → VPS IP
+  - `www.radolfa.site` → VPS IP
+  - `api.radolfa.site` → VPS IP
+  - `erp.radolfa.site` → VPS IP
 - [ ] You have `root` SSH access for the initial bootstrap
 - [ ] Repository cloned or files ready to SCP
 
@@ -93,7 +93,7 @@ This script:
 - Configures MariaDB charset for Frappe (utf8mb4)
 - Installs frappe-bench via pip
 - Creates bench at `/opt/frappe/frappe-bench`
-- Creates site `erp.radolfa.ru`
+- Creates site `erp.radolfa.site`
 - Installs ERPNext v15
 - Sets up Supervisor (NOT nginx — we use our own Docker nginx)
 - Configures 2 gunicorn workers (conserves RAM on test VPS)
@@ -150,7 +150,7 @@ All 4 DNS records must resolve before running:
 sudo bash /opt/radolfa/scripts/ssl-setup.sh
 ```
 
-This obtains certs for `radolfa.ru`, `www.radolfa.ru`, `api.radolfa.ru`, `erp.radolfa.ru`.
+This obtains certs for `radolfa.site`, `www.radolfa.site`, `api.radolfa.site`, `erp.radolfa.site`.
 
 ---
 
@@ -185,7 +185,7 @@ Add the following **repository secrets** at:
 | `VPS_DEPLOY_USER` | `deploy` |
 | `VPS_SSH_PRIVATE_KEY` | Private key of the deploy user's SSH keypair |
 | `GHCR_TOKEN` | GitHub PAT with `packages:write` scope |
-| `NEXT_PUBLIC_API_BASE_URL` | `https://api.radolfa.ru` |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://api.radolfa.site` |
 
 > For `VPS_SSH_PRIVATE_KEY`: generate a dedicated keypair for GitHub Actions:
 > ```bash
