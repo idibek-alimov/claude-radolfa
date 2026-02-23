@@ -33,6 +33,12 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# NEXT_PUBLIC_* vars are inlined at build time — pass via --build-arg in CI
+ARG NEXT_PUBLIC_API_BASE_URL=https://api.radolfa.ru
+ARG NEXT_PUBLIC_API_URL=https://api.radolfa.ru
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build the application (outputs to .next/standalone with output: 'standalone')
 RUN npm run build
 

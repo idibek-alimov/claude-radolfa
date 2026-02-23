@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # Backend — compile and test
+  # ---------------------------------------------------------------------------
+  backend-test:
+    name: Backend Tests (Java 17 / Maven)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: radolfa_test
+          POSTGRES_USER: radolfa
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U radolfa -d radolfa_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Run tests
+        run: ./mvnw test -B -Dspring.profiles.active=test
+        working-directory: backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/radolfa_test
+          SPRING_DATASOURCE_USERNAME: radolfa
+          SPRING_DATASOURCE_PASSWORD: test_password
+          SPRING_ELASTICSEARCH_URIS: ""
+          JWT_SECRET: ci_test_secret_not_for_production_use_at_all
+          JWT_EXPIRATION_MS: 900000
+          SYSTEM_API_KEY: ci_test_api_key_32chars_padding_ok
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_S3_BUCKET: test-bucket
+          AWS_S3_REGION: us-east-1
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: backend/target/surefire-reports/
+
+  # ---------------------------------------------------------------------------
+  # Frontend — lint and build check
+  # ---------------------------------------------------------------------------
+  frontend-check:
+    name: Frontend Lint & Build (Node 20)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Build (with production API URL)
+        run: npm run build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.radolfa.ru
+          NEXT_PUBLIC_API_URL: https://api.radolfa.ru
+          NEXT_TELEMETRY_DISABLED: 1

@@ -8,6 +8,8 @@
 .env
 .env.local
 .env.*.local
+# Production secrets file — contains real credentials, lives on VPS only
+.env.production
 *.pem
 *.key
 credentials.json

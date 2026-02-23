@@ -1,0 +1,19 @@
+# =============================================================================
+# Radolfa — SSL certificate auto-renewal cron job
+# =============================================================================
+# Deploy: sudo cp infra/cron/certbot-renew /etc/cron.d/certbot-renew
+#         sudo chmod 644 /etc/cron.d/certbot-renew
+#
+# Strategy: stop nginx (free port 80) → renew → start nginx
+# Downtime per renewal: ~20-30 seconds, occurs at most once every 60 days.
+# Certbot only actually renews when <30 days remain on the cert.
+# =============================================================================
+
+# Check twice daily; actually renews only when cert expires in <30 days
+0 3  * * * root certbot renew --quiet \
+    --pre-hook  "docker stop radolfa-nginx 2>/dev/null || true" \
+    --post-hook "docker start radolfa-nginx"
+
+0 15 * * * root certbot renew --quiet \
+    --pre-hook  "docker stop radolfa-nginx 2>/dev/null || true" \
+    --post-hook "docker start radolfa-nginx"

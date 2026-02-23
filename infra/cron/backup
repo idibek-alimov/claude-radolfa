@@ -1,0 +1,9 @@
+# =============================================================================
+# Radolfa — Database backup cron job
+# =============================================================================
+# Deploy: sudo cp infra/cron/backup /etc/cron.d/radolfa-backup
+#         sudo chmod 644 /etc/cron.d/radolfa-backup
+# =============================================================================
+
+# Daily backup at 02:30 AM (server local time)
+30 2 * * * deploy /opt/radolfa/scripts/backup.sh >> /var/log/radolfa/backup.log 2>&1

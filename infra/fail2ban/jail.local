@@ -1,0 +1,49 @@
+# =============================================================================
+# Radolfa — Fail2ban Jail Configuration
+# =============================================================================
+# Deploy: cp infra/fail2ban/jail.local /etc/fail2ban/jail.local
+#         sudo systemctl restart fail2ban
+# =============================================================================
+
+[DEFAULT]
+# Ban duration: 1 hour default
+bantime  = 3600
+# Detection window: 10 minutes
+findtime = 600
+# Max retries before ban
+maxretry = 5
+# Use systemd journal as backend
+backend  = systemd
+# Ban action: iptables multiport
+banaction = iptables-multiport
+
+# ---------------------------------------------------------------------------
+# SSH — protect non-standard port 2222
+# ---------------------------------------------------------------------------
+[sshd]
+enabled  = true
+port     = 2222
+logpath  = %(sshd_log)s
+maxretry = 3
+bantime  = 86400   ; 24 hours for SSH brute-force
+
+# ---------------------------------------------------------------------------
+# Nginx — block clients that hit rate limit repeatedly
+# ---------------------------------------------------------------------------
+[nginx-req-limit]
+enabled  = true
+filter   = nginx-req-limit
+logpath  = /var/log/nginx/error.log
+maxretry = 10
+findtime = 60
+bantime  = 600     ; 10 minutes
+
+# ---------------------------------------------------------------------------
+# Nginx — HTTP basic auth brute-force (if enabled on any endpoint)
+# ---------------------------------------------------------------------------
+[nginx-http-auth]
+enabled  = true
+filter   = nginx-http-auth
+logpath  = /var/log/nginx/error.log
+maxretry = 5
+bantime  = 3600

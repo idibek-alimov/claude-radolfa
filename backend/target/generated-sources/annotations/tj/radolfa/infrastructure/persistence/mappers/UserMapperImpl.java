@@ -9,7 +9,7 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-23T10:22:47+0500",
+    date = "2026-02-23T20:44:18+0500",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260128-0750, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component

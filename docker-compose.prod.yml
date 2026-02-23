@@ -1,0 +1,246 @@
+# =============================================================================
+# Radolfa — Production Docker Compose (Standalone)
+# =============================================================================
+# This file is self-contained. Do NOT layer it over docker-compose.yml.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#   docker compose -f docker-compose.prod.yml --env-file .env.production pull
+#   docker compose -f docker-compose.prod.yml --env-file .env.production ps
+#
+# Prerequisites on VPS:
+#   - /opt/radolfa/.env.production  (all secrets filled in)
+#   - /etc/letsencrypt/              (SSL certs from certbot)
+#   - ERPNext bench running on host port 8000 (gunicorn)
+#   - ERPNext socketio running on host port 9000
+# =============================================================================
+
+services:
+
+  # ===========================================================================
+  # Database: PostgreSQL 16
+  # Internal only — no external port binding
+  # ===========================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: radolfa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - radolfa-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Search Engine: Elasticsearch 8.12
+  # Internal only — no external port binding
+  # ES_HEAP_SIZE=256m tuned for 4 GB test VPS
+  # ===========================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: radolfa-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xmx${ES_HEAP_SIZE:-256m} -Xms${ES_HEAP_SIZE:-256m}
+      - cluster.name=radolfa-cluster
+      - bootstrap.memory_lock=true
+    volumes:
+      - radolfa-esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Backend: Spring Boot — pulled from GHCR
+  # Internal only — no external port binding; accessed via nginx
+  # ===========================================================================
+  backend:
+    image: ghcr.io/idibek-alimov/claude-radolfa-backend:${IMAGE_TAG:-latest}
+    container_name: radolfa-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_REGION: ${AWS_S3_REGION:-ru-1}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-https://s3.twcstorage.ru}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-900000}
+
+      SYSTEM_API_KEY: ${SYSTEM_API_KEY}
+
+      # Tell Spring the public-facing port is 443 (for CORS origin matching)
+      HTTP_PORT: 443
+
+      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx512m -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Frontend: Next.js Standalone — pulled from GHCR
+  # NEXT_PUBLIC_* vars are baked in at build time (GitHub Actions build-args)
+  # Internal only — accessed via nginx
+  # ===========================================================================
+  frontend:
+    image: ghcr.io/idibek-alimov/claude-radolfa-frontend:${IMAGE_TAG:-latest}
+    container_name: radolfa-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Reverse Proxy: Nginx
+  # Terminates SSL, routes to frontend / backend / ERPNext (host port 8000)
+  # host.docker.internal resolves to the VPS host via extra_hosts
+  # ===========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: radolfa-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    extra_hosts:
+      # Allows nginx to reach ERPNext gunicorn running on the VPS host
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  radolfa-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  radolfa-pgdata:
+    driver: local
+  radolfa-esdata:
+    driver: local
