@@ -53,6 +53,7 @@ public class SyncUsersService implements SyncUsersUseCase {
 
     private void upsert(SyncUserCommand command) {
         PhoneNumber phone = new PhoneNumber(command.phone());
+        String email = (command.email() != null && !command.email().isBlank()) ? command.email() : null;
         var existing = loadUserPort.loadByPhone(phone.value());
 
         if (existing.isPresent()) {
@@ -62,7 +63,7 @@ public class SyncUsersService implements SyncUsersUseCase {
                     phone,
                     command.role() != null ? command.role() : user.role(),
                     command.name() != null ? command.name() : user.name(),
-                    command.email() != null ? command.email() : user.email(),
+                    email != null ? email : user.email(),
                     command.loyaltyPoints() != null ? command.loyaltyPoints() : user.loyaltyPoints(),
                     command.enabled() != null ? command.enabled() : user.enabled(),
                     user.version());
@@ -74,7 +75,7 @@ public class SyncUsersService implements SyncUsersUseCase {
                     phone,
                     command.role() != null ? command.role() : UserRole.USER,
                     command.name(),
-                    command.email(),
+                    email,
                     command.loyaltyPoints() != null ? command.loyaltyPoints() : 0,
                     command.enabled() != null ? command.enabled() : true,
                     null);

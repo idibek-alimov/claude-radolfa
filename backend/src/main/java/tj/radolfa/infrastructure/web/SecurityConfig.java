@@ -84,6 +84,13 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                                // Return 401 for missing/invalid credentials, 403 for wrong role
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint((req, res, e) ->
+                                                        res.sendError(401, "Unauthorized"))
+                                                .accessDeniedHandler((req, res, e) ->
+                                                        res.sendError(403, "Forbidden")))
+
                                 // Add API key filter first (machine-to-machine clients, e.g. ERPNext)
                                 .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
