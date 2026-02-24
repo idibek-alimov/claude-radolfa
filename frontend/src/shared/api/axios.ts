@@ -51,7 +51,8 @@ apiClient.interceptors.response.use(
       !originalRequest ||
       originalRequest.url?.includes("/api/v1/auth/refresh") ||
       originalRequest.url?.includes("/api/v1/auth/login") ||
-      originalRequest.url?.includes("/api/v1/auth/verify")
+      originalRequest.url?.includes("/api/v1/auth/verify") ||
+      originalRequest.url?.includes("/api/v1/auth/me")
     ) {
       return Promise.reject(error);
     }
