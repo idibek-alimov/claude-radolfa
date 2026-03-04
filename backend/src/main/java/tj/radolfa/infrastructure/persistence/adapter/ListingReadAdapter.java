@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
@@ -42,8 +43,14 @@ public class ListingReadAdapter implements LoadListingPort {
         }
 
         @Override
-        public PageResult<ListingVariantDto> loadPage(int page, int limit) {
-                Page<Object[]> raw = variantRepo.findGridPage(PageRequest.of(page - 1, limit));
+        public PageResult<ListingVariantDto> loadPage(int page, int limit, String sort, boolean inStock) {
+                Pageable pageable = PageRequest.of(page - 1, limit);
+                Page<Object[]> raw = switch (sort == null ? "default" : sort) {
+                        case "price_asc" -> variantRepo.findGridPriceAsc(inStock, pageable);
+                        case "price_desc" -> variantRepo.findGridPriceDesc(inStock, pageable);
+                        case "newest" -> variantRepo.findGridNewest(inStock, pageable);
+                        default -> variantRepo.findGridDefault(inStock, pageable);
+                };
                 return toGridResult(raw, page, limit);
         }
 

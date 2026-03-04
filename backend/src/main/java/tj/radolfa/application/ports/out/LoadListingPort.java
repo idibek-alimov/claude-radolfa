@@ -18,8 +18,11 @@ public interface LoadListingPort {
 
     /**
      * Paginated grid of listing variants with aggregated price/stock.
+     *
+     * @param sort    one of: "default", "price_asc", "price_desc", "newest"
+     * @param inStock when true, only variants with stock > 0 are returned
      */
-    PageResult<ListingVariantDto> loadPage(int page, int limit);
+    PageResult<ListingVariantDto> loadPage(int page, int limit, String sort, boolean inStock);
 
     /**
      * Full detail for a single variant: SKUs + sibling colour swatches.

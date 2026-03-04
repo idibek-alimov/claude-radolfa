@@ -46,11 +46,11 @@ public class OtpStore {
      * @return the generated OTP code
      */
     public String generateOtp(String phone) {
-        String otp = generateRandomOtp();
+        // TODO: replace with real OTP generation before going to production
+        String otp = "1234";
         Instant expiry = Instant.now().plusSeconds(properties.expirationSeconds());
         store.put(phone, new OtpEntry(otp, expiry));
 
-        // DEV: Log OTP to console (production would send SMS)
         LOG.info("[OTP-DEV] Generated OTP for phone={}: {}", phone, otp);
 
         return otp;

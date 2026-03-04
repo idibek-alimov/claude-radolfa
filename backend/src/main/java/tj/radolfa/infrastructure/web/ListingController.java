@@ -41,9 +41,11 @@ public class ListingController {
     @Operation(summary = "Paginated listing grid", description = "Returns colour cards with aggregated price/stock")
     public ResponseEntity<PageResult<ListingVariantDto>> grid(
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
+            @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit,
+            @Parameter(description = "Sort: default | price_asc | price_desc | newest") @RequestParam(defaultValue = "default") String sort,
+            @Parameter(description = "Only return in-stock variants") @RequestParam(defaultValue = "false") boolean inStock) {
 
-        return ResponseEntity.ok(getListingUseCase.getPage(page, limit));
+        return ResponseEntity.ok(getListingUseCase.getPage(page, limit, sort, inStock));
     }
 
     @GetMapping("/{slug}")

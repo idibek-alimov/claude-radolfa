@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { HeroBanner } from "@/widgets/HeroBanner";
+// import { HeroBanner } from "@/widgets/HeroBanner";
 import { HomeCollections } from "@/widgets/HomeCollections";
+import { CatalogSection } from "@/widgets/ProductList";
 import { TrustBanner } from "@/widgets/TrustBanner";
 
 export const metadata: Metadata = {
@@ -16,8 +17,9 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <HeroBanner />
+      {/* <HeroBanner /> */}
       <HomeCollections />
+      <CatalogSection />
       <TrustBanner />
     </>
   );

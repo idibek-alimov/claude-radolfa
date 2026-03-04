@@ -27,6 +27,7 @@ import {
   DropdownMenuLabel,
 } from "@/shared/ui/dropdown-menu";
 import { MegaMenu, MegaMenuMobile } from "@/widgets/MegaMenu";
+import { CartDrawer } from "@/widgets/CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 /* ── User Avatar ───────────────────────────────────────────────── */
@@ -236,6 +237,7 @@ export default function Navbar() {
           {/* Right — Utilities */}
           <div className="flex items-center gap-2 shrink-0">
             <LanguageSwitcher />
+            <CartDrawer />
             <DesktopAuth />
           </div>
         </div>
@@ -255,6 +257,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-1">
               <LanguageSwitcher />
+              <CartDrawer />
               <MobileMenu />
             </div>
           </div>

@@ -139,6 +139,16 @@ public class SecurityConfig {
                                                 .hasAnyRole("USER", "MANAGER", "SYSTEM")
 
                                                 // ============================================================
+                                                // Cart: requires any authenticated user
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/cart/**").authenticated()
+
+                                                // ============================================================
+                                                // Address Book: requires any authenticated user
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/addresses/**").authenticated()
+
+                                                // ============================================================
                                                 // Default: require authentication for all other endpoints
                                                 // ============================================================
                                                 .anyRequest().authenticated());

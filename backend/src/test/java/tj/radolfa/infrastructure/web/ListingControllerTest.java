@@ -111,7 +111,7 @@ class ListingControllerTest {
                 false, false);
 
         @Override
-        public PageResult<ListingVariantDto> getPage(int page, int limit) {
+        public PageResult<ListingVariantDto> getPage(int page, int limit, String sort, boolean inStock) {
             return new PageResult<>(List.of(GRID_ITEM), 1, page, false);
         }
 

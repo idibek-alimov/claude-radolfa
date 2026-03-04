@@ -18,14 +18,22 @@ export interface ImageUploadResponse {
   images: string[];
 }
 
+export type ListingSort = "default" | "price_asc" | "price_desc" | "newest";
+
+export interface ListingFilters {
+  sort?: ListingSort;
+  inStock?: boolean;
+}
+
 /** Paginated listing grid (colour cards). */
 export async function fetchListings(
   page: number = 1,
-  limit: number = 12
+  limit: number = 12,
+  filters: ListingFilters = {}
 ): Promise<PaginatedListings> {
   const { data } = await apiClient.get<PaginatedListings>(
     "/api/v1/listings",
-    { params: { page, limit } }
+    { params: { page, limit, sort: filters.sort ?? "default", inStock: filters.inStock ?? false } }
   );
   return data;
 }

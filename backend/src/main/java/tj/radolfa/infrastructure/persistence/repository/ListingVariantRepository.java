@@ -62,6 +62,74 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         """)
         Page<Object[]> findGridPage(Pageable pageable);
 
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                               lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
+                               lv.color.hexCode, lv.featured
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                        HAVING :inStock = false OR COALESCE(SUM(s.stockQuantity), 0) > 0
+                        ORDER BY lv.id ASC
+                        """)
+        Page<Object[]> findGridDefault(@Param("inStock") boolean inStock, Pageable pageable);
+
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                               lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
+                               lv.color.hexCode, lv.featured
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                        HAVING :inStock = false OR COALESCE(SUM(s.stockQuantity), 0) > 0
+                        ORDER BY COALESCE(MIN(s.salePrice), MIN(s.price)) ASC NULLS LAST
+                        """)
+        Page<Object[]> findGridPriceAsc(@Param("inStock") boolean inStock, Pageable pageable);
+
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                               lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
+                               lv.color.hexCode, lv.featured
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                        HAVING :inStock = false OR COALESCE(SUM(s.stockQuantity), 0) > 0
+                        ORDER BY COALESCE(MIN(s.salePrice), MIN(s.price)) DESC NULLS LAST
+                        """)
+        Page<Object[]> findGridPriceDesc(@Param("inStock") boolean inStock, Pageable pageable);
+
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                               lv.webDescription, lv.topSelling,
+                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
+                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
+                               lv.color.hexCode, lv.featured
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured, lv.createdAt
+                        HAVING :inStock = false OR COALESCE(SUM(s.stockQuantity), 0) > 0
+                        ORDER BY lv.createdAt DESC
+                        """)
+        Page<Object[]> findGridNewest(@Param("inStock") boolean inStock, Pageable pageable);
+
         /**
          * Paginated grid filtered by category IDs (for category browsing with descendants).
          */

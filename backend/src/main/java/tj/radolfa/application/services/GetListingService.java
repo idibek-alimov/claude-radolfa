@@ -37,8 +37,8 @@ public class GetListingService implements GetListingUseCase {
     }
 
     @Override
-    public PageResult<ListingVariantDto> getPage(int page, int limit) {
-        return loadListingPort.loadPage(page, limit);
+    public PageResult<ListingVariantDto> getPage(int page, int limit, String sort, boolean inStock) {
+        return loadListingPort.loadPage(page, limit, sort, inStock);
     }
 
     @Override

@@ -6,9 +6,10 @@ import { notFound } from "next/navigation";
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ShoppingCart } from "lucide-react";
 import { fetchListingBySlug, fetchListings } from "@/entities/product/api";
 import type { Sku } from "@/entities/product";
+import { useCartMutation } from "@/widgets/CartDrawer";
 import { Badge } from "@/shared/ui/badge";
 import {
   Dialog,
@@ -78,6 +79,9 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
+
+  const { add: addToCartMutation } = useCartMutation();
 
   /* ── Queries ─────────────────────────────────────────────────── */
 
@@ -422,6 +426,41 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               </div>
             </div>
           )}
+
+          {/* ── Add to Cart ──────────────────────────────────────── */}
+          <div className="pt-5 border-t">
+            <button
+              disabled={!selectedSku || selectedSku.stockQuantity === 0 || addToCartMutation.isPending}
+              onClick={() => {
+                if (!selectedSku) return;
+                addToCartMutation.mutate(
+                  { skuId: selectedSku.id, quantity: 1 },
+                  {
+                    onSuccess: () => {
+                      setAddedToCart(true);
+                      setTimeout(() => setAddedToCart(false), 2000);
+                    },
+                  }
+                );
+              }}
+              className={`w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-sm transition-all
+                ${!selectedSku
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
+                  : addedToCart
+                    ? "bg-green-600 text-white"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
+                }`}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {addedToCart
+                ? "Added!"
+                : !selectedSku
+                  ? "Select a size first"
+                  : addToCartMutation.isPending
+                    ? "Adding…"
+                    : "Add to Cart"}
+            </button>
+          </div>
 
           {/* ── Description ──────────────────────────────────────── */}
           {listing.webDescription && (

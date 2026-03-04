@@ -13,9 +13,12 @@ import java.util.Optional;
 public interface GetListingUseCase {
 
     /**
-     * Paginated grid of colour cards.
+     * Paginated grid of colour cards with optional sort and in-stock filter.
+     *
+     * @param sort    one of: "default", "price_asc", "price_desc", "newest"
+     * @param inStock when true, only variants with stock > 0 are returned
      */
-    PageResult<ListingVariantDto> getPage(int page, int limit);
+    PageResult<ListingVariantDto> getPage(int page, int limit, String sort, boolean inStock);
 
     /**
      * Detail page: variant + SKUs + sibling colour swatches.
