@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import { searchListings } from "@/entities/product";
 import { ProductGrid } from "@/widgets/ProductList";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 const PAGE_LIMIT = 12;
 
@@ -33,6 +34,7 @@ export default function SearchPage() {
 }
 
 function SearchContent() {
+  const t = useTranslations("search");
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.trim() || "";
 
@@ -65,11 +67,10 @@ function SearchContent() {
             <Search className="h-9 w-9 text-muted-foreground/50" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground">
-            Start your search
+            {t("startTitle")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-            Use the search bar above to find products across the Radolfa
-            catalog.
+            {t("startDescription")}
           </p>
         </div>
       </div>
@@ -80,12 +81,12 @@ function SearchContent() {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-          Results for{" "}
+          {t("resultsFor")}{" "}
           <span className="text-primary">&ldquo;{query}&rdquo;</span>
         </h1>
         {!isLoading && totalCount > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
-            {totalCount} products found
+            {t("productsFound", { count: totalCount })}
           </p>
         )}
       </div>

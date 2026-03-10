@@ -77,7 +77,22 @@
     "invalidOtp": "Рамзи нодуруст"
   },
   "search": {
-    "placeholder": "Ҷустуҷӯи молҳо..."
+    "placeholder": "Ҷустуҷӯи молҳо...",
+    "startTitle": "Ҷустуҷӯро оғоз кунед",
+    "startDescription": "Сатри ҷустуҷӯро истифода баред, то молҳоро дар каталоги Radolfa ёбед.",
+    "resultsFor": "Натиҷаҳо барои",
+    "productsFound": "{count} мол ёфт шуд"
+  },
+  "common": {
+    "home": "Асосӣ",
+    "products": "Молҳо",
+    "allProducts": "Ҳамаи молҳо",
+    "productsAvailable": "{count} мол мавҷуд",
+    "productsCount": "{count} мол",
+    "viewAll": "Ҳама",
+    "inStock": "{count} мавҷуд",
+    "outOfStock": "Мавҷуд нест",
+    "currency": "TJS"
   },
   "megaMenu": {
     "categories": "Категорияҳо"
@@ -171,7 +186,10 @@
     "tierPlatinum": "Платина",
     "nextTier": "{points} балл то {tier}",
     "topTier": "Шумо ба дараҷаи олӣ расидед!",
-    "sessionExpired": "Вақти сессия гузашт. Лутфан дубора ворид шавед."
+    "sessionExpired": "Вақти сессия гузашт. Лутфан дубора ворид шавед.",
+    "loyaltyHowTitle": "Чӣ тавр кор мекунад",
+    "loyaltyHowEarn": "Бо ҳар хариди шумо баллҳо худкор ҷамъ мешаванд.",
+    "loyaltyHowRedeem": "Баллҳоро метавонед ҳамчун тахфиф дар фармоишҳои оянда истифода баред."
   },
   "userManagement": {
     "searchPlaceholder": "Ҷустуҷӯ аз рӯи телефон ё ном...",

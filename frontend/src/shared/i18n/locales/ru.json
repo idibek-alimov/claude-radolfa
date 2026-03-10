@@ -77,7 +77,22 @@
     "invalidOtp": "Неверный код"
   },
   "search": {
-    "placeholder": "Поиск товаров..."
+    "placeholder": "Поиск товаров...",
+    "startTitle": "Начните поиск",
+    "startDescription": "Используйте строку поиска выше, чтобы найти товары в каталоге Radolfa.",
+    "resultsFor": "Результаты по запросу",
+    "productsFound": "{count} товаров найдено"
+  },
+  "common": {
+    "home": "Главная",
+    "products": "Товары",
+    "allProducts": "Все товары",
+    "productsAvailable": "{count} товаров",
+    "productsCount": "{count} товаров",
+    "viewAll": "Все",
+    "inStock": "{count} в наличии",
+    "outOfStock": "Нет в наличии",
+    "currency": "TJS"
   },
   "megaMenu": {
     "categories": "Категории"
@@ -171,7 +186,10 @@
     "tierPlatinum": "Платина",
     "nextTier": "{points} баллов до {tier}",
     "topTier": "Вы достигли высшего уровня!",
-    "sessionExpired": "Сессия истекла. Пожалуйста, войдите снова."
+    "sessionExpired": "Сессия истекла. Пожалуйста, войдите снова.",
+    "loyaltyHowTitle": "Как это работает",
+    "loyaltyHowEarn": "Баллы начисляются автоматически с каждой покупкой.",
+    "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов."
   },
   "userManagement": {
     "searchPlaceholder": "Поиск по телефону или имени...",

@@ -77,7 +77,22 @@
     "invalidOtp": "Invalid OTP"
   },
   "search": {
-    "placeholder": "Search products..."
+    "placeholder": "Search products...",
+    "startTitle": "Start your search",
+    "startDescription": "Use the search bar above to find products across the Radolfa catalog.",
+    "resultsFor": "Results for",
+    "productsFound": "{count} products found"
+  },
+  "common": {
+    "home": "Home",
+    "products": "Products",
+    "allProducts": "All Products",
+    "productsAvailable": "{count} products available",
+    "productsCount": "{count} products",
+    "viewAll": "View All",
+    "inStock": "{count} in stock",
+    "outOfStock": "Out of stock",
+    "currency": "TJS"
   },
   "megaMenu": {
     "categories": "Categories"
@@ -171,7 +186,10 @@
     "tierPlatinum": "Platinum",
     "nextTier": "{points} pts to {tier}",
     "topTier": "You've reached the highest tier!",
-    "sessionExpired": "Your session has expired. Please sign in again."
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "loyaltyHowTitle": "How it works",
+    "loyaltyHowEarn": "You earn points automatically with every purchase.",
+    "loyaltyHowRedeem": "Points can be used as a discount on future orders."
   },
   "userManagement": {
     "searchPlaceholder": "Search by phone or name...",

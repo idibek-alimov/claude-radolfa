@@ -10,6 +10,7 @@ import {
   fetchHomeCollections,
 } from "@/entities/product";
 import type { HomeSection } from "@/entities/product";
+import { useTranslations } from "next-intl";
 
 const staggerContainer = {
   hidden: {},
@@ -52,6 +53,8 @@ export default function HomeCollections() {
 }
 
 function CollectionRow({ section }: { section: HomeSection }) {
+  const t = useTranslations("common");
+
   return (
     <section>
       {/* Header */}
@@ -63,7 +66,7 @@ function CollectionRow({ section }: { section: HomeSection }) {
           href={`/collections/${section.key}`}
           className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
-          View All
+          {t("viewAll")}
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

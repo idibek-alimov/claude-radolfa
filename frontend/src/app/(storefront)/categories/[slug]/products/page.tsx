@@ -12,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb";
+import { useTranslations } from "next-intl";
 
 const PAGE_LIMIT = 12;
 
@@ -21,6 +22,7 @@ export default function CategoryProductsPage({
   params: { slug: string };
 }) {
   const { slug } = params;
+  const t = useTranslations("common");
 
   const {
     data,
@@ -49,7 +51,7 @@ export default function CategoryProductsPage({
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
+              <Link href="/">{t("home")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -65,7 +67,7 @@ export default function CategoryProductsPage({
         </h1>
         {!isLoading && totalCount > 0 && (
           <p className="text-sm text-muted-foreground mt-1">
-            {totalCount} products
+            {t("productsCount", { count: totalCount })}
           </p>
         )}
       </div>

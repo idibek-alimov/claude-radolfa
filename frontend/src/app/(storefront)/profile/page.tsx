@@ -163,7 +163,7 @@ function InlineEditField({
         <p className="text-sm text-foreground flex-1">
           {value || placeholder}
         </p>
-        <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Pencil className="h-3 w-3 text-muted-foreground md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
       </div>
     </div>
   );
@@ -203,16 +203,16 @@ function OrderTimeline({ status }: { status: string }) {
   }
 
   return (
-    <div className="flex items-center gap-1 mt-3">
+    <div className="flex items-center mt-3 w-full overflow-hidden">
       {ORDER_STEPS.map((step, i) => {
         const Icon = STEP_ICONS[step];
         const isComplete = i <= currentStep;
         const isCurrent = i === currentStep;
         return (
-          <div key={step} className="flex items-center gap-1">
-            <div className="flex flex-col items-center">
+          <div key={step} className="flex items-center flex-1 min-w-0 last:flex-initial">
+            <div className="flex flex-col items-center min-w-0">
               <div
-                className={`flex items-center justify-center h-7 w-7 rounded-full transition-colors ${
+                className={`flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full shrink-0 transition-colors ${
                   isCurrent
                     ? "bg-primary text-primary-foreground"
                     : isComplete
@@ -220,10 +220,10 @@ function OrderTimeline({ status }: { status: string }) {
                     : "bg-muted text-muted-foreground"
                 }`}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </div>
               <span
-                className={`text-[10px] mt-1 text-center leading-tight ${
+                className={`text-[10px] sm:text-xs mt-1 text-center leading-tight truncate max-w-[60px] sm:max-w-none ${
                   isComplete ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -232,7 +232,7 @@ function OrderTimeline({ status }: { status: string }) {
             </div>
             {i < ORDER_STEPS.length - 1 && (
               <div
-                className={`h-0.5 w-6 sm:w-10 rounded-full mt-[-14px] ${
+                className={`h-0.5 flex-1 min-w-2 mx-0.5 rounded-full mt-[-14px] ${
                   i < currentStep ? "bg-primary/40" : "bg-muted"
                 }`}
               />
@@ -443,7 +443,7 @@ export default function ProfilePage() {
                         </ul>
                         <OrderTimeline status={order.status} />
                         <p className="font-semibold text-sm text-right mt-3 pt-3 border-t">
-                          {t("total")} ${order.totalAmount}
+                          {t("total")} {order.totalAmount.toFixed(2)} TJS
                         </p>
                       </div>
                     ))}
@@ -524,6 +524,23 @@ export default function ProfilePage() {
                         })
                       : t("topTier")}
                   </p>
+                </div>
+
+                {/* How it works */}
+                <div className="mt-6 rounded-xl border bg-accent/20 p-4">
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    {t("loyaltyHowTitle")}
+                  </p>
+                  <ul className="space-y-1.5 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Star className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                      {t("loyaltyHowEarn")}
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                      {t("loyaltyHowRedeem")}
+                    </li>
+                  </ul>
                 </div>
               </div>
             </TabsContent>
