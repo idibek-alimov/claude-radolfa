@@ -5,6 +5,9 @@
 # Developer-friendly: verbose SQL, localhost services, relaxed CORS.
 
 spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration-dev # includes dev-only seeds
+
   jpa:
     show-sql: true
     properties:
@@ -26,3 +29,4 @@ radolfa:
         - http://localhost:80
         - http://localhost:3000
         - http://localhost:5173
+        - http://localhost:8001

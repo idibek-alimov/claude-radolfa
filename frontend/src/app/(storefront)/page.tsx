@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { HeroBanner } from "@/widgets/HeroBanner";
-import { HomeCollections } from "@/widgets/HomeCollections";
-import { TrustBanner } from "@/widgets/TrustBanner";
+// import { HeroBanner } from "@/widgets/HeroBanner";
+// import { HomeCollections } from "@/widgets/HomeCollections";
+// import { TrustBanner } from "@/widgets/TrustBanner";
+import { CatalogSection } from "@/widgets/ProductList";
 
 export const metadata: Metadata = {
   title: "Radolfa — Premium E-Commerce",
@@ -16,9 +17,10 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <HeroBanner />
-      <HomeCollections />
-      <TrustBanner />
+      {/* <HeroBanner /> */}
+      {/* <HomeCollections /> */}
+      {/* <TrustBanner /> */}
+      <CatalogSection />
     </>
   );
 }

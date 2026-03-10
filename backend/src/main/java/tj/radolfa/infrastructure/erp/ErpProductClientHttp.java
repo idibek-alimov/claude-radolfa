@@ -23,7 +23,7 @@ import java.util.List;
  *   ERPNext → Settings → User → Administrator → Generate API Key
  */
 @Component
-@Profile("prod")
+@Profile("!dev & !test")
 public class ErpProductClientHttp implements ErpProductClient {
 
     private static final Logger log = LoggerFactory.getLogger(ErpProductClientHttp.class);

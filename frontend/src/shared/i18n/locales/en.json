@@ -4,6 +4,11 @@
     "myProfile": "My Profile",
     "management": "Management",
     "logout": "Logout",
+    "logoutTitle": "Log out of your account?",
+    "logoutDescription": "You will need to sign in again to access your profile and orders.",
+    "logoutConfirm": "Yes, log out",
+    "logoutCancel": "Cancel",
+    "loggedOut": "You have been logged out",
     "openMenu": "Open menu",
     "language": "Language:"
   },
@@ -72,7 +77,22 @@
     "invalidOtp": "Invalid OTP"
   },
   "search": {
-    "placeholder": "Search products..."
+    "placeholder": "Search products...",
+    "startTitle": "Start your search",
+    "startDescription": "Use the search bar above to find products across the Radolfa catalog.",
+    "resultsFor": "Results for",
+    "productsFound": "{count} products found"
+  },
+  "common": {
+    "home": "Home",
+    "products": "Products",
+    "allProducts": "All Products",
+    "productsAvailable": "{count} products available",
+    "productsCount": "{count} products",
+    "viewAll": "View All",
+    "inStock": "{count} in stock",
+    "outOfStock": "Out of stock",
+    "currency": "TJS"
   },
   "megaMenu": {
     "categories": "Categories"
@@ -146,7 +166,30 @@
     "loyaltyPoints": "Loyalty Points",
     "availablePoints": "Available Points",
     "earnPoints": "Earn points with every purchase!",
-    "failedToUpdateProfile": "Failed to update profile."
+    "failedToUpdateProfile": "Failed to update profile.",
+    "profileUpdated": "Profile updated successfully",
+    "points": "{count} pts",
+    "recentOrder": "Order #{id} · {status}",
+    "viewProfile": "View Profile",
+    "statusPending": "Pending",
+    "statusConfirmed": "Confirmed",
+    "statusShipped": "Shipped",
+    "statusDelivered": "Delivered",
+    "statusCancelled": "Cancelled",
+    "orderPlaced": "Order Placed",
+    "orderConfirmed": "Confirmed",
+    "orderShipped": "Shipped",
+    "orderDelivered": "Delivered",
+    "tierBronze": "Bronze",
+    "tierSilver": "Silver",
+    "tierGold": "Gold",
+    "tierPlatinum": "Platinum",
+    "nextTier": "{points} pts to {tier}",
+    "topTier": "You've reached the highest tier!",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "loyaltyHowTitle": "How it works",
+    "loyaltyHowEarn": "You earn points automatically with every purchase.",
+    "loyaltyHowRedeem": "Points can be used as a discount on future orders."
   },
   "userManagement": {
     "searchPlaceholder": "Search by phone or name...",

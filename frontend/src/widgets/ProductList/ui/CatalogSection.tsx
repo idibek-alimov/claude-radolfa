@@ -4,8 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ProductGrid, fetchListings } from "@/widgets/ProductList";
-import { SearchBar } from "@/features/search";
-import type { SearchParams } from "@/features/search";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -14,11 +12,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb";
+import { useTranslations } from "next-intl";
 
 const PAGE_LIMIT = 12;
 
 export default function CatalogSection() {
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery] = useState<string>("");
+  const t = useTranslations("common");
 
   const {
     data,
@@ -42,10 +42,6 @@ export default function CatalogSection() {
   const listings = data?.pages.flatMap((page) => page.items) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
 
-  const handleSearch = (params: SearchParams) => {
-    setSearchQuery(params.query);
-  };
-
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumb */}
@@ -53,12 +49,12 @@ export default function CatalogSection() {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
+              <Link href="/">{t("home")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Products</BreadcrumbPage>
+            <BreadcrumbPage>{t("products")}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -67,15 +63,14 @@ export default function CatalogSection() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            All Products
+            {t("allProducts")}
           </h1>
           {!isLoading && totalCount > 0 && (
             <p className="text-sm text-muted-foreground mt-1">
-              {totalCount} products available
+              {t("productsAvailable", { count: totalCount })}
             </p>
           )}
         </div>
-        <SearchBar onSearch={handleSearch} />
       </div>
 
       <ProductGrid

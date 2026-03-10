@@ -51,6 +51,7 @@ tj/radolfa/application/ports/in/SyncUsersUseCase.class
 tj/radolfa/infrastructure/security/RateLimiterService.class
 tj/radolfa/domain/util/SlugUtils.class
 tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase.class
+tj/radolfa/infrastructure/erp/ErpProductClientHttp$ErpItemListResponse.class
 tj/radolfa/domain/model/PhoneNumber.class
 tj/radolfa/application/ports/in/SyncCategoriesUseCase.class
 tj/radolfa/application/ports/out/LoadUserPort.class
@@ -70,6 +71,7 @@ tj/radolfa/infrastructure/persistence/adapter/ColorAdapter.class
 tj/radolfa/infrastructure/persistence/entity/StringArrayConverter.class
 tj/radolfa/application/ports/out/IdempotencyPort.class
 tj/radolfa/infrastructure/persistence/repository/ColorRepository.class
+tj/radolfa/infrastructure/erp/ErpProductClientHttp.class
 tj/radolfa/domain/model/PageResult.class
 tj/radolfa/infrastructure/web/dto/UserDto.class
 tj/radolfa/application/ports/out/ListingIndexPort.class
@@ -155,6 +157,7 @@ tj/radolfa/infrastructure/persistence/repository/ProductBaseRepository.class
 tj/radolfa/application/ports/in/SyncUsersUseCase$SyncUserCommand.class
 tj/radolfa/infrastructure/persistence/entity/ColorEntity.class
 tj/radolfa/application/services/GetListingService.class
+tj/radolfa/infrastructure/erp/ErpProductClientHttp$ErpItemRecord.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDetailDto$SiblingVariant.class
 tj/radolfa/application/ports/out/ProcessedImage.class
 tj/radolfa/application/services/ChangeUserRoleService.class

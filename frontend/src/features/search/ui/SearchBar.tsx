@@ -192,7 +192,7 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
           onFocus={() => {
             if (suggestions.length > 0) setIsOpen(true);
           }}
-          placeholder="Search products..."
+          placeholder={t("placeholder")}
           className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground/60 py-2.5 text-[15px]"
           role="combobox"
           aria-expanded={isOpen}

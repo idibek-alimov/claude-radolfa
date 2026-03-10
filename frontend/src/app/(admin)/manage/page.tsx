@@ -242,8 +242,8 @@ function ProductManagement() {
   };
 
   const formatPrice = (start: number, end: number) => {
-    if (start === end) return `$${start.toFixed(2)}`;
-    return `$${start.toFixed(2)} - $${end.toFixed(2)}`;
+    if (start === end) return `${start.toFixed(2)} TJS`;
+    return `${start.toFixed(2)} – ${end.toFixed(2)} TJS`;
   };
 
   return (
@@ -478,10 +478,10 @@ function ProductManagement() {
                         {detail.skus.map((sku) => (
                           <tr key={sku.id} className="border-b last:border-0">
                             <td className="px-3 py-1.5 font-medium">{sku.sizeLabel}</td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground">${sku.price.toFixed(2)}</td>
+                            <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.price.toFixed(2)} TJS</td>
                             <td className="px-3 py-1.5 text-right">
                               {sku.onSale ? (
-                                <span className="text-green-600 font-medium">${sku.salePrice.toFixed(2)}</span>
+                                <span className="text-green-600 font-medium">{sku.salePrice.toFixed(2)} TJS</span>
                               ) : (
                                 <span className="text-muted-foreground">—</span>
                               )}

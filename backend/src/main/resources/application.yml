@@ -26,7 +26,7 @@ spring:
   # --- Flyway --------------------------------------------------------
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration   # prod: common migrations only
 
   # --- Multipart (file upload) ---------------------------------------
   servlet:
@@ -63,13 +63,16 @@ erp:
   api-secret: ${ERP_API_SECRET:}
 
 # --- AWS / S3-compatible storage (Timeweb Cloud) ---------------------
+# Credentials have no hardcoded defaults — must be provided via:
+#   - env vars (production)
+#   - application-local.yml (local dev, gitignored)
 aws:
   s3:
     bucket:     ${AWS_S3_BUCKET:96862269-2691-42c6-84ee-15f60b431da7}
     region:     ${AWS_S3_REGION:ru-1}
     endpoint:   ${AWS_S3_ENDPOINT:https://s3.twcstorage.ru}
-    access-key: ${AWS_ACCESS_KEY_ID:HQT82IRDRUYNZSS2FI8F}
-    secret-key: ${AWS_SECRET_ACCESS_KEY:DDq31dE6ZkW1jRCS1LtDNgDkEwbaBt5R6gdUiOai}
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
 
 # --- Security / JWT --------------------------------------------------
 radolfa:

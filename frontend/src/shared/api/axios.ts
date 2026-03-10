@@ -80,12 +80,19 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError as AxiosError);
 
-      // Refresh failed — redirect to login
+      // Refresh failed — show toast and redirect to login
       if (
         typeof window !== "undefined" &&
         !window.location.pathname.startsWith("/login")
       ) {
-        window.location.href = "/login";
+        const { toast } = await import("sonner");
+        toast.error(
+          "Your session has expired. Please sign in again.",
+          { duration: 4000 }
+        );
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
       }
 
       return Promise.reject(refreshError);

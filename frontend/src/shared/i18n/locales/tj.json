@@ -4,6 +4,11 @@
     "myProfile": "Профили ман",
     "management": "Идоракунӣ",
     "logout": "Баромадан",
+    "logoutTitle": "Аз ҳисоб баромадан?",
+    "logoutDescription": "Барои дастрасӣ ба профил ва фармоишҳо бояд дубора ворид шавед.",
+    "logoutConfirm": "Ҳа, баромадан",
+    "logoutCancel": "Бекор кардан",
+    "loggedOut": "Шумо аз ҳисоб баромадед",
     "openMenu": "Кушодани меню",
     "language": "Забон:"
   },
@@ -72,7 +77,22 @@
     "invalidOtp": "Рамзи нодуруст"
   },
   "search": {
-    "placeholder": "Ҷустуҷӯи молҳо..."
+    "placeholder": "Ҷустуҷӯи молҳо...",
+    "startTitle": "Ҷустуҷӯро оғоз кунед",
+    "startDescription": "Сатри ҷустуҷӯро истифода баред, то молҳоро дар каталоги Radolfa ёбед.",
+    "resultsFor": "Натиҷаҳо барои",
+    "productsFound": "{count} мол ёфт шуд"
+  },
+  "common": {
+    "home": "Асосӣ",
+    "products": "Молҳо",
+    "allProducts": "Ҳамаи молҳо",
+    "productsAvailable": "{count} мол мавҷуд",
+    "productsCount": "{count} мол",
+    "viewAll": "Ҳама",
+    "inStock": "{count} мавҷуд",
+    "outOfStock": "Мавҷуд нест",
+    "currency": "TJS"
   },
   "megaMenu": {
     "categories": "Категорияҳо"
@@ -146,7 +166,30 @@
     "loyaltyPoints": "Баллҳои бонус",
     "availablePoints": "Баллҳои дастрас",
     "earnPoints": "Бо ҳар харид балл гиред!",
-    "failedToUpdateProfile": "Навсозии профил нокомёб шуд."
+    "failedToUpdateProfile": "Навсозии профил нокомёб шуд.",
+    "profileUpdated": "Профил бомуваффақият навсозӣ шуд",
+    "points": "{count} балл",
+    "recentOrder": "Фармоиш #{id} · {status}",
+    "viewProfile": "Кушодани профил",
+    "statusPending": "Дар интизорӣ",
+    "statusConfirmed": "Тасдиқшуда",
+    "statusShipped": "Фиристода шуд",
+    "statusDelivered": "Расонида шуд",
+    "statusCancelled": "Бекор карда шуд",
+    "orderPlaced": "Қабул шуд",
+    "orderConfirmed": "Тасдиқ шуд",
+    "orderShipped": "Фиристода шуд",
+    "orderDelivered": "Расонида шуд",
+    "tierBronze": "Биринҷӣ",
+    "tierSilver": "Нуқрагӣ",
+    "tierGold": "Тиллоӣ",
+    "tierPlatinum": "Платина",
+    "nextTier": "{points} балл то {tier}",
+    "topTier": "Шумо ба дараҷаи олӣ расидед!",
+    "sessionExpired": "Вақти сессия гузашт. Лутфан дубора ворид шавед.",
+    "loyaltyHowTitle": "Чӣ тавр кор мекунад",
+    "loyaltyHowEarn": "Бо ҳар хариди шумо баллҳо худкор ҷамъ мешаванд.",
+    "loyaltyHowRedeem": "Баллҳоро метавонед ҳамчун тахфиф дар фармоишҳои оянда истифода баред."
   },
   "userManagement": {
     "searchPlaceholder": "Ҷустуҷӯ аз рӯи телефон ё ном...",

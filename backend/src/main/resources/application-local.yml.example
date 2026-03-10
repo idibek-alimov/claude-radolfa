@@ -1,0 +1,12 @@
+# ================================================================
+# application-local.yml.example — TEMPLATE FOR LOCAL DEV
+#
+# Copy this file to application-local.yml and fill in real values.
+# application-local.yml is gitignored and must never be committed.
+# Activate by running: SPRING_PROFILES_ACTIVE=dev,local
+# ================================================================
+
+aws:
+  s3:
+    access-key: YOUR_S3_ACCESS_KEY
+    secret-key: YOUR_S3_SECRET_KEY
