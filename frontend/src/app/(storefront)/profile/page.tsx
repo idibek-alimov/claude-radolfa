@@ -434,19 +434,17 @@ export default function ProfilePage() {
                             {new Date(order.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {order.items
-                            .map(
-                              (i) => `${i.productName} (x${i.quantity})`
-                            )
-                            .join(", ")}
+                        <ul className="text-sm text-muted-foreground mb-1 space-y-0.5">
+                          {order.items.map((i, idx) => (
+                            <li key={idx}>
+                              {i.productName} <span className="text-xs">x{i.quantity}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <OrderTimeline status={order.status} />
+                        <p className="font-semibold text-sm text-right mt-3 pt-3 border-t">
+                          {t("total")} ${order.totalAmount}
                         </p>
-                        <div className="flex items-end justify-between">
-                          <OrderTimeline status={order.status} />
-                          <p className="font-semibold text-sm">
-                            {t("total")} ${order.totalAmount}
-                          </p>
-                        </div>
                       </div>
                     ))}
                   </div>
