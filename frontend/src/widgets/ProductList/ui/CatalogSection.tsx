@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ProductGrid, fetchListings } from "@/widgets/ProductList";
-import { SearchBar } from "@/features/search";
-import type { SearchParams } from "@/features/search";
+// import { SearchBar } from "@/features/search";
+// import type { SearchParams } from "@/features/search";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -18,7 +18,7 @@ import {
 const PAGE_LIMIT = 12;
 
 export default function CatalogSection() {
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery] = useState<string>("");
 
   const {
     data,
@@ -41,10 +41,6 @@ export default function CatalogSection() {
 
   const listings = data?.pages.flatMap((page) => page.items) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
-
-  const handleSearch = (params: SearchParams) => {
-    setSearchQuery(params.query);
-  };
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -75,7 +71,7 @@ export default function CatalogSection() {
             </p>
           )}
         </div>
-        <SearchBar onSearch={handleSearch} />
+        {/* <SearchBar onSearch={handleSearch} /> */}
       </div>
 
       <ProductGrid

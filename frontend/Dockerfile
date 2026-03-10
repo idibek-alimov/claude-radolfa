@@ -39,6 +39,10 @@ ARG NEXT_PUBLIC_API_URL=https://api.radolfa.site
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+# Internal backend URL for Next.js server-side rewrites (not browser-visible)
+ARG BACKEND_INTERNAL_URL=http://localhost:8080
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
+
 # Build the application (outputs to .next/standalone with output: 'standalone')
 RUN npm run build
 

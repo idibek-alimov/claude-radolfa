@@ -10,6 +10,8 @@
 .env.*.local
 # Production secrets file — contains real credentials, lives on VPS only
 .env.production
+# Local developer credentials — never commit (use application-local.yml.example as template)
+backend/src/main/resources/application-local.yml
 *.pem
 *.key
 credentials.json
