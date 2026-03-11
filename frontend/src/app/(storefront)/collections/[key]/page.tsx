@@ -46,7 +46,7 @@ export default function CollectionViewAllPage({
   const totalCount = data?.pages[0]?.page.totalElements ?? 0;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumb */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>

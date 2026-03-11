@@ -19,10 +19,12 @@ Inspired by Amazon, Noon, Wildberries patterns. All changes use existing `Listin
 - [x] **Breadcrumb removed** from homepage (was redundant Home > Products). Header simplified to single row: title left, count right.
 - [x] **scrollbar-hide utility** added to `globals.css` for clean horizontal scroll without visible scrollbar.
 
-### 3. Grid Density
-- [ ] Reduce gap to `gap-2` on mobile, `gap-3` on desktop
-- [ ] Add 5th column on `2xl` screens
-- [ ] Consider wider max-width or full-width with padding
+### 3. Grid Density — DONE
+- [x] **Tighter gaps**: Changed from `gap-3 sm:gap-5` to `gap-2 sm:gap-3`.
+- [x] **Earlier 3rd column**: Grid now hits 3 columns at `sm` (640px) instead of `lg` (1024px) — shows more products above the fold on tablets.
+- [x] **5th column on 2xl**: Added `2xl:grid-cols-5` so wide monitors fill the screen with products.
+- [x] **Wider container**: CatalogSection bumped from `max-w-7xl` (1280px) to `max-w-[1600px]` to give the 5th column room.
+- [x] **Skeleton count**: Increased from 8 to 10 to fill the wider grid during loading.
 
 ### 4. Clean Up Homepage Header
 - [ ] Remove breadcrumb from homepage (redundant: Home > Products on the landing page itself)

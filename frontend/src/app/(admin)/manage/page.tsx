@@ -52,7 +52,7 @@ export default function ManagePage() {
   return (
     <ProtectedRoute requiredRole="MANAGER">
       <div className="min-h-screen bg-muted/30 py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">

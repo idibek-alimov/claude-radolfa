@@ -55,7 +55,7 @@ export function MegaMenu() {
 
   if (isLoading) {
     return (
-      <div className="hidden md:flex items-center gap-6 h-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="hidden md:flex items-center gap-6 h-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-4 w-20" />
         ))}
@@ -70,7 +70,7 @@ export function MegaMenu() {
   return (
     <div className="hidden md:block relative" onMouseLeave={startClose}>
       {/* Top-level category bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <ul className="flex items-center gap-1 h-10">
           {categories.map((cat) => (
             <li key={cat.id}>
@@ -97,7 +97,7 @@ export function MegaMenu() {
           onMouseEnter={cancelClose}
           onMouseLeave={startClose}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex gap-8">
               {/* Level 2 column */}
               <div className="w-56 shrink-0">

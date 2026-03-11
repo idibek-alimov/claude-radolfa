@@ -389,7 +389,7 @@ function MobileMenu() {
 export default function Navbar() {
   return (
     <nav className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* ─── Desktop: single row ─────────────────────────────── */}
         <div className="hidden md:flex items-center h-16 gap-6">
           {/* Left — Brand */}
