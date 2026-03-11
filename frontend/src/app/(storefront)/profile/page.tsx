@@ -302,7 +302,7 @@ export default function ProfilePage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-muted/30 py-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Profile Header */}
           <div className="bg-gradient-to-r from-primary/5 via-background to-primary/5 rounded-xl border shadow-sm p-6 sm:p-8 mb-6">
             <div className="flex items-center gap-5">

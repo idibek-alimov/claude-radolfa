@@ -14,7 +14,7 @@ export default function TopSellingSection() {
   const listings = data?.items ?? [];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
           Featured Products

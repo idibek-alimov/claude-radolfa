@@ -1,9 +1,55 @@
 "use client";
 
+import { useMemo } from "react";
 import { ProductCard, ProductCardSkeleton } from "@/entities/product";
+import type { ListingVariant } from "@/entities/product";
 import type { ProductListProps } from "@/widgets/ProductList";
 
-const SKELETON_COUNT = 8;
+const SKELETON_COUNT = 10;
+const CHUNK_SIZE = 10;
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function getDominantCategory(items: ListingVariant[]): string | null {
+  const counts: Record<string, number> = {};
+  for (const item of items) {
+    if (item.category) {
+      counts[item.category] = (counts[item.category] || 0) + 1;
+    }
+  }
+  let max = 0;
+  let dominant: string | null = null;
+  for (const [cat, count] of Object.entries(counts)) {
+    if (count > max) {
+      max = count;
+      dominant = cat;
+    }
+  }
+  return dominant;
+}
+
+function SectionBreak({ label }: { label: string | null }) {
+  return (
+    <div className="w-full flex items-center gap-4 py-2">
+      <div className="flex-1 h-px bg-border" />
+      {label && (
+        <span className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider shrink-0">
+          {label}
+        </span>
+      )}
+      <div className="flex-1 h-px bg-border" />
+    </div>
+  );
+}
+
+const GRID_CLASSES =
+  "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 w-full";
 
 export default function ProductGrid({
   listings,
@@ -11,21 +57,33 @@ export default function ProductGrid({
   hasMore = false,
   onLoadMore,
 }: ProductListProps) {
-  return (
-    <div className="flex flex-col items-center gap-8">
-      {/* Card grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 w-full">
-        {listings.map((listing) => (
-          <ProductCard key={listing.slug} listing={listing} />
-        ))}
+  const chunks = useMemo(() => chunk(listings, CHUNK_SIZE), [listings]);
 
-        {/* Skeleton placeholders during loading */}
-        {loading &&
-          listings.length === 0 &&
-          Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+  return (
+    <div className="flex flex-col items-center gap-6">
+      {chunks.map((group, chunkIndex) => (
+        <div key={chunkIndex} className="w-full">
+          {chunkIndex > 0 && (
+            <div className="mb-4">
+              <SectionBreak label={getDominantCategory(group)} />
+            </div>
+          )}
+          <div className={GRID_CLASSES}>
+            {group.map((listing) => (
+              <ProductCard key={listing.slug} listing={listing} />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Skeleton placeholders during initial load */}
+      {loading && listings.length === 0 && (
+        <div className={GRID_CLASSES}>
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <ProductCardSkeleton key={`skeleton-${i}`} />
           ))}
-      </div>
+        </div>
+      )}
 
       {/* Loading more indicator */}
       {loading && listings.length > 0 && (
