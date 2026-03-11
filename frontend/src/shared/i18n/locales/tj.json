@@ -92,6 +92,8 @@
     "viewAll": "Ҳама",
     "inStock": "{count} мавҷуд",
     "outOfStock": "Мавҷуд нест",
+    "lowStock": "Танҳо {count} монд",
+    "popular": "Маъмул",
     "currency": "TJS"
   },
   "megaMenu": {

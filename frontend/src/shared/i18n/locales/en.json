@@ -92,6 +92,8 @@
     "viewAll": "View All",
     "inStock": "{count} in stock",
     "outOfStock": "Out of stock",
+    "lowStock": "Only {count} left",
+    "popular": "Popular",
     "currency": "TJS"
   },
   "megaMenu": {

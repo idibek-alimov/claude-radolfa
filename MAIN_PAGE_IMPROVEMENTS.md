@@ -1,0 +1,32 @@
+# Main Page UI Improvements Plan
+
+Inspired by Amazon, Noon, Wildberries patterns. All changes use existing `ListingVariant` data — no backend changes needed.
+
+## Tasks
+
+### 1. Product Card Enrichment (highest impact) — DONE
+- [x] **Image swap on hover**: On hover, fades to `images[1]` using opacity transition (replaces old zoom). Uses `useState` for hover state + two stacked `<Image>` elements with `opacity-0`/`opacity-100` crossfade.
+- [x] **Color dot**: Replaced `<Badge>` with a pill containing a colored circle (`colorHexCode`) + text label. White/blur backdrop for readability over images.
+- [x] **Category label**: Added tiny uppercase muted text above product name showing `listing.category`.
+- [x] **Featured/TopSelling badge**: `topSelling` items get a "Popular" badge (top-left) with a `Flame` icon from lucide-react. Added `popular` key to all 3 locale files (en/ru/tj).
+- [x] **Smarter stock display**: Hidden when stock is plentiful. Shows orange "Only X left" when ≤5 (`LOW_STOCK_THRESHOLD`). Out-of-stock gets a dark overlay on the image + red badge. Added `lowStock` key to all 3 locale files.
+- [x] **Price styling**: Kept bold primary styling. Removed description line (was taking space, rarely set). Price row is now always single-line `flex items-center justify-between`.
+- [x] **Tighter card padding**: Reduced from `p-2.5 sm:p-4` to `p-2 sm:p-3`. Reduced gaps from `gap-1 sm:gap-2` to `gap-0.5 sm:gap-1`.
+
+### 2. Category Quick-Filters
+- [ ] Horizontal scrollable row of category pills/chips between header and grid
+- [ ] Uses existing `fetchCategoryTree()` data
+- [ ] Breaks up the monotony, shows product range at a glance
+
+### 3. Grid Density
+- [ ] Reduce gap to `gap-2` on mobile, `gap-3` on desktop
+- [ ] Add 5th column on `2xl` screens
+- [ ] Consider wider max-width or full-width with padding
+
+### 4. Clean Up Homepage Header
+- [ ] Remove breadcrumb from homepage (redundant: Home > Products on the landing page itself)
+- [ ] Simplify "All Products" heading — make it subtler or remove entirely
+
+### 5. Visual Rhythm Breakers
+- [ ] Insert a subtle accent row or section break every 8-12 cards
+- [ ] Could be a category highlight, promotional strip, or a "Trending" horizontal scroll

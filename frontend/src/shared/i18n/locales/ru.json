@@ -92,6 +92,8 @@
     "viewAll": "Все",
     "inStock": "{count} в наличии",
     "outOfStock": "Нет в наличии",
+    "lowStock": "Осталось {count}",
+    "popular": "Популярное",
     "currency": "TJS"
   },
   "megaMenu": {
