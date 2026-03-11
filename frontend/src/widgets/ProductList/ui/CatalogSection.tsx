@@ -39,24 +39,19 @@ export default function CatalogSection() {
 
   return (
     <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      {/* Header row */}
-      <div className="flex items-center justify-between gap-4 mb-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-          {t("allProducts")}
-        </h1>
+      {/* Category pills + count */}
+      <div className="flex items-center justify-between gap-4 mb-5">
+        <div className="flex-1 min-w-0">
+          <CategoryFilter
+            selected={selectedCategory}
+            onSelect={setSelectedCategory}
+          />
+        </div>
         {!isLoading && totalCount > 0 && (
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
+          <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap shrink-0">
             {t("productsAvailable", { count: totalCount })}
           </span>
         )}
-      </div>
-
-      {/* Category pills */}
-      <div className="mb-6">
-        <CategoryFilter
-          selected={selectedCategory}
-          onSelect={setSelectedCategory}
-        />
       </div>
 
       <ProductGrid

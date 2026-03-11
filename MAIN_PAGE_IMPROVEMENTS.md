@@ -26,9 +26,9 @@ Inspired by Amazon, Noon, Wildberries patterns. All changes use existing `Listin
 - [x] **Wider container**: CatalogSection bumped from `max-w-7xl` (1280px) to `max-w-[1600px]` to give the 5th column room.
 - [x] **Skeleton count**: Increased from 8 to 10 to fill the wider grid during loading.
 
-### 4. Clean Up Homepage Header
-- [ ] Remove breadcrumb from homepage (redundant: Home > Products on the landing page itself)
-- [ ] Simplify "All Products" heading — make it subtler or remove entirely
+### 4. Clean Up Homepage Header — DONE
+- [x] **Breadcrumb removed** (already done in task 2).
+- [x] **"All Products" heading removed**: The category pills + "All" pill already communicate context, so the `<h1>` was redundant visual weight. Product count moved inline to the right of the pills row as a small muted label. Single compact line: pills left, count right.
 
 ### 5. Visual Rhythm Breakers
 - [ ] Insert a subtle accent row or section break every 8-12 cards
