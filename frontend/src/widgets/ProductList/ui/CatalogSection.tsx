@@ -1,23 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ProductGrid, fetchListings } from "@/widgets/ProductList";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/shared/ui/breadcrumb";
+import { fetchCategoryProducts } from "@/entities/product";
+import CategoryFilter from "./CategoryFilter";
 import { useTranslations } from "next-intl";
 
 const PAGE_LIMIT = 12;
 
 export default function CatalogSection() {
-  const [searchQuery] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const t = useTranslations("common");
 
   const {
@@ -27,10 +20,12 @@ export default function CatalogSection() {
     isLoading,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["listings", "catalog", searchQuery],
+    queryKey: ["listings", "catalog", selectedCategory],
     queryFn: async ({ pageParam = 1 }) => {
-      const result = await fetchListings(pageParam, PAGE_LIMIT);
-      return result;
+      if (selectedCategory) {
+        return fetchCategoryProducts(selectedCategory, pageParam, PAGE_LIMIT);
+      }
+      return fetchListings(pageParam, PAGE_LIMIT);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
@@ -43,34 +38,25 @@ export default function CatalogSection() {
   const totalCount = data?.pages[0]?.totalElements ?? 0;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/">{t("home")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{t("products")}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Header row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            {t("allProducts")}
-          </h1>
-          {!isLoading && totalCount > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {t("productsAvailable", { count: totalCount })}
-            </p>
-          )}
-        </div>
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+          {t("allProducts")}
+        </h1>
+        {!isLoading && totalCount > 0 && (
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {t("productsAvailable", { count: totalCount })}
+          </span>
+        )}
+      </div>
+
+      {/* Category pills */}
+      <div className="mb-6">
+        <CategoryFilter
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
       </div>
 
       <ProductGrid

@@ -13,10 +13,11 @@ Inspired by Amazon, Noon, Wildberries patterns. All changes use existing `Listin
 - [x] **Price styling**: Kept bold primary styling. Removed description line (was taking space, rarely set). Price row is now always single-line `flex items-center justify-between`.
 - [x] **Tighter card padding**: Reduced from `p-2.5 sm:p-4` to `p-2 sm:p-3`. Reduced gaps from `gap-1 sm:gap-2` to `gap-0.5 sm:gap-1`.
 
-### 2. Category Quick-Filters
-- [ ] Horizontal scrollable row of category pills/chips between header and grid
-- [ ] Uses existing `fetchCategoryTree()` data
-- [ ] Breaks up the monotony, shows product range at a glance
+### 2. Category Quick-Filters — DONE
+- [x] **CategoryFilter component** (`widgets/ProductList/ui/CategoryFilter.tsx`): Horizontal scrollable row of rounded pills. "All" pill + one pill per top-level category from `fetchCategoryTree()` (30min stale time, same as MegaMenu). Left/right chevron scroll buttons appear on hover with gradient fades.
+- [x] **CatalogSection rewired**: Selected category state drives the infinite query — switches between `fetchListings` (all) and `fetchCategoryProducts` (filtered). Query key includes `selectedCategory` so React Query auto-refetches on change.
+- [x] **Breadcrumb removed** from homepage (was redundant Home > Products). Header simplified to single row: title left, count right.
+- [x] **scrollbar-hide utility** added to `globals.css` for clean horizontal scroll without visible scrollbar.
 
 ### 3. Grid Density
 - [ ] Reduce gap to `gap-2` on mobile, `gap-3` on desktop
