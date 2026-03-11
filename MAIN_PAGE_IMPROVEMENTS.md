@@ -30,6 +30,7 @@ Inspired by Amazon, Noon, Wildberries patterns. All changes use existing `Listin
 - [x] **Breadcrumb removed** (already done in task 2).
 - [x] **"All Products" heading removed**: The category pills + "All" pill already communicate context, so the `<h1>` was redundant visual weight. Product count moved inline to the right of the pills row as a small muted label. Single compact line: pills left, count right.
 
-### 5. Visual Rhythm Breakers
-- [ ] Insert a subtle accent row or section break every 8-12 cards
-- [ ] Could be a category highlight, promotional strip, or a "Trending" horizontal scroll
+### 5. Visual Rhythm Breakers — DONE
+- [x] **Chunked grid**: ProductGrid now splits listings into chunks of 10. Each chunk renders as its own grid section.
+- [x] **Section break divider**: Between chunks, a `SectionBreak` component renders a horizontal line with a contextual label (the dominant category name in the next chunk). Gives visual breathing room and context as users scroll.
+- [x] **No backend changes**: Uses existing `listing.category` data to derive the label via `getDominantCategory()` helper.
