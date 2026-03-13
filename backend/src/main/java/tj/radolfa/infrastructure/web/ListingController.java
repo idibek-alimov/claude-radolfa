@@ -37,13 +37,16 @@ public class ListingController {
     private final GetListingUseCase getListingUseCase;
     private final tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase;
     private final UploadImageUseCase uploadImageUseCase;
+    private final TierPricingEnricher tierPricing;
 
     public ListingController(GetListingUseCase getListingUseCase,
             tj.radolfa.application.ports.in.UpdateListingUseCase updateListingUseCase,
-            UploadImageUseCase uploadImageUseCase) {
+            UploadImageUseCase uploadImageUseCase,
+            TierPricingEnricher tierPricing) {
         this.getListingUseCase = getListingUseCase;
         this.updateListingUseCase = updateListingUseCase;
         this.uploadImageUseCase = uploadImageUseCase;
+        this.tierPricing = tierPricing;
     }
 
     @GetMapping
@@ -52,13 +55,14 @@ public class ListingController {
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
-        return ResponseEntity.ok(getListingUseCase.getPage(page, limit));
+        return ResponseEntity.ok(tierPricing.enrich(getListingUseCase.getPage(page, limit)));
     }
 
     @GetMapping("/{slug}")
     @Operation(summary = "Listing detail", description = "Full variant detail with SKUs and sibling colour swatches")
     public ResponseEntity<ListingVariantDetailDto> detail(@PathVariable String slug) {
         return getListingUseCase.getBySlug(slug)
+                .map(tierPricing::enrich)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -70,7 +74,7 @@ public class ListingController {
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
-        return ResponseEntity.ok(getListingUseCase.search(q, page, limit));
+        return ResponseEntity.ok(tierPricing.enrich(getListingUseCase.search(q, page, limit)));
     }
 
     @GetMapping("/autocomplete")

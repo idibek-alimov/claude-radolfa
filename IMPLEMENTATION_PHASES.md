@@ -54,3 +54,18 @@
 - [x] Tests — ALL PASSED
 
 **Checkpoint:** Frontend has everything it needs.
+
+---
+
+## Phase 5 — Review Fixes ✅ DONE
+
+Based on code review feedback, the following fixes were applied:
+
+- [x] **Fix 1 — Backend price calculation:** `TierPricingEnricher.java` resolves user's discount from security context. Added `tierPrice` to `SkuDto`, `tierPriceStart`/`tierPriceEnd` to `ListingVariantDto` and `ListingVariantDetailDto`. All product controllers (`ListingController`, `HomeController`, `CategoryController`) now enrich responses with tier pricing.
+- [x] **Fix 2 — BigDecimal serialization:** Explicit Jackson config in `application.yml` (`write-bigdecimal-as-plain: true`) — guarantees numbers, not strings.
+- [x] **Fix 3 — Rename `rank` → `displayOrder`:** `V15__rename_rank_to_display_order.sql` migration + renamed across all 10 files (domain, entity, mapper, DTOs, services, repository, controller).
+- [x] **Fix 4 — Populate `spendToNextTier` for no-tier users:** Both `SyncUsersService` and `SyncLoyaltyPointsService` now compute `lowestTier.minSpendRequirement - currentMonthSpending` when tier is null.
+- [x] Compile check — PASSED
+- [x] Tests — ALL PASSED
+
+**Checkpoint:** All review feedback addressed. Backend feature complete.

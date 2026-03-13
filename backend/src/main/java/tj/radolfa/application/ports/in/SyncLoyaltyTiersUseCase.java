@@ -10,7 +10,7 @@ public interface SyncLoyaltyTiersUseCase {
             BigDecimal discountPercentage,
             BigDecimal cashbackPercentage,
             BigDecimal minSpendRequirement,
-            int rank) {
+            int displayOrder) {
     }
 
     void execute(List<SyncTierCommand> commands);

@@ -8,6 +8,6 @@ public record LoyaltyTier(
         BigDecimal discountPercentage,
         BigDecimal cashbackPercentage,
         BigDecimal minSpendRequirement,
-        int rank,
+        int displayOrder,
         Long version
 ) {}

@@ -12,6 +12,8 @@ import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.User;
 
+import java.math.BigDecimal;
+
 @Service
 public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
 
@@ -40,14 +42,16 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
         }
 
         User user = userOpt.get();
-        LoyaltyTier tier = resolveTier(command.tierName(), user.loyalty().tier());
+        LoyaltyProfile currentLoyalty = user.loyalty() != null ? user.loyalty() : LoyaltyProfile.empty();
+        LoyaltyTier tier = resolveTier(command.tierName(), currentLoyalty.tier());
 
+        BigDecimal monthSpending = command.currentMonthSpending() != null ? command.currentMonthSpending() : currentLoyalty.currentMonthSpending();
         LoyaltyProfile updatedLoyalty = new LoyaltyProfile(
                 tier,
                 command.points(),
-                command.spendToNextTier() != null ? command.spendToNextTier() : user.loyalty().spendToNextTier(),
-                command.spendToMaintainTier() != null ? command.spendToMaintainTier() : user.loyalty().spendToMaintainTier(),
-                command.currentMonthSpending() != null ? command.currentMonthSpending() : user.loyalty().currentMonthSpending());
+                computeSpendToNextTier(tier, command.spendToNextTier(), monthSpending),
+                command.spendToMaintainTier() != null ? command.spendToMaintainTier() : currentLoyalty.spendToMaintainTier(),
+                monthSpending);
 
         User updated = new User(
                 user.id(),
@@ -67,5 +71,20 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
     private LoyaltyTier resolveTier(String tierName, LoyaltyTier currentTier) {
         if (tierName == null || tierName.isBlank()) return currentTier;
         return loadLoyaltyTierPort.findByName(tierName).orElse(currentTier);
+    }
+
+    private BigDecimal computeSpendToNextTier(LoyaltyTier resolvedTier,
+                                              BigDecimal explicitSpendToNext,
+                                              BigDecimal currentMonthSpending) {
+        if (explicitSpendToNext != null) return explicitSpendToNext;
+        if (resolvedTier != null) return null;
+
+        var tiers = loadLoyaltyTierPort.findAll();
+        if (tiers.isEmpty()) return null;
+
+        LoyaltyTier lowestTier = tiers.get(0);
+        BigDecimal spending = currentMonthSpending != null ? currentMonthSpending : BigDecimal.ZERO;
+        BigDecimal gap = lowestTier.minSpendRequirement().subtract(spending);
+        return gap.compareTo(BigDecimal.ZERO) > 0 ? gap : BigDecimal.ZERO;
     }
 }

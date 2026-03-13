@@ -145,6 +145,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getImages() != null ? doc.getImages() : List.of(),
                                 doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,
                                 doc.getPriceEnd() != null ? BigDecimal.valueOf(doc.getPriceEnd()) : null,
+                                null,    // tierPriceStart (enriched by controller)
+                                null,    // tierPriceEnd (enriched by controller)
                                 doc.getTotalStock(),
                                 doc.getTopSelling() != null && doc.getTopSelling(),
                                 doc.getFeatured() != null && doc.getFeatured()

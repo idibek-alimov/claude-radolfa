@@ -11,8 +11,8 @@
 The backend now supports multi-tier loyalty programs (Gold, Platinum, Titanium, etc.) synced from ERPNext. The key changes that affect the frontend are:
 
 1. **`GET /api/v1/auth/me`** — The `UserDto` response shape changed. The flat `loyaltyPoints: number` field is replaced with a nested `loyalty` object containing points, tier info, and spending progress.
-2. **`GET /api/v1/loyalty-tiers`** — New endpoint returning all available tiers ordered by rank.
-3. **Price display shift** — All catalog prices from the backend are **base prices**. The frontend is now responsible for applying the user's `loyalty.tier.discountPercentage` to compute the displayed price.
+2. **`GET /api/v1/loyalty-tiers`** — New endpoint returning all available tiers ordered by `displayOrder`.
+3. **Tier-aware pricing** — Product endpoints now return both **base prices** and **tier-discounted prices** (`tierPriceStart`, `tierPriceEnd`, `tierPrice`) computed server-side via `TierPricingEnricher`. The frontend should display the tier prices when available, falling back to base prices for unauthenticated users.
 
 ---
 
@@ -50,7 +50,7 @@ Returns the currently authenticated user. **Auth required** (cookie-based JWT).
       "discountPercentage": 15.00,
       "cashbackPercentage": 7.50,
       "minSpendRequirement": 50000.00,
-      "rank": 2
+      "displayOrder": 2
     },
     "spendToNextTier": 25000.00,
     "spendToMaintainTier": 0.00,
@@ -70,20 +70,20 @@ Returns the currently authenticated user. **Auth required** (cookie-based JWT).
 | `loyalty.tier.discountPercentage` | `number` | No | Discount % to apply on catalog base prices |
 | `loyalty.tier.cashbackPercentage` | `number` | No | Cashback % earned on purchases |
 | `loyalty.tier.minSpendRequirement` | `number` | No | Minimum monthly spend to qualify for this tier |
-| `loyalty.tier.rank` | `number` | No | Display order. Lower = higher tier (1 is best) |
-| `loyalty.spendToNextTier` | `number` | **Yes** | Amount remaining to reach the next tier. `null` if already at highest tier |
+| `loyalty.tier.displayOrder` | `number` | No | Display order. Lower = higher tier (1 is best) |
+| `loyalty.spendToNextTier` | `number` | **Yes** | Amount remaining to reach the next tier. `null` if already at highest tier. For users with **no tier**, the backend auto-computes this as the gap to the entry-level tier. |
 | `loyalty.spendToMaintainTier` | `number` | **Yes** | Amount remaining this month to keep current tier. `null` if no tier |
 | `loyalty.currentMonthSpending` | `number` | **Yes** | Total spent in the current calendar month |
 
-> **Note on JSON number types:** Java `BigDecimal` fields may serialize as strings (e.g., `"15.00"`) depending on Jackson config. Use `parseFloat()` or `Number()` when consuming these values.
+> **Note on JSON number types:** The backend guarantees `BigDecimal` values serialize as plain JSON numbers (e.g., `15.00`, not `"15.00"` or `1.5E+1`). This is enforced via Jackson's `write-bigdecimal-as-plain: true` configuration.
 
 ---
 
-### 2.2 `GET /api/v1/loyalty-tiers` (Public)
+### 2.2 `GET /api/v1/loyalty-tiers` (Protected)
 
-Returns **all** available loyalty tiers, ordered by `rank` ascending (best tier first).
+Returns **all** available loyalty tiers, ordered by `displayOrder` ascending (best tier first).
 
-**Auth:** Not required.
+**Auth:** Required (any authenticated user).
 
 #### Response
 ```json
@@ -93,21 +93,21 @@ Returns **all** available loyalty tiers, ordered by `rank` ascending (best tier 
     "discountPercentage": 20.00,
     "cashbackPercentage": 10.00,
     "minSpendRequirement": 100000.00,
-    "rank": 1
+    "displayOrder": 1
   },
   {
     "name": "PLATINUM",
     "discountPercentage": 15.00,
     "cashbackPercentage": 7.50,
     "minSpendRequirement": 50000.00,
-    "rank": 2
+    "displayOrder": 2
   },
   {
     "name": "GOLD",
     "discountPercentage": 5.00,
     "cashbackPercentage": 2.50,
     "minSpendRequirement": 10000.00,
-    "rank": 3
+    "displayOrder": 3
   }
 ]
 ```
@@ -116,6 +116,52 @@ Use this endpoint to render:
 - A full tier ladder / progress visualization
 - "Next tier" comparisons
 - Tier benefit breakdowns
+
+---
+
+### 2.3 Product Endpoints — Tier Pricing Fields (Automatic)
+
+Product listing and detail endpoints now include **server-computed tier prices** for authenticated users. No additional API calls needed — the backend resolves the user's discount from the JWT.
+
+#### Listing Cards (`GET /listings`, `/categories/*/listings`, `/home/collections`)
+
+```json
+{
+  "id": 42,
+  "slug": "cotton-tshirt-red",
+  "priceStart": 100.00,
+  "priceEnd": 150.00,
+  "tierPriceStart": 85.00,
+  "tierPriceEnd": 127.50,
+  "..."
+}
+```
+
+#### Product Detail (`GET /listings/{slug}`)
+
+```json
+{
+  "id": 42,
+  "tierPriceStart": 85.00,
+  "tierPriceEnd": 127.50,
+  "skus": [
+    {
+      "id": 101,
+      "sizeLabel": "M",
+      "price": 100.00,
+      "salePrice": null,
+      "tierPrice": 85.00,
+      "..."
+    }
+  ]
+}
+```
+
+| Field | Type | Nullable | When `null` |
+|-------|------|----------|-------------|
+| `tierPriceStart` | `number` | **Yes** | User not authenticated or has no tier |
+| `tierPriceEnd` | `number` | **Yes** | User not authenticated or has no tier |
+| `tierPrice` (SKU) | `number` | **Yes** | User not authenticated or has no tier |
 
 ---
 
@@ -145,7 +191,7 @@ export interface LoyaltyTier {
   discountPercentage: number;
   cashbackPercentage: number;
   minSpendRequirement: number;
-  rank: number;
+  displayOrder: number;
 }
 
 export interface LoyaltyProfile {
@@ -182,23 +228,29 @@ The verify endpoint returns `AuthResponseDto` which contains a `user` field. Tha
 
 ## 4. Frontend Responsibilities
 
-### 4.1 Price Calculation (Critical)
+### 4.1 Tier Pricing (Server-Side Enriched)
 
-The backend returns **base prices** for all catalog products. The frontend must apply the tier discount:
+The backend **computes tier-discounted prices server-side** via `TierPricingEnricher`. Product listing and detail endpoints now include additional fields:
+
+| Endpoint | New Fields |
+|----------|------------|
+| `GET /listings`, `/categories/*/listings`, `/home/collections` | `tierPriceStart`, `tierPriceEnd` on each listing card |
+| `GET /listings/{slug}` | `tierPriceStart`, `tierPriceEnd` on the detail + `tierPrice` on each SKU |
+
+- **Authenticated users with a tier:** `tierPriceStart`/`tierPriceEnd`/`tierPrice` will contain the discounted values.
+- **Unauthenticated users or users without a tier:** These fields will be `null`. Use `priceStart`/`priceEnd`/`price` as fallback.
 
 ```typescript
-function getDiscountedPrice(basePrice: number, user: User): number {
-  if (!user.loyalty.tier) return basePrice;
-  const discount = user.loyalty.tier.discountPercentage / 100;
-  return basePrice * (1 - discount);
+function getDisplayPrice(listing: ListingVariant): number {
+  return listing.tierPriceStart ?? listing.priceStart;
 }
 ```
 
-Display both prices to the user:
+Display both prices to the user when tier pricing is available:
 - ~~Base price~~ (strikethrough)
-- **Discounted price** (highlighted)
+- **Tier price** (highlighted)
 
-Only apply the discount when a user is authenticated AND has a tier assigned.
+> **Note:** The `TierPricingEnricher` resolves the user's discount from the JWT security context, so no extra API calls are needed — product endpoints automatically return tier-aware prices for logged-in users.
 
 ### 4.2 Tier Progress UI
 
@@ -220,8 +272,8 @@ Current: GOLD (5% discount)
 When `loyalty.tier === null`:
 - User has no tier (new user or below minimum spend)
 - Show a "Join our loyalty program" or "Start earning" CTA
-- Do NOT apply any discount to prices
-- Show the first tier's `minSpendRequirement` as the goal
+- Do NOT apply any discount to prices (tier price fields will be `null` in product responses)
+- `spendToNextTier` is **auto-populated by the backend** with the gap to the entry-level tier, so you can show progress directly without cross-referencing `/loyalty-tiers`
 
 ---
 
@@ -231,12 +283,12 @@ When `loyalty.tier === null`:
 frontend/src/
 ├── entities/
 │   └── loyalty/
-│       └── model/
-│           └── types.ts          # LoyaltyTier, LoyaltyProfile interfaces
+│       ├── model/
+│       │   └── types.ts          # LoyaltyTier, LoyaltyProfile interfaces
+│       └── api.ts                # getLoyaltyTiers() query hook (data fetching)
 │
 ├── features/
 │   └── loyalty/
-│       ├── api.ts                # getLoyaltyTiers() API call
 │       └── ui/
 │           ├── LoyaltyCard.tsx   # User's current loyalty status
 │           ├── TierProgress.tsx  # Progress bar to next tier
@@ -247,12 +299,14 @@ frontend/src/
 │       └── LoyaltyDashboard.tsx  # Composed widget for profile page
 ```
 
+> **FSD Note:** The query hook for fetching tier data belongs in `entities/loyalty/api.ts` (pure data fetching), not in `features/` (reserved for user actions/mutations).
+
 ---
 
 ## 6. API Call Example (TanStack Query)
 
 ```typescript
-// features/loyalty/api.ts
+// entities/loyalty/api.ts
 import apiClient from "@/shared/api/axios";
 import type { LoyaltyTier } from "@/entities/loyalty/model/types";
 
@@ -287,7 +341,8 @@ ERPNext (Source of Truth)
                 Frontend (Display Only)
                 ├── Show tier badge & benefits
                 ├── Show progress to next tier
-                ├── Apply discount % to catalog base prices
+                ├── Display tier prices from product endpoints (server-computed)
+                ├── Fall back to base prices for unauthenticated users
                 └── Show points balance
 ```
 
@@ -299,8 +354,8 @@ ERPNext (Source of Truth)
 
 | Scenario | `loyalty.tier` | `spendToNextTier` | What to show |
 |----------|---------------|-------------------|--------------|
-| New user, no purchases | `null` | `null` | "Start earning!" CTA |
-| User below first tier | `null` | `null` | Progress to first tier using `minSpendRequirement` from `/loyalty-tiers` |
+| New user, no purchases | `null` | Auto-computed gap to entry tier | "Start earning!" CTA with progress bar |
+| User below first tier | `null` | Auto-computed gap to entry tier | Progress bar to first tier (no cross-referencing needed) |
 | User at GOLD tier | `{name: "GOLD", ...}` | `25000.00` | Progress bar to PLATINUM |
 | User at highest tier | `{name: "TITANIUM", ...}` | `null` | "You're at the top!" badge |
 | User at risk of demotion | `{...}` | — | `spendToMaintainTier > 0` → show warning |

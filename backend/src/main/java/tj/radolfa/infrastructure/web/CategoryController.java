@@ -22,11 +22,14 @@ public class CategoryController {
 
     private final LoadCategoryPort loadCategoryPort;
     private final LoadListingPort loadListingPort;
+    private final TierPricingEnricher tierPricing;
 
     public CategoryController(LoadCategoryPort loadCategoryPort,
-                               LoadListingPort loadListingPort) {
+                               LoadListingPort loadListingPort,
+                               TierPricingEnricher tierPricing) {
         this.loadCategoryPort = loadCategoryPort;
         this.loadListingPort = loadListingPort;
+        this.tierPricing = tierPricing;
     }
 
     @GetMapping
@@ -49,7 +52,7 @@ public class CategoryController {
 
         List<Long> categoryIds = loadCategoryPort.getAllDescendantIds(category.id());
         PageResult<ListingVariantDto> result = loadListingPort.loadByCategoryIds(categoryIds, page, limit);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(tierPricing.enrich(result));
     }
 
     private List<CategoryTreeDto> buildTree(List<CategoryView> all) {

@@ -102,6 +102,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 imageMap.getOrDefault(id, List.of()),
                                 toBigDecimal(row[7]),  // priceStart
                                 toBigDecimal(row[8]),  // priceEnd
+                                null,                  // tierPriceStart (enriched by controller)
+                                null,                  // tierPriceEnd (enriched by controller)
                                 toInteger(row[9]),     // totalStock
                                 (Boolean) row[6],      // topSelling
                                 (Boolean) row[11]);    // featured
@@ -179,6 +181,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 images,
                                 priceStart,
                                 priceEnd,
+                                null,    // tierPriceStart (enriched by controller)
+                                null,    // tierPriceEnd (enriched by controller)
                                 totalStock,
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
@@ -208,6 +212,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getStockQuantity(),
                                 entity.getPrice(),
                                 entity.getSalePrice(),
+                                null,    // tierPrice (enriched by controller)
                                 onSale,
                                 entity.getSaleEndsAt());
         }

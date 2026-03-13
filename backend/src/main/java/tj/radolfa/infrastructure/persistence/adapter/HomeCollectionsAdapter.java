@@ -99,6 +99,8 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
                 imageMap.getOrDefault(id, List.of()),
                 toBigDecimal(row[7]),  // priceStart
                 toBigDecimal(row[8]),  // priceEnd
+                null,                  // tierPriceStart (enriched by controller)
+                null,                  // tierPriceEnd (enriched by controller)
                 toInteger(row[9]),     // totalStock
                 (Boolean) row[6],      // topSelling
                 (Boolean) row[11]);    // featured

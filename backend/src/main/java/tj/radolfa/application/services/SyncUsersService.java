@@ -14,6 +14,7 @@ import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -67,13 +68,16 @@ public class SyncUsersService implements SyncUsersUseCase {
 
         if (existing.isPresent()) {
             User user = existing.get();
-            int points = command.loyaltyPoints() != null ? command.loyaltyPoints() : user.loyalty().points();
+            LoyaltyProfile currentLoyalty = user.loyalty() != null ? user.loyalty() : LoyaltyProfile.empty();
+            LoyaltyTier effectiveTier = tier != null ? tier : currentLoyalty.tier();
+            int points = command.loyaltyPoints() != null ? command.loyaltyPoints() : currentLoyalty.points();
+            BigDecimal monthSpending = command.currentMonthSpending() != null ? command.currentMonthSpending() : currentLoyalty.currentMonthSpending();
             LoyaltyProfile loyalty = new LoyaltyProfile(
-                    tier != null ? tier : user.loyalty().tier(),
+                    effectiveTier,
                     points,
-                    command.spendToNextTier() != null ? command.spendToNextTier() : user.loyalty().spendToNextTier(),
-                    command.spendToMaintainTier() != null ? command.spendToMaintainTier() : user.loyalty().spendToMaintainTier(),
-                    command.currentMonthSpending() != null ? command.currentMonthSpending() : user.loyalty().currentMonthSpending());
+                    computeSpendToNextTier(effectiveTier, command.spendToNextTier(), monthSpending),
+                    command.spendToMaintainTier() != null ? command.spendToMaintainTier() : currentLoyalty.spendToMaintainTier(),
+                    monthSpending);
 
             User updated = new User(
                     user.id(),
@@ -91,7 +95,7 @@ public class SyncUsersService implements SyncUsersUseCase {
             LoyaltyProfile loyalty = new LoyaltyProfile(
                     tier,
                     points,
-                    command.spendToNextTier(),
+                    computeSpendToNextTier(tier, command.spendToNextTier(), command.currentMonthSpending()),
                     command.spendToMaintainTier(),
                     command.currentMonthSpending());
 
@@ -112,5 +116,24 @@ public class SyncUsersService implements SyncUsersUseCase {
     private LoyaltyTier resolveTier(String tierName) {
         if (tierName == null || tierName.isBlank()) return null;
         return loadLoyaltyTierPort.findByName(tierName).orElse(null);
+    }
+
+    /**
+     * When a user has no tier, compute spendToNextTier as the gap between
+     * the lowest tier's minSpendRequirement and the user's current month spending.
+     */
+    private BigDecimal computeSpendToNextTier(LoyaltyTier resolvedTier,
+                                              BigDecimal explicitSpendToNext,
+                                              BigDecimal currentMonthSpending) {
+        if (explicitSpendToNext != null) return explicitSpendToNext;
+        if (resolvedTier != null) return null;
+
+        var tiers = loadLoyaltyTierPort.findAll();
+        if (tiers.isEmpty()) return null;
+
+        LoyaltyTier lowestTier = tiers.get(0);
+        BigDecimal spending = currentMonthSpending != null ? currentMonthSpending : BigDecimal.ZERO;
+        BigDecimal gap = lowestTier.minSpendRequirement().subtract(spending);
+        return gap.compareTo(BigDecimal.ZERO) > 0 ? gap : BigDecimal.ZERO;
     }
 }

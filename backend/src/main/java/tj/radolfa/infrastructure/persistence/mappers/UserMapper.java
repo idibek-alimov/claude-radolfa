@@ -56,7 +56,7 @@ public interface UserMapper {
         entity.setDiscountPercentage(tier.discountPercentage());
         entity.setCashbackPercentage(tier.cashbackPercentage());
         entity.setMinSpendRequirement(tier.minSpendRequirement());
-        entity.setRank(tier.rank());
+        entity.setDisplayOrder(tier.displayOrder());
         entity.setVersion(tier.version());
         return entity;
     }
@@ -69,7 +69,7 @@ public interface UserMapper {
                 entity.getDiscountPercentage(),
                 entity.getCashbackPercentage(),
                 entity.getMinSpendRequirement(),
-                entity.getRank(),
+                entity.getDisplayOrder(),
                 entity.getVersion());
     }
 

@@ -32,6 +32,6 @@ public class LoyaltyTierEntity extends BaseAuditEntity {
     @Column(name = "min_spend_requirement", nullable = false)
     private BigDecimal minSpendRequirement;
 
-    @Column(name = "rank", nullable = false)
-    private int rank;
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder;
 }

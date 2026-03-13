@@ -11,5 +11,5 @@ public interface LoyaltyTierRepository extends JpaRepository<LoyaltyTierEntity, 
 
     Optional<LoyaltyTierEntity> findByName(String name);
 
-    List<LoyaltyTierEntity> findAllByOrderByRankAsc();
+    List<LoyaltyTierEntity> findAllByOrderByDisplayOrderAsc();
 }

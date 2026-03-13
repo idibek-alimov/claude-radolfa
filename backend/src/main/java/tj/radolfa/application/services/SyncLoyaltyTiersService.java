@@ -45,7 +45,7 @@ public class SyncLoyaltyTiersService implements SyncLoyaltyTiersUseCase {
                     command.discountPercentage(),
                     command.cashbackPercentage(),
                     command.minSpendRequirement(),
-                    command.rank(),
+                    command.displayOrder(),
                     tier.version());
             saveLoyaltyTierPort.save(updated);
             LOG.info("[TIER-SYNC] Updated tier={}", command.name());
@@ -56,7 +56,7 @@ public class SyncLoyaltyTiersService implements SyncLoyaltyTiersUseCase {
                     command.discountPercentage(),
                     command.cashbackPercentage(),
                     command.minSpendRequirement(),
-                    command.rank(),
+                    command.displayOrder(),
                     null);
             saveLoyaltyTierPort.save(newTier);
             LOG.info("[TIER-SYNC] Created tier={}", command.name());

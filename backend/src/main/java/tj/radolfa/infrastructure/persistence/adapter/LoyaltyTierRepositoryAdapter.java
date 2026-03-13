@@ -31,7 +31,7 @@ public class LoyaltyTierRepositoryAdapter implements LoadLoyaltyTierPort, SaveLo
 
     @Override
     public List<LoyaltyTier> findAll() {
-        return repository.findAllByOrderByRankAsc()
+        return repository.findAllByOrderByDisplayOrderAsc()
                 .stream()
                 .map(mapper::toDomain)
                 .toList();

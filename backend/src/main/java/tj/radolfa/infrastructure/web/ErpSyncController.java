@@ -234,7 +234,7 @@ public class ErpSyncController {
                                                         p.discountPercentage(),
                                                         p.cashbackPercentage(),
                                                         p.minSpendRequirement(),
-                                                        p.rank()))
+                                                        p.displayOrder()))
                                         .toList();
 
                         syncLoyaltyTiersUseCase.execute(commands);

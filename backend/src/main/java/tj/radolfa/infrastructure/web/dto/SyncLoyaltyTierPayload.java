@@ -11,5 +11,5 @@ public record SyncLoyaltyTierPayload(
         @NotNull @PositiveOrZero BigDecimal discountPercentage,
         @NotNull @PositiveOrZero BigDecimal cashbackPercentage,
         @NotNull @PositiveOrZero BigDecimal minSpendRequirement,
-        int rank) {
+        int displayOrder) {
 }
