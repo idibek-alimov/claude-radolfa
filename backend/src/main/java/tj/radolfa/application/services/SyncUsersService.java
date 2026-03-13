@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.SyncUsersUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
+import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
@@ -58,25 +59,36 @@ public class SyncUsersService implements SyncUsersUseCase {
 
         if (existing.isPresent()) {
             User user = existing.get();
+            int points = command.loyaltyPoints() != null ? command.loyaltyPoints() : user.loyalty().points();
+            LoyaltyProfile loyalty = new LoyaltyProfile(
+                    user.loyalty().tier(),
+                    points,
+                    user.loyalty().spendToNextTier(),
+                    user.loyalty().spendToMaintainTier(),
+                    user.loyalty().currentMonthSpending());
+
             User updated = new User(
                     user.id(),
                     phone,
                     command.role() != null ? command.role() : user.role(),
                     command.name() != null ? command.name() : user.name(),
                     email != null ? email : user.email(),
-                    command.loyaltyPoints() != null ? command.loyaltyPoints() : user.loyaltyPoints(),
+                    loyalty,
                     command.enabled() != null ? command.enabled() : user.enabled(),
                     user.version());
             saveUserPort.save(updated);
             LOG.info("[USER-SYNC] Updated user phone={}", phone.value());
         } else {
+            int points = command.loyaltyPoints() != null ? command.loyaltyPoints() : 0;
+            LoyaltyProfile loyalty = new LoyaltyProfile(null, points, null, null, null);
+
             User newUser = new User(
                     null,
                     phone,
                     command.role() != null ? command.role() : UserRole.USER,
                     command.name(),
                     email,
-                    command.loyaltyPoints() != null ? command.loyaltyPoints() : 0,
+                    loyalty,
                     command.enabled() != null ? command.enabled() : true,
                     null);
             saveUserPort.save(newUser);

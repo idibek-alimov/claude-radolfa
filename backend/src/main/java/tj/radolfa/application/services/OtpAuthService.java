@@ -9,6 +9,7 @@ import tj.radolfa.application.ports.in.VerifyOtpUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.domain.model.PhoneNumber;
+import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtUtil;
@@ -109,7 +110,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
      * Creates a new user with default USER role.
      */
     private User createNewUser(PhoneNumber phone) {
-        User newUser = new User(null, phone, UserRole.USER, null, null, 0, true, null);
+        User newUser = new User(null, phone, UserRole.USER, null, null, LoyaltyProfile.empty(), true, null);
         User saved = saveUserPort.save(newUser);
         LOG.info("[AUTH] Created new user: phone={}, id={}", mask(phone), saved.id());
         return saved;

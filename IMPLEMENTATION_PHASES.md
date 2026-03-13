@@ -16,11 +16,13 @@
 
 ---
 
-## Phase 2 — User Model Upgrade
-- [ ] Modify `User.java` — replace `loyaltyPoints` with `LoyaltyProfile loyalty`
-- [ ] Modify `UserEntity.java` — add `tier`, `spendToNextTier`, `spendToMaintainTier`, `currentMonthSpending`
-- [ ] Modify `UserMapper.java` — flat entity fields ↔ nested `LoyaltyProfile`
-- [ ] Fix all compilation errors across services/controllers
+## Phase 2 — User Model Upgrade ✅ DONE
+- [x] Modify `User.java` — replace `loyaltyPoints` with `LoyaltyProfile loyalty`
+- [x] Modify `UserEntity.java` — add `tier`, `spendToNextTier`, `spendToMaintainTier`, `currentMonthSpending`
+- [x] Modify `UserMapper.java` — flat entity fields ↔ nested `LoyaltyProfile` (with `LoyaltyTierMapper` via `uses`)
+- [x] Fix all compilation errors (6 services: OtpAuth, ChangeRole, ToggleStatus, UpdateProfile, SyncUsers, SyncLoyaltyPoints)
+- [x] Compile check — PASSED
+- [x] Tests — ALL PASSED
 
 **Checkpoint:** Compiles. Existing tests pass with updated model.
 

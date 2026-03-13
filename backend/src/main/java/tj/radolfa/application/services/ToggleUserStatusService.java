@@ -43,7 +43,7 @@ public class ToggleUserStatusService implements ToggleUserStatusUseCase {
                 target.role(),
                 target.name(),
                 target.email(),
-                target.loyaltyPoints(),
+                target.loyalty(),
                 enabled,
                 target.version());
 

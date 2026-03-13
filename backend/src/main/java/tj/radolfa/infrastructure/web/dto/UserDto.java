@@ -21,7 +21,7 @@ public record UserDto(
                 user.role().name(),
                 user.name(),
                 user.email(),
-                user.loyaltyPoints(),
+                user.loyalty() != null ? user.loyalty().points() : 0,
                 user.enabled()
         );
     }

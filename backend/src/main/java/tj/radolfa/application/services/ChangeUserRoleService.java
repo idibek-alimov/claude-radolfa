@@ -39,7 +39,7 @@ public class ChangeUserRoleService implements ChangeUserRoleUseCase {
                 newRole,
                 user.name(),
                 user.email(),
-                user.loyaltyPoints(),
+                user.loyalty(),
                 user.enabled(),
                 user.version());
 

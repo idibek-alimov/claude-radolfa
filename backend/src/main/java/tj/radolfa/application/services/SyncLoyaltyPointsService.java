@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
+import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.User;
 
 @Service
@@ -33,13 +34,20 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
         }
 
         User user = userOpt.get();
+        LoyaltyProfile updatedLoyalty = new LoyaltyProfile(
+                user.loyalty().tier(),
+                command.points(),
+                user.loyalty().spendToNextTier(),
+                user.loyalty().spendToMaintainTier(),
+                user.loyalty().currentMonthSpending());
+
         User updated = new User(
                 user.id(),
                 user.phone(),
                 user.role(),
                 user.name(),
                 user.email(),
-                command.points(),
+                updatedLoyalty,
                 user.enabled(),
                 user.version());
 
