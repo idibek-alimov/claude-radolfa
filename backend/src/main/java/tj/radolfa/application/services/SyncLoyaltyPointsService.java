@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase;
+import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.domain.model.LoyaltyProfile;
+import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.User;
 
 @Service
@@ -17,10 +19,14 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
 
     private final LoadUserPort loadUserPort;
     private final SaveUserPort saveUserPort;
+    private final LoadLoyaltyTierPort loadLoyaltyTierPort;
 
-    public SyncLoyaltyPointsService(LoadUserPort loadUserPort, SaveUserPort saveUserPort) {
+    public SyncLoyaltyPointsService(LoadUserPort loadUserPort,
+                                    SaveUserPort saveUserPort,
+                                    LoadLoyaltyTierPort loadLoyaltyTierPort) {
         this.loadUserPort = loadUserPort;
         this.saveUserPort = saveUserPort;
+        this.loadLoyaltyTierPort = loadLoyaltyTierPort;
     }
 
     @Override
@@ -34,12 +40,14 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
         }
 
         User user = userOpt.get();
+        LoyaltyTier tier = resolveTier(command.tierName(), user.loyalty().tier());
+
         LoyaltyProfile updatedLoyalty = new LoyaltyProfile(
-                user.loyalty().tier(),
+                tier,
                 command.points(),
-                user.loyalty().spendToNextTier(),
-                user.loyalty().spendToMaintainTier(),
-                user.loyalty().currentMonthSpending());
+                command.spendToNextTier() != null ? command.spendToNextTier() : user.loyalty().spendToNextTier(),
+                command.spendToMaintainTier() != null ? command.spendToMaintainTier() : user.loyalty().spendToMaintainTier(),
+                command.currentMonthSpending() != null ? command.currentMonthSpending() : user.loyalty().currentMonthSpending());
 
         User updated = new User(
                 user.id(),
@@ -52,6 +60,12 @@ public class SyncLoyaltyPointsService implements SyncLoyaltyPointsUseCase {
                 user.version());
 
         saveUserPort.save(updated);
-        LOG.info("[LOYALTY-SYNC] Updated loyalty points for phone={}, points={}", command.phone(), command.points());
+        LOG.info("[LOYALTY-SYNC] Updated loyalty for phone={}, points={}, tier={}",
+                command.phone(), command.points(), tier != null ? tier.name() : "none");
+    }
+
+    private LoyaltyTier resolveTier(String tierName, LoyaltyTier currentTier) {
+        if (tierName == null || tierName.isBlank()) return currentTier;
+        return loadLoyaltyTierPort.findByName(tierName).orElse(currentTier);
     }
 }

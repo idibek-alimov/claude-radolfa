@@ -28,15 +28,19 @@
 
 ---
 
-## Phase 3 — Sync Endpoints
-- [ ] `SyncLoyaltyTiersUseCase.java` — in-port
-- [ ] `SyncLoyaltyTiersService.java` — service implementation
-- [ ] `SyncLoyaltyTierPayload.java` — DTO for tier sync
-- [ ] Modify `ErpSyncController.java` — add `POST /loyalty-tiers` with idempotency
-- [ ] Modify `SyncLoyaltyRequestDto.java` — add tier/spending fields
-- [ ] Modify `SyncUserPayload.java` — add tier/spending fields
-- [ ] Modify `SyncUsersService.java` — fetch tier by name, populate `LoyaltyProfile`
-- [ ] Modify `SyncLoyaltyPointsService.java` — reconstruct `User` with `LoyaltyProfile`
+## Phase 3 — Sync Endpoints ✅ DONE
+- [x] `SyncLoyaltyTiersUseCase.java` — in-port with `SyncTierCommand`
+- [x] `SyncLoyaltyTiersService.java` — upserts tiers by name
+- [x] `SyncLoyaltyTierPayload.java` — DTO with validation
+- [x] Modify `ErpSyncController.java` — `POST /loyalty-tiers` with idempotency (`EVENT_LOYALTY_TIER`)
+- [x] Modify `SyncLoyaltyRequestDto.java` — added tierName + spending fields
+- [x] Modify `SyncUserPayload.java` — added tierName + spending fields
+- [x] Modify `SyncUsersUseCase.SyncUserCommand` — expanded with tier/spending fields
+- [x] Modify `SyncLoyaltyPointsUseCase.SyncLoyaltyCommand` — expanded with tier/spending fields
+- [x] Modify `SyncUsersService.java` — injects `LoadLoyaltyTierPort`, resolves tier, builds full `LoyaltyProfile`
+- [x] Modify `SyncLoyaltyPointsService.java` — injects `LoadLoyaltyTierPort`, resolves tier, updates full profile
+- [x] Compile check — PASSED
+- [x] Tests — ALL PASSED
 
 **Checkpoint:** ERP can push tiers and user loyalty data.
 

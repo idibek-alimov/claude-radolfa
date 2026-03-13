@@ -15,6 +15,8 @@ import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
 import tj.radolfa.application.ports.in.SyncCategoriesUseCase.SyncCategoriesCommand;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.SyncLoyaltyPointsUseCase.SyncLoyaltyCommand;
+import tj.radolfa.application.ports.in.SyncLoyaltyTiersUseCase;
+import tj.radolfa.application.ports.in.SyncLoyaltyTiersUseCase.SyncTierCommand;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderCommand;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderItemCommand;
@@ -32,6 +34,7 @@ import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.SyncCategoriesPayload;
 import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
+import tj.radolfa.infrastructure.web.dto.SyncLoyaltyTierPayload;
 import tj.radolfa.infrastructure.web.dto.SyncOrderPayload;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
 import tj.radolfa.infrastructure.web.dto.SyncUserPayload;
@@ -61,10 +64,12 @@ public class ErpSyncController {
         private static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
         private static final String EVENT_ORDER = "ORDER";
         private static final String EVENT_LOYALTY = "LOYALTY";
+        private static final String EVENT_LOYALTY_TIER = "LOYALTY_TIER";
 
         private final SyncProductHierarchyUseCase syncUseCase;
         private final SyncCategoriesUseCase syncCategoriesUseCase;
         private final SyncLoyaltyPointsUseCase loyaltyUseCase;
+        private final SyncLoyaltyTiersUseCase syncLoyaltyTiersUseCase;
         private final SyncOrdersUseCase syncOrdersUseCase;
         private final SyncUsersUseCase syncUsersUseCase;
         private final LogSyncEventPort logSyncEvent;
@@ -73,6 +78,7 @@ public class ErpSyncController {
         public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
                         SyncCategoriesUseCase syncCategoriesUseCase,
                         SyncLoyaltyPointsUseCase loyaltyUseCase,
+                        SyncLoyaltyTiersUseCase syncLoyaltyTiersUseCase,
                         SyncOrdersUseCase syncOrdersUseCase,
                         SyncUsersUseCase syncUsersUseCase,
                         LogSyncEventPort logSyncEvent,
@@ -80,6 +86,7 @@ public class ErpSyncController {
                 this.syncUseCase = syncUseCase;
                 this.syncCategoriesUseCase = syncCategoriesUseCase;
                 this.loyaltyUseCase = loyaltyUseCase;
+                this.syncLoyaltyTiersUseCase = syncLoyaltyTiersUseCase;
                 this.syncOrdersUseCase = syncOrdersUseCase;
                 this.syncUsersUseCase = syncUsersUseCase;
                 this.logSyncEvent = logSyncEvent;
@@ -176,7 +183,13 @@ public class ErpSyncController {
                                 request.phone(), caller.phone());
 
                 try {
-                        loyaltyUseCase.execute(new SyncLoyaltyCommand(request.phone(), request.points()));
+                        loyaltyUseCase.execute(new SyncLoyaltyCommand(
+                                        request.phone(),
+                                        request.points(),
+                                        request.tierName(),
+                                        request.spendToNextTier(),
+                                        request.spendToMaintainTier(),
+                                        request.currentMonthSpending()));
                         logSyncEvent.log("LOYALTY:" + request.phone(), true, null);
                         idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 204);
                         return ResponseEntity.noContent().build();
@@ -185,6 +198,53 @@ public class ErpSyncController {
                                         request.phone(), ex.getMessage(), ex);
                         logSyncEvent.log("LOYALTY:" + request.phone(), false, ex.getMessage());
                         idempotencyPort.save(idempotencyKey, EVENT_LOYALTY, 500);
+                        return ResponseEntity.internalServerError().build();
+                }
+        }
+
+        /**
+         * Syncs loyalty tier definitions from ERPNext.
+         * Requires an {@code Idempotency-Key} header.
+         */
+        @PostMapping("/loyalty-tiers")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<?> syncLoyaltyTiers(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+                        @Valid @RequestBody List<SyncLoyaltyTierPayload> payloads) {
+
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                        .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                }
+
+                if (idempotencyPort.exists(idempotencyKey, EVENT_LOYALTY_TIER)) {
+                        LOG.info("[TIER-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(MessageResponseDto.error("Duplicate request — already processed"));
+                }
+
+                LOG.info("[TIER-SYNC] Received {} tiers sync, caller={}",
+                                payloads.size(), caller.phone());
+
+                try {
+                        var commands = payloads.stream()
+                                        .map(p -> new SyncTierCommand(
+                                                        p.name(),
+                                                        p.discountPercentage(),
+                                                        p.cashbackPercentage(),
+                                                        p.minSpendRequirement(),
+                                                        p.rank()))
+                                        .toList();
+
+                        syncLoyaltyTiersUseCase.execute(commands);
+                        logSyncEvent.log("LOYALTY_TIERS", true, null);
+                        idempotencyPort.save(idempotencyKey, EVENT_LOYALTY_TIER, 204);
+                        return ResponseEntity.noContent().build();
+                } catch (Exception ex) {
+                        LOG.error("[TIER-SYNC] Failed to sync tiers: {}", ex.getMessage(), ex);
+                        logSyncEvent.log("LOYALTY_TIERS", false, ex.getMessage());
+                        idempotencyPort.save(idempotencyKey, EVENT_LOYALTY_TIER, 500);
                         return ResponseEntity.internalServerError().build();
                 }
         }
@@ -309,7 +369,11 @@ public class ErpSyncController {
                                 payload.email(),
                                 payload.role(),
                                 payload.enabled(),
-                                payload.loyaltyPoints());
+                                payload.loyaltyPoints(),
+                                payload.tierName(),
+                                payload.spendToNextTier(),
+                                payload.spendToMaintainTier(),
+                                payload.currentMonthSpending());
         }
 
         // ---- Mapping: DTO → Command ----

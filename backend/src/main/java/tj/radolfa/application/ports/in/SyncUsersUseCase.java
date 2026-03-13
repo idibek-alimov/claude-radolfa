@@ -2,6 +2,7 @@ package tj.radolfa.application.ports.in;
 
 import tj.radolfa.domain.model.UserRole;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -16,7 +17,11 @@ public interface SyncUsersUseCase {
             String email,
             UserRole role,
             Boolean enabled,
-            Integer loyaltyPoints) {
+            Integer loyaltyPoints,
+            String tierName,
+            BigDecimal spendToNextTier,
+            BigDecimal spendToMaintainTier,
+            BigDecimal currentMonthSpending) {
     }
 
     record SyncResult(int synced, int errors) {}
