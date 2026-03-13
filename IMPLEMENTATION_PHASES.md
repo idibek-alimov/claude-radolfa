@@ -46,9 +46,11 @@
 
 ---
 
-## Phase 4 — Frontend APIs
-- [ ] `LoyaltyTierDto.java` — response DTO with `fromDomain`
-- [ ] `LoyaltyController.java` — `GET /api/v1/loyalty-tiers` ordered by rank
-- [ ] Modify `UserDto.java` — nested loyalty object in `/auth/me` response
+## Phase 4 — Frontend APIs ✅ DONE
+- [x] `LoyaltyTierDto.java` — response DTO with `fromDomain`
+- [x] `LoyaltyController.java` — `GET /api/v1/loyalty-tiers` ordered by rank ASC
+- [x] Modify `UserDto.java` — nested `LoyaltyDto` with tier, points, and spending fields
+- [x] Compile check — PASSED
+- [x] Tests — ALL PASSED
 
 **Checkpoint:** Frontend has everything it needs.
