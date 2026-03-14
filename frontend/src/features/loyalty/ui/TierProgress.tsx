@@ -70,14 +70,14 @@ export default function TierProgress({ loyalty }: TierProgressProps) {
                 className={`h-4 w-4 ${currentTier ? "fill-current" : ""}`}
               />
             </div>
-            <span className="text-[10px] sm:text-xs font-medium text-center leading-tight truncate max-w-[64px]">
+            <span className="text-xs font-semibold text-foreground text-center leading-tight truncate max-w-[64px]">
               {currentTier?.name ?? t("startEarning")}
             </span>
           </div>
 
           {/* Progress bar between them */}
-          <div className="flex-1 flex flex-col gap-1">
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="flex-1 flex flex-col gap-1.5">
+            <div className="h-2.5 bg-muted rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -90,7 +90,7 @@ export default function TierProgress({ loyalty }: TierProgressProps) {
                 }}
               />
             </div>
-            <p className="text-[10px] text-muted-foreground text-center">
+            <p className="text-xs font-semibold text-foreground text-center">
               {spendToNextTier != null
                 ? t("spendToNextTier", { amount: spendToNextTier.toFixed(0) })
                 : tier
@@ -108,7 +108,7 @@ export default function TierProgress({ loyalty }: TierProgressProps) {
               >
                 <Star className="h-4 w-4" />
               </div>
-              <span className="text-[10px] sm:text-xs text-muted-foreground text-center leading-tight truncate max-w-[64px]">
+              <span className="text-xs font-medium text-muted-foreground text-center leading-tight truncate max-w-[64px]">
                 {nextTier.name}
               </span>
             </div>
