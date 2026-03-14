@@ -3,6 +3,7 @@
  * Returned by GET /api/v1/loyalty-tiers.
  */
 export interface LoyaltyTier {
+  id: number;
   name: string;
   discountPercentage: number;
   cashbackPercentage: number;

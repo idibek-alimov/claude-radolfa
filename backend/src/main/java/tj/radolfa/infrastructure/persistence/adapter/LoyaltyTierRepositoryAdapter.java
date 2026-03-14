@@ -25,6 +25,11 @@ public class LoyaltyTierRepositoryAdapter implements LoadLoyaltyTierPort, SaveLo
     }
 
     @Override
+    public Optional<LoyaltyTier> findById(Long id) {
+        return repository.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
     public Optional<LoyaltyTier> findByName(String name) {
         return repository.findByName(name).map(mapper::toDomain);
     }

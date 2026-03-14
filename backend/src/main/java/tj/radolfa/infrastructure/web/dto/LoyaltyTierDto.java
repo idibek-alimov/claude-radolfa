@@ -5,6 +5,7 @@ import tj.radolfa.domain.model.LoyaltyTier;
 import java.math.BigDecimal;
 
 public record LoyaltyTierDto(
+        Long id,
         String name,
         BigDecimal discountPercentage,
         BigDecimal cashbackPercentage,
@@ -15,6 +16,7 @@ public record LoyaltyTierDto(
     public static LoyaltyTierDto fromDomain(LoyaltyTier tier) {
         if (tier == null) return null;
         return new LoyaltyTierDto(
+                tier.id(),
                 tier.name(),
                 tier.discountPercentage(),
                 tier.cashbackPercentage(),

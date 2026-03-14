@@ -144,7 +144,11 @@
     "cancel": "Отмена",
     "save": "Сохранить",
     "saving": "Сохранение...",
-    "topSeller": "Топ продавец"
+    "topSeller": "Топ продавец",
+    "tabLoyaltyTiers": "Уровни",
+    "loyaltyTiers": "Уровни лояльности",
+    "tierColor": "Цвет",
+    "colorUpdated": "Цвет уровня обновлён"
   },
   "profile": {
     "yourProfile": "Ваш профиль",

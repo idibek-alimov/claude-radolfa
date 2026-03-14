@@ -10,3 +10,9 @@ export function useLoyaltyTiers() {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+export function updateTierColor(id: number, color: string): Promise<void> {
+  return apiClient
+    .patch(`/api/v1/loyalty-tiers/${id}/color`, { color })
+    .then(() => undefined);
+}

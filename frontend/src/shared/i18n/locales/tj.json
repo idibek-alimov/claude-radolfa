@@ -144,7 +144,11 @@
     "cancel": "Бекор кардан",
     "save": "Захира кардан",
     "saving": "Захира карда мешавад...",
-    "topSeller": "Пешсавдо"
+    "topSeller": "Пешсавдо",
+    "tabLoyaltyTiers": "Сатҳҳо",
+    "loyaltyTiers": "Сатҳҳои вафодорӣ",
+    "tierColor": "Ранг",
+    "colorUpdated": "Ранги сатҳ навсозӣ шуд"
   },
   "profile": {
     "yourProfile": "Профили шумо",

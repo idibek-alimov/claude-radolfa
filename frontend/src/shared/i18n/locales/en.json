@@ -144,7 +144,11 @@
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving...",
-    "topSeller": "Top Seller"
+    "topSeller": "Top Seller",
+    "tabLoyaltyTiers": "Tiers",
+    "loyaltyTiers": "Loyalty Tiers",
+    "tierColor": "Color",
+    "colorUpdated": "Tier color updated"
   },
   "profile": {
     "yourProfile": "Your Profile",
