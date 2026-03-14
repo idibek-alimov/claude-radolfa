@@ -1,10 +1,12 @@
+import type { LoyaltyProfile } from "@/entities/loyalty";
+
 export interface UserDto {
   id: number;
   phone: string;
   role: "USER" | "MANAGER" | "SYSTEM";
   name?: string;
   email?: string;
-  loyaltyPoints: number;
+  loyalty: LoyaltyProfile;
   enabled: boolean;
 }
 

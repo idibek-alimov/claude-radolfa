@@ -299,24 +299,38 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             {listing.name ?? "—"}
           </h1>
 
-          {/* Price — always shows listing-level price */}
-          <div className="space-y-1.5">
-            {listing.priceStart === listing.priceEnd ? (
-              <p className="text-4xl font-bold text-primary">
-                {formatPrice(listing.priceStart)}
-              </p>
-            ) : (
-              <>
-                <p className="text-4xl font-bold text-primary">
-                  {t("priceFrom")} {formatPrice(listing.priceStart)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatPrice(listing.priceStart)} –{" "}
-                  {formatPrice(listing.priceEnd)} {t("dependingOnSize")}
-                </p>
-              </>
-            )}
-          </div>
+          {/* Price — shows tier price when available, base price as fallback */}
+          {(() => {
+            const hasTier = listing.tierPriceStart != null;
+            const start = hasTier ? listing.tierPriceStart! : listing.priceStart;
+            const end = hasTier ? listing.tierPriceEnd! : listing.priceEnd;
+            const isRange = start !== end;
+            return (
+              <div className="space-y-1.5">
+                {hasTier && (
+                  <p className="text-lg text-muted-foreground line-through">
+                    {listing.priceStart === listing.priceEnd
+                      ? formatPrice(listing.priceStart)
+                      : `${formatPrice(listing.priceStart)} – ${formatPrice(listing.priceEnd)}`}
+                  </p>
+                )}
+                {isRange ? (
+                  <>
+                    <p className="text-4xl font-bold text-primary">
+                      {t("priceFrom")} {formatPrice(start)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatPrice(start)} – {formatPrice(end)} {t("dependingOnSize")}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-4xl font-bold text-primary">
+                    {formatPrice(start)}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Stock indicator */}
           <div className="flex items-center gap-3">

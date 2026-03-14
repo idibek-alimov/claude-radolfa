@@ -147,7 +147,7 @@ export function UserManagementTable() {
                       {user.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm">{user.loyaltyPoints}</TableCell>
+                  <TableCell className="text-sm">{user.loyalty.points}</TableCell>
                   <TableCell>
                     {user.enabled ? (
                       <Badge variant="success">{t("statusActive")}</Badge>

@@ -18,6 +18,8 @@ export interface Sku {
   price: number;
   /** Effective price after promotions. */
   salePrice: number;
+  /** Tier-discounted price. null if unauthenticated or no tier. */
+  tierPrice: number | null;
   onSale: boolean;
   saleEndsAt: string | null;
 }
@@ -40,6 +42,9 @@ export interface ListingVariant {
   images: string[];
   priceStart: number;
   priceEnd: number;
+  /** Tier-discounted price range. null if unauthenticated or no tier. */
+  tierPriceStart: number | null;
+  tierPriceEnd: number | null;
   totalStock: number;
   topSelling: boolean;
   featured: boolean;

@@ -15,6 +15,8 @@ interface AuthState {
 interface UseAuthReturn extends AuthState {
   logout: () => void;
   updateUser: (user: User) => void;
+  /** Re-fetch /auth/me to refresh loyalty data (call after purchase, etc.) */
+  refreshUser: () => void;
 }
 
 /**
@@ -44,6 +46,9 @@ export function useAuth(): UseAuthReturn {
             isAuthenticated: true,
             isLoading: false,
           });
+          // Tier prices depend on auth — invalidate cached product listings
+          queryClient.invalidateQueries({ queryKey: ["listings"] });
+          queryClient.invalidateQueries({ queryKey: ["home-collections"] });
         }
       } catch {
         if (!cancelled) {
@@ -79,9 +84,19 @@ export function useAuth(): UseAuthReturn {
     setAuthState((prev) => ({ ...prev, user: newUser }));
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data } = await apiClient.get<User>("/api/v1/auth/me");
+      setAuthState({ user: data, isAuthenticated: true, isLoading: false });
+    } catch {
+      // If refresh fails, keep current state
+    }
+  }, []);
+
   return {
     ...authState,
     logout,
     updateUser,
+    refreshUser,
   };
 }

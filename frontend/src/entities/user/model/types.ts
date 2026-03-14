@@ -1,16 +1,16 @@
-// AUTO-GENERATED FROM BACKEND - DO NOT EDIT
+// Based on backend DTOs — update when Java source changes.
 //
 // Sources:
 //   tj.radolfa.domain.model.UserRole  (enum)
 //   tj.radolfa.domain.model.User      (record)
-//
-// Re-run `/bridge` after any change to the Java source.
 //
 // ── Type-mapping key ─────────────────────────────────────────────
 //   Java enum    → TypeScript string-enum  (@Enumerated(STRING) on the wire)
 //   Java Long    → number | null           (boxed)
 //   Java String  → string                  (phone is non-null by DB constraint)
 // ─────────────────────────────────────────────────────────────────
+
+import type { LoyaltyProfile } from "@/entities/loyalty/model/types";
 
 /**
  * Authorised roles.  Serialised as plain strings over JSON because the
@@ -47,8 +47,8 @@ export interface User {
   name?: string;
   /** Email (optional, set via profile). */
   email?: string;
-  /** Loyalty points synced from ERPNext. */
-  loyaltyPoints: number;
+  /** Loyalty profile synced from ERPNext (points, tier, spending). */
+  loyalty: LoyaltyProfile;
   /** Whether the user account is active. */
   enabled: boolean;
 }

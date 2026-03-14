@@ -23,7 +23,10 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
   const coverImage = listing.images[0] ?? null;
   const hoverImage = listing.images[1] ?? null;
-  const hasRange = listing.priceStart !== listing.priceEnd;
+  const hasTier = listing.tierPriceStart != null;
+  const displayPrice = hasTier ? listing.tierPriceStart! : listing.priceStart;
+  const displayEnd = hasTier ? listing.tierPriceEnd! : listing.priceEnd;
+  const hasRange = displayPrice !== displayEnd;
   const stock = listing.totalStock ?? 0;
   const isOutOfStock = stock === 0;
   const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
@@ -121,14 +124,21 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
           {/* Price + low stock */}
           <div className="mt-auto flex items-center justify-between gap-1 pt-1 sm:pt-1.5">
-            <span className="text-base sm:text-lg font-bold text-primary whitespace-nowrap">
-              {hasRange && (
-                <span className="text-[10px] sm:text-xs font-medium text-muted-foreground mr-1">
-                  {t("priceFrom")}
+            <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+              {hasTier && (
+                <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
+                  {formatPrice(listing.priceStart)}
                 </span>
               )}
-              {formatPrice(listing.priceStart)}
-            </span>
+              <span className="text-base sm:text-lg font-bold text-primary">
+                {hasRange && (
+                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground mr-1">
+                    {t("priceFrom")}
+                  </span>
+                )}
+                {formatPrice(displayPrice)}
+              </span>
+            </div>
 
             {isLowStock && (
               <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">

@@ -167,24 +167,12 @@ Product listing and detail endpoints now include **server-computed tier prices**
 
 ## 3. Breaking Changes — Migration Guide
 
-### 3.1 Update the `User` type
+### 3.1 Create `entities/loyalty/model/types.ts`
 
-**File:** `frontend/src/entities/user/model/types.ts`
+Define loyalty types in their own FSD entity. The `User` type will import from here.
 
-Replace:
-```typescript
-export interface User {
-  id: number | null;
-  phone: string;
-  role: UserRole;
-  name?: string;
-  email?: string;
-  loyaltyPoints: number;  // REMOVE THIS
-  enabled: boolean;
-}
-```
+**New file:** `frontend/src/entities/loyalty/model/types.ts`
 
-With:
 ```typescript
 export interface LoyaltyTier {
   name: string;
@@ -201,28 +189,113 @@ export interface LoyaltyProfile {
   spendToMaintainTier: number | null;
   currentMonthSpending: number | null;
 }
-
-export interface User {
-  id: number | null;
-  phone: string;
-  role: UserRole;
-  name?: string;
-  email?: string;
-  loyalty: LoyaltyProfile;  // NEW nested object
-  enabled: boolean;
-}
 ```
 
-### 3.2 Fix all references to `loyaltyPoints`
+### 3.2 Update the `User` type
 
-Search the frontend codebase for `loyaltyPoints` and replace with `loyalty.points`. Common locations:
-- Auth hooks / user state
-- Profile pages
-- Any component displaying points
+**File:** `frontend/src/entities/user/model/types.ts`
 
-### 3.3 Update `POST /api/v1/auth/verify` response handling
+```diff
++ import type { LoyaltyProfile } from "@/entities/loyalty/model/types";
++
+  export interface User {
+    id: number | null;
+    phone: string;
+    role: UserRole;
+    name?: string;
+    email?: string;
+-   loyaltyPoints: number;
++   loyalty: LoyaltyProfile;
+    enabled: boolean;
+  }
+```
 
-The verify endpoint returns `AuthResponseDto` which contains a `user` field. That user object now uses the new shape. Ensure the auth store / context parses the nested `loyalty` object correctly.
+### 3.3 Update the admin `UserDto` type
+
+**File:** `frontend/src/features/user-management/types.ts`
+
+The admin user management panel also has a `UserDto` with `loyaltyPoints`. Update it the same way:
+
+```diff
++ import type { LoyaltyProfile } from "@/entities/loyalty/model/types";
++
+  export interface UserDto {
+    id: number;
+    phone: string;
+    role: "USER" | "MANAGER" | "SYSTEM";
+    name?: string;
+    email?: string;
+-   loyaltyPoints: number;
++   loyalty: LoyaltyProfile;
+    enabled: boolean;
+  }
+```
+
+### 3.4 Update product types with tier pricing fields
+
+**File:** `frontend/src/entities/product/model/types.ts`
+
+```diff
+  export interface ListingVariant {
+    id: number;
+    slug: string;
+    name: string;
+    category: string;
+    colorKey: string;
+    colorHexCode: string | null;
+    webDescription: string;
+    images: string[];
+    priceStart: number;
+    priceEnd: number;
++   tierPriceStart: number | null;
++   tierPriceEnd: number | null;
+    totalStock: number;
+    topSelling: boolean;
+    featured: boolean;
+  }
+
+  export interface Sku {
+    id: number;
+    erpItemCode: string;
+    sizeLabel: string;
+    stockQuantity: number;
+    price: number;
+    salePrice: number;
++   tierPrice: number | null;
+    onSale: boolean;
+    saleEndsAt: string | null;
+  }
+```
+
+### 3.5 Fix all references to `loyaltyPoints`
+
+Search the frontend codebase for `loyaltyPoints` and replace with `loyalty.points`. Known locations:
+- `entities/user/model/types.ts` — type definition (Section 3.2)
+- `features/user-management/types.ts` — admin DTO (Section 3.3)
+- `features/auth/model/useAuth.ts` — auth hook state
+- `app/(storefront)/profile/page.tsx` — profile page display
+- Navbar user dropdown — points badge
+
+### 3.6 Update `POST /api/v1/auth/verify` response handling
+
+The verify endpoint returns `AuthResponseDto` which contains a `user` field. That user object now uses the new shape.
+
+**File:** `frontend/src/features/auth/model/useAuth.ts`
+
+The `useAuth()` hook uses a custom state-based approach (not TanStack Query). Ensure the hook correctly parses the nested `loyalty` object when setting user state from both `/auth/me` and `/auth/verify` responses.
+
+### 3.7 Update `useAuth()` to re-fetch loyalty data after purchases
+
+The `useAuth()` hook fetches user data from `GET /api/v1/auth/me` on mount. Loyalty fields (`points`, `currentMonthSpending`, tier status) can change after a purchase is completed. Expose a `refreshUser()` method (or call the existing `updateUser()`) that re-fetches `/auth/me` so the profile/navbar stay current.
+
+```typescript
+// Call after order placement succeeds
+const { refreshUser } = useAuth();
+await placeOrder(orderData);
+refreshUser(); // re-fetch /auth/me to update loyalty state
+```
+
+> **Note:** Product listing queries should also be invalidated after login/logout since tier prices change based on auth state. Invalidate any cached listing queries when the auth state transitions.
 
 ---
 
@@ -241,8 +314,22 @@ The backend **computes tier-discounted prices server-side** via `TierPricingEnri
 - **Unauthenticated users or users without a tier:** These fields will be `null`. Use `priceStart`/`priceEnd`/`price` as fallback.
 
 ```typescript
-function getDisplayPrice(listing: ListingVariant): number {
-  return listing.tierPriceStart ?? listing.priceStart;
+// Listing card price range
+function getDisplayPriceRange(listing: ListingVariant) {
+  return {
+    start: listing.tierPriceStart ?? listing.priceStart,
+    end: listing.tierPriceEnd ?? listing.priceEnd,
+    hasTierDiscount: listing.tierPriceStart != null,
+  };
+}
+
+// Individual SKU price (product detail page)
+function getSkuDisplayPrice(sku: Sku) {
+  return {
+    price: sku.tierPrice ?? sku.price,
+    originalPrice: sku.tierPrice != null ? sku.price : null,
+    hasTierDiscount: sku.tierPrice != null,
+  };
 }
 ```
 
@@ -251,6 +338,8 @@ Display both prices to the user when tier pricing is available:
 - **Tier price** (highlighted)
 
 > **Note:** The `TierPricingEnricher` resolves the user's discount from the JWT security context, so no extra API calls are needed — product endpoints automatically return tier-aware prices for logged-in users.
+>
+> **Note on auth state transitions:** When a user logs in or out, cached product listing queries should be invalidated, since tier prices differ based on authentication state. Invalidate query keys like `["listings"]`, `["home-collections"]`, etc. on auth change.
 
 ### 4.2 Tier Progress UI
 
@@ -283,9 +372,10 @@ When `loyalty.tier === null`:
 frontend/src/
 ├── entities/
 │   └── loyalty/
+│       ├── index.ts              # Barrel: re-exports types + api hook
 │       ├── model/
 │       │   └── types.ts          # LoyaltyTier, LoyaltyProfile interfaces
-│       └── api.ts                # getLoyaltyTiers() query hook (data fetching)
+│       └── api.ts                # useLoyaltyTiers() query hook (data fetching)
 │
 ├── features/
 │   └── loyalty/
@@ -299,7 +389,7 @@ frontend/src/
 │       └── LoyaltyDashboard.tsx  # Composed widget for profile page
 ```
 
-> **FSD Note:** The query hook for fetching tier data belongs in `entities/loyalty/api.ts` (pure data fetching), not in `features/` (reserved for user actions/mutations).
+> **FSD Note:** Types live in `entities/loyalty/model/types.ts` (canonical location). The `User` type in `entities/user/` imports `LoyaltyProfile` from here — not the other way around. The query hook belongs in `entities/loyalty/api.ts` (pure data fetching), not in `features/` (reserved for user actions/mutations).
 
 ---
 
@@ -307,6 +397,7 @@ frontend/src/
 
 ```typescript
 // entities/loyalty/api.ts
+import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
 import type { LoyaltyTier } from "@/entities/loyalty/model/types";
 
@@ -358,7 +449,25 @@ ERPNext (Source of Truth)
 | User below first tier | `null` | Auto-computed gap to entry tier | Progress bar to first tier (no cross-referencing needed) |
 | User at GOLD tier | `{name: "GOLD", ...}` | `25000.00` | Progress bar to PLATINUM |
 | User at highest tier | `{name: "TITANIUM", ...}` | `null` | "You're at the top!" badge |
-| User at risk of demotion | `{...}` | — | `spendToMaintainTier > 0` → show warning |
+| User at risk of demotion | `{...}` | — | `spendToMaintainTier > 0` → show warning (see below) |
+
+#### Demotion Warning UX
+
+When `spendToMaintainTier > 0`, the user risks losing their current tier at end of month. Display severity based on remaining calendar days:
+
+| Days remaining in month | Severity | UX |
+|------------------------|----------|-----|
+| > 7 days | Info | Subtle note: "Spend X more to keep your GOLD tier this month" |
+| 3–7 days | Warning | Yellow banner on profile + loyalty card |
+| 1–2 days | Urgent | Red badge on profile + consider a toast/notification |
+
+```typescript
+function getDaysRemainingInMonth(): number {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return lastDay - now.getDate();
+}
+```
 
 ---
 
