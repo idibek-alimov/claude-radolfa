@@ -297,12 +297,19 @@ export default function ProfilePage() {
                   {user?.name || t("yourProfile")}
                 </h1>
                 <p className="text-sm text-muted-foreground">{user?.phone}</p>
-                {points > 0 && (
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                    <span className="text-xs text-muted-foreground">
-                      {t("points", { count: points })}
-                    </span>
+                {(loyalty?.tier || points > 0) && (
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {loyalty?.tier && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                        {loyalty.tier.name} · {loyalty.tier.discountPercentage}% {t("discount")}
+                      </span>
+                    )}
+                    {points > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {t("points", { count: points })}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

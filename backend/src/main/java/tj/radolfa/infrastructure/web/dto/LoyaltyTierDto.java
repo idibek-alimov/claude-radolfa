@@ -9,7 +9,8 @@ public record LoyaltyTierDto(
         BigDecimal discountPercentage,
         BigDecimal cashbackPercentage,
         BigDecimal minSpendRequirement,
-        int displayOrder
+        int displayOrder,
+        String color
 ) {
     public static LoyaltyTierDto fromDomain(LoyaltyTier tier) {
         if (tier == null) return null;
@@ -18,6 +19,7 @@ public record LoyaltyTierDto(
                 tier.discountPercentage(),
                 tier.cashbackPercentage(),
                 tier.minSpendRequirement(),
-                tier.displayOrder());
+                tier.displayOrder(),
+                tier.color());
     }
 }

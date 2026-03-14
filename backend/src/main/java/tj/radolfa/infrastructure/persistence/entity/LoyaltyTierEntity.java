@@ -34,4 +34,7 @@ public class LoyaltyTierEntity extends BaseAuditEntity {
 
     @Column(name = "display_order", nullable = false)
     private int displayOrder;
+
+    @Column(name = "color", nullable = false, length = 7)
+    private String color;
 }

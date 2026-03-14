@@ -9,5 +9,6 @@ public record LoyaltyTier(
         BigDecimal cashbackPercentage,
         BigDecimal minSpendRequirement,
         int displayOrder,
+        String color,
         Long version
 ) {}

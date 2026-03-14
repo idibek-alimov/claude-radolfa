@@ -9,6 +9,8 @@ export interface LoyaltyTier {
   minSpendRequirement: number;
   /** Lower = higher tier (1 is best). */
   displayOrder: number;
+  /** Hex color for the tier, e.g. "#F59E0B". */
+  color: string;
 }
 
 /**

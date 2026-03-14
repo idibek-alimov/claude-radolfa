@@ -195,11 +195,6 @@ function DesktopAuth() {
               <div className="flex items-center gap-1.5 mt-1.5">
                 <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                 <span className="text-xs text-muted-foreground">
-                  {user.loyalty.tier && (
-                    <span className="font-medium text-foreground mr-1">
-                      {user.loyalty.tier.name}
-                    </span>
-                  )}
                   {tp("points", { count: user.loyalty.points })}
                 </span>
               </div>
@@ -225,6 +220,17 @@ function DesktopAuth() {
           )}
 
           <DropdownMenuSeparator />
+          {user.loyalty.tier && (
+            <DropdownMenuItem asChild className="py-2 cursor-pointer">
+              <Link href="/profile?tab=loyalty" className="flex items-center gap-2">
+                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />
+                <span className="text-xs">
+                  <span className="font-medium text-foreground">{user.loyalty.tier.name}</span>
+                  <span className="text-muted-foreground"> · {user.loyalty.tier.discountPercentage}% {tp("discount")}</span>
+                </span>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild className="py-3 cursor-pointer">
             <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
@@ -311,13 +317,10 @@ function MobileMenu() {
                       <span className="text-xs text-muted-foreground">
                         {tp("viewProfile")}
                       </span>
-                      {(user.loyalty.tier || user.loyalty.points > 0) && (
+                      {user.loyalty.points > 0 && (
                         <span className="flex items-center gap-0.5 text-xs text-amber-600">
                           <Star className="h-2.5 w-2.5 fill-amber-500" />
-                          {user.loyalty.tier && (
-                            <span className="font-medium mr-0.5">{user.loyalty.tier.name}</span>
-                          )}
-                          {user.loyalty.points}
+                          {tp("points", { count: user.loyalty.points })}
                         </span>
                       )}
                     </div>
