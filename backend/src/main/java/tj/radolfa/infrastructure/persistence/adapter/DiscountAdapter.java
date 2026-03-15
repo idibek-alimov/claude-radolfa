@@ -33,8 +33,8 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Dele
 
     @Override
     public List<Discount> findActiveByItemCode(String itemCode) {
-        return repository.findActiveByItemCode(itemCode).stream()
-                .map(mapper::toDomain)
+        return repository.findActiveDiscountsByItemCode(itemCode).stream()
+                .map(row -> mapper.toDomain((DiscountEntity) row[0]))
                 .toList();
     }
 
@@ -49,13 +49,17 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Dele
                     .orElseThrow(() -> new IllegalStateException(
                             "Discount not found: " + discount.id()));
             entity.setErpPricingRuleId(discount.erpPricingRuleId());
-            entity.setItemCode(discount.itemCode());
             entity.setDiscountValue(discount.discountValue());
             entity.setValidFrom(discount.validFrom());
             entity.setValidUpto(discount.validUpto());
             entity.setDisabled(discount.disabled());
+            entity.setTitle(discount.title());
+            entity.setColorHex(discount.colorHex());
+            entity.getItemCodes().clear();
+            entity.getItemCodes().addAll(discount.itemCodes());
         } else {
             entity = mapper.toEntity(discount);
+            entity.getItemCodes().addAll(discount.itemCodes());
         }
 
         return mapper.toDomain(repository.save(entity));

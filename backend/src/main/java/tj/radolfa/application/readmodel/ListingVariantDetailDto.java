@@ -22,6 +22,8 @@ public record ListingVariantDetailDto(
         BigDecimal loyaltyPrice,
         BigDecimal discountPercentage,
         BigDecimal loyaltyDiscountPercentage,
+        String saleTitle,
+        String saleColorHex,
         Integer totalStock,
         boolean topSelling,
         boolean featured,
@@ -55,7 +57,7 @@ public record ListingVariantDetailDto(
 
         return new ListingVariantDetailDto(id, slug, name, category, colorKey, colorHexCode,
                 webDescription, images, originalPrice, discountedPrice, lp,
-                discountPercentage, loyaltyPct,
+                discountPercentage, loyaltyPct, saleTitle, saleColorHex,
                 totalStock, topSelling, featured, enrichedSkus, siblingVariants);
     }
 }

@@ -418,11 +418,13 @@ public class ErpSyncController {
                 try {
                         syncDiscountUseCase.execute(new SyncDiscountCommand(
                                         payload.erpPricingRuleId(),
-                                        payload.itemCode(),
+                                        payload.itemCodes(),
                                         payload.discountValue(),
                                         payload.validFrom(),
                                         payload.validUpto(),
-                                        payload.disabled()));
+                                        payload.disabled(),
+                                        payload.title(),
+                                        payload.colorHex()));
 
                         logSyncEvent.log("DISCOUNT:" + payload.erpPricingRuleId(), true, null);
                         idempotencyPort.save(idempotencyKey, EVENT_DISCOUNT, 204);

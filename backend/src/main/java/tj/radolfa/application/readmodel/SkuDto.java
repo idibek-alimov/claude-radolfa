@@ -18,6 +18,8 @@ public record SkuDto(
         BigDecimal loyaltyPrice,
         BigDecimal discountPercentage,
         BigDecimal loyaltyDiscountPercentage,
+        String saleTitle,
+        String saleColorHex,
         boolean onSale,
         Instant discountedEndsAt
 ) {
@@ -31,7 +33,7 @@ public record SkuDto(
 
         return new SkuDto(id, erpItemCode, sizeLabel, stockQuantity,
                 originalPrice, discountedPrice, computed,
-                discountPercentage, loyaltyPct,
+                discountPercentage, loyaltyPct, saleTitle, saleColorHex,
                 onSale, discountedEndsAt);
     }
 }

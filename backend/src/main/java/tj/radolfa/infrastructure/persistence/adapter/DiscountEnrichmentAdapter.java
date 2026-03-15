@@ -74,7 +74,9 @@ public class DiscountEnrichmentAdapter {
                             sku.getOriginalPrice(),
                             discountedPrice,
                             discount.getDiscountValue(),
-                            discount.getValidUpto());
+                            discount.getValidUpto(),
+                            discount.getTitle(),
+                            discount.getColorHex());
                 }
             }
 
@@ -110,12 +112,14 @@ public class DiscountEnrichmentAdapter {
     // ---- Internal ----
 
     private Map<String, DiscountEntity> bestDiscountByItemCode(Collection<String> itemCodes) {
-        List<DiscountEntity> activeDiscounts = discountRepo.findActiveByItemCodes(itemCodes);
+        List<Object[]> pairs = discountRepo.findActiveDiscountsByItemCodes(itemCodes);
 
-        // Already ordered by discountValue DESC, so first per itemCode is the best
+        // Each row: [0]=DiscountEntity, [1]=matchedItemCode
+        // Already ordered by discountValue DESC — first per itemCode wins
         Map<String, DiscountEntity> best = new HashMap<>();
-        for (DiscountEntity d : activeDiscounts) {
-            best.putIfAbsent(d.getItemCode(), d);
+        for (Object[] row : pairs) {
+            String itemCode = (String) row[1];
+            best.putIfAbsent(itemCode, (DiscountEntity) row[0]);
         }
         return best;
     }
@@ -130,6 +134,8 @@ public class DiscountEnrichmentAdapter {
             BigDecimal originalPrice,
             BigDecimal discountedPrice,
             BigDecimal discountPercentage,
-            Instant validUpto
+            Instant validUpto,
+            String saleTitle,
+            String saleColorHex
     ) {}
 }

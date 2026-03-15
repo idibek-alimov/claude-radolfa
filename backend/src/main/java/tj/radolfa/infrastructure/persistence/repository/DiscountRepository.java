@@ -16,28 +16,37 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> 
     @org.springframework.transaction.annotation.Transactional
     void deleteByErpPricingRuleId(String erpPricingRuleId);
 
+    /**
+     * Returns [DiscountEntity, matchedItemCode] pairs for active discounts covering any of the
+     * given item codes. Ordered by discountValue DESC so first occurrence per item code is best.
+     * Uses a JOIN on the discount_items join table — no secondary lazy-load needed.
+     */
     @Query("""
-        SELECT d FROM DiscountEntity d
-        WHERE d.itemCode = :itemCode
+        SELECT d, ic FROM DiscountEntity d JOIN d.itemCodes ic
+        WHERE ic IN :itemCodes
           AND d.disabled = false
           AND d.validFrom <= CURRENT_TIMESTAMP
           AND d.validUpto >= CURRENT_TIMESTAMP
         ORDER BY d.discountValue DESC
     """)
-    List<DiscountEntity> findActiveByItemCode(@Param("itemCode") String itemCode);
+    List<Object[]> findActiveDiscountsByItemCodes(@Param("itemCodes") Collection<String> itemCodes);
 
+    /**
+     * Returns [DiscountEntity, matchedItemCode] pairs for active discounts covering the given
+     * single item code.
+     */
     @Query("""
-        SELECT d FROM DiscountEntity d
-        WHERE d.itemCode IN :itemCodes
+        SELECT d, ic FROM DiscountEntity d JOIN d.itemCodes ic
+        WHERE ic = :itemCode
           AND d.disabled = false
           AND d.validFrom <= CURRENT_TIMESTAMP
           AND d.validUpto >= CURRENT_TIMESTAMP
         ORDER BY d.discountValue DESC
     """)
-    List<DiscountEntity> findActiveByItemCodes(@Param("itemCodes") Collection<String> itemCodes);
+    List<Object[]> findActiveDiscountsByItemCode(@Param("itemCode") String itemCode);
 
     @Query("""
-        SELECT DISTINCT d.itemCode FROM DiscountEntity d
+        SELECT DISTINCT ic FROM DiscountEntity d JOIN d.itemCodes ic
         WHERE d.disabled = false
           AND d.validFrom <= CURRENT_TIMESTAMP
           AND d.validUpto >= CURRENT_TIMESTAMP

@@ -10,9 +10,8 @@ public interface LoadDiscountPort {
     Optional<Discount> findByErpPricingRuleId(String erpPricingRuleId);
 
     /**
-     * Returns all currently active discounts for the given item code.
+     * Returns all currently active discounts covering the given item code.
      * Active = not disabled AND current time within [validFrom, validUpto].
-     * Filtering is done at the database level for performance.
      */
     List<Discount> findActiveByItemCode(String itemCode);
 }

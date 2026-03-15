@@ -45,9 +45,11 @@ final class ListingGridRowMapper {
                 imageMap.getOrDefault(id, List.of()),
                 originalPrice,
                 discount != null ? discount.discountedPrice() : null,
-                null,                  // loyaltyPrice (enriched by controller)
+                null,                                              // loyaltyPrice (enriched by controller)
                 discount != null ? discount.discountPercentage() : null,
-                null,                  // loyaltyDiscountPercentage (enriched by controller)
+                null,                                              // loyaltyDiscountPercentage (enriched by controller)
+                discount != null ? discount.saleTitle() : null,
+                discount != null ? discount.saleColorHex() : null,
                 toInteger(row[8]),     // totalStock
                 (Boolean) row[6],      // topSelling
                 (Boolean) row[10]);    // featured

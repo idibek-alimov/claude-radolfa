@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "discounts")
@@ -24,8 +26,13 @@ public class DiscountEntity extends BaseAuditEntity {
     @Column(name = "erp_pricing_rule_id", nullable = false, unique = true, length = 140)
     private String erpPricingRuleId;
 
-    @Column(name = "item_code", nullable = false, length = 64)
-    private String itemCode;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "discount_items",
+            joinColumns = @JoinColumn(name = "discount_id")
+    )
+    @Column(name = "item_code", length = 64)
+    private List<String> itemCodes = new ArrayList<>();
 
     @Column(name = "discount_value", nullable = false, precision = 5, scale = 2)
     private BigDecimal discountValue;
@@ -40,4 +47,10 @@ public class DiscountEntity extends BaseAuditEntity {
 
     @Column(name = "is_disabled", nullable = false)
     private boolean disabled;
+
+    @Column(name = "title", length = 255)
+    private String title;
+
+    @Column(name = "color_hex", length = 7)
+    private String colorHex;
 }

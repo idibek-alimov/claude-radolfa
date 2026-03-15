@@ -33,8 +33,8 @@ public class SyncDiscountService implements SyncDiscountUseCase, RemoveDiscountU
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void execute(SyncDiscountCommand command) {
-        LOG.info("[DISCOUNT-SYNC] Upsert erpPricingRuleId={}, itemCode={}, disabled={}",
-                command.erpPricingRuleId(), command.itemCode(), command.disabled());
+        LOG.info("[DISCOUNT-SYNC] Upsert erpPricingRuleId={}, itemCodes={}, disabled={}",
+                command.erpPricingRuleId(), command.itemCodes(), command.disabled());
 
         Discount existing = loadPort.findByErpPricingRuleId(command.erpPricingRuleId())
                 .orElse(null);
@@ -42,11 +42,13 @@ public class SyncDiscountService implements SyncDiscountUseCase, RemoveDiscountU
         Discount discount = new Discount(
                 existing != null ? existing.id() : null,
                 command.erpPricingRuleId(),
-                command.itemCode(),
+                command.itemCodes(),
                 command.discountValue(),
                 command.validFrom(),
                 command.validUpto(),
-                command.disabled()
+                command.disabled(),
+                command.title(),
+                command.colorHex()
         );
 
         savePort.save(discount);

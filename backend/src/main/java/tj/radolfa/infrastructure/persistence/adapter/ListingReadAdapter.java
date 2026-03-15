@@ -122,6 +122,8 @@ public class ListingReadAdapter implements LoadListingPort {
                 // Find cheapest discounted price across all SKUs
                 BigDecimal discountedPrice = null;
                 BigDecimal discountPercentage = null;
+                String saleTitle = null;
+                String saleColorHex = null;
 
                 for (SkuEntity sku : skuEntities) {
                         DiscountEntity discount = discountsByItemCode.get(sku.getErpItemCode());
@@ -131,6 +133,8 @@ public class ListingReadAdapter implements LoadListingPort {
                         if (discountedPrice == null || dp.compareTo(discountedPrice) < 0) {
                                 discountedPrice = dp;
                                 discountPercentage = discount.getDiscountValue();
+                                saleTitle = discount.getTitle();
+                                saleColorHex = discount.getColorHex();
                         }
                 }
 
@@ -184,6 +188,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 null,              // loyaltyPrice (enriched by controller)
                                 discountPercentage,
                                 null,              // loyaltyDiscountPercentage (enriched by controller)
+                                saleTitle,
+                                saleColorHex,
                                 totalStock,
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
@@ -214,6 +220,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 null,               // loyaltyPrice (enriched by controller)
                                 effectiveDiscountPct,
                                 null,               // loyaltyDiscountPercentage (enriched by controller)
+                                onSale ? discount.getTitle() : null,
+                                onSale ? discount.getColorHex() : null,
                                 onSale,
                                 onSale ? discount.getValidUpto() : null);
         }

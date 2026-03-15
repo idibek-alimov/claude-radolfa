@@ -27,16 +27,11 @@ public record ListingVariantDto(
                 BigDecimal loyaltyPrice,
                 BigDecimal discountPercentage,
                 BigDecimal loyaltyDiscountPercentage,
+                String saleTitle,
+                String saleColorHex,
                 Integer totalStock,
                 boolean topSelling,
                 boolean featured) {
-
-    public ListingVariantDto withDiscount(BigDecimal discountedPrice, BigDecimal discountPercentage) {
-        return new ListingVariantDto(id, slug, name, category, colorKey, colorHexCode,
-                webDescription, images, originalPrice, discountedPrice, loyaltyPrice,
-                discountPercentage, loyaltyDiscountPercentage,
-                totalStock, topSelling, featured);
-    }
 
     public ListingVariantDto withLoyaltyPrice(BigDecimal loyaltyPct) {
         if (loyaltyPct.compareTo(BigDecimal.ZERO) == 0) return this;
@@ -50,7 +45,7 @@ public record ListingVariantDto(
 
         return new ListingVariantDto(id, slug, name, category, colorKey, colorHexCode,
                 webDescription, images, originalPrice, discountedPrice, lp,
-                discountPercentage, loyaltyPct,
+                discountPercentage, loyaltyPct, saleTitle, saleColorHex,
                 totalStock, topSelling, featured);
     }
 }
