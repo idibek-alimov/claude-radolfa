@@ -100,20 +100,11 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                                 sc.erpItemCode(),
                                 sc.sizeLabel(),
                                 0,
-                                null,
-                                null,
-                                null,
                                 null
                         ));
 
                 sku.updateSizeLabel(sc.sizeLabel());
-                sku.updateFromErp(
-                        sc.stockQuantity(),
-                        sc.listPrice(),
-                        sc.effectivePrice(),
-                        sc.saleEndsAt(),
-                        sc.discountPercentage()
-                );
+                sku.updateFromErp(sc.stockQuantity(), sc.listPrice());
 
                 savedSkus.add(savePort.saveSku(sku, variantId));
             }
@@ -129,12 +120,8 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
     }
 
     private void indexVariant(ListingVariant variant, String productName, String category, List<Sku> skus) {
-        // Effective price: use active sale price if available, otherwise list price
         Double price = skus.stream()
-                .map(s -> {
-                    if (s.isOnSale()) return s.getSalePrice();
-                    return s.getPrice();
-                })
+                .map(Sku::getPrice)
                 .filter(java.util.Objects::nonNull)
                 .map(Money::amount)
                 .min(java.math.BigDecimal::compareTo)

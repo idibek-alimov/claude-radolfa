@@ -1,5 +1,4 @@
 tj/radolfa/infrastructure/persistence/entity/BaseAuditEntity.class
-tj/radolfa/infrastructure/web/dto/ErpHierarchyPayload$PricePayload.class
 tj/radolfa/infrastructure/web/dto/CollectionPageDto.class
 tj/radolfa/infrastructure/persistence/repository/SkuRepository.class
 tj/radolfa/infrastructure/security/AuthCookieManager.class
@@ -56,7 +55,6 @@ tj/radolfa/infrastructure/security/RateLimiterService.class
 tj/radolfa/domain/util/SlugUtils.class
 tj/radolfa/application/ports/in/SyncLoyaltyPointsUseCase.class
 tj/radolfa/infrastructure/web/dto/LoyaltyTierDto.class
-tj/radolfa/infrastructure/erp/ErpProductClientHttp$ErpItemListResponse.class
 tj/radolfa/domain/model/PhoneNumber.class
 tj/radolfa/application/ports/in/SyncCategoriesUseCase.class
 tj/radolfa/application/ports/out/LoadUserPort.class
@@ -79,7 +77,6 @@ tj/radolfa/infrastructure/persistence/adapter/ColorAdapter.class
 tj/radolfa/infrastructure/persistence/entity/StringArrayConverter.class
 tj/radolfa/application/ports/out/IdempotencyPort.class
 tj/radolfa/infrastructure/persistence/repository/ColorRepository.class
-tj/radolfa/infrastructure/erp/ErpProductClientHttp.class
 tj/radolfa/domain/model/PageResult.class
 tj/radolfa/infrastructure/web/dto/UserDto.class
 tj/radolfa/application/ports/out/ListingIndexPort.class
@@ -95,9 +92,7 @@ tj/radolfa/infrastructure/web/dto/VerifyOtpRequestDto.class
 tj/radolfa/infrastructure/persistence/entity/OrderEntity.class
 tj/radolfa/domain/exception/ImageProcessingException.class
 tj/radolfa/application/services/SyncProductHierarchyService.class
-tj/radolfa/infrastructure/web/SearchController.class
 tj/radolfa/application/services/SyncLoyaltyPointsService.class
-tj/radolfa/infrastructure/web/SearchController$ReindexResult.class
 tj/radolfa/infrastructure/web/dto/HomeSectionDto.class
 tj/radolfa/domain/exception/ErpLockViolationException.class
 tj/radolfa/infrastructure/persistence/entity/CategoryEntity.class
@@ -112,7 +107,6 @@ tj/radolfa/application/ports/in/UpdateUserProfileUseCase.class
 tj/radolfa/application/ports/in/UpdateListingUseCase$UpdateListingCommand.class
 tj/radolfa/infrastructure/persistence/mappers/UserMapper.class
 tj/radolfa/application/ports/in/SyncCategoriesUseCase$SyncCategoriesCommand.class
-tj/radolfa/infrastructure/web/ErpSyncController.class
 tj/radolfa/application/ports/in/SyncProductHierarchyUseCase$HierarchySyncCommand.class
 tj/radolfa/application/ports/in/SyncLoyaltyTiersUseCase.class
 tj/radolfa/application/ports/out/LoadColorPort.class
@@ -171,7 +165,6 @@ tj/radolfa/infrastructure/persistence/repository/ProductBaseRepository.class
 tj/radolfa/application/ports/in/SyncUsersUseCase$SyncUserCommand.class
 tj/radolfa/infrastructure/persistence/entity/ColorEntity.class
 tj/radolfa/application/services/GetListingService.class
-tj/radolfa/infrastructure/erp/ErpProductClientHttp$ErpItemRecord.class
 tj/radolfa/infrastructure/web/dto/ListingVariantDetailDto$SiblingVariant.class
 tj/radolfa/application/ports/out/ProcessedImage.class
 tj/radolfa/application/services/ChangeUserRoleService.class

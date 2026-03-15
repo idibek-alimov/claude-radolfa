@@ -75,8 +75,6 @@ public interface ProductHierarchyMapper {
 
     @Mapping(target = "listingVariant", ignore = true)
     @Mapping(target = "originalPrice", source = "price", qualifiedByName = "moneyToBigDecimal")
-    @Mapping(target = "discountedPrice", source = "salePrice", qualifiedByName = "moneyToBigDecimal")
-    @Mapping(target = "discountedEndsAt", source = "saleEndsAt")
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -90,10 +88,7 @@ public interface ProductHierarchyMapper {
                 entity.getErpItemCode(),
                 entity.getSizeLabel(),
                 entity.getStockQuantity(),
-                Money.of(entity.getOriginalPrice()),
-                Money.of(entity.getDiscountedPrice()),
-                entity.getDiscountedEndsAt(),
-                entity.getDiscountPercentage()
+                Money.of(entity.getOriginalPrice())
         );
     }
 

@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Entity
 @Table(name = "skus")
@@ -36,14 +35,4 @@ public class SkuEntity extends BaseAuditEntity {
 
     @Column(name = "original_price", precision = 12, scale = 2)
     private BigDecimal originalPrice;
-
-    @Column(name = "discounted_price", precision = 12, scale = 2)
-    private BigDecimal discountedPrice;
-
-    @Column(name = "discounted_ends_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Instant discountedEndsAt;
-
-    @Column(name = "discount_percentage", precision = 5, scale = 2)
-    private BigDecimal discountPercentage;
 }

@@ -20,6 +20,9 @@ import tj.radolfa.application.ports.in.SyncLoyaltyTiersUseCase.SyncTierCommand;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderCommand;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderItemCommand;
+import tj.radolfa.application.ports.in.SyncDiscountUseCase;
+import tj.radolfa.application.ports.in.SyncDiscountUseCase.SyncDiscountCommand;
+import tj.radolfa.application.ports.in.RemoveDiscountUseCase;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
 import tj.radolfa.application.ports.in.SyncUsersUseCase;
 import tj.radolfa.application.ports.in.SyncUsersUseCase.SyncUserCommand;
@@ -37,6 +40,8 @@ import tj.radolfa.infrastructure.web.dto.SyncLoyaltyRequestDto;
 import tj.radolfa.infrastructure.web.dto.SyncLoyaltyTierPayload;
 import tj.radolfa.infrastructure.web.dto.SyncOrderPayload;
 import tj.radolfa.infrastructure.web.dto.SyncResultDto;
+import tj.radolfa.infrastructure.web.dto.SyncDiscountPayload;
+import tj.radolfa.infrastructure.web.dto.RemoveDiscountPayload;
 import tj.radolfa.infrastructure.web.dto.SyncUserPayload;
 import tj.radolfa.domain.model.UserRole;
 
@@ -65,6 +70,7 @@ public class ErpSyncController {
         private static final String EVENT_ORDER = "ORDER";
         private static final String EVENT_LOYALTY = "LOYALTY";
         private static final String EVENT_LOYALTY_TIER = "LOYALTY_TIER";
+        private static final String EVENT_DISCOUNT = "DISCOUNT";
 
         private final SyncProductHierarchyUseCase syncUseCase;
         private final SyncCategoriesUseCase syncCategoriesUseCase;
@@ -72,6 +78,8 @@ public class ErpSyncController {
         private final SyncLoyaltyTiersUseCase syncLoyaltyTiersUseCase;
         private final SyncOrdersUseCase syncOrdersUseCase;
         private final SyncUsersUseCase syncUsersUseCase;
+        private final SyncDiscountUseCase syncDiscountUseCase;
+        private final RemoveDiscountUseCase removeDiscountUseCase;
         private final LogSyncEventPort logSyncEvent;
         private final IdempotencyPort idempotencyPort;
 
@@ -81,6 +89,8 @@ public class ErpSyncController {
                         SyncLoyaltyTiersUseCase syncLoyaltyTiersUseCase,
                         SyncOrdersUseCase syncOrdersUseCase,
                         SyncUsersUseCase syncUsersUseCase,
+                        SyncDiscountUseCase syncDiscountUseCase,
+                        RemoveDiscountUseCase removeDiscountUseCase,
                         LogSyncEventPort logSyncEvent,
                         IdempotencyPort idempotencyPort) {
                 this.syncUseCase = syncUseCase;
@@ -89,6 +99,8 @@ public class ErpSyncController {
                 this.syncLoyaltyTiersUseCase = syncLoyaltyTiersUseCase;
                 this.syncOrdersUseCase = syncOrdersUseCase;
                 this.syncUsersUseCase = syncUsersUseCase;
+                this.syncDiscountUseCase = syncDiscountUseCase;
+                this.removeDiscountUseCase = removeDiscountUseCase;
                 this.logSyncEvent = logSyncEvent;
                 this.idempotencyPort = idempotencyPort;
         }
@@ -377,6 +389,85 @@ public class ErpSyncController {
                                 payload.currentMonthSpending());
         }
 
+        // ---- Discount Sync (Pricing Rules) ----
+
+        @PostMapping("/discounts")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<?> syncDiscount(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+                        @Valid @RequestBody SyncDiscountPayload payload) {
+
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                        .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                }
+
+                if (idempotencyPort.exists(idempotencyKey, EVENT_DISCOUNT)) {
+                        LOG.info("[DISCOUNT-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(MessageResponseDto.error("Duplicate request — already processed"));
+                }
+
+                LOG.info("[DISCOUNT-SYNC] Received sync for erpPricingRuleId={}, caller={}",
+                                payload.erpPricingRuleId(), caller.phone());
+
+                try {
+                        syncDiscountUseCase.execute(new SyncDiscountCommand(
+                                        payload.erpPricingRuleId(),
+                                        payload.itemCode(),
+                                        payload.discountValue(),
+                                        payload.validFrom(),
+                                        payload.validUpto(),
+                                        payload.disabled()));
+
+                        logSyncEvent.log("DISCOUNT:" + payload.erpPricingRuleId(), true, null);
+                        idempotencyPort.save(idempotencyKey, EVENT_DISCOUNT, 204);
+                        return ResponseEntity.noContent().build();
+                } catch (Exception ex) {
+                        LOG.error("[DISCOUNT-SYNC] Failed to sync erpPricingRuleId={}: {}",
+                                        payload.erpPricingRuleId(), ex.getMessage(), ex);
+                        logSyncEvent.log("DISCOUNT:" + payload.erpPricingRuleId(), false, ex.getMessage());
+                        idempotencyPort.save(idempotencyKey, EVENT_DISCOUNT, 500);
+                        return ResponseEntity.internalServerError().build();
+                }
+        }
+
+        @DeleteMapping("/discounts")
+        @PreAuthorize("hasRole('SYSTEM')")
+        public ResponseEntity<?> removeDiscount(
+                        @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+                        @Valid @RequestBody RemoveDiscountPayload payload) {
+
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                        .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                }
+
+                if (idempotencyPort.exists(idempotencyKey, EVENT_DISCOUNT)) {
+                        LOG.info("[DISCOUNT-SYNC] Duplicate remove key={}, returning 409", idempotencyKey);
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(MessageResponseDto.error("Duplicate request — already processed"));
+                }
+
+                LOG.info("[DISCOUNT-SYNC] Received on_trash for erpPricingRuleId={}, caller={}",
+                                payload.erpPricingRuleId(), caller.phone());
+
+                try {
+                        removeDiscountUseCase.execute(payload.erpPricingRuleId());
+                        logSyncEvent.log("DISCOUNT_REMOVE:" + payload.erpPricingRuleId(), true, null);
+                        idempotencyPort.save(idempotencyKey, EVENT_DISCOUNT, 204);
+                        return ResponseEntity.noContent().build();
+                } catch (Exception ex) {
+                        LOG.error("[DISCOUNT-SYNC] Failed to remove erpPricingRuleId={}: {}",
+                                        payload.erpPricingRuleId(), ex.getMessage(), ex);
+                        logSyncEvent.log("DISCOUNT_REMOVE:" + payload.erpPricingRuleId(), false, ex.getMessage());
+                        idempotencyPort.save(idempotencyKey, EVENT_DISCOUNT, 500);
+                        return ResponseEntity.internalServerError().build();
+                }
+        }
+
         // ---- Mapping: DTO → Command ----
 
         private HierarchySyncCommand toCommand(ErpHierarchyPayload payload) {
@@ -404,8 +495,6 @@ public class ErpSyncController {
                                 ip.erpItemCode(),
                                 ip.sizeLabel(),
                                 ip.stockQuantity(),
-                                Money.of(ip.price().list()),
-                                Money.of(ip.price().effective()),
-                                ip.price().saleEndsAt());
+                                Money.of(ip.listPrice()));
         }
 }

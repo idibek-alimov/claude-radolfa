@@ -15,11 +15,14 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Real Elasticsearch adapter for the listings index.
@@ -28,6 +31,8 @@ import java.util.List;
  * Handles both indexing (write) and search (read).
  * Index/delete are fire-and-forget: failures are logged but never
  * propagate to the sync pipeline.
+ *
+ * <p>Search results are enriched with discount data from the discounts table.
  */
 @Component
 @Profile("!test")
@@ -37,11 +42,14 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
 
         private final ListingSearchRepository repository;
         private final ElasticsearchOperations operations;
+        private final DiscountEnrichmentAdapter discountEnrichment;
 
         public ListingSearchAdapter(ListingSearchRepository repository,
-                        ElasticsearchOperations operations) {
+                        ElasticsearchOperations operations,
+                        DiscountEnrichmentAdapter discountEnrichment) {
                 this.repository = repository;
                 this.operations = operations;
+                this.discountEnrichment = discountEnrichment;
         }
 
         // ---- ListingIndexPort (write) ----
@@ -108,10 +116,26 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 .map(this::toDto)
                                 .toList();
 
+                // Enrich with discounts from the discounts table
+                List<Long> variantIds = items.stream()
+                                .map(ListingVariantDto::id)
+                                .toList();
+                Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
+
+                List<ListingVariantDto> enriched = items.stream()
+                                .map(dto -> {
+                                        DiscountInfo discount = discountMap.get(dto.id());
+                                        if (discount != null) {
+                                                return dto.withDiscount(discount.discountedPrice(), discount.discountPercentage());
+                                        }
+                                        return dto;
+                                })
+                                .toList();
+
                 long totalHits = hits.getTotalHits();
                 boolean hasMore = (long) page * limit < totalHits;
 
-                return new PageResult<>(items, totalHits, page, hasMore);
+                return new PageResult<>(enriched, totalHits, page, hasMore);
         }
 
         @Override
@@ -144,9 +168,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getWebDescription(),
                                 doc.getImages() != null ? doc.getImages() : List.of(),
                                 doc.getPrice() != null ? BigDecimal.valueOf(doc.getPrice()) : null,
-                                null,    // discountedPrice (not available from ES)
+                                null,    // discountedPrice (enriched post-query)
                                 null,    // loyaltyPrice (enriched by controller)
-                                null,    // discountPercentage (not available from ES)
+                                null,    // discountPercentage (enriched post-query)
                                 null,    // loyaltyDiscountPercentage (enriched by controller)
                                 doc.getTotalStock(),
                                 doc.getTopSelling() != null && doc.getTopSelling(),

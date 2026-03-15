@@ -34,16 +34,12 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
     @Override
     public ProductBase process(ErpProductSnapshot snapshot) {
         Money listPrice = Money.of(snapshot.standardRate());
-        Money effectivePrice = toEffectivePrice(snapshot);
 
         var skuCommand = new SkuCommand(
                 snapshot.erpId(),
                 null,
                 snapshot.stock(),
-                listPrice,
-                effectivePrice,
-                null,
-                snapshot.discountPercentage()
+                listPrice
         );
 
         var variantCommand = new VariantCommand(
@@ -59,15 +55,5 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
         );
 
         return syncUseCase.execute(command);
-    }
-
-    /**
-     * Returns null when there is no real discount (discountedRate absent or equal to standardRate).
-     * This ensures discounted_price stays NULL in the DB for non-promoted products.
-     */
-    private Money toEffectivePrice(ErpProductSnapshot snapshot) {
-        if (snapshot.discountedRate() == null || snapshot.standardRate() == null) return null;
-        if (snapshot.discountedRate().compareTo(snapshot.standardRate()) >= 0) return null;
-        return Money.of(snapshot.discountedRate());
     }
 }

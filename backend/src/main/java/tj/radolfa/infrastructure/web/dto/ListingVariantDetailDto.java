@@ -44,10 +44,11 @@ public record ListingVariantDetailDto(
     public ListingVariantDetailDto withLoyaltyPrice(BigDecimal loyaltyPct) {
         if (loyaltyPct.compareTo(BigDecimal.ZERO) == 0) return this;
 
+        BigDecimal base = discountedPrice != null ? discountedPrice : originalPrice;
+        if (base == null) return this;
+
         BigDecimal multiplier = BigDecimal.ONE.subtract(
                 loyaltyPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
-
-        BigDecimal base = discountedPrice != null ? discountedPrice : originalPrice;
         BigDecimal lp = base.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
 
         List<SkuDto> enrichedSkus = skus.stream()

@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -32,12 +31,6 @@ public record ErpHierarchyPayload(
             @NotBlank String erpItemCode,
             String sizeLabel,
             @NotNull Integer stockQuantity,
-            @NotNull @Valid PricePayload price
-    ) {}
-
-    public record PricePayload(
-            @NotNull BigDecimal list,
-            @NotNull BigDecimal effective,
-            Instant saleEndsAt
+            @NotNull BigDecimal listPrice
     ) {}
 }

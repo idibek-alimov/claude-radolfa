@@ -16,7 +16,6 @@ import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,7 +49,6 @@ public class SearchController {
         LOG.info("[REINDEX] Starting full listings reindex");
 
         List<ListingVariantEntity> allVariants = variantRepo.findAll();
-        Instant now = Instant.now();
         int indexed = 0;
         int errors = 0;
 
@@ -58,9 +56,9 @@ public class SearchController {
             try {
                 List<SkuEntity> skus = variant.getSkus();
 
-                // Effective price: use active discounted price if available, otherwise original
+                // ES stores original price only; discounts are enriched at read time
                 BigDecimal price = skus.stream()
-                        .map(s -> effectivePrice(s, now))
+                        .map(SkuEntity::getOriginalPrice)
                         .filter(Objects::nonNull)
                         .min(BigDecimal::compareTo)
                         .orElse(null);
@@ -106,16 +104,6 @@ public class SearchController {
 
         LOG.info("[REINDEX] Completed -- indexed={}, errors={}", indexed, errors);
         return ResponseEntity.ok(new ReindexResult(indexed, errors));
-    }
-
-    private BigDecimal effectivePrice(SkuEntity sku, Instant now) {
-        if (sku.getDiscountedPrice() != null
-                && sku.getOriginalPrice() != null
-                && sku.getDiscountedPrice().compareTo(sku.getOriginalPrice()) < 0
-                && (sku.getDiscountedEndsAt() == null || now.isBefore(sku.getDiscountedEndsAt()))) {
-            return sku.getDiscountedPrice();
-        }
-        return sku.getOriginalPrice();
     }
 
     public record ReindexResult(int indexed, int errors) {}

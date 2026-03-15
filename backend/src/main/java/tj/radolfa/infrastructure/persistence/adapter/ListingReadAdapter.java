@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
+import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
@@ -16,8 +18,7 @@ import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 import tj.radolfa.infrastructure.web.dto.SkuDto;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Comparator;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,17 +31,21 @@ import java.util.stream.Collectors;
  * <p>
  * Grid queries use JPQL aggregates (single query, no N+1).
  * Images are batch-loaded in a second query for the page.
+ * Discounts are resolved from the discounts table post-query.
  */
 @Component
 public class ListingReadAdapter implements LoadListingPort {
 
         private final ListingVariantRepository variantRepo;
         private final SkuRepository skuRepo;
+        private final DiscountEnrichmentAdapter discountEnrichment;
 
         public ListingReadAdapter(ListingVariantRepository variantRepo,
-                        SkuRepository skuRepo) {
+                        SkuRepository skuRepo,
+                        DiscountEnrichmentAdapter discountEnrichment) {
                 this.variantRepo = variantRepo;
                 this.skuRepo = skuRepo;
+                this.discountEnrichment = discountEnrichment;
         }
 
         @Override
@@ -79,39 +84,49 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .toList();
 
                 Map<Long, List<String>> imageMap = loadImageMap(variantIds);
+                Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
                 List<ListingVariantDto> items = raw.getContent().stream()
-                                .map(row -> toGridDto(row, imageMap))
+                                .map(row -> toGridDto(row, imageMap, discountMap))
                                 .toList();
 
                 return new PageResult<>(items, raw.getTotalElements(), page,
                                 (long) page * limit < raw.getTotalElements());
         }
 
-        // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        //                 [5]=webDescription, [6]=topSelling,
-        //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
-        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured,
-        //                 [12]=discountPercentage (expiry-filtered)
-        private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
+        // Column layout (11 columns):
+        // [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
+        // [5]=webDescription, [6]=topSelling,
+        // [7]=MIN(originalPrice),
+        // [8]=totalStock, [9]=colorHexCode, [10]=featured
+        private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
+                        Map<Long, DiscountInfo> discountMap) {
                 Long id = (Long) row[0];
+                DiscountInfo discount = discountMap.get(id);
+
+                // When a discount exists, use the originalPrice from the same SKU
+                // as the discountedPrice to keep strike-through pricing consistent
+                BigDecimal originalPrice = discount != null
+                                ? discount.originalPrice()
+                                : toBigDecimal(row[7]);
+
                 return new ListingVariantDto(
                                 id,
                                 (String) row[1],   // slug
                                 (String) row[2],   // name
                                 (String) row[3],   // category
                                 (String) row[4],   // colorKey
-                                (String) row[10],  // colorHexCode
+                                (String) row[9],   // colorHexCode
                                 (String) row[5],   // webDescription
                                 imageMap.getOrDefault(id, List.of()),
-                                toBigDecimal(row[7]),  // originalPrice
-                                toBigDecimal(row[8]),  // discountedPrice (already expiry-filtered by JPQL)
+                                originalPrice,
+                                discount != null ? discount.discountedPrice() : null,
                                 null,                  // loyaltyPrice (enriched by controller)
-                                toBigDecimal(row[12]), // discountPercentage (expiry-filtered by JPQL)
+                                discount != null ? discount.discountPercentage() : null,
                                 null,                  // loyaltyDiscountPercentage (enriched by controller)
-                                toInteger(row[9]),     // totalStock
+                                toInteger(row[8]),     // totalStock
                                 (Boolean) row[6],      // topSelling
-                                (Boolean) row[11]);    // featured
+                                (Boolean) row[10]);    // featured
         }
 
         // ---- Detail helpers ----
@@ -122,10 +137,16 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .toList();
 
                 List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
-                Instant now = Instant.now();
+
+                // Resolve discounts for all item codes in this variant
+                List<String> itemCodes = skuEntities.stream()
+                                .map(SkuEntity::getErpItemCode)
+                                .toList();
+                Map<String, DiscountEntity> discountsByItemCode =
+                                discountEnrichment.resolveForItemCodes(itemCodes);
 
                 List<SkuDto> skus = skuEntities.stream()
-                                .map(sku -> toSkuDto(sku, now))
+                                .map(sku -> toSkuDto(sku, discountsByItemCode.get(sku.getErpItemCode())))
                                 .toList();
 
                 BigDecimal originalPrice = skuEntities.stream()
@@ -134,16 +155,20 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .min(BigDecimal::compareTo)
                                 .orElse(null);
 
-                // Derive both values from the SAME SKU to keep price and badge% consistent
-                SkuEntity cheapestDiscounted = skuEntities.stream()
-                                .filter(s -> isDiscountActive(s, now))
-                                .min(Comparator.comparing(SkuEntity::getDiscountedPrice))
-                                .orElse(null);
+                // Find cheapest discounted price across all SKUs
+                BigDecimal discountedPrice = null;
+                BigDecimal discountPercentage = null;
 
-                BigDecimal discountedPrice = cheapestDiscounted != null
-                                ? cheapestDiscounted.getDiscountedPrice() : null;
-                BigDecimal discountPercentage = cheapestDiscounted != null
-                                ? cheapestDiscounted.getDiscountPercentage() : null;
+                for (SkuEntity sku : skuEntities) {
+                        DiscountEntity discount = discountsByItemCode.get(sku.getErpItemCode());
+                        if (discount == null || sku.getOriginalPrice() == null) continue;
+
+                        BigDecimal dp = computeDiscountedPrice(sku.getOriginalPrice(), discount.getDiscountValue());
+                        if (discountedPrice == null || dp.compareTo(discountedPrice) < 0) {
+                                discountedPrice = dp;
+                                discountPercentage = discount.getDiscountValue();
+                        }
+                }
 
                 int totalStock = skuEntities.stream()
                                 .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
@@ -204,28 +229,16 @@ public class ListingReadAdapter implements LoadListingPort {
 
         // ---- Shared helpers ----
 
-        private boolean isDiscountActive(SkuEntity sku, Instant now) {
-                return sku.getDiscountedPrice() != null
-                        && sku.getOriginalPrice() != null
-                        && sku.getDiscountedPrice().compareTo(sku.getOriginalPrice()) < 0
-                        && (sku.getDiscountedEndsAt() == null || now.isBefore(sku.getDiscountedEndsAt()));
-        }
+        private SkuDto toSkuDto(SkuEntity entity, DiscountEntity discount) {
+                boolean onSale = discount != null && entity.getOriginalPrice() != null;
 
-        private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {
-                if (variantIds.isEmpty())
-                        return Map.of();
-                return variantRepo.findImagesByVariantIds(variantIds).stream()
-                                .collect(Collectors.groupingBy(
-                                                row -> (Long) row[0],
-                                                Collectors.mapping(row -> (String) row[1], Collectors.toList())));
-        }
-
-        private SkuDto toSkuDto(SkuEntity entity, Instant now) {
-                boolean onSale = isDiscountActive(entity, now);
-
-                // Null out discountedPrice and discountPercentage if expired
-                BigDecimal effectiveDiscounted = onSale ? entity.getDiscountedPrice() : null;
-                BigDecimal effectiveDiscountPct = onSale ? entity.getDiscountPercentage() : null;
+                BigDecimal effectiveDiscounted = null;
+                BigDecimal effectiveDiscountPct = null;
+                if (onSale) {
+                        effectiveDiscounted = computeDiscountedPrice(
+                                        entity.getOriginalPrice(), discount.getDiscountValue());
+                        effectiveDiscountPct = discount.getDiscountValue();
+                }
 
                 return new SkuDto(
                                 entity.getId(),
@@ -238,7 +251,22 @@ public class ListingReadAdapter implements LoadListingPort {
                                 effectiveDiscountPct,
                                 null,               // loyaltyDiscountPercentage (enriched by controller)
                                 onSale,
-                                onSale ? entity.getDiscountedEndsAt() : null);  // don't expose expired timestamp
+                                onSale ? discount.getValidUpto() : null);
+        }
+
+        private BigDecimal computeDiscountedPrice(BigDecimal originalPrice, BigDecimal discountPct) {
+                BigDecimal multiplier = BigDecimal.ONE.subtract(
+                                discountPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
+                return originalPrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {
+                if (variantIds.isEmpty())
+                        return Map.of();
+                return variantRepo.findImagesByVariantIds(variantIds).stream()
+                                .collect(Collectors.groupingBy(
+                                                row -> (Long) row[0],
+                                                Collectors.mapping(row -> (String) row[1], Collectors.toList())));
         }
 
         private BigDecimal toBigDecimal(Object value) {

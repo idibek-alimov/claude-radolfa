@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadHomeCollectionsPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 
@@ -19,14 +20,18 @@ import java.util.stream.Collectors;
  *
  * <p>Reuses the same {@code Object[]} column layout as the grid queries
  * in {@link ListingReadAdapter}, with batch-loaded images.
+ * Discounts are resolved from the discounts table post-query.
  */
 @Component
 public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
     private final ListingVariantRepository variantRepo;
+    private final DiscountEnrichmentAdapter discountEnrichment;
 
-    public HomeCollectionsAdapter(ListingVariantRepository variantRepo) {
+    public HomeCollectionsAdapter(ListingVariantRepository variantRepo,
+                                  DiscountEnrichmentAdapter discountEnrichment) {
         this.variantRepo = variantRepo;
+        this.discountEnrichment = discountEnrichment;
     }
 
     // ---- Homepage preview (limited, no pagination metadata) ----
@@ -43,7 +48,11 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
     @Override
     public List<ListingVariantDto> loadOnSale(int limit) {
-        return toGridDtos(variantRepo.findOnSaleGrid(PageRequest.of(0, limit)).getContent());
+        List<Long> variantIds = discountEnrichment.findVariantIdsWithActiveDiscounts();
+        if (variantIds.isEmpty()) return List.of();
+
+        List<Object[]> rows = variantRepo.findGridByVariantIds(variantIds, PageRequest.of(0, limit)).getContent();
+        return toGridDtos(rows);
     }
 
     // ---- Paginated "View All" pages ----
@@ -60,7 +69,13 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
     @Override
     public PageResult<ListingVariantDto> loadOnSalePage(int page, int limit) {
-        return toPageResult(variantRepo.findOnSaleGrid(PageRequest.of(page - 1, limit)), page);
+        List<Long> variantIds = discountEnrichment.findVariantIdsWithActiveDiscounts();
+        if (variantIds.isEmpty()) {
+            return new PageResult<>(List.of(), 0, page, false);
+        }
+
+        Page<Object[]> raw = variantRepo.findGridByVariantIds(variantIds, PageRequest.of(page - 1, limit));
+        return toPageResult(raw, page);
     }
 
     // ---- Shared helpers (same column layout as ListingReadAdapter) ----
@@ -77,36 +92,46 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
                 .toList();
 
         Map<Long, List<String>> imageMap = loadImageMap(variantIds);
+        Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
         return rows.stream()
-                .map(row -> toGridDto(row, imageMap))
+                .map(row -> toGridDto(row, imageMap, discountMap))
                 .toList();
     }
 
-    // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-    //                 [5]=webDescription, [6]=topSelling,
-    //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
-    //                 [9]=totalStock, [10]=colorHexCode, [11]=featured,
-    //                 [12]=discountPercentage (expiry-filtered)
-    private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
+    // Column layout (11 columns):
+    // [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
+    // [5]=webDescription, [6]=topSelling,
+    // [7]=MIN(originalPrice),
+    // [8]=totalStock, [9]=colorHexCode, [10]=featured
+    private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
+                                        Map<Long, DiscountInfo> discountMap) {
         Long id = (Long) row[0];
+        DiscountInfo discount = discountMap.get(id);
+
+        // When a discount exists, use the originalPrice from the same SKU
+        // as the discountedPrice to keep strike-through pricing consistent
+        BigDecimal originalPrice = discount != null
+                ? discount.originalPrice()
+                : toBigDecimal(row[7]);
+
         return new ListingVariantDto(
                 id,
                 (String) row[1],   // slug
                 (String) row[2],   // name
                 (String) row[3],   // category
                 (String) row[4],   // colorKey
-                (String) row[10],  // colorHexCode
+                (String) row[9],   // colorHexCode
                 (String) row[5],   // webDescription
                 imageMap.getOrDefault(id, List.of()),
-                toBigDecimal(row[7]),  // originalPrice
-                toBigDecimal(row[8]),  // discountedPrice (already expiry-filtered by JPQL)
+                originalPrice,
+                discount != null ? discount.discountedPrice() : null,
                 null,                  // loyaltyPrice (enriched by controller)
-                toBigDecimal(row[12]), // discountPercentage (expiry-filtered by JPQL)
+                discount != null ? discount.discountPercentage() : null,
                 null,                  // loyaltyDiscountPercentage (enriched by controller)
-                toInteger(row[9]),     // totalStock
+                toInteger(row[8]),     // totalStock
                 (Boolean) row[6],      // topSelling
-                (Boolean) row[11]);    // featured
+                (Boolean) row[10]);    // featured
     }
 
     private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {

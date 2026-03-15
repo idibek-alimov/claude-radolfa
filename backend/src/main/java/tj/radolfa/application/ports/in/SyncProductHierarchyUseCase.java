@@ -3,7 +3,6 @@ package tj.radolfa.application.ports.in;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.ProductBase;
 
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -41,10 +40,7 @@ public interface SyncProductHierarchyUseCase {
                 String erpItemCode,
                 String sizeLabel,
                 Integer stockQuantity,
-                Money listPrice,
-                Money effectivePrice,
-                Instant saleEndsAt,
-                java.math.BigDecimal discountPercentage
+                Money listPrice
         ) {}
     }
 }

@@ -38,30 +38,22 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         List<ListingVariantEntity> findByProductBaseId(Long productBaseId);
 
         // ---- Grid queries with SKU aggregates ----
-        // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        //                 [5]=webDescription, [6]=topSelling,
-        //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
-        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured,
-        //                 [12]=discountPercentage (expiry-filtered)
+        // Column layout (11 columns):
+        // [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
+        // [5]=webDescription, [6]=topSelling,
+        // [7]=MIN(originalPrice),
+        // [8]=totalStock, [9]=colorHexCode, [10]=featured
 
         /**
          * Paginated grid: variant card data with aggregated price/stock from SKUs.
-         * Single query, no N+1. Expired discounts are excluded via CASE expression.
+         * Discount data is enriched post-query by DiscountEnrichmentAdapter.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured,
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountPercentage ELSE NULL END)
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -78,16 +70,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured,
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountPercentage ELSE NULL END)
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -105,16 +89,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured,
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountPercentage ELSE NULL END)
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -148,16 +124,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured,
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountPercentage ELSE NULL END)
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -175,16 +143,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured,
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountPercentage ELSE NULL END)
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -195,33 +155,23 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         Page<Object[]> findNewArrivalsGrid(Pageable pageable);
 
         /**
-         * On-sale listings: variants with at least one SKU with an active (non-expired) discount.
+         * Grid query for a specific set of variant IDs (used for on-sale, pre-filtered by discount adapter).
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured,
-                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
-                                        AND s.discountedPrice < s.originalPrice
-                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
-                                   THEN s.discountPercentage ELSE NULL END)
+                               lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
-                        JOIN lv.skus s
-                        WHERE s.discountedPrice IS NOT NULL
-                          AND s.discountedPrice < s.originalPrice
-                          AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                        LEFT JOIN lv.skus s
+                        WHERE lv.id IN :variantIds
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.updatedAt DESC
                         """)
-        Page<Object[]> findOnSaleGrid(Pageable pageable);
+        Page<Object[]> findGridByVariantIds(@Param("variantIds") List<Long> variantIds, Pageable pageable);
 
         /**
          * Sibling variants of the same ProductBase (excluding the current one).
