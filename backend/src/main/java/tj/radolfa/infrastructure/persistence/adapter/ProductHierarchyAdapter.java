@@ -212,6 +212,7 @@ public class ProductHierarchyAdapter
             entity.setOriginalPrice(sku.getPrice() != null ? sku.getPrice().amount() : null);
             entity.setDiscountedPrice(sku.getSalePrice() != null ? sku.getSalePrice().amount() : null);
             entity.setDiscountedEndsAt(sku.getSaleEndsAt());
+            entity.setDiscountPercentage(sku.getDiscountPercentage());
         } else {
             // Create new
             entity = mapper.toSkuEntity(sku);

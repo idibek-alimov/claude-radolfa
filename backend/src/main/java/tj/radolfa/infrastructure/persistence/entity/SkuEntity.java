@@ -43,4 +43,7 @@ public class SkuEntity extends BaseAuditEntity {
     @Column(name = "discounted_ends_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant discountedEndsAt;
+
+    @Column(name = "discount_percentage", precision = 5, scale = 2)
+    private BigDecimal discountPercentage;
 }

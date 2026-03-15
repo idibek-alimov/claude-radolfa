@@ -41,7 +41,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
         //                 [5]=webDescription, [6]=topSelling,
         //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
-        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
+        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured,
+        //                 [12]=discountPercentage (expiry-filtered)
 
         /**
          * Paginated grid: variant card data with aggregated price/stock from SKUs.
@@ -56,7 +57,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                         AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                                    THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.featured,
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountPercentage ELSE NULL END)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -78,7 +83,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                         AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                                    THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.featured,
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountPercentage ELSE NULL END)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -101,7 +110,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                         AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                                    THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.featured,
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountPercentage ELSE NULL END)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -140,7 +153,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                         AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                                    THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.featured,
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountPercentage ELSE NULL END)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -163,7 +180,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                         AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                                    THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.featured,
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountPercentage ELSE NULL END)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -185,7 +206,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                         AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                                    THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.featured,
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountPercentage ELSE NULL END)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         JOIN lv.skus s

@@ -15,5 +15,6 @@ public record ErpProductSnapshot(
         String     category,
         BigDecimal standardRate,
         BigDecimal discountedRate,
+        BigDecimal discountPercentage,
         Integer    stock
 ) {}

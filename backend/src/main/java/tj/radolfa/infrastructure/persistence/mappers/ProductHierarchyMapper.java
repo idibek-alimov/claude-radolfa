@@ -92,7 +92,8 @@ public interface ProductHierarchyMapper {
                 entity.getStockQuantity(),
                 Money.of(entity.getOriginalPrice()),
                 Money.of(entity.getDiscountedPrice()),
-                entity.getDiscountedEndsAt()
+                entity.getDiscountedEndsAt(),
+                entity.getDiscountPercentage()
         );
     }
 

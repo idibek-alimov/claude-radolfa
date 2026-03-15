@@ -146,6 +146,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getPrice() != null ? BigDecimal.valueOf(doc.getPrice()) : null,
                                 null,    // discountedPrice (not available from ES)
                                 null,    // loyaltyPrice (enriched by controller)
+                                null,    // discountPercentage (not available from ES)
+                                null,    // loyaltyDiscountPercentage (enriched by controller)
                                 doc.getTotalStock(),
                                 doc.getTopSelling() != null && doc.getTopSelling(),
                                 doc.getFeatured() != null && doc.getFeatured()

@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.web;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.RequestScope;
 import tj.radolfa.application.ports.in.ResolveUserDiscountUseCase;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -20,22 +21,27 @@ import java.util.List;
  * and applies it to product price fields.
  */
 @Component
+@RequestScope
 public class TierPricingEnricher {
 
     private final ResolveUserDiscountUseCase resolveUserDiscountUseCase;
+    private BigDecimal cachedDiscount;
 
     public TierPricingEnricher(ResolveUserDiscountUseCase resolveUserDiscountUseCase) {
         this.resolveUserDiscountUseCase = resolveUserDiscountUseCase;
     }
 
     public BigDecimal resolveDiscount() {
+        if (cachedDiscount != null) return cachedDiscount;
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()
                 || !(auth.getPrincipal() instanceof JwtAuthenticatedUser principal)) {
-            return BigDecimal.ZERO;
+            cachedDiscount = BigDecimal.ZERO;
+        } else {
+            cachedDiscount = resolveUserDiscountUseCase.resolveForUser(principal.userId());
         }
-
-        return resolveUserDiscountUseCase.resolveForUser(principal.userId());
+        return cachedDiscount;
     }
 
     public PageResult<ListingVariantDto> enrich(PageResult<ListingVariantDto> page) {

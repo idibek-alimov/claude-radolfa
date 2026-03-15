@@ -17,6 +17,7 @@ import tj.radolfa.infrastructure.web.dto.SkuDto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,7 +91,8 @@ public class ListingReadAdapter implements LoadListingPort {
         // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
         //                 [5]=webDescription, [6]=topSelling,
         //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
-        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
+        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured,
+        //                 [12]=discountPercentage (expiry-filtered)
         private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
                 Long id = (Long) row[0];
                 return new ListingVariantDto(
@@ -105,6 +107,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 toBigDecimal(row[7]),  // originalPrice
                                 toBigDecimal(row[8]),  // discountedPrice (already expiry-filtered by JPQL)
                                 null,                  // loyaltyPrice (enriched by controller)
+                                toBigDecimal(row[12]), // discountPercentage (expiry-filtered by JPQL)
+                                null,                  // loyaltyDiscountPercentage (enriched by controller)
                                 toInteger(row[9]),     // totalStock
                                 (Boolean) row[6],      // topSelling
                                 (Boolean) row[11]);    // featured
@@ -118,12 +122,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .toList();
 
                 List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
+                Instant now = Instant.now();
 
                 List<SkuDto> skus = skuEntities.stream()
-                                .map(this::toSkuDto)
+                                .map(sku -> toSkuDto(sku, now))
                                 .toList();
-
-                Instant now = Instant.now();
 
                 BigDecimal originalPrice = skuEntities.stream()
                                 .map(SkuEntity::getOriginalPrice)
@@ -131,11 +134,16 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .min(BigDecimal::compareTo)
                                 .orElse(null);
 
-                BigDecimal discountedPrice = skuEntities.stream()
+                // Derive both values from the SAME SKU to keep price and badge% consistent
+                SkuEntity cheapestDiscounted = skuEntities.stream()
                                 .filter(s -> isDiscountActive(s, now))
-                                .map(SkuEntity::getDiscountedPrice)
-                                .min(BigDecimal::compareTo)
+                                .min(Comparator.comparing(SkuEntity::getDiscountedPrice))
                                 .orElse(null);
+
+                BigDecimal discountedPrice = cheapestDiscounted != null
+                                ? cheapestDiscounted.getDiscountedPrice() : null;
+                BigDecimal discountPercentage = cheapestDiscounted != null
+                                ? cheapestDiscounted.getDiscountPercentage() : null;
 
                 int totalStock = skuEntities.stream()
                                 .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
@@ -184,7 +192,9 @@ public class ListingReadAdapter implements LoadListingPort {
                                 images,
                                 originalPrice,
                                 discountedPrice,
-                                null,    // loyaltyPrice (enriched by controller)
+                                null,              // loyaltyPrice (enriched by controller)
+                                discountPercentage,
+                                null,              // loyaltyDiscountPercentage (enriched by controller)
                                 totalStock,
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
@@ -210,12 +220,12 @@ public class ListingReadAdapter implements LoadListingPort {
                                                 Collectors.mapping(row -> (String) row[1], Collectors.toList())));
         }
 
-        private SkuDto toSkuDto(SkuEntity entity) {
-                Instant now = Instant.now();
+        private SkuDto toSkuDto(SkuEntity entity, Instant now) {
                 boolean onSale = isDiscountActive(entity, now);
 
-                // Null out discountedPrice if expired so downstream logic doesn't stack on stale data
+                // Null out discountedPrice and discountPercentage if expired
                 BigDecimal effectiveDiscounted = onSale ? entity.getDiscountedPrice() : null;
+                BigDecimal effectiveDiscountPct = onSale ? entity.getDiscountPercentage() : null;
 
                 return new SkuDto(
                                 entity.getId(),
@@ -224,9 +234,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getStockQuantity(),
                                 entity.getOriginalPrice(),
                                 effectiveDiscounted,
-                                null,    // loyaltyPrice (enriched by controller)
+                                null,               // loyaltyPrice (enriched by controller)
+                                effectiveDiscountPct,
+                                null,               // loyaltyDiscountPercentage (enriched by controller)
                                 onSale,
-                                entity.getDiscountedEndsAt());
+                                onSale ? entity.getDiscountedEndsAt() : null);  // don't expose expired timestamp
         }
 
         private BigDecimal toBigDecimal(Object value) {

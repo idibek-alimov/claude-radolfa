@@ -43,7 +43,8 @@ public interface SyncProductHierarchyUseCase {
                 Integer stockQuantity,
                 Money listPrice,
                 Money effectivePrice,
-                Instant saleEndsAt
+                Instant saleEndsAt,
+                java.math.BigDecimal discountPercentage
         ) {}
     }
 }

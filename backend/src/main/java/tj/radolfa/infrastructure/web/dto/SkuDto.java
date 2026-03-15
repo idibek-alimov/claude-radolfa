@@ -16,18 +16,22 @@ public record SkuDto(
         BigDecimal originalPrice,
         BigDecimal discountedPrice,
         BigDecimal loyaltyPrice,
+        BigDecimal discountPercentage,
+        BigDecimal loyaltyDiscountPercentage,
         boolean onSale,
         Instant discountedEndsAt
 ) {
-    public SkuDto withLoyaltyPrice(BigDecimal discountPercentage) {
+    public SkuDto withLoyaltyPrice(BigDecimal loyaltyPct) {
         BigDecimal effective = discountedPrice != null ? discountedPrice : originalPrice;
-        if (effective == null || discountPercentage.compareTo(BigDecimal.ZERO) == 0) return this;
+        if (effective == null || loyaltyPct.compareTo(BigDecimal.ZERO) == 0) return this;
 
         BigDecimal multiplier = BigDecimal.ONE.subtract(
-                discountPercentage.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
+                loyaltyPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
         BigDecimal computed = effective.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
 
         return new SkuDto(id, erpItemCode, sizeLabel, stockQuantity,
-                originalPrice, discountedPrice, computed, onSale, discountedEndsAt);
+                originalPrice, discountedPrice, computed,
+                discountPercentage, loyaltyPct,
+                onSale, discountedEndsAt);
     }
 }

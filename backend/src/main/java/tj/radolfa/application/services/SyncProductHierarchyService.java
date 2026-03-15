@@ -102,6 +102,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                                 0,
                                 null,
                                 null,
+                                null,
                                 null
                         ));
 
@@ -110,7 +111,8 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                         sc.stockQuantity(),
                         sc.listPrice(),
                         sc.effectivePrice(),
-                        sc.saleEndsAt()
+                        sc.saleEndsAt(),
+                        sc.discountPercentage()
                 );
 
                 savedSkus.add(savePort.saveSku(sku, variantId));

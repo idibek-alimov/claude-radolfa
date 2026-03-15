@@ -24,18 +24,20 @@
 
 ## 1. Quick Summary
 
-Every product now has **up to three price levels**:
+Every product now has **up to three price levels** and **two discount percentages**:
 
 | Field | Source | Nullable? | Meaning |
 |-------|--------|-----------|---------|
 | `originalPrice` | ERPNext standard rate | No | The full retail / list price |
 | `discountedPrice` | ERPNext product discount | **Yes** | Price after ERP promotion (e.g. seasonal sale). `null` = no active discount |
 | `loyaltyPrice` | Computed at runtime | **Yes** | Price after applying the logged-in user's loyalty tier discount on top of `discountedPrice` (or `originalPrice` if no ERP discount). `null` = user not logged in, has no tier, or tier discount is 0% |
+| `discountPercentage` | ERPNext (synced) | **Yes** | The ERP product discount % (e.g. `15.00`). `null` = no active discount. Use for badges like "-15%" |
+| `loyaltyDiscountPercentage` | Computed at runtime | **Yes** | The user's loyalty tier discount % (e.g. `5.00`). `null` = not logged in or no tier. Use for badges like "Your GOLD tier: extra 5% off" |
 
 **The stacking formula:**
 
 ```
-loyaltyPrice = (discountedPrice ?? originalPrice) × (1 − loyaltyDiscount%)
+loyaltyPrice = (discountedPrice ?? originalPrice) × (1 − loyaltyDiscountPercentage%)
 ```
 
 Discounts **multiply** (stack), they don't add. A 15% ERP discount + 20% loyalty discount ≠ 35% off. It's:
@@ -62,14 +64,14 @@ Discounts **multiply** (stack), they don't add. A 15% ERP discount + 20% loyalty
 
 ### Nullability Matrix
 
-| User State | `originalPrice` | `discountedPrice` | `loyaltyPrice` |
-|---|---|---|---|
-| Anonymous, no ERP discount | ✅ | `null` | `null` |
-| Anonymous, ERP discount active | ✅ | ✅ | `null` |
-| Logged in (no tier), no ERP discount | ✅ | `null` | `null` |
-| Logged in (no tier), ERP discount active | ✅ | ✅ | `null` |
-| Logged in (has tier), no ERP discount | ✅ | `null` | ✅ |
-| Logged in (has tier), ERP discount active | ✅ | ✅ | ✅ |
+| User State | `originalPrice` | `discountedPrice` | `loyaltyPrice` | `discountPercentage` | `loyaltyDiscountPercentage` |
+|---|---|---|---|---|---|
+| Anonymous, no ERP discount | ✅ | `null` | `null` | `null` | `null` |
+| Anonymous, ERP discount active | ✅ | ✅ | `null` | ✅ (e.g. `15.00`) | `null` |
+| Logged in (no tier), no ERP discount | ✅ | `null` | `null` | `null` | `null` |
+| Logged in (no tier), ERP discount active | ✅ | ✅ | `null` | ✅ | `null` |
+| Logged in (has tier), no ERP discount | ✅ | `null` | ✅ | `null` | ✅ (e.g. `5.00`) |
+| Logged in (has tier), ERP discount active | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -87,19 +89,20 @@ if (loyaltyPrice != null) {
         show originalPrice with strikethrough
         show discountedPrice with strikethrough (smaller)
         show loyaltyPrice as current price
-        show badge: "ERP Sale + Loyalty"
+        show badge: `-${discountPercentage}%` (e.g. "-15%")
+        show badge: `Your tier: extra ${loyaltyDiscountPercentage}% off`
     } else {
         // Two prices: original → loyalty
         show originalPrice with strikethrough
         show loyaltyPrice as current price
-        show badge: "Loyalty Price"
+        show badge: `${loyaltyDiscountPercentage}% Loyalty Discount`
     }
 
 } else if (discountedPrice != null) {
     // ERP discount only (anonymous or user without tier)
     show originalPrice with strikethrough
     show discountedPrice as current price
-    show badge: "Sale" or percentage off
+    show badge: `-${discountPercentage}%` (e.g. "-15%")
 
 } else {
     // Full price — no discounts
@@ -162,6 +165,8 @@ interface ListingVariantDto {
   originalPrice: number;              // Always present
   discountedPrice: number | null;     // null = no active ERP discount
   loyaltyPrice: number | null;        // null = not logged in or no tier
+  discountPercentage: number | null;  // ERP discount % (e.g. 15.00). null = no active discount
+  loyaltyDiscountPercentage: number | null; // User's tier discount % (e.g. 5.00). null = no tier
   totalStock: number;
   topSelling: boolean;
   featured: boolean;
@@ -183,6 +188,8 @@ interface ListingVariantDetailDto {
   originalPrice: number;              // MIN across all SKUs
   discountedPrice: number | null;     // MIN across active-discount SKUs
   loyaltyPrice: number | null;
+  discountPercentage: number | null;  // ERP discount % (MIN across active SKUs)
+  loyaltyDiscountPercentage: number | null; // User's tier discount %
   totalStock: number;
   topSelling: boolean;
   featured: boolean;
@@ -209,6 +216,8 @@ interface SkuDto {
   originalPrice: number;              // This SKU's list price
   discountedPrice: number | null;     // null if discount expired or doesn't exist
   loyaltyPrice: number | null;        // null if not logged in or no tier
+  discountPercentage: number | null;  // ERP discount % for this SKU (e.g. 15.00)
+  loyaltyDiscountPercentage: number | null; // User's tier discount %
   onSale: boolean;                    // true only if discountedPrice is active
   discountedEndsAt: string | null;    // ISO-8601 instant (e.g. "2026-03-29T00:00:00Z")
 }
@@ -291,7 +300,9 @@ Total effective discount:
 {
   "originalPrice": 25.00,
   "discountedPrice": null,
-  "loyaltyPrice": null
+  "loyaltyPrice": null,
+  "discountPercentage": null,
+  "loyaltyDiscountPercentage": null
 }
 ```
 Display: **$25.00**
@@ -305,10 +316,12 @@ Display: **$25.00**
 {
   "originalPrice": 25.00,
   "discountedPrice": null,
-  "loyaltyPrice": 23.75
+  "loyaltyPrice": 23.75,
+  "discountPercentage": null,
+  "loyaltyDiscountPercentage": 5.00
 }
 ```
-Display: ~~$25.00~~ → **$23.75** (Loyalty Price)
+Display: ~~$25.00~~ → **$23.75** | Badge: "5% Loyalty Discount"
 
 ---
 
@@ -319,10 +332,12 @@ Display: ~~$25.00~~ → **$23.75** (Loyalty Price)
 {
   "originalPrice": 250.00,
   "discountedPrice": 212.50,
-  "loyaltyPrice": null
+  "loyaltyPrice": null,
+  "discountPercentage": 15.00,
+  "loyaltyDiscountPercentage": null
 }
 ```
-Display: ~~$250.00~~ → **$212.50** (Sale)
+Display: ~~$250.00~~ → **$212.50** | Badge: "-15%"
 
 ---
 
@@ -333,10 +348,12 @@ Display: ~~$250.00~~ → **$212.50** (Sale)
 {
   "originalPrice": 250.00,
   "discountedPrice": 212.50,
-  "loyaltyPrice": 180.63
+  "loyaltyPrice": 180.63,
+  "discountPercentage": 15.00,
+  "loyaltyDiscountPercentage": 15.00
 }
 ```
-Display: ~~$250.00~~ ~~$212.50~~ → **$180.63** (Sale + Loyalty)
+Display: ~~$250.00~~ ~~$212.50~~ → **$180.63** | Badges: "-15%" + "Extra 15% Loyalty"
 
 ---
 
@@ -347,10 +364,12 @@ Display: ~~$250.00~~ ~~$212.50~~ → **$180.63** (Sale + Loyalty)
 {
   "originalPrice": 250.00,
   "discountedPrice": 212.50,
-  "loyaltyPrice": 170.00
+  "loyaltyPrice": 170.00,
+  "discountPercentage": 15.00,
+  "loyaltyDiscountPercentage": 20.00
 }
 ```
-Display: ~~$250.00~~ ~~$212.50~~ → **$170.00** (Sale + Loyalty)
+Display: ~~$250.00~~ ~~$212.50~~ → **$170.00** | Badges: "-15%" + "Extra 20% Loyalty"
 
 ---
 
@@ -362,7 +381,9 @@ Backend filters out expired discount — returns as if no discount exists.
 {
   "originalPrice": 70.00,
   "discountedPrice": null,
-  "loyaltyPrice": null
+  "loyaltyPrice": null,
+  "discountPercentage": null,
+  "loyaltyDiscountPercentage": null
 }
 ```
 Display: **$70.00** (no strikethrough, no badge)
@@ -376,10 +397,12 @@ Display: **$70.00** (no strikethrough, no badge)
 {
   "originalPrice": 50.00,
   "discountedPrice": 37.50,
-  "loyaltyPrice": 35.63
+  "loyaltyPrice": 35.63,
+  "discountPercentage": 25.00,
+  "loyaltyDiscountPercentage": 5.00
 }
 ```
-Display: ~~$50.00~~ ~~$37.50~~ → **$35.63** (Sale + Loyalty)
+Display: ~~$50.00~~ ~~$37.50~~ → **$35.63** | Badges: "-25%" + "Extra 5% Loyalty"
 
 The SKU-level `discountedEndsAt` field tells you when the sale ends, if you want to show a countdown.
 
@@ -389,14 +412,14 @@ The SKU-level `discountedEndsAt` field tells you when the sale ends, if you want
 
 The dev seed data (`V17_1__seed_discount_scenarios.sql`) sets up these groups:
 
-| Products | Template Codes | ERP Discount | Expiry | Test Case |
-|----------|---------------|-------------|--------|-----------|
-| 1–6 | TPL-TSHIRT, TPL-HOODIE, TPL-JEANS, TPL-WINDBRK, TPL-SKIRT, TPL-DRESS | **None** | — | Full price only. Loyalty discount visible for logged-in users. |
-| 7–12 | TPL-SUIT, TPL-SWEATER, TPL-CARDGN, TPL-BLAZER, TPL-TRENCH, TPL-SHORTS | **15% off** | Never expires | ERP discount always active. All 3 prices visible for tier users. |
-| 13–18 | TPL-SWIM, TPL-PAJAMA, TPL-POLO, TPL-LINEN, TPL-JOGGER, TPL-FLEECE | **25% off** | +14 days | Time-limited sale. Shows all 3 prices + expiry countdown possible. |
-| 19–22 | TPL-TIE, TPL-SCARF, TPL-SNEAK, TPL-BOOTS | ~~30% off~~ | **EXPIRED** (−3 days) | `discountedPrice` = null in API. Verifies expiry filtering works. |
-| 23–26 | TPL-SANDAL, TPL-CAP, TPL-BKPCK, TPL-WALLET | **10% off** | Never expires | Mild discount. |
-| 27–30 | TPL-BELT, TPL-SUNGLS, TPL-WATCH, TPL-TOTE | **None** | — | Same as Group 1. |
+| Products | Template Codes | ERP Discount | `discountPercentage` | Expiry | Test Case |
+|----------|---------------|-------------|---------------------|--------|-----------|
+| 1–6 | TPL-TSHIRT, TPL-HOODIE, TPL-JEANS, TPL-WINDBRK, TPL-SKIRT, TPL-DRESS | **None** | `null` | — | Full price only. Loyalty discount visible for logged-in users. |
+| 7–12 | TPL-SUIT, TPL-SWEATER, TPL-CARDGN, TPL-BLAZER, TPL-TRENCH, TPL-SHORTS | **15% off** | `15.00` | Never expires | ERP discount always active. All 3 prices + both percentages visible for tier users. |
+| 13–18 | TPL-SWIM, TPL-PAJAMA, TPL-POLO, TPL-LINEN, TPL-JOGGER, TPL-FLEECE | **25% off** | `25.00` | +14 days | Time-limited sale. Shows all 3 prices + both percentages + expiry countdown. |
+| 19–22 | TPL-TIE, TPL-SCARF, TPL-SNEAK, TPL-BOOTS | ~~30% off~~ | `null` (expired) | **EXPIRED** (−3 days) | `discountedPrice` and `discountPercentage` = null in API. Verifies expiry filtering. |
+| 23–26 | TPL-SANDAL, TPL-CAP, TPL-BKPCK, TPL-WALLET | **10% off** | `10.00` | Never expires | Mild discount. |
+| 27–30 | TPL-BELT, TPL-SUNGLS, TPL-WATCH, TPL-TOTE | **None** | `null` | — | Same as Group 1. |
 
 ### Test Users
 
@@ -489,7 +512,10 @@ Fetch from `GET /api/v1/loyalty-tiers` (public endpoint):
 ### Price Tag Component Logic
 
 ```typescript
-function PriceDisplay({ originalPrice, discountedPrice, loyaltyPrice }) {
+function PriceDisplay({
+  originalPrice, discountedPrice, loyaltyPrice,
+  discountPercentage, loyaltyDiscountPercentage
+}: ListingVariantDto) {
   const finalPrice = loyaltyPrice ?? discountedPrice ?? originalPrice;
   const hasAnyDiscount = discountedPrice != null || loyaltyPrice != null;
 
@@ -511,9 +537,16 @@ function PriceDisplay({ originalPrice, discountedPrice, loyaltyPrice }) {
         ${finalPrice}
       </span>
 
-      {hasAnyDiscount && (
-        <span className="text-green-600 text-sm">
-          {Math.round((1 - finalPrice / originalPrice) * 100)}% off
+      {/* Use backend-provided percentages — no client-side calculation */}
+      {discountPercentage != null && (
+        <span className="bg-red-100 text-red-600 text-xs px-1 rounded">
+          -{discountPercentage}%
+        </span>
+      )}
+
+      {loyaltyDiscountPercentage != null && (
+        <span className="bg-amber-100 text-amber-700 text-xs px-1 rounded">
+          Extra {loyaltyDiscountPercentage}% loyalty
         </span>
       )}
     </div>
@@ -557,6 +590,8 @@ function SkuPrice({ sku }: { sku: SkuDto }) {
 | `tierPriceStart` | `loyaltyPrice` | Renamed for clarity |
 | `tierPriceEnd` | *(removed)* | Single value now |
 | — | `discountedPrice` | **New field** — ERP product discount |
+| — | `discountPercentage` | **New field** — ERP discount % (e.g. `15.00`) |
+| — | `loyaltyDiscountPercentage` | **New field** — User's loyalty tier discount % |
 
 ### Fields Removed
 

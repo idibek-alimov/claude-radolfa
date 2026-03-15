@@ -1,5 +1,6 @@
 package tj.radolfa.domain.model;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -19,10 +20,11 @@ public class Sku {
     private String  sizeLabel;
 
     // ERP-locked fields — always overwritten
-    private Integer stockQuantity;
-    private Money   price;         // Original / list price
-    private Money   salePrice;     // Effective price (after promotions)
-    private Instant saleEndsAt;
+    private Integer    stockQuantity;
+    private Money      price;              // Original / list price
+    private Money      salePrice;          // Effective price (after promotions)
+    private Instant    saleEndsAt;
+    private BigDecimal discountPercentage; // ERP product discount % (source of truth)
 
     public Sku(Long id,
                Long listingVariantId,
@@ -31,15 +33,17 @@ public class Sku {
                Integer stockQuantity,
                Money price,
                Money salePrice,
-               Instant saleEndsAt) {
-        this.id               = id;
-        this.listingVariantId = listingVariantId;
-        this.erpItemCode      = erpItemCode;
-        this.sizeLabel        = sizeLabel;
-        this.stockQuantity    = stockQuantity;
-        this.price            = price;
-        this.salePrice        = salePrice;
-        this.saleEndsAt       = saleEndsAt;
+               Instant saleEndsAt,
+               BigDecimal discountPercentage) {
+        this.id                 = id;
+        this.listingVariantId   = listingVariantId;
+        this.erpItemCode        = erpItemCode;
+        this.sizeLabel          = sizeLabel;
+        this.stockQuantity      = stockQuantity;
+        this.price              = price;
+        this.salePrice          = salePrice;
+        this.saleEndsAt         = saleEndsAt;
+        this.discountPercentage = discountPercentage;
     }
 
     /**
@@ -49,11 +53,13 @@ public class Sku {
     public void updateFromErp(Integer stockQuantity,
                               Money price,
                               Money salePrice,
-                              Instant saleEndsAt) {
-        this.stockQuantity = stockQuantity;
-        this.price         = price;
-        this.salePrice     = salePrice;
-        this.saleEndsAt    = saleEndsAt;
+                              Instant saleEndsAt,
+                              BigDecimal discountPercentage) {
+        this.stockQuantity      = stockQuantity;
+        this.price              = price;
+        this.salePrice          = salePrice;
+        this.saleEndsAt         = saleEndsAt;
+        this.discountPercentage = discountPercentage;
     }
 
     /**
@@ -79,5 +85,6 @@ public class Sku {
     public Integer getStockQuantity()    { return stockQuantity; }
     public Money   getPrice()            { return price; }
     public Money   getSalePrice()        { return salePrice; }
-    public Instant getSaleEndsAt()       { return saleEndsAt; }
+    public Instant    getSaleEndsAt()         { return saleEndsAt; }
+    public BigDecimal getDiscountPercentage() { return discountPercentage; }
 }

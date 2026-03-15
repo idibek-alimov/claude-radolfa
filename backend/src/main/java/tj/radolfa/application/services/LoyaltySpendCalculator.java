@@ -37,15 +37,15 @@ public class LoyaltySpendCalculator {
 
         if (resolvedTier == null) {
             LoyaltyTier lowestTier = tiers.stream()
-                    .min(Comparator.comparingInt(LoyaltyTier::displayOrder))
+                    .min(Comparator.comparing(LoyaltyTier::minSpendRequirement))
                     .orElseThrow();
             BigDecimal gap = lowestTier.minSpendRequirement().subtract(spending);
             return gap.compareTo(BigDecimal.ZERO) > 0 ? gap : BigDecimal.ZERO;
         }
 
         return tiers.stream()
-                .filter(t -> t.displayOrder() > resolvedTier.displayOrder())
-                .min(Comparator.comparingInt(LoyaltyTier::displayOrder))
+                .filter(t -> t.minSpendRequirement().compareTo(resolvedTier.minSpendRequirement()) > 0)
+                .min(Comparator.comparing(LoyaltyTier::minSpendRequirement))
                 .map(nextTier -> {
                     BigDecimal gap = nextTier.minSpendRequirement().subtract(spending);
                     return gap.compareTo(BigDecimal.ZERO) > 0 ? gap : BigDecimal.ZERO;

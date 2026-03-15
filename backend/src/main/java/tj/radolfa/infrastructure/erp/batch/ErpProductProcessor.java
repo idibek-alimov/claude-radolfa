@@ -42,7 +42,8 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
                 snapshot.stock(),
                 listPrice,
                 effectivePrice,
-                null
+                null,
+                snapshot.discountPercentage()
         );
 
         var variantCommand = new VariantCommand(

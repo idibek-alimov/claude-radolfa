@@ -86,7 +86,8 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
     // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
     //                 [5]=webDescription, [6]=topSelling,
     //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
-    //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
+    //                 [9]=totalStock, [10]=colorHexCode, [11]=featured,
+    //                 [12]=discountPercentage (expiry-filtered)
     private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
         Long id = (Long) row[0];
         return new ListingVariantDto(
@@ -101,6 +102,8 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
                 toBigDecimal(row[7]),  // originalPrice
                 toBigDecimal(row[8]),  // discountedPrice (already expiry-filtered by JPQL)
                 null,                  // loyaltyPrice (enriched by controller)
+                toBigDecimal(row[12]), // discountPercentage (expiry-filtered by JPQL)
+                null,                  // loyaltyDiscountPercentage (enriched by controller)
                 toInteger(row[9]),     // totalStock
                 (Boolean) row[6],      // topSelling
                 (Boolean) row[11]);    // featured
