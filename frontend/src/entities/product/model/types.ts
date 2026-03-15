@@ -14,37 +14,36 @@ export interface Sku {
   erpItemCode: string;
   sizeLabel: string;
   stockQuantity: number;
-  /** Original / list price. */
-  price: number;
-  /** Effective price after promotions. */
-  salePrice: number;
-  /** Tier-discounted price. null if unauthenticated or no tier. */
-  tierPrice: number | null;
+  originalPrice: number;
+  discountedPrice: number | null;
+  loyaltyPrice: number | null;
+  discountPercentage: number | null;
+  loyaltyDiscountPercentage: number | null;
   onSale: boolean;
-  saleEndsAt: string | null;
+  discountedEndsAt: string | null;
 }
 
 /**
  * Product card shown on the grid/listing page.
  * One card per colour variant (e.g. "T-Shirt — Red").
  *
- * Aggregate fields (priceStart, priceEnd, totalStock) are computed
- * server-side from the variant's SKUs.
+ * Aggregate pricing fields (originalPrice, discountedPrice, etc.) and
+ * totalStock are computed server-side from the variant's SKUs.
  */
 export interface ListingVariant {
   id: number;
   slug: string;
   name: string;
-  category: string;
+  category: string | null;
   colorKey: string;
   colorHexCode: string | null;
-  webDescription: string;
+  webDescription: string | null;
   images: string[];
-  priceStart: number;
-  priceEnd: number;
-  /** Tier-discounted price range. null if unauthenticated or no tier. */
-  tierPriceStart: number | null;
-  tierPriceEnd: number | null;
+  originalPrice: number;
+  discountedPrice: number | null;
+  loyaltyPrice: number | null;
+  discountPercentage: number | null;
+  loyaltyDiscountPercentage: number | null;
   totalStock: number;
   topSelling: boolean;
   featured: boolean;
@@ -58,7 +57,7 @@ export interface SiblingVariant {
   slug: string;
   colorKey: string;
   colorHexCode: string | null;
-  thumbnail: string;
+  thumbnail: string | null;
 }
 
 /**

@@ -40,7 +40,7 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
 
     @Override
     public Optional<User> loadById(Long id) {
-        return repository.findById(id)
+        return repository.findByIdWithTier(id)
                 .map(mapper::toUser);
     }
 
@@ -48,7 +48,10 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
     public User save(User user) {
         UserEntity entity = mapper.toEntity(user);
         UserEntity saved = repository.save(entity);
-        return mapper.toUser(saved);
+        // Reload with tier eagerly fetched to avoid LazyInitializationException
+        return repository.findByIdWithTier(saved.getId())
+                .map(mapper::toUser)
+                .orElseThrow();
     }
 
     @Override

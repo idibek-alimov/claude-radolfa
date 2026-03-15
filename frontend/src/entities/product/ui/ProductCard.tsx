@@ -23,10 +23,10 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
   const coverImage = listing.images[0] ?? null;
   const hoverImage = listing.images[1] ?? null;
-  const hasTier = listing.tierPriceStart != null;
-  const displayPrice = hasTier ? listing.tierPriceStart! : listing.priceStart;
-  const displayEnd = hasTier ? listing.tierPriceEnd! : listing.priceEnd;
-  const hasRange = displayPrice !== displayEnd;
+  const currentPrice =
+    listing.loyaltyPrice ?? listing.discountedPrice ?? listing.originalPrice;
+  const hasDiscount =
+    listing.discountedPrice != null || listing.loyaltyPrice != null;
   const stock = listing.totalStock ?? 0;
   const isOutOfStock = stock === 0;
   const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
@@ -125,19 +125,19 @@ export default function ProductCard({ listing }: ProductCardProps) {
           {/* Price + low stock */}
           <div className="mt-auto flex items-center justify-between gap-1 pt-1 sm:pt-1.5">
             <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-              {hasTier && (
+              {hasDiscount && (
                 <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
-                  {formatPrice(listing.priceStart)}
+                  {formatPrice(listing.originalPrice)}
                 </span>
               )}
               <span className="text-base sm:text-lg font-bold text-primary">
-                {hasRange && (
-                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground mr-1">
-                    {t("priceFrom")}
-                  </span>
-                )}
-                {formatPrice(displayPrice)}
+                {formatPrice(currentPrice)}
               </span>
+              {listing.discountPercentage != null && (
+                <span className="text-[10px] sm:text-xs font-semibold text-red-600">
+                  -{listing.discountPercentage}%
+                </span>
+              )}
             </div>
 
             {isLowStock && (

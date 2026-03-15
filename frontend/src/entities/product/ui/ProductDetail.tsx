@@ -299,35 +299,55 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             {listing.name ?? "—"}
           </h1>
 
-          {/* Price — shows tier price when available, base price as fallback */}
+          {/* Price — 3-tier: loyalty > discounted > original */}
           {(() => {
-            const hasTier = listing.tierPriceStart != null;
-            const start = hasTier ? listing.tierPriceStart! : listing.priceStart;
-            const end = hasTier ? listing.tierPriceEnd! : listing.priceEnd;
-            const isRange = start !== end;
+            const sku = selectedSku;
+            const original = sku ? sku.originalPrice : listing.originalPrice;
+            const discounted = sku
+              ? sku.discountedPrice
+              : listing.discountedPrice;
+            const loyalty = sku ? sku.loyaltyPrice : listing.loyaltyPrice;
+            const currentPrice = loyalty ?? discounted ?? original;
+            const discPct = sku
+              ? sku.discountPercentage
+              : listing.discountPercentage;
+            const loyaltyPct = sku
+              ? sku.loyaltyDiscountPercentage
+              : listing.loyaltyDiscountPercentage;
+            const hasAnyDiscount = discounted != null || loyalty != null;
+
             return (
               <div className="space-y-1.5">
-                {hasTier && (
-                  <p className="text-lg text-muted-foreground line-through">
-                    {listing.priceStart === listing.priceEnd
-                      ? formatPrice(listing.priceStart)
-                      : `${formatPrice(listing.priceStart)} – ${formatPrice(listing.priceEnd)}`}
-                  </p>
+                {hasAnyDiscount && (
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg text-muted-foreground line-through">
+                      {formatPrice(original)}
+                    </p>
+                    {discounted != null && loyalty != null && (
+                      <p className="text-base text-muted-foreground line-through">
+                        {formatPrice(discounted)}
+                      </p>
+                    )}
+                  </div>
                 )}
-                {isRange ? (
-                  <>
-                    <p className="text-4xl font-bold text-primary">
-                      {t("priceFrom")} {formatPrice(start)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatPrice(start)} – {formatPrice(end)} {t("dependingOnSize")}
-                    </p>
-                  </>
-                ) : (
+                <div className="flex items-center gap-3">
                   <p className="text-4xl font-bold text-primary">
-                    {formatPrice(start)}
+                    {formatPrice(currentPrice)}
                   </p>
-                )}
+                  {discPct != null && (
+                    <Badge variant="destructive" className="text-xs">
+                      -{discPct}%
+                    </Badge>
+                  )}
+                  {loyaltyPct != null && (
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-amber-100 text-amber-800 border-amber-200"
+                    >
+                      {t("loyaltyExtra", { pct: loyaltyPct })}
+                    </Badge>
+                  )}
+                </div>
               </div>
             );
           })()}

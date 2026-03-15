@@ -15,9 +15,17 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    Optional<UserEntity> findByPhone(String phone);
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE u.phone = :phone")
+    Optional<UserEntity> findByPhone(@Param("phone") String phone);
 
-    @Query("SELECT u FROM UserEntity u WHERE " +
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE u.id = :id")
+    Optional<UserEntity> findByIdWithTier(@Param("id") Long id);
+
+    @Query(value = "SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE " +
+            "(:query IS NULL OR :query = '' OR " +
+            "LOWER(u.phone) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')))",
+            countQuery = "SELECT COUNT(u) FROM UserEntity u WHERE " +
             "(:query IS NULL OR :query = '' OR " +
             "LOWER(u.phone) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')))")

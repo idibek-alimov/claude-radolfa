@@ -25,7 +25,7 @@
 -- Group 1: Products 1-6 → CLEAR discounted_price (no ERP discount)
 -- These test: Case 0 (anonymous) and Case 2 (loyalty-only for logged-in)
 -- ----------------------------------------------------------------
-UPDATE skus SET discounted_price = NULL, discounted_ends_at = NULL, discount_percentage = NULL
+UPDATE skus SET discounted_price = NULL, discounted_ends_at = NULL
 WHERE listing_variant_id IN (
     SELECT lv.id FROM listing_variants lv
     JOIN product_bases pb ON lv.product_base_id = pb.id
@@ -50,8 +50,7 @@ WHERE listing_variant_id IN (
 -- ----------------------------------------------------------------
 UPDATE skus SET
     discounted_price = ROUND(original_price * 0.85, 2),
-    discounted_ends_at = NULL,
-    discount_percentage = 15.00
+    discounted_ends_at = NULL
 WHERE listing_variant_id IN (
     SELECT lv.id FROM listing_variants lv
     JOIN product_bases pb ON lv.product_base_id = pb.id
@@ -67,8 +66,7 @@ WHERE listing_variant_id IN (
 -- ----------------------------------------------------------------
 UPDATE skus SET
     discounted_price = ROUND(original_price * 0.75, 2),
-    discounted_ends_at = NOW() + INTERVAL '14 days',
-    discount_percentage = 25.00
+    discounted_ends_at = NOW() + INTERVAL '14 days'
 WHERE listing_variant_id IN (
     SELECT lv.id FROM listing_variants lv
     JOIN product_bases pb ON lv.product_base_id = pb.id
@@ -82,12 +80,11 @@ WHERE listing_variant_id IN (
 -- Group 4: Products 19-22 → EXPIRED discount (tests expiry filtering)
 -- discounted_price is set but discounted_ends_at is in the past.
 -- Should behave like Case 0 (no discount) — the API must ignore these.
--- discount_percentage is set in DB but API should null it out (expired).
+-- Discount data lives in the `discounts` table (seeded in V20_1).
 -- ----------------------------------------------------------------
 UPDATE skus SET
     discounted_price = ROUND(original_price * 0.70, 2),
-    discounted_ends_at = NOW() - INTERVAL '3 days',
-    discount_percentage = 30.00
+    discounted_ends_at = NOW() - INTERVAL '3 days'
 WHERE listing_variant_id IN (
     SELECT lv.id FROM listing_variants lv
     JOIN product_bases pb ON lv.product_base_id = pb.id
@@ -102,8 +99,7 @@ WHERE listing_variant_id IN (
 -- ----------------------------------------------------------------
 UPDATE skus SET
     discounted_price = ROUND(original_price * 0.90, 2),
-    discounted_ends_at = NULL,
-    discount_percentage = 10.00
+    discounted_ends_at = NULL
 WHERE listing_variant_id IN (
     SELECT lv.id FROM listing_variants lv
     JOIN product_bases pb ON lv.product_base_id = pb.id
@@ -116,7 +112,7 @@ WHERE listing_variant_id IN (
 -- Group 6: Products 27-30 → No ERP discount (full price)
 -- Same as Group 1 — more products at full price for realism
 -- ----------------------------------------------------------------
-UPDATE skus SET discounted_price = NULL, discounted_ends_at = NULL, discount_percentage = NULL
+UPDATE skus SET discounted_price = NULL, discounted_ends_at = NULL
 WHERE listing_variant_id IN (
     SELECT lv.id FROM listing_variants lv
     JOIN product_bases pb ON lv.product_base_id = pb.id

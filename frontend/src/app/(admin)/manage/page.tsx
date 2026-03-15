@@ -251,9 +251,9 @@ function ProductManagement() {
     await deleteImageMutation.mutateAsync({ slug: editingProduct.slug, url });
   };
 
-  const formatPrice = (start: number, end: number) => {
-    if (start === end) return `${start.toFixed(2)} TJS`;
-    return `${start.toFixed(2)} – ${end.toFixed(2)} TJS`;
+  const displayPrice = (item: ListingVariant) => {
+    const price = item.discountedPrice ?? item.originalPrice;
+    return `${price.toFixed(2)} TJS`;
   };
 
   return (
@@ -330,7 +330,7 @@ function ProductManagement() {
                     <div className="flex items-center gap-1">
                       <Lock className="h-3 w-3 text-muted-foreground" />
                       <span className="text-sm">
-                        {formatPrice(item.priceStart, item.priceEnd)}
+                        {displayPrice(item)}
                       </span>
                     </div>
                   </TableCell>
@@ -445,7 +445,7 @@ function ProductManagement() {
                       <label className="text-xs text-muted-foreground">{t("price")}</label>
                       <Input
                         disabled
-                        value={formatPrice(editingProduct.priceStart, editingProduct.priceEnd)}
+                        value={displayPrice(editingProduct)}
                         className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
                       />
                     </div>
@@ -488,10 +488,10 @@ function ProductManagement() {
                         {detail.skus.map((sku) => (
                           <tr key={sku.id} className="border-b last:border-0">
                             <td className="px-3 py-1.5 font-medium">{sku.sizeLabel}</td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.price.toFixed(2)} TJS</td>
+                            <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.originalPrice.toFixed(2)} TJS</td>
                             <td className="px-3 py-1.5 text-right">
-                              {sku.onSale ? (
-                                <span className="text-green-600 font-medium">{sku.salePrice.toFixed(2)} TJS</span>
+                              {sku.onSale && sku.discountedPrice != null ? (
+                                <span className="text-green-600 font-medium">{sku.discountedPrice.toFixed(2)} TJS</span>
                               ) : (
                                 <span className="text-muted-foreground">—</span>
                               )}
