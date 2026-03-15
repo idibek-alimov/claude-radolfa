@@ -231,6 +231,20 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               </div>
             )}
 
+            {/* Sale badge overlay — top-left */}
+            {listing.saleTitle && (
+              <div className="absolute top-3 left-3 z-10">
+                <span
+                  className="inline-flex items-center rounded-md px-3 py-1 text-xs sm:text-sm font-bold uppercase tracking-wide text-white shadow-md"
+                  style={{
+                    backgroundColor: listing.saleColorHex ?? "#d946ef",
+                  }}
+                >
+                  {listing.saleTitle}
+                </span>
+              </div>
+            )}
+
             {/* Zoom hint overlay */}
             {mainImage && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/5 transition-colors pointer-events-none">
@@ -314,40 +328,63 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             const loyaltyPct = sku
               ? sku.loyaltyDiscountPercentage
               : listing.loyaltyDiscountPercentage;
+            const saleTitle = sku
+              ? sku.saleTitle
+              : listing.saleTitle;
+            const saleColor = sku
+              ? sku.saleColorHex
+              : listing.saleColorHex;
             const hasAnyDiscount = discounted != null || loyalty != null;
 
             return (
-              <div className="space-y-1.5">
-                {hasAnyDiscount && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg text-muted-foreground line-through">
-                      {formatPrice(original)}
-                    </p>
-                    {discounted != null && loyalty != null && (
-                      <p className="text-base text-muted-foreground line-through">
-                        {formatPrice(discounted)}
-                      </p>
-                    )}
-                  </div>
-                )}
-                <div className="flex items-center gap-3">
+              <div className="space-y-2">
+                {/* Current price + strikethroughs */}
+                <div className="flex items-baseline gap-3 flex-wrap">
                   <p className="text-4xl font-bold text-primary">
                     {formatPrice(currentPrice)}
                   </p>
-                  {discPct != null && (
-                    <Badge variant="destructive" className="text-xs">
-                      -{discPct}%
-                    </Badge>
-                  )}
-                  {loyaltyPct != null && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs bg-amber-100 text-amber-800 border-amber-200"
-                    >
-                      {t("loyaltyExtra", { pct: loyaltyPct })}
-                    </Badge>
+                  {hasAnyDiscount && (
+                    <>
+                      {discounted != null && loyalty != null && (
+                        <p className="text-lg text-muted-foreground line-through">
+                          {formatPrice(discounted)}
+                        </p>
+                      )}
+                      <p className="text-lg text-muted-foreground line-through">
+                        {formatPrice(original)}
+                      </p>
+                    </>
                   )}
                 </div>
+
+                {/* Discount badges */}
+                {(discPct != null || loyaltyPct != null || saleTitle) && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {discPct != null && (
+                      <span className="inline-flex items-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white">
+                        -{discPct}%
+                      </span>
+                    )}
+                    {saleTitle && (
+                      <span
+                        className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white"
+                        style={{
+                          backgroundColor: saleColor ?? "#d946ef",
+                        }}
+                      >
+                        {saleTitle}
+                      </span>
+                    )}
+                    {loyaltyPct != null && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-amber-100 text-amber-800 border-amber-200"
+                      >
+                        {t("loyaltyExtra", { pct: loyaltyPct })}
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })()}

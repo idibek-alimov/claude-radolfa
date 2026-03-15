@@ -17,7 +17,6 @@ interface ProductCardProps {
 const LOW_STOCK_THRESHOLD = 5;
 
 export default function ProductCard({ listing }: ProductCardProps) {
-  const t = useTranslations("productDetail");
   const tc = useTranslations("common");
   const [isHovered, setIsHovered] = useState(false);
 
@@ -107,6 +106,25 @@ export default function ProductCard({ listing }: ProductCardProps) {
               </Badge>
             </div>
           )}
+
+          {/* Bottom-left: Discount % pill + Sale title badge */}
+          {listing.discountPercentage != null && (
+            <div className="absolute bottom-2 left-2 z-10 sm:bottom-3 sm:left-3 flex flex-col items-start gap-1">
+              <span className="inline-flex items-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm">
+                -{listing.discountPercentage}%
+              </span>
+              {listing.saleTitle && (
+                <span
+                  className="inline-flex items-center rounded-md px-2 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
+                  style={{
+                    backgroundColor: listing.saleColorHex ?? "#d946ef",
+                  }}
+                >
+                  {listing.saleTitle}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Body */}
@@ -125,17 +143,12 @@ export default function ProductCard({ listing }: ProductCardProps) {
           {/* Price + low stock */}
           <div className="mt-auto flex items-center justify-between gap-1 pt-1 sm:pt-1.5">
             <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-              {hasDiscount && (
-                <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
-                  {formatPrice(listing.originalPrice)}
-                </span>
-              )}
               <span className="text-base sm:text-lg font-bold text-primary">
                 {formatPrice(currentPrice)}
               </span>
-              {listing.discountPercentage != null && (
-                <span className="text-[10px] sm:text-xs font-semibold text-red-600">
-                  -{listing.discountPercentage}%
+              {hasDiscount && (
+                <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
+                  {formatPrice(listing.originalPrice)}
                 </span>
               )}
             </div>

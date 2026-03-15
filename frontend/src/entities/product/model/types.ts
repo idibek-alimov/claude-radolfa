@@ -19,6 +19,8 @@ export interface Sku {
   loyaltyPrice: number | null;
   discountPercentage: number | null;
   loyaltyDiscountPercentage: number | null;
+  saleTitle: string | null;
+  saleColorHex: string | null;
   onSale: boolean;
   discountedEndsAt: string | null;
 }
@@ -44,6 +46,8 @@ export interface ListingVariant {
   loyaltyPrice: number | null;
   discountPercentage: number | null;
   loyaltyDiscountPercentage: number | null;
+  saleTitle: string | null;
+  saleColorHex: string | null;
   totalStock: number;
   topSelling: boolean;
   featured: boolean;

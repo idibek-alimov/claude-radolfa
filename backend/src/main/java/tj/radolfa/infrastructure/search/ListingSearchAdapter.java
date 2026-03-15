@@ -125,10 +125,19 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                 List<ListingVariantDto> enriched = items.stream()
                                 .map(dto -> {
                                         DiscountInfo discount = discountMap.get(dto.id());
-                                        if (discount != null) {
-                                                return dto.withDiscount(discount.discountedPrice(), discount.discountPercentage());
-                                        }
-                                        return dto;
+                                        if (discount == null) return dto;
+                                        return new ListingVariantDto(
+                                                        dto.id(), dto.slug(), dto.name(), dto.category(),
+                                                        dto.colorKey(), dto.colorHexCode(), dto.webDescription(),
+                                                        dto.images(),
+                                                        discount.originalPrice(),
+                                                        discount.discountedPrice(),
+                                                        null,    // loyaltyPrice (enriched by controller)
+                                                        discount.discountPercentage(),
+                                                        null,    // loyaltyDiscountPercentage (enriched by controller)
+                                                        discount.saleTitle(),
+                                                        discount.saleColorHex(),
+                                                        dto.totalStock(), dto.topSelling(), dto.featured());
                                 })
                                 .toList();
 
@@ -172,6 +181,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 null,    // loyaltyPrice (enriched by controller)
                                 null,    // discountPercentage (enriched post-query)
                                 null,    // loyaltyDiscountPercentage (enriched by controller)
+                                null,    // saleTitle (enriched post-query)
+                                null,    // saleColorHex (enriched post-query)
                                 doc.getTotalStock(),
                                 doc.getTopSelling() != null && doc.getTopSelling(),
                                 doc.getFeatured() != null && doc.getFeatured()
