@@ -16,6 +16,7 @@ import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,6 +50,7 @@ public class SearchController {
         LOG.info("[REINDEX] Starting full listings reindex");
 
         List<ListingVariantEntity> allVariants = variantRepo.findAll();
+        Instant now = Instant.now();
         int indexed = 0;
         int errors = 0;
 
@@ -56,16 +58,11 @@ public class SearchController {
             try {
                 List<SkuEntity> skus = variant.getSkus();
 
-                BigDecimal priceStart = skus.stream()
-                        .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
+                // Effective price: use active discounted price if available, otherwise original
+                BigDecimal price = skus.stream()
+                        .map(s -> effectivePrice(s, now))
                         .filter(Objects::nonNull)
                         .min(BigDecimal::compareTo)
-                        .orElse(null);
-
-                BigDecimal priceEnd = skus.stream()
-                        .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
-                        .filter(Objects::nonNull)
-                        .max(BigDecimal::compareTo)
                         .orElse(null);
 
                 int totalStock = skus.stream()
@@ -93,8 +90,7 @@ public class SearchController {
                         colorHexCode,
                         variant.getWebDescription(),
                         images,
-                        priceStart != null ? priceStart.doubleValue() : null,
-                        priceEnd != null ? priceEnd.doubleValue() : null,
+                        price != null ? price.doubleValue() : null,
                         totalStock,
                         variant.isTopSelling(),
                         variant.isFeatured(),
@@ -110,6 +106,16 @@ public class SearchController {
 
         LOG.info("[REINDEX] Completed -- indexed={}, errors={}", indexed, errors);
         return ResponseEntity.ok(new ReindexResult(indexed, errors));
+    }
+
+    private BigDecimal effectivePrice(SkuEntity sku, Instant now) {
+        if (sku.getDiscountedPrice() != null
+                && sku.getOriginalPrice() != null
+                && sku.getDiscountedPrice().compareTo(sku.getOriginalPrice()) < 0
+                && (sku.getDiscountedEndsAt() == null || now.isBefore(sku.getDiscountedEndsAt()))) {
+            return sku.getDiscountedPrice();
+        }
+        return sku.getOriginalPrice();
     }
 
     public record ReindexResult(int indexed, int errors) {}

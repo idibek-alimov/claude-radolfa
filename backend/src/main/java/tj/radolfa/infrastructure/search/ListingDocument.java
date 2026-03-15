@@ -52,10 +52,7 @@ public class ListingDocument {
     private List<String> images;
 
     @Field(type = FieldType.Double)
-    private Double priceStart;
-
-    @Field(type = FieldType.Double)
-    private Double priceEnd;
+    private Double price;
 
     @Field(type = FieldType.Integer)
     private Integer totalStock;
@@ -74,9 +71,9 @@ public class ListingDocument {
     public ListingDocument(Long id, String slug, String name, String category,
                            String colorKey, String colorHexCode,
                            String webDescription, List<String> images,
-                           Double priceStart, Double priceEnd,
-                           Integer totalStock, boolean topSelling,
-                           boolean featured, Instant lastSyncAt) {
+                           Double price, Integer totalStock,
+                           boolean topSelling, boolean featured,
+                           Instant lastSyncAt) {
         this.id             = id;
         this.slug           = slug;
         this.name           = name;
@@ -85,8 +82,7 @@ public class ListingDocument {
         this.colorHexCode   = colorHexCode;
         this.webDescription = webDescription;
         this.images         = images;
-        this.priceStart     = priceStart;
-        this.priceEnd       = priceEnd;
+        this.price          = price;
         this.totalStock     = totalStock;
         this.topSelling     = topSelling;
         this.featured       = featured;
@@ -101,8 +97,7 @@ public class ListingDocument {
     public String       getColorHexCode()   { return colorHexCode; }
     public String       getWebDescription() { return webDescription; }
     public List<String> getImages()         { return images; }
-    public Double       getPriceStart()     { return priceStart; }
-    public Double       getPriceEnd()       { return priceEnd; }
+    public Double       getPrice()          { return price; }
     public Integer      getTotalStock()     { return totalStock; }
     public Boolean      getTopSelling()     { return topSelling; }
     public Boolean      getFeatured()       { return featured; }

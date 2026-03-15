@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
 
+import java.util.NoSuchElementException;
 import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
 import tj.radolfa.application.ports.out.SaveLoyaltyTierPort;
 import tj.radolfa.domain.model.LoyaltyTier;
@@ -44,8 +45,18 @@ public class LoyaltyTierRepositoryAdapter implements LoadLoyaltyTierPort, SaveLo
 
     @Override
     public LoyaltyTier save(LoyaltyTier tier) {
-        LoyaltyTierEntity entity = mapper.toEntity(tier);
-        return mapper.toDomain(repository.save(entity));
+        if (tier.id() != null) {
+            LoyaltyTierEntity entity = repository.findById(tier.id())
+                    .orElseThrow(() -> new NoSuchElementException("Loyalty tier not found: " + tier.id()));
+            entity.setName(tier.name());
+            entity.setDiscountPercentage(tier.discountPercentage());
+            entity.setCashbackPercentage(tier.cashbackPercentage());
+            entity.setMinSpendRequirement(tier.minSpendRequirement());
+            entity.setDisplayOrder(tier.displayOrder());
+            entity.setColor(tier.color());
+            return mapper.toDomain(repository.save(entity));
+        }
+        return mapper.toDomain(repository.save(mapper.toEntity(tier)));
     }
 
     @Override

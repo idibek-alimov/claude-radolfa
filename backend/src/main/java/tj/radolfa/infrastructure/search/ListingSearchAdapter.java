@@ -50,13 +50,13 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         public void index(Long variantId, String slug, String name, String category,
                         String colorKey, String colorHexCode,
                         String description, List<String> images,
-                        Double priceStart, Double priceEnd, Integer totalStock,
+                        Double price, Integer totalStock,
                         boolean topSelling, boolean featured, Instant lastSyncAt) {
                 try {
                         ListingDocument doc = new ListingDocument(
                                         variantId, slug, name, category,
                                         colorKey, colorHexCode, description,
-                                        images, priceStart, priceEnd, totalStock,
+                                        images, price, totalStock,
                                         topSelling, featured, lastSyncAt);
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
@@ -143,10 +143,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getColorHexCode(),
                                 doc.getWebDescription(),
                                 doc.getImages() != null ? doc.getImages() : List.of(),
-                                doc.getPriceStart() != null ? BigDecimal.valueOf(doc.getPriceStart()) : null,
-                                doc.getPriceEnd() != null ? BigDecimal.valueOf(doc.getPriceEnd()) : null,
-                                null,    // tierPriceStart (enriched by controller)
-                                null,    // tierPriceEnd (enriched by controller)
+                                doc.getPrice() != null ? BigDecimal.valueOf(doc.getPrice()) : null,
+                                null,    // discountedPrice (not available from ES)
+                                null,    // loyaltyPrice (enriched by controller)
                                 doc.getTotalStock(),
                                 doc.getTopSelling() != null && doc.getTopSelling(),
                                 doc.getFeatured() != null && doc.getFeatured()

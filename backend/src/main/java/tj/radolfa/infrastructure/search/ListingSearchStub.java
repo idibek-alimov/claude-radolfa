@@ -28,7 +28,7 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     public void index(Long variantId, String slug, String name, String category,
                       String colorKey, String colorHexCode,
                       String description, List<String> images,
-                      Double priceStart, Double priceEnd, Integer totalStock,
+                      Double price, Integer totalStock,
                       boolean topSelling, boolean featured, Instant lastSyncAt) {
         LOG.info("[LISTING-ES-STUB] Would index variant id={}, slug={}", variantId, slug);
     }

@@ -127,19 +127,15 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
     }
 
     private void indexVariant(ListingVariant variant, String productName, String category, List<Sku> skus) {
-        Double priceStart = skus.stream()
-                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
+        // Effective price: use active sale price if available, otherwise list price
+        Double price = skus.stream()
+                .map(s -> {
+                    if (s.isOnSale()) return s.getSalePrice();
+                    return s.getPrice();
+                })
                 .filter(java.util.Objects::nonNull)
                 .map(Money::amount)
                 .min(java.math.BigDecimal::compareTo)
-                .map(java.math.BigDecimal::doubleValue)
-                .orElse(null);
-
-        Double priceEnd = skus.stream()
-                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
-                .filter(java.util.Objects::nonNull)
-                .map(Money::amount)
-                .max(java.math.BigDecimal::compareTo)
                 .map(java.math.BigDecimal::doubleValue)
                 .orElse(null);
 
@@ -156,8 +152,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                 null,   // colorHexCode — not available in domain layer; backfilled by reindex
                 variant.getWebDescription(),
                 variant.getImages(),
-                priceStart,
-                priceEnd,
+                price,
                 totalStock,
                 false,  // topSelling — enrichment field, not set during ERP sync
                 false,  // featured — enrichment field, not set during ERP sync

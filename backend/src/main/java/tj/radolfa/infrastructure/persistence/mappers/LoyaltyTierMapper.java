@@ -13,5 +13,6 @@ public interface LoyaltyTierMapper {
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     LoyaltyTierEntity toEntity(LoyaltyTier tier);
 }

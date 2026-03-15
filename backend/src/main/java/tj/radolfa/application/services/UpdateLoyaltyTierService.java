@@ -46,8 +46,7 @@ public class UpdateLoyaltyTierService implements UpdateLoyaltyTierUseCase {
                 tier.cashbackPercentage(),
                 tier.minSpendRequirement(),
                 tier.displayOrder(),
-                command.color(),
-                tier.version());
+                command.color());
 
         saveLoyaltyTierPort.save(updated);
         LOG.info("[TIER-UPDATE] Updated color for tier={} to {}", tier.name(), command.color());

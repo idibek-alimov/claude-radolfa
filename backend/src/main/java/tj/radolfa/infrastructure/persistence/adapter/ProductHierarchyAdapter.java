@@ -209,9 +209,9 @@ public class ProductHierarchyAdapter
                             "Sku not found: " + sku.getId()));
             entity.setSizeLabel(sku.getSizeLabel());
             entity.setStockQuantity(sku.getStockQuantity());
-            entity.setPrice(sku.getPrice() != null ? sku.getPrice().amount() : null);
-            entity.setSalePrice(sku.getSalePrice() != null ? sku.getSalePrice().amount() : null);
-            entity.setSaleEndsAt(sku.getSaleEndsAt());
+            entity.setOriginalPrice(sku.getPrice() != null ? sku.getPrice().amount() : null);
+            entity.setDiscountedPrice(sku.getSalePrice() != null ? sku.getSalePrice().amount() : null);
+            entity.setDiscountedEndsAt(sku.getSaleEndsAt());
         } else {
             // Create new
             entity = mapper.toSkuEntity(sku);

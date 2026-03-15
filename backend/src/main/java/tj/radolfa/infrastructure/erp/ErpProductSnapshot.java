@@ -13,6 +13,7 @@ public record ErpProductSnapshot(
         String     erpId,
         String     name,
         String     category,
-        BigDecimal price,
+        BigDecimal standardRate,
+        BigDecimal discountedRate,
         Integer    stock
 ) {}

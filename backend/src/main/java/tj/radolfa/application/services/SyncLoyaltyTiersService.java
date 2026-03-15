@@ -46,8 +46,7 @@ public class SyncLoyaltyTiersService implements SyncLoyaltyTiersUseCase {
                     command.cashbackPercentage(),
                     command.minSpendRequirement(),
                     command.displayOrder(),
-                    command.color() != null ? command.color() : tier.color(),
-                    tier.version());
+                    command.color() != null ? command.color() : tier.color());
             saveLoyaltyTierPort.save(updated);
             LOG.info("[TIER-SYNC] Updated tier={}", command.name());
         } else {
@@ -58,8 +57,7 @@ public class SyncLoyaltyTiersService implements SyncLoyaltyTiersUseCase {
                     command.cashbackPercentage(),
                     command.minSpendRequirement(),
                     command.displayOrder(),
-                    command.color() != null ? command.color() : "#6366F1",
-                    null);
+                    command.color() != null ? command.color() : "#6366F1");
             saveLoyaltyTierPort.save(newTier);
             LOG.info("[TIER-SYNC] Created tier={}", command.name());
         }

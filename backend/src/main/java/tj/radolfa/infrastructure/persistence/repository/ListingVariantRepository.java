@@ -39,18 +39,22 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
 
         // ---- Grid queries with SKU aggregates ----
         // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
+        //                 [5]=webDescription, [6]=topSelling,
+        //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
         //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
 
         /**
          * Paginated grid: variant card data with aggregated price/stock from SKUs.
-         * Single query, no N+1.
+         * Single query, no N+1. Expired discounts are excluded via CASE expression.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               MIN(s.originalPrice),
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
                                lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
@@ -68,8 +72,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               MIN(s.originalPrice),
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
                                lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
@@ -88,8 +95,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               MIN(s.originalPrice),
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
                                lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
@@ -124,8 +134,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               MIN(s.originalPrice),
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
                                lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
@@ -144,8 +157,11 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               MIN(s.originalPrice),
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
                                lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
@@ -158,19 +174,24 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         Page<Object[]> findNewArrivalsGrid(Pageable pageable);
 
         /**
-         * On-sale listings: variants that have at least one SKU with an active sale price.
+         * On-sale listings: variants with at least one SKU with an active (non-expired) discount.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               MIN(s.originalPrice),
+                               MIN(CASE WHEN s.discountedPrice IS NOT NULL
+                                        AND s.discountedPrice < s.originalPrice
+                                        AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
+                                   THEN s.discountedPrice ELSE NULL END),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
                                lv.color.hexCode, lv.featured
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         JOIN lv.skus s
-                        WHERE s.salePrice IS NOT NULL AND s.salePrice < s.price
+                        WHERE s.discountedPrice IS NOT NULL
+                          AND s.discountedPrice < s.originalPrice
+                          AND (s.discountedEndsAt IS NULL OR s.discountedEndsAt > CURRENT_TIMESTAMP)
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
                         ORDER BY lv.updatedAt DESC

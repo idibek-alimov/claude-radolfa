@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tj.radolfa.application.ports.in.GetLoyaltyTiersUseCase;
 import tj.radolfa.application.ports.in.UpdateLoyaltyTierUseCase;
 import tj.radolfa.application.ports.in.UpdateLoyaltyTierUseCase.UpdateTierColorCommand;
-import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
 import tj.radolfa.infrastructure.web.dto.LoyaltyTierDto;
 
 import java.util.List;
@@ -19,18 +19,18 @@ import java.util.List;
 @RequestMapping("/api/v1/loyalty-tiers")
 public class LoyaltyController {
 
-    private final LoadLoyaltyTierPort loadLoyaltyTierPort;
+    private final GetLoyaltyTiersUseCase getLoyaltyTiersUseCase;
     private final UpdateLoyaltyTierUseCase updateLoyaltyTierUseCase;
 
-    public LoyaltyController(LoadLoyaltyTierPort loadLoyaltyTierPort,
+    public LoyaltyController(GetLoyaltyTiersUseCase getLoyaltyTiersUseCase,
                               UpdateLoyaltyTierUseCase updateLoyaltyTierUseCase) {
-        this.loadLoyaltyTierPort = loadLoyaltyTierPort;
+        this.getLoyaltyTiersUseCase = getLoyaltyTiersUseCase;
         this.updateLoyaltyTierUseCase = updateLoyaltyTierUseCase;
     }
 
     @GetMapping
     public ResponseEntity<List<LoyaltyTierDto>> getAllTiers() {
-        var tiers = loadLoyaltyTierPort.findAll()
+        var tiers = getLoyaltyTiersUseCase.findAll()
                 .stream()
                 .map(LoyaltyTierDto::fromDomain)
                 .toList();

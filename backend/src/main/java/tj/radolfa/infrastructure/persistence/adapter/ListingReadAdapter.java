@@ -16,6 +16,7 @@ import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
 import tj.radolfa.infrastructure.web.dto.SkuDto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -87,7 +88,8 @@ public class ListingReadAdapter implements LoadListingPort {
         }
 
         // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
+        //                 [5]=webDescription, [6]=topSelling,
+        //                 [7]=originalPrice, [8]=discountedPrice (expiry-filtered),
         //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
         private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
                 Long id = (Long) row[0];
@@ -100,10 +102,9 @@ public class ListingReadAdapter implements LoadListingPort {
                                 (String) row[10],  // colorHexCode
                                 (String) row[5],   // webDescription
                                 imageMap.getOrDefault(id, List.of()),
-                                toBigDecimal(row[7]),  // priceStart
-                                toBigDecimal(row[8]),  // priceEnd
-                                null,                  // tierPriceStart (enriched by controller)
-                                null,                  // tierPriceEnd (enriched by controller)
+                                toBigDecimal(row[7]),  // originalPrice
+                                toBigDecimal(row[8]),  // discountedPrice (already expiry-filtered by JPQL)
+                                null,                  // loyaltyPrice (enriched by controller)
                                 toInteger(row[9]),     // totalStock
                                 (Boolean) row[6],      // topSelling
                                 (Boolean) row[11]);    // featured
@@ -122,16 +123,18 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .map(this::toSkuDto)
                                 .toList();
 
-                BigDecimal priceStart = skuEntities.stream()
-                                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
+                Instant now = Instant.now();
+
+                BigDecimal originalPrice = skuEntities.stream()
+                                .map(SkuEntity::getOriginalPrice)
                                 .filter(Objects::nonNull)
                                 .min(BigDecimal::compareTo)
                                 .orElse(null);
 
-                BigDecimal priceEnd = skuEntities.stream()
-                                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
-                                .filter(Objects::nonNull)
-                                .max(BigDecimal::compareTo)
+                BigDecimal discountedPrice = skuEntities.stream()
+                                .filter(s -> isDiscountActive(s, now))
+                                .map(SkuEntity::getDiscountedPrice)
+                                .min(BigDecimal::compareTo)
                                 .orElse(null);
 
                 int totalStock = skuEntities.stream()
@@ -179,10 +182,9 @@ public class ListingReadAdapter implements LoadListingPort {
                                 colorHexCode,
                                 entity.getWebDescription(),
                                 images,
-                                priceStart,
-                                priceEnd,
-                                null,    // tierPriceStart (enriched by controller)
-                                null,    // tierPriceEnd (enriched by controller)
+                                originalPrice,
+                                discountedPrice,
+                                null,    // loyaltyPrice (enriched by controller)
                                 totalStock,
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
@@ -191,6 +193,13 @@ public class ListingReadAdapter implements LoadListingPort {
         }
 
         // ---- Shared helpers ----
+
+        private boolean isDiscountActive(SkuEntity sku, Instant now) {
+                return sku.getDiscountedPrice() != null
+                        && sku.getOriginalPrice() != null
+                        && sku.getDiscountedPrice().compareTo(sku.getOriginalPrice()) < 0
+                        && (sku.getDiscountedEndsAt() == null || now.isBefore(sku.getDiscountedEndsAt()));
+        }
 
         private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {
                 if (variantIds.isEmpty())
@@ -202,19 +211,22 @@ public class ListingReadAdapter implements LoadListingPort {
         }
 
         private SkuDto toSkuDto(SkuEntity entity) {
-                boolean onSale = entity.getSalePrice() != null
-                                && entity.getPrice() != null
-                                && entity.getSalePrice().compareTo(entity.getPrice()) < 0;
+                Instant now = Instant.now();
+                boolean onSale = isDiscountActive(entity, now);
+
+                // Null out discountedPrice if expired so downstream logic doesn't stack on stale data
+                BigDecimal effectiveDiscounted = onSale ? entity.getDiscountedPrice() : null;
+
                 return new SkuDto(
                                 entity.getId(),
                                 entity.getErpItemCode(),
                                 entity.getSizeLabel(),
                                 entity.getStockQuantity(),
-                                entity.getPrice(),
-                                entity.getSalePrice(),
-                                null,    // tierPrice (enriched by controller)
+                                entity.getOriginalPrice(),
+                                effectiveDiscounted,
+                                null,    // loyaltyPrice (enriched by controller)
                                 onSale,
-                                entity.getSaleEndsAt());
+                                entity.getDiscountedEndsAt());
         }
 
         private BigDecimal toBigDecimal(Object value) {

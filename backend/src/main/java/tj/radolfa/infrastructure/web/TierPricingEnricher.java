@@ -3,9 +3,8 @@ package tj.radolfa.infrastructure.web;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.in.ResolveUserDiscountUseCase;
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CollectionPageDto;
 import tj.radolfa.infrastructure.web.dto.HomeSectionDto;
@@ -23,10 +22,10 @@ import java.util.List;
 @Component
 public class TierPricingEnricher {
 
-    private final LoadUserPort loadUserPort;
+    private final ResolveUserDiscountUseCase resolveUserDiscountUseCase;
 
-    public TierPricingEnricher(LoadUserPort loadUserPort) {
-        this.loadUserPort = loadUserPort;
+    public TierPricingEnricher(ResolveUserDiscountUseCase resolveUserDiscountUseCase) {
+        this.resolveUserDiscountUseCase = resolveUserDiscountUseCase;
     }
 
     public BigDecimal resolveDiscount() {
@@ -36,11 +35,7 @@ public class TierPricingEnricher {
             return BigDecimal.ZERO;
         }
 
-        return loadUserPort.loadById(principal.userId())
-                .map(User::loyalty)
-                .filter(lp -> lp != null && lp.tier() != null)
-                .map(lp -> lp.tier().discountPercentage())
-                .orElse(BigDecimal.ZERO);
+        return resolveUserDiscountUseCase.resolveForUser(principal.userId());
     }
 
     public PageResult<ListingVariantDto> enrich(PageResult<ListingVariantDto> page) {
@@ -48,7 +43,7 @@ public class TierPricingEnricher {
         if (discount.compareTo(BigDecimal.ZERO) == 0) return page;
 
         List<ListingVariantDto> enriched = page.items().stream()
-                .map(dto -> dto.withTierDiscount(discount))
+                .map(dto -> dto.withLoyaltyPrice(discount))
                 .toList();
         return new PageResult<>(enriched, page.totalElements(), page.page(), page.hasMore());
     }
@@ -56,7 +51,7 @@ public class TierPricingEnricher {
     public ListingVariantDetailDto enrich(ListingVariantDetailDto detail) {
         BigDecimal discount = resolveDiscount();
         if (discount.compareTo(BigDecimal.ZERO) == 0) return detail;
-        return detail.withTierDiscount(discount);
+        return detail.withLoyaltyPrice(discount);
     }
 
     public List<HomeSectionDto> enrichSections(List<HomeSectionDto> sections) {
@@ -65,7 +60,7 @@ public class TierPricingEnricher {
 
         return sections.stream()
                 .map(s -> new HomeSectionDto(s.key(), s.title(),
-                        s.items().stream().map(dto -> dto.withTierDiscount(discount)).toList()))
+                        s.items().stream().map(dto -> dto.withLoyaltyPrice(discount)).toList()))
                 .toList();
     }
 
@@ -75,7 +70,7 @@ public class TierPricingEnricher {
 
         PageResult<ListingVariantDto> page = cp.page();
         List<ListingVariantDto> enriched = page.items().stream()
-                .map(dto -> dto.withTierDiscount(discount))
+                .map(dto -> dto.withLoyaltyPrice(discount))
                 .toList();
         return new CollectionPageDto(cp.key(), cp.title(),
                 new PageResult<>(enriched, page.totalElements(), page.page(), page.hasMore()));

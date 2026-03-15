@@ -20,8 +20,7 @@ public interface ListingIndexPort {
      * @param colorHexCode hex code for the colour swatch (may be null)
      * @param description  web description (may be null)
      * @param images       image URLs
-     * @param priceStart   lowest sale price among SKUs
-     * @param priceEnd     highest sale price among SKUs
+     * @param price        lowest effective price among SKUs (for search/sort)
      * @param totalStock   sum of all SKU stock
      * @param topSelling   whether this variant is marked as top-selling
      * @param featured     whether this variant is marked as featured
@@ -29,7 +28,7 @@ public interface ListingIndexPort {
     void index(Long variantId, String slug, String name, String category,
                String colorKey, String colorHexCode,
                String description, java.util.List<String> images,
-               Double priceStart, Double priceEnd, Integer totalStock,
+               Double price, Integer totalStock,
                boolean topSelling, boolean featured, java.time.Instant lastSyncAt);
 
     /**

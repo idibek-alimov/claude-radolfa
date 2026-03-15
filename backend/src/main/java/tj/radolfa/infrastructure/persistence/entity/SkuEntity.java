@@ -34,13 +34,13 @@ public class SkuEntity extends BaseAuditEntity {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
 
-    @Column(name = "price", precision = 12, scale = 2)
-    private BigDecimal price;
+    @Column(name = "original_price", precision = 12, scale = 2)
+    private BigDecimal originalPrice;
 
-    @Column(name = "sale_price", precision = 12, scale = 2)
-    private BigDecimal salePrice;
+    @Column(name = "discounted_price", precision = 12, scale = 2)
+    private BigDecimal discountedPrice;
 
-    @Column(name = "sale_ends_at")
+    @Column(name = "discounted_ends_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Instant saleEndsAt;
+    private Instant discountedEndsAt;
 }

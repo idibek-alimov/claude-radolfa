@@ -19,10 +19,9 @@ public record ListingVariantDetailDto(
         String colorHexCode,
         String webDescription,
         List<String> images,
-        BigDecimal priceStart,
-        BigDecimal priceEnd,
-        BigDecimal tierPriceStart,
-        BigDecimal tierPriceEnd,
+        BigDecimal originalPrice,
+        BigDecimal discountedPrice,
+        BigDecimal loyaltyPrice,
         Integer totalStock,
         boolean topSelling,
         boolean featured,
@@ -40,23 +39,22 @@ public record ListingVariantDetailDto(
             String thumbnail
     ) {}
 
-    public ListingVariantDetailDto withTierDiscount(BigDecimal discountPercentage) {
+    public ListingVariantDetailDto withLoyaltyPrice(BigDecimal discountPercentage) {
         if (discountPercentage.compareTo(BigDecimal.ZERO) == 0) return this;
 
         BigDecimal multiplier = BigDecimal.ONE.subtract(
                 discountPercentage.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
 
-        BigDecimal tpStart = priceStart != null
-                ? priceStart.multiply(multiplier).setScale(2, RoundingMode.HALF_UP) : null;
-        BigDecimal tpEnd = priceEnd != null
-                ? priceEnd.multiply(multiplier).setScale(2, RoundingMode.HALF_UP) : null;
+        BigDecimal base = discountedPrice != null ? discountedPrice : originalPrice;
+        BigDecimal lp = base != null
+                ? base.multiply(multiplier).setScale(2, RoundingMode.HALF_UP) : null;
 
         List<SkuDto> enrichedSkus = skus.stream()
-                .map(sku -> sku.withTierDiscount(discountPercentage))
+                .map(sku -> sku.withLoyaltyPrice(discountPercentage))
                 .toList();
 
         return new ListingVariantDetailDto(id, slug, name, category, colorKey, colorHexCode,
-                webDescription, images, priceStart, priceEnd, tpStart, tpEnd,
+                webDescription, images, originalPrice, discountedPrice, lp,
                 totalStock, topSelling, featured, enrichedSkus, siblingVariants);
     }
 }
