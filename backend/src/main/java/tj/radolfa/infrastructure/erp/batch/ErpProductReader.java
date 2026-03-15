@@ -1,5 +1,6 @@
 package tj.radolfa.infrastructure.erp.batch;
 
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.support.AbstractItemStreamItemReader;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import java.util.List;
 public class ErpProductReader extends AbstractItemStreamItemReader<ErpProductSnapshot> {
 
     private static final int PAGE_SIZE = 100;
+    private static final String KEY_CURRENT_PAGE = "erp.reader.currentPage";
 
     private final ErpProductClient client;
 
@@ -29,6 +31,20 @@ public class ErpProductReader extends AbstractItemStreamItemReader<ErpProductSna
 
     public ErpProductReader(ErpProductClient client) {
         this.client = client;
+    }
+
+    @Override
+    public void open(ExecutionContext executionContext) {
+        super.open(executionContext);
+        if (executionContext.containsKey(KEY_CURRENT_PAGE)) {
+            currentPage = executionContext.getInt(KEY_CURRENT_PAGE);
+        }
+    }
+
+    @Override
+    public void update(ExecutionContext executionContext) {
+        super.update(executionContext);
+        executionContext.putInt(KEY_CURRENT_PAGE, currentPage);
     }
 
     @Override

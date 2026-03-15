@@ -31,6 +31,6 @@ public class CategoryEntity extends BaseAuditEntity {
     @JoinColumn(name = "parent_id")
     private CategoryEntity parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CategoryEntity> children = new ArrayList<>();
 }

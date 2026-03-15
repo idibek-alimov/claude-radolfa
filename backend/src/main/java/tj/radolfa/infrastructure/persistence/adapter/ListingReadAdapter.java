@@ -13,9 +13,9 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
-import tj.radolfa.infrastructure.web.dto.SkuDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.SkuDto;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Hexagonal adapter implementing the SQL-backed read queries for listings.
@@ -83,50 +82,15 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .map(row -> (Long) row[0])
                                 .toList();
 
-                Map<Long, List<String>> imageMap = loadImageMap(variantIds);
+                Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
                 List<ListingVariantDto> items = raw.getContent().stream()
-                                .map(row -> toGridDto(row, imageMap, discountMap))
+                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap))
                                 .toList();
 
                 return new PageResult<>(items, raw.getTotalElements(), page,
                                 (long) page * limit < raw.getTotalElements());
-        }
-
-        // Column layout (11 columns):
-        // [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        // [5]=webDescription, [6]=topSelling,
-        // [7]=MIN(originalPrice),
-        // [8]=totalStock, [9]=colorHexCode, [10]=featured
-        private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
-                        Map<Long, DiscountInfo> discountMap) {
-                Long id = (Long) row[0];
-                DiscountInfo discount = discountMap.get(id);
-
-                // When a discount exists, use the originalPrice from the same SKU
-                // as the discountedPrice to keep strike-through pricing consistent
-                BigDecimal originalPrice = discount != null
-                                ? discount.originalPrice()
-                                : toBigDecimal(row[7]);
-
-                return new ListingVariantDto(
-                                id,
-                                (String) row[1],   // slug
-                                (String) row[2],   // name
-                                (String) row[3],   // category
-                                (String) row[4],   // colorKey
-                                (String) row[9],   // colorHexCode
-                                (String) row[5],   // webDescription
-                                imageMap.getOrDefault(id, List.of()),
-                                originalPrice,
-                                discount != null ? discount.discountedPrice() : null,
-                                null,                  // loyaltyPrice (enriched by controller)
-                                discount != null ? discount.discountPercentage() : null,
-                                null,                  // loyaltyDiscountPercentage (enriched by controller)
-                                toInteger(row[8]),     // totalStock
-                                (Boolean) row[6],      // topSelling
-                                (Boolean) row[10]);    // featured
         }
 
         // ---- Detail helpers ----
@@ -181,7 +145,7 @@ public class ListingReadAdapter implements LoadListingPort {
                 List<Long> siblingIds = siblingRows.stream()
                                 .map(row -> (Long) row[0])
                                 .toList();
-                Map<Long, List<String>> siblingImageMap = loadImageMap(siblingIds);
+                Map<Long, List<String>> siblingImageMap = ListingGridRowMapper.loadImageMap(siblingIds, variantRepo);
 
                 List<ListingVariantDetailDto.SiblingVariant> siblings = siblingRows.stream()
                                 .map(row -> {
@@ -227,7 +191,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 siblings);
         }
 
-        // ---- Shared helpers ----
+        // ---- SKU helpers (detail-page only) ----
 
         private SkuDto toSkuDto(SkuEntity entity, DiscountEntity discount) {
                 boolean onSale = discount != null && entity.getOriginalPrice() != null;
@@ -258,32 +222,5 @@ public class ListingReadAdapter implements LoadListingPort {
                 BigDecimal multiplier = BigDecimal.ONE.subtract(
                                 discountPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
                 return originalPrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
-        }
-
-        private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {
-                if (variantIds.isEmpty())
-                        return Map.of();
-                return variantRepo.findImagesByVariantIds(variantIds).stream()
-                                .collect(Collectors.groupingBy(
-                                                row -> (Long) row[0],
-                                                Collectors.mapping(row -> (String) row[1], Collectors.toList())));
-        }
-
-        private BigDecimal toBigDecimal(Object value) {
-                if (value == null)
-                        return null;
-                if (value instanceof BigDecimal bd)
-                        return bd;
-                return new BigDecimal(value.toString());
-        }
-
-        private Integer toInteger(Object value) {
-                if (value == null)
-                        return 0;
-                if (value instanceof Long l)
-                        return l.intValue();
-                if (value instanceof Integer i)
-                        return i;
-                return ((Number) value).intValue();
         }
 }

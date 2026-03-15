@@ -1,4 +1,4 @@
-package tj.radolfa.infrastructure.web.dto;
+package tj.radolfa.application.readmodel;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

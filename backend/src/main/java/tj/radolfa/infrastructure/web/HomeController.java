@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import tj.radolfa.application.ports.in.GetHomeCollectionsUseCase;
-import tj.radolfa.infrastructure.web.dto.CollectionPageDto;
-import tj.radolfa.infrastructure.web.dto.HomeSectionDto;
+import tj.radolfa.application.readmodel.CollectionPageDto;
+import tj.radolfa.application.readmodel.HomeSectionDto;
 
 import java.util.List;
 

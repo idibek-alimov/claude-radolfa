@@ -1,6 +1,8 @@
 package tj.radolfa.infrastructure.persistence.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 
 import java.util.List;
@@ -15,4 +17,14 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
     List<CategoryEntity> findByParentId(Long parentId);
 
     List<CategoryEntity> findByParentIsNull();
+
+    @Query(value = """
+        WITH RECURSIVE descendants AS (
+            SELECT id FROM categories WHERE id = :rootId
+            UNION ALL
+            SELECT c.id FROM categories c JOIN descendants d ON c.parent_id = d.id
+        )
+        SELECT id FROM descendants
+        """, nativeQuery = true)
+    List<Long> findAllDescendantIds(@Param("rootId") Long rootId);
 }

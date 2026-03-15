@@ -13,6 +13,7 @@ public final class SlugUtils {
      * Example: "Men's T-Shirts" → "men-s-t-shirts"
      */
     public static String slugify(String name) {
+        java.util.Objects.requireNonNull(name, "slug input must not be null");
         return name.toLowerCase()
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("-+", "-")

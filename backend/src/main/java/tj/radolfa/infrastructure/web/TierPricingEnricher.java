@@ -7,10 +7,10 @@ import org.springframework.web.context.annotation.RequestScope;
 import tj.radolfa.application.ports.in.ResolveUserDiscountUseCase;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
-import tj.radolfa.infrastructure.web.dto.CollectionPageDto;
-import tj.radolfa.infrastructure.web.dto.HomeSectionDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.CollectionPageDto;
+import tj.radolfa.application.readmodel.HomeSectionDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.math.BigDecimal;
 import java.util.List;

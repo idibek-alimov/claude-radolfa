@@ -61,12 +61,8 @@ public class LoyaltyTierRepositoryAdapter implements LoadLoyaltyTierPort, SaveLo
 
     @Override
     public List<LoyaltyTier> saveAll(List<LoyaltyTier> tiers) {
-        List<LoyaltyTierEntity> entities = tiers.stream()
-                .map(mapper::toEntity)
-                .toList();
-        return repository.saveAll(entities)
-                .stream()
-                .map(mapper::toDomain)
+        return tiers.stream()
+                .map(this::save)
                 .toList();
     }
 }

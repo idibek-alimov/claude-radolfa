@@ -82,7 +82,8 @@ public class ErpProductClientHttp implements ErpProductClient {
                             item.item_name(),
                             item.item_group() != null ? item.item_group() : "Uncategorized",
                             item.standard_rate() != null ? item.standard_rate() : BigDecimal.ZERO,
-                            0      // stock fetched separately via Bin when needed
+                            0,     // stock fetched separately via Bin when needed
+                            item.disabled() != 0
                     ))
                     .toList();
 
@@ -100,6 +101,7 @@ public class ErpProductClientHttp implements ErpProductClient {
             String     item_code,
             String     item_name,
             String     item_group,
-            BigDecimal standard_rate
+            BigDecimal standard_rate,
+            int        disabled
     ) {}
 }

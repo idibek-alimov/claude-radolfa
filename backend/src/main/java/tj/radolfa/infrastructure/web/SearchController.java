@@ -15,6 +15,9 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
@@ -48,11 +51,16 @@ public class SearchController {
     public ResponseEntity<ReindexResult> reindex() {
         LOG.info("[REINDEX] Starting full listings reindex");
 
-        List<ListingVariantEntity> allVariants = variantRepo.findAll();
         int indexed = 0;
         int errors = 0;
+        int pageNum = 0;
+        final int pageSize = 200;
+        Page<ListingVariantEntity> page;
 
-        for (ListingVariantEntity variant : allVariants) {
+        do {
+            page = variantRepo.findAll(PageRequest.of(pageNum++, pageSize));
+
+        for (ListingVariantEntity variant : page.getContent()) {
             try {
                 List<SkuEntity> skus = variant.getSkus();
 
@@ -101,6 +109,8 @@ public class SearchController {
                 errors++;
             }
         }
+
+        } while (page.hasNext());
 
         LOG.info("[REINDEX] Completed -- indexed={}, errors={}", indexed, errors);
         return ResponseEntity.ok(new ReindexResult(indexed, errors));

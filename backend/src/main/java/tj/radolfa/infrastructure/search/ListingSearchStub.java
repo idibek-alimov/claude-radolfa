@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.time.Instant;
 import java.util.List;

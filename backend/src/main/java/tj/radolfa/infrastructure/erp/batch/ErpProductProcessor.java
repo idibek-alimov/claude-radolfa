@@ -33,6 +33,10 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
 
     @Override
     public ProductBase process(ErpProductSnapshot snapshot) {
+        if (snapshot.disabled()) {
+            return null; // Spring Batch skips null returns
+        }
+
         Money listPrice = Money.of(snapshot.standardRate());
 
         var skuCommand = new SkuCommand(

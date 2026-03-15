@@ -1,4 +1,4 @@
-package tj.radolfa.infrastructure.web.dto;
+package tj.radolfa.application.readmodel;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -7,8 +7,6 @@ import java.util.List;
 /**
  * Full detail view for a single listing variant.
  * Includes the SKU list (sizes/prices) and sibling colour swatches.
- *
- * <p>Returned by {@code GET /api/v1/listings/{slug}}.
  */
 public record ListingVariantDetailDto(
         Long id,

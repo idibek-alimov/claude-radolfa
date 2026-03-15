@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 
 /**
@@ -52,7 +54,9 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
         String key = request.getHeader(API_KEY_HEADER);
 
-        if (key != null && key.equals(systemKey)) {
+        if (key != null && MessageDigest.isEqual(
+                key.getBytes(StandardCharsets.UTF_8),
+                systemKey.getBytes(StandardCharsets.UTF_8))) {
             // Use a stable synthetic identity so audit logs in ErpSyncController remain readable
             JwtAuthenticationFilter.JwtAuthenticatedUser principal =
                     new JwtAuthenticationFilter.JwtAuthenticatedUser(0L, "erp@system", "SYSTEM");

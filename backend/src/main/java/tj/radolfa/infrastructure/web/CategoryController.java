@@ -9,7 +9,7 @@ import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.application.ports.out.LoadListingPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.web.dto.CategoryTreeDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.ArrayList;
 import java.util.HashMap;

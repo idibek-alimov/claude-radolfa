@@ -54,21 +54,21 @@ public class SyncOrdersService implements SyncOrdersUseCase {
 
         List<OrderItem> items = command.items().stream()
                 .map(item -> {
-                    Long skuId = loadSkuPort.findByErpItemCode(item.erpItemCode())
-                            .map(sku -> sku.getId())
-                            .orElseGet(() -> {
-                                LOG.warn("[ORDER-SYNC] No SKU found for erpItemCode={}, order={}",
-                                        item.erpItemCode(), command.erpOrderId());
-                                return null;
-                            });
+                    var skuOpt = loadSkuPort.findByErpItemCode(item.erpItemCode());
+                    if (skuOpt.isEmpty()) {
+                        LOG.warn("[ORDER-SYNC] No SKU found for erpItemCode={}, order={} — skipping item",
+                                item.erpItemCode(), command.erpOrderId());
+                        return null;
+                    }
                     return new OrderItem(
                             null,
-                            skuId,
+                            skuOpt.get().getId(),
                             item.erpItemCode(),
                             item.productName(),
                             item.quantity(),
                             Money.of(item.price()));
                 })
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         var existingOpt = loadOrderPort.loadByErpOrderId(command.erpOrderId());

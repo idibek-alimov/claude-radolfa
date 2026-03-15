@@ -16,8 +16,8 @@ import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.in.UploadImageUseCase;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.io.IOException;
 import java.util.List;
@@ -130,7 +130,11 @@ public class ListingController {
         return ResponseEntity.ok().build();
     }
 
-    public record UpdateListingRequest(String webDescription, Boolean topSelling, Boolean featured) {
+    public record UpdateListingRequest(
+            @jakarta.validation.constraints.Size(max = 5000, message = "Description must not exceed 5000 characters")
+            String webDescription,
+            Boolean topSelling,
+            Boolean featured) {
     }
 
     public record ImageUrlRequest(

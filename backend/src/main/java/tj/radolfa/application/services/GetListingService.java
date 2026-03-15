@@ -9,8 +9,8 @@ import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.out.LoadListingPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.List;
 import java.util.Optional;

@@ -108,6 +108,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers").permitAll()
 
                                                 // Swagger / OpenAPI endpoints
                                                 .requestMatchers("/swagger-ui/**").permitAll()

@@ -12,7 +12,8 @@ import java.time.Instant;
  * Tracks processed idempotency keys to prevent duplicate sync processing.
  */
 @Entity
-@Table(name = "erp_sync_idempotency")
+@Table(name = "erp_sync_idempotency",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"idempotency_key", "event_type"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -135,6 +135,9 @@ public class ErpSyncController {
                 }
 
                 LOG.info("[ERP-SYNC] Completed -- synced={}, errors={}", synced, errors);
+                if (synced == 0 && errors > 0) {
+                        return ResponseEntity.internalServerError().body(new SyncResultDto(synced, errors));
+                }
                 return ResponseEntity.ok(new SyncResultDto(synced, errors));
         }
 

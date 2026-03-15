@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.SyncUsersUseCase;
@@ -26,15 +27,18 @@ public class SyncUsersService implements SyncUsersUseCase {
     private final SaveUserPort saveUserPort;
     private final LoadLoyaltyTierPort loadLoyaltyTierPort;
     private final LoyaltySpendCalculator loyaltySpendCalculator;
+    private final SyncUsersService self;
 
     public SyncUsersService(LoadUserPort loadUserPort,
                             SaveUserPort saveUserPort,
                             LoadLoyaltyTierPort loadLoyaltyTierPort,
-                            LoyaltySpendCalculator loyaltySpendCalculator) {
+                            LoyaltySpendCalculator loyaltySpendCalculator,
+                            @Lazy SyncUsersService self) {
         this.loadUserPort = loadUserPort;
         this.saveUserPort = saveUserPort;
         this.loadLoyaltyTierPort = loadLoyaltyTierPort;
         this.loyaltySpendCalculator = loyaltySpendCalculator;
+        this.self = self;
     }
 
     @Override
@@ -44,14 +48,13 @@ public class SyncUsersService implements SyncUsersUseCase {
     }
 
     @Override
-    @Transactional
     public SyncResult executeBatch(List<SyncUserCommand> commands) {
         int synced = 0;
         int errors = 0;
 
         for (SyncUserCommand command : commands) {
             try {
-                upsert(command);
+                self.executeOne(command);
                 synced++;
             } catch (Exception ex) {
                 LOG.error("[USER-SYNC] Failed to sync phone={}: {}", command.phone(), ex.getMessage(), ex);

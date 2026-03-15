@@ -17,7 +17,7 @@ import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.math.BigDecimal;
 import java.time.Instant;

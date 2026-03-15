@@ -42,7 +42,7 @@ public class UserEntity extends BaseAuditEntity {
     @Column(name = "loyalty_points", nullable = false)
     private int loyaltyPoints;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tier_id")
     private LoyaltyTierEntity tier;
 

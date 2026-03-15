@@ -13,6 +13,7 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> 
 
     Optional<DiscountEntity> findByErpPricingRuleId(String erpPricingRuleId);
 
+    @org.springframework.transaction.annotation.Transactional
     void deleteByErpPricingRuleId(String erpPricingRuleId);
 
     @Query("""

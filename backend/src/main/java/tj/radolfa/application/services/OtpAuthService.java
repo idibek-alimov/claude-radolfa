@@ -12,8 +12,8 @@ import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
-import tj.radolfa.infrastructure.security.JwtUtil;
-import tj.radolfa.infrastructure.security.OtpStore;
+import tj.radolfa.application.ports.out.OtpPort;
+import tj.radolfa.application.ports.out.TokenIssuerPort;
 
 import java.util.Optional;
 
@@ -38,17 +38,17 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpAuthService.class);
 
-    private final OtpStore otpStore;
-    private final JwtUtil jwtUtil;
+    private final OtpPort otpPort;
+    private final TokenIssuerPort tokenIssuer;
     private final LoadUserPort loadUserPort;
     private final SaveUserPort saveUserPort;
 
-    public OtpAuthService(OtpStore otpStore,
-            JwtUtil jwtUtil,
+    public OtpAuthService(OtpPort otpPort,
+            TokenIssuerPort tokenIssuer,
             LoadUserPort loadUserPort,
             SaveUserPort saveUserPort) {
-        this.otpStore = otpStore;
-        this.jwtUtil = jwtUtil;
+        this.otpPort = otpPort;
+        this.tokenIssuer = tokenIssuer;
         this.loadUserPort = loadUserPort;
         this.saveUserPort = saveUserPort;
     }
@@ -59,8 +59,11 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
 
     @Override
     public void execute(String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("Phone number must not be null or blank");
+        }
         PhoneNumber normalized = PhoneNumber.of(phone);
-        otpStore.generateOtp(normalized.value());
+        otpPort.generateOtp(normalized.value());
         LOG.info("[AUTH] OTP sent to phone={}", mask(normalized));
     }
 
@@ -71,9 +74,12 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     @Override
     @Transactional
     public Optional<AuthResult> execute(String phone, String otp) {
+        if (phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("Phone number must not be null or blank");
+        }
         PhoneNumber normalized = PhoneNumber.of(phone);
 
-        if (!otpStore.verifyOtp(normalized.value(), otp)) {
+        if (!otpPort.verifyOtp(normalized.value(), otp)) {
             LOG.warn("[AUTH] OTP verification failed for phone={}", mask(normalized));
             return Optional.empty();
         }
@@ -88,7 +94,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
         }
 
         // Generate JWT
-        String token = jwtUtil.generateToken(user.id(), user.phone().value(), user.role());
+        String token = tokenIssuer.generateToken(user.id(), user.phone().value(), user.role());
         LOG.info("[AUTH] User authenticated: phone={}, role={}", mask(user.phone()), user.role());
 
         return Optional.of(new AuthResult(token, user));
