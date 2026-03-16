@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import tj.radolfa.domain.model.ProductBase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 
 /**
@@ -39,7 +39,7 @@ public class ErpSyncJobConfig {
                               ErpProductProcessor processor,
                               ErpProductWriter    writer) {
         return new StepBuilder("erpImportStep", jobRepository)
-                .<ErpProductSnapshot, ProductBase>chunk(CHUNK_SIZE, transactionManager)
+                .<ErpProductSnapshot, HierarchySyncCommand>chunk(CHUNK_SIZE, transactionManager)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)

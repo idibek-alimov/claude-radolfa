@@ -70,6 +70,7 @@ public class ErpSyncController {
         private static final String EVENT_ORDER = "ORDER";
         private static final String EVENT_LOYALTY = "LOYALTY";
         private static final String EVENT_LOYALTY_TIER = "LOYALTY_TIER";
+        private static final String EVENT_PRODUCT = "PRODUCT";
         private static final String EVENT_DISCOUNT = "DISCOUNT";
 
         private final SyncProductHierarchyUseCase syncUseCase;
@@ -112,9 +113,21 @@ public class ErpSyncController {
          */
         @PostMapping("/products")
         @PreAuthorize("hasRole('SYSTEM')")
-        public ResponseEntity<SyncResultDto> syncProducts(
+        public ResponseEntity<?> syncProducts(
                         @AuthenticationPrincipal JwtAuthenticatedUser caller,
+                        @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
                         @Valid @RequestBody ErpHierarchyPayload payload) {
+
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        return ResponseEntity.badRequest()
+                                        .body(MessageResponseDto.error("Missing Idempotency-Key header"));
+                }
+
+                if (idempotencyPort.exists(idempotencyKey, EVENT_PRODUCT)) {
+                        LOG.info("[ERP-SYNC] Duplicate idempotency key={}, returning 409", idempotencyKey);
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(MessageResponseDto.error("Duplicate request — already processed"));
+                }
 
                 LOG.info("[ERP-SYNC] Received hierarchy sync for template={}, caller={}",
                                 payload.templateCode(), caller.phone());
@@ -126,11 +139,13 @@ public class ErpSyncController {
                         HierarchySyncCommand command = toCommand(payload);
                         syncUseCase.execute(command);
                         logSyncEvent.log(payload.templateCode(), true, null);
+                        idempotencyPort.save(idempotencyKey, EVENT_PRODUCT, 200);
                         synced = 1;
                 } catch (Exception ex) {
                         LOG.error("[ERP-SYNC] Failed to sync template={}: {}",
                                         payload.templateCode(), ex.getMessage(), ex);
                         logSyncEvent.log(payload.templateCode(), false, ex.getMessage());
+                        idempotencyPort.save(idempotencyKey, EVENT_PRODUCT, 500);
                         errors = 1;
                 }
 

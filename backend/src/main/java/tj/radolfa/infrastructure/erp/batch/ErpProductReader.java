@@ -36,6 +36,11 @@ public class ErpProductReader extends AbstractItemStreamItemReader<ErpProductSna
     @Override
     public void open(ExecutionContext executionContext) {
         super.open(executionContext);
+        // Always reset state so the reader works across repeated job launches
+        currentPage = 1;
+        buffer      = List.<ErpProductSnapshot>of().iterator();
+        exhausted   = false;
+
         if (executionContext.containsKey(KEY_CURRENT_PAGE)) {
             currentPage = executionContext.getInt(KEY_CURRENT_PAGE);
         }

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,9 +87,10 @@ public class ListingController {
         return ResponseEntity.ok(getListingUseCase.autocomplete(q, limit));
     }
 
-    // ---- Manager Operations (Should be secured in production) ----
+    // ---- Manager Operations ----
 
     @org.springframework.web.bind.annotation.PutMapping("/{slug}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM')")
     @Operation(summary = "Update listing details", description = "Manager-enrichment: description, top-selling status")
     public ResponseEntity<Void> update(
             @PathVariable String slug,
@@ -104,6 +106,7 @@ public class ListingController {
     }
 
     @org.springframework.web.bind.annotation.PostMapping(value = "/{slug}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM')")
     @Operation(summary = "Upload image to listing", description = "Processes and uploads an image file to S3, then appends the URL to the gallery")
     public ResponseEntity<Map<String, String>> addImage(
             @PathVariable String slug,
@@ -121,6 +124,7 @@ public class ListingController {
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{slug}/images")
+    @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM')")
     @Operation(summary = "Remove image from listing", description = "Removes an image by URL")
     public ResponseEntity<Void> removeImage(
             @PathVariable String slug,

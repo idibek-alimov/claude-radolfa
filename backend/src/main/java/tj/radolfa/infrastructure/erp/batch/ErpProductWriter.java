@@ -6,28 +6,31 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
-import tj.radolfa.domain.model.ProductBase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 
 /**
  * Spring Batch {@code ItemWriter} for the hierarchy sync pipeline.
  *
- * <p>The processor already persists data via
- * {@link tj.radolfa.application.ports.in.SyncProductHierarchyUseCase},
- * so this writer only handles post-processing (logging).
- *
- * <p>Elasticsearch re-indexing for the hierarchy model will be added
- * when the search adapter is migrated to the new schema.
+ * <p>Delegates each hierarchy command to the use case for persistence.
  */
 @Component
-public class ErpProductWriter implements ItemWriter<ProductBase> {
+public class ErpProductWriter implements ItemWriter<HierarchySyncCommand> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErpProductWriter.class);
 
+    private final SyncProductHierarchyUseCase syncUseCase;
+
+    public ErpProductWriter(SyncProductHierarchyUseCase syncUseCase) {
+        this.syncUseCase = syncUseCase;
+    }
+
     @Override
-    public void write(Chunk<? extends ProductBase> chunk) {
-        for (ProductBase base : chunk) {
-            LOG.debug("[BATCH-WRITER] Processed template={}", base.getErpTemplateCode());
+    public void write(Chunk<? extends HierarchySyncCommand> chunk) {
+        for (HierarchySyncCommand command : chunk) {
+            syncUseCase.execute(command);
+            LOG.debug("[BATCH-WRITER] Synced template={}", command.templateCode());
         }
-        LOG.info("[BATCH-WRITER] Wrote {} product bases", chunk.size());
+        LOG.info("[BATCH-WRITER] Wrote {} product hierarchies", chunk.size());
     }
 }

@@ -20,10 +20,11 @@ import org.springframework.stereotype.Component;
  * A unique {@code run.id} parameter is injected into every execution
  * so that Spring Batch does not skip the job as a duplicate.
  *
- * Active only on {@code dev} and {@code test} profiles to prevent
- * accidental hourly hammering during CI or production setup.
- * Remove / adjust the {@code @Profile} when the production schedule
- * is confirmed.
+ * TODO(pre-prod): This scheduler is restricted to dev/test profiles.
+ *  Before going to production, decide on a reconciliation strategy:
+ *  - Enable this scheduler in prod (possibly with a longer interval)
+ *  - Or add a manual trigger endpoint for ops
+ *  Without it, production relies solely on webhooks for product sync.
  */
 @Component
 @Profile({ "dev", "test" })

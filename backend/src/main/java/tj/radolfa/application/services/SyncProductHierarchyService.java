@@ -2,8 +2,8 @@ package tj.radolfa.application.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
@@ -56,17 +56,13 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public ProductBase execute(HierarchySyncCommand command) {
 
         LOG.info("[HIERARCHY-SYNC] Processing template={}", command.templateCode());
 
-        // --- Tier 1: ProductBase ---
-        ProductBase base = loadBasePort.findByErpTemplateCode(command.templateCode())
-                .orElseGet(() -> new ProductBase(null, command.templateCode(), null, null));
-
-        base.updateFromErp(command.templateName(), command.category());
-        ProductBase savedBase = savePort.saveBase(base);
+        // --- Tier 1: ProductBase (with race-condition guard) ---
+        ProductBase savedBase = upsertBase(command);
 
         // --- Tier 2 + 3: Variants and SKUs ---
         for (HierarchySyncCommand.VariantCommand vc : command.variants()) {
@@ -109,14 +105,41 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                 savedSkus.add(savePort.saveSku(sku, variantId));
             }
 
-            // Index into Elasticsearch (fire-and-forget)
-            indexVariant(savedVariant, command.templateName(), savedBase.getCategory(), savedSkus);
+            // Index into Elasticsearch (fire-and-forget — never roll back DB on ES failure)
+            try {
+                indexVariant(savedVariant, command.templateName(), savedBase.getCategory(), savedSkus);
+            } catch (Exception ex) {
+                LOG.error("[HIERARCHY-SYNC] ES indexing failed for variant={}, continuing: {}",
+                        savedVariant.getSlug(), ex.getMessage());
+            }
         }
 
         LOG.info("[HIERARCHY-SYNC] Completed template={}, variants={}",
                 command.templateCode(), command.variants().size());
 
         return savedBase;
+    }
+
+    /**
+     * Upsert ProductBase with a retry guard: if a concurrent insert causes a
+     * unique constraint violation, re-fetch the existing row and update it.
+     */
+    private ProductBase upsertBase(HierarchySyncCommand command) {
+        ProductBase base = loadBasePort.findByErpTemplateCode(command.templateCode())
+                .orElseGet(() -> new ProductBase(null, command.templateCode(), null, null));
+
+        base.updateFromErp(command.templateName(), command.category());
+
+        try {
+            return savePort.saveBase(base);
+        } catch (DataIntegrityViolationException ex) {
+            LOG.warn("[HIERARCHY-SYNC] Concurrent insert for template={}, retrying as update",
+                    command.templateCode());
+            ProductBase existing = loadBasePort.findByErpTemplateCode(command.templateCode())
+                    .orElseThrow(() -> ex);
+            existing.updateFromErp(command.templateName(), command.category());
+            return savePort.saveBase(existing);
+        }
     }
 
     private void indexVariant(ListingVariant variant, String productName, String category, List<Sku> skus) {

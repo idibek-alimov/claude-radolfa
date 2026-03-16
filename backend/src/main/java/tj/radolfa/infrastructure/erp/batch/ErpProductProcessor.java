@@ -3,36 +3,27 @@ package tj.radolfa.infrastructure.erp.batch;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
 import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
 import tj.radolfa.domain.model.Money;
-import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 
 import java.util.List;
 
 /**
  * Spring Batch {@code ItemProcessor} that converts a flat ERP snapshot
- * into a hierarchy command and delegates to {@link SyncProductHierarchyUseCase}.
+ * into a hierarchy command.
  *
  * <p>The flat ERP API returns individual items. This processor wraps each
  * into a minimal hierarchy: one template → one "default" variant → one SKU.
- * The use case's idempotent upsert merges correctly when multiple items
- * share the same template code.
+ * Persistence is handled by {@link ErpProductWriter}.
  */
 @Component
-public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, ProductBase> {
-
-    private final SyncProductHierarchyUseCase syncUseCase;
-
-    public ErpProductProcessor(SyncProductHierarchyUseCase syncUseCase) {
-        this.syncUseCase = syncUseCase;
-    }
+public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, HierarchySyncCommand> {
 
     @Override
-    public ProductBase process(ErpProductSnapshot snapshot) {
+    public HierarchySyncCommand process(ErpProductSnapshot snapshot) {
         if (snapshot.disabled()) {
             return null; // Spring Batch skips null returns
         }
@@ -51,13 +42,11 @@ public class ErpProductProcessor implements ItemProcessor<ErpProductSnapshot, Pr
                 List.of(skuCommand)
         );
 
-        var command = new HierarchySyncCommand(
+        return new HierarchySyncCommand(
                 snapshot.erpId(),
                 snapshot.name(),
                 snapshot.category(),
                 List.of(variantCommand)
         );
-
-        return syncUseCase.execute(command);
     }
 }
