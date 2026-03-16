@@ -93,7 +93,9 @@
     "outOfStock": "Мавҷуд нест",
     "lowStock": "Танҳо {count} монд",
     "popular": "Маъмул",
-    "currency": "TJS"
+    "currency": "TJS",
+    "yourPrice": "Нархи шумо",
+    "loyaltyTag": "-{pct}% бонус"
   },
   "megaMenu": {
     "categories": "Категорияҳо"

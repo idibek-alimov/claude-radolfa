@@ -93,7 +93,9 @@
     "outOfStock": "Нет в наличии",
     "lowStock": "Осталось {count}",
     "popular": "Популярное",
-    "currency": "TJS"
+    "currency": "TJS",
+    "yourPrice": "Ваша цена",
+    "loyaltyTag": "-{pct}% бонус"
   },
   "megaMenu": {
     "categories": "Категории"

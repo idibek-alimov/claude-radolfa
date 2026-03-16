@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { Flame, Crown } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
 import { Badge } from "@/shared/ui/badge";
 import { formatPrice } from "@/shared/lib/format";
@@ -22,20 +22,31 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
   const coverImage = listing.images[0] ?? null;
   const hoverImage = listing.images[1] ?? null;
-  const currentPrice =
-    listing.loyaltyPrice ?? listing.discountedPrice ?? listing.originalPrice;
-  const hasDiscount =
-    listing.discountedPrice != null || listing.loyaltyPrice != null;
+
+  const hasDiscount = listing.discountedPrice != null;
+  const hasLoyalty = listing.loyaltyPrice != null;
   const stock = listing.totalStock ?? 0;
   const isOutOfStock = stock === 0;
   const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
+
+  const hasSaleBorder = hasDiscount && listing.saleColorHex;
 
   return (
     <Link href={`/products/${listing.slug}`} className="group block">
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
-        className="relative rounded-lg sm:rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
+        className="relative rounded-lg sm:rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
+        style={
+          hasSaleBorder
+            ? {
+                border: `2px solid ${listing.saleColorHex}`,
+                boxShadow: isHovered
+                  ? `0 8px 25px ${listing.saleColorHex}30`
+                  : `0 0 0 0 transparent`,
+              }
+            : { border: "1px solid var(--border)" }
+        }
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -125,6 +136,16 @@ export default function ProductCard({ listing }: ProductCardProps) {
               )}
             </div>
           )}
+
+          {/* Bottom-right: Loyalty badge */}
+          {hasLoyalty && listing.loyaltyDiscountPercentage != null && (
+            <div className="absolute bottom-2 right-2 z-10 sm:bottom-3 sm:right-3">
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm">
+                <Crown className="h-3 w-3" />
+                {tc("loyaltyTag", { pct: listing.loyaltyDiscountPercentage })}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Body */}
@@ -140,23 +161,45 @@ export default function ProductCard({ listing }: ProductCardProps) {
             {listing.name ?? "—"}
           </h3>
 
-          {/* Price + low stock */}
-          <div className="mt-auto flex items-center justify-between gap-1 pt-1 sm:pt-1.5">
-            <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="text-base sm:text-lg font-bold text-primary">
-                {formatPrice(currentPrice)}
-              </span>
-              {hasDiscount && (
-                <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
-                  {formatPrice(listing.originalPrice)}
+          {/* Price section */}
+          <div className="mt-auto pt-1 sm:pt-1.5 flex flex-col gap-0.5">
+            {/* Row 1: Main price + original crossed out */}
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                {hasDiscount ? (
+                  <>
+                    <span className="text-base sm:text-lg font-bold text-red-600">
+                      {formatPrice(listing.discountedPrice)}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
+                      {formatPrice(listing.originalPrice)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-base sm:text-lg font-bold text-foreground">
+                    {formatPrice(listing.originalPrice)}
+                  </span>
+                )}
+              </div>
+
+              {isLowStock && (
+                <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
+                  {tc("lowStock", { count: stock })}
                 </span>
               )}
             </div>
 
-            {isLowStock && (
-              <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
-                {tc("lowStock", { count: stock })}
-              </span>
+            {/* Row 2: Loyalty "your price" */}
+            {hasLoyalty && (
+              <div className="flex items-center gap-1.5">
+                <Crown className="h-3 w-3 text-amber-500 shrink-0" />
+                <span className="text-xs sm:text-sm font-bold text-amber-600">
+                  {formatPrice(listing.loyaltyPrice)}
+                </span>
+                <span className="text-[10px] sm:text-xs text-amber-600/70">
+                  {tc("yourPrice")}
+                </span>
+              </div>
             )}
           </div>
         </div>

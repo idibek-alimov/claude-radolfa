@@ -93,7 +93,9 @@
     "outOfStock": "Out of stock",
     "lowStock": "Only {count} left",
     "popular": "Popular",
-    "currency": "TJS"
+    "currency": "TJS",
+    "yourPrice": "Your price",
+    "loyaltyTag": "-{pct}% loyalty"
   },
   "megaMenu": {
     "categories": "Categories"
