@@ -2,14 +2,14 @@ package tj.radolfa.domain.model;
 
 public class OrderItem {
         private final Long id;
-        private final Long skuId;
+        private final Long variantId;
         private final String erpItemCode;
         private final String productName;
         private final int quantity;
         private final Money price;
 
         public OrderItem(Long id,
-                        Long skuId,
+                        Long variantId,
                         String erpItemCode,
                         String productName,
                         int quantity,
@@ -18,7 +18,7 @@ public class OrderItem {
                         throw new IllegalArgumentException("Quantity must be positive, got: " + quantity);
                 }
                 this.id = id;
-                this.skuId = skuId;
+                this.variantId = variantId;
                 this.erpItemCode = erpItemCode;
                 this.productName = productName;
                 this.quantity = quantity;
@@ -29,8 +29,8 @@ public class OrderItem {
                 return id;
         }
 
-        public Long getSkuId() {
-                return skuId;
+        public Long getVariantId() {
+                return variantId;
         }
 
         public String getErpItemCode() {

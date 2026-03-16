@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadHomeCollectionsPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
-import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductVariantRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.List;
@@ -17,16 +17,16 @@ import java.util.Map;
  * Hexagonal adapter: SQL-backed queries for homepage collection sections.
  *
  * <p>Reuses the same {@code Object[]} column layout as the grid queries
- * in {@link ListingReadAdapter}, with batch-loaded images.
+ * in {@link ListingReadAdapter}, with images from JSONB.
  * Discounts are resolved from the discounts table post-query.
  */
 @Component
 public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
-    private final ListingVariantRepository variantRepo;
+    private final ProductVariantRepository variantRepo;
     private final DiscountEnrichmentAdapter discountEnrichment;
 
-    public HomeCollectionsAdapter(ListingVariantRepository variantRepo,
+    public HomeCollectionsAdapter(ProductVariantRepository variantRepo,
                                   DiscountEnrichmentAdapter discountEnrichment) {
         this.variantRepo = variantRepo;
         this.discountEnrichment = discountEnrichment;
@@ -76,7 +76,7 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
         return toPageResult(raw, page);
     }
 
-    // ---- Shared helpers (same column layout as ListingReadAdapter) ----
+    // ---- Shared helpers ----
 
     private PageResult<ListingVariantDto> toPageResult(Page<Object[]> raw, int page) {
         List<ListingVariantDto> items = toGridDtos(raw.getContent());
@@ -86,14 +86,13 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
     private List<ListingVariantDto> toGridDtos(List<Object[]> rows) {
         List<Long> variantIds = rows.stream()
-                .map(row -> (Long) row[0])
+                .map(row -> ListingGridRowMapper.toLong(row[0]))
                 .toList();
 
-        Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
         Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
         return rows.stream()
-                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap))
+                .map(row -> ListingGridRowMapper.toGridDto(row, discountMap))
                 .toList();
     }
 }

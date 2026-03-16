@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.SyncOrdersUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
-import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadProductVariantPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Money;
@@ -25,16 +25,16 @@ public class SyncOrdersService implements SyncOrdersUseCase {
     private final LoadOrderPort loadOrderPort;
     private final SaveOrderPort saveOrderPort;
     private final LoadUserPort loadUserPort;
-    private final LoadSkuPort loadSkuPort;
+    private final LoadProductVariantPort loadVariantPort;
 
     public SyncOrdersService(LoadOrderPort loadOrderPort,
                              SaveOrderPort saveOrderPort,
                              LoadUserPort loadUserPort,
-                             LoadSkuPort loadSkuPort) {
+                             LoadProductVariantPort loadVariantPort) {
         this.loadOrderPort = loadOrderPort;
         this.saveOrderPort = saveOrderPort;
         this.loadUserPort = loadUserPort;
-        this.loadSkuPort = loadSkuPort;
+        this.loadVariantPort = loadVariantPort;
     }
 
     @Override
@@ -54,15 +54,15 @@ public class SyncOrdersService implements SyncOrdersUseCase {
 
         List<OrderItem> items = command.items().stream()
                 .map(item -> {
-                    var skuOpt = loadSkuPort.findByErpItemCode(item.erpItemCode());
-                    if (skuOpt.isEmpty()) {
-                        LOG.warn("[ORDER-SYNC] No SKU found for erpItemCode={}, order={} — skipping item",
+                    var variantOpt = loadVariantPort.findByErpVariantCode(item.erpItemCode());
+                    if (variantOpt.isEmpty()) {
+                        LOG.warn("[ORDER-SYNC] No variant found for erpItemCode={}, order={} — skipping item",
                                 item.erpItemCode(), command.erpOrderId());
                         return null;
                     }
                     return new OrderItem(
                             null,
-                            skuOpt.get().getId(),
+                            variantOpt.get().getId(),
                             item.erpItemCode(),
                             item.productName(),
                             item.quantity(),

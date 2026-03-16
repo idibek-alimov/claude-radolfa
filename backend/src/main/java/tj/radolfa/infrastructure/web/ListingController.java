@@ -97,8 +97,7 @@ public class ListingController {
         updateListingUseCase.update(slug, new tj.radolfa.application.ports.in.UpdateListingUseCase.UpdateListingCommand(
                 request.webDescription,
                 request.topSelling,
-                request.featured,
-                null // images updated separately
+                request.featured
         ));
         return ResponseEntity.ok().build();
     }

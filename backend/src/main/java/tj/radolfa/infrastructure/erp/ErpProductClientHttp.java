@@ -9,18 +9,17 @@ import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Production HTTP adapter for {@link ErpProductClient}.
  *
- * Calls the ERPNext REST API to page through the Item doctype.
+ * <p>Fetches Item templates and their variants from ERPNext REST API.
  * Authentication uses ERPNext token auth: {@code Authorization: token <key>:<secret>}.
  *
- * Gracefully returns an empty list on any connectivity or auth failure so
- * the application starts cleanly even before ERPNext credentials are configured.
- *
- * ERPNext API key and secret are generated in:
- *   ERPNext → Settings → User → Administrator → Generate API Key
+ * <p>Strategy: fetches ALL enabled items in one pass. The processor groups
+ * them by {@code variant_of} to build the template→variant hierarchy.
  */
 @Component
 @Profile("!dev & !test")
@@ -29,7 +28,8 @@ public class ErpProductClientHttp implements ErpProductClient {
     private static final Logger log = LoggerFactory.getLogger(ErpProductClientHttp.class);
 
     private static final String ITEM_FIELDS =
-            "[\"item_code\",\"item_name\",\"item_group\",\"standard_rate\",\"disabled\"]";
+            "[\"item_code\",\"item_name\",\"item_group\",\"standard_rate\"," +
+            "\"disabled\",\"has_variants\",\"variant_of\"]";
 
     private final RestClient restClient;
     private final boolean    credentialsConfigured;
@@ -67,7 +67,6 @@ public class ErpProductClientHttp implements ErpProductClient {
                             .queryParam("limit_page_length", limit)
                             .queryParam("limit_start", start)
                             .queryParam("fields", ITEM_FIELDS)
-                            .queryParam("filters", "[[\"disabled\",\"=\",0]]")
                             .build())
                     .retrieve()
                     .body(ErpItemListResponse.class);
@@ -82,14 +81,51 @@ public class ErpProductClientHttp implements ErpProductClient {
                             item.item_name(),
                             item.item_group() != null ? item.item_group() : "Uncategorized",
                             item.standard_rate() != null ? item.standard_rate() : BigDecimal.ZERO,
-                            0,     // stock fetched separately via Bin when needed
-                            item.disabled() != 0
+                            0,
+                            item.disabled() != 0,
+                            item.has_variants() != 0,
+                            item.variant_of(),
+                            Map.of()  // attributes resolved in processor via separate call
                     ))
                     .toList();
 
         } catch (Exception e) {
             log.warn("[ERP] Failed to fetch page {} from ERPNext: {}", page, e.getMessage());
             return List.of();
+        }
+    }
+
+    /**
+     * Fetches variant attributes for a specific item code.
+     * Returns a map like {"Color": "Red", "Size": "M"}.
+     */
+    public Map<String, String> fetchVariantAttributes(String itemCode) {
+        if (!credentialsConfigured) {
+            return Map.of();
+        }
+        try {
+            var response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/resource/Item/{code}")
+                            .queryParam("fields", "[\"attributes\"]")
+                            .build(itemCode))
+                    .retrieve()
+                    .body(ErpItemDetailResponse.class);
+
+            if (response == null || response.data() == null || response.data().attributes() == null) {
+                return Map.of();
+            }
+
+            return response.data().attributes().stream()
+                    .collect(Collectors.toMap(
+                            ErpItemAttribute::attribute,
+                            ErpItemAttribute::attribute_value,
+                            (a, b) -> b  // keep last on duplicate key
+                    ));
+
+        } catch (Exception e) {
+            log.warn("[ERP] Failed to fetch attributes for {}: {}", itemCode, e.getMessage());
+            return Map.of();
         }
     }
 
@@ -102,6 +138,14 @@ public class ErpProductClientHttp implements ErpProductClient {
             String     item_name,
             String     item_group,
             BigDecimal standard_rate,
-            int        disabled
+            int        disabled,
+            int        has_variants,
+            String     variant_of
     ) {}
+
+    private record ErpItemDetailResponse(ErpItemDetail data) {}
+
+    private record ErpItemDetail(List<ErpItemAttribute> attributes) {}
+
+    private record ErpItemAttribute(String attribute, String attribute_value) {}
 }

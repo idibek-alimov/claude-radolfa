@@ -23,8 +23,8 @@ public class OrderItemEntity {
     private OrderEntity order;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sku_id", foreignKey = @ForeignKey(name = "fk_order_item_sku"))
-    private SkuEntity sku;
+    @JoinColumn(name = "variant_id")
+    private ProductVariantEntity variant;
 
     @Column(name = "erp_item_code", length = 128)
     private String erpItemCode;

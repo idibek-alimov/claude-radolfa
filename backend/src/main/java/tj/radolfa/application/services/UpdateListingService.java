@@ -3,56 +3,81 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.UpdateListingUseCase;
-import tj.radolfa.application.ports.out.LoadListingVariantPort;
-import tj.radolfa.application.ports.out.SaveListingVariantPort;
-import tj.radolfa.domain.model.ListingVariant;
+import tj.radolfa.application.ports.out.LoadColorImagesPort;
+import tj.radolfa.application.ports.out.LoadProductTemplatePort;
+import tj.radolfa.application.ports.out.LoadProductVariantPort;
+import tj.radolfa.application.ports.out.SaveColorImagesPort;
+import tj.radolfa.application.ports.out.SaveProductPort;
+import tj.radolfa.domain.model.ColorImages;
+import tj.radolfa.domain.model.ProductTemplate;
+import tj.radolfa.domain.model.ProductVariant;
 
 @Service
 @Transactional
 public class UpdateListingService implements UpdateListingUseCase {
 
-    private final LoadListingVariantPort loadListingVariantPort;
-    private final SaveListingVariantPort saveListingVariantPort;
+    private final LoadProductVariantPort loadVariantPort;
+    private final LoadProductTemplatePort loadTemplatePort;
+    private final SaveProductPort saveProductPort;
+    private final LoadColorImagesPort loadColorImagesPort;
+    private final SaveColorImagesPort saveColorImagesPort;
 
-    public UpdateListingService(LoadListingVariantPort loadListingVariantPort,
-                                SaveListingVariantPort saveListingVariantPort) {
-        this.loadListingVariantPort = loadListingVariantPort;
-        this.saveListingVariantPort = saveListingVariantPort;
+    public UpdateListingService(LoadProductVariantPort loadVariantPort,
+                                LoadProductTemplatePort loadTemplatePort,
+                                SaveProductPort saveProductPort,
+                                LoadColorImagesPort loadColorImagesPort,
+                                SaveColorImagesPort saveColorImagesPort) {
+        this.loadVariantPort = loadVariantPort;
+        this.loadTemplatePort = loadTemplatePort;
+        this.saveProductPort = saveProductPort;
+        this.loadColorImagesPort = loadColorImagesPort;
+        this.saveColorImagesPort = saveColorImagesPort;
     }
 
     @Override
     public void update(String slug, UpdateListingCommand command) {
-        ListingVariant variant = loadListingVariantPort.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+        ProductVariant variant = loadVariantPort.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("Variant not found: " + slug));
+
+        ProductTemplate template = loadTemplatePort.findById(variant.getTemplateId())
+                .orElseThrow(() -> new IllegalStateException("Template not found for variant: " + slug));
 
         if (command.webDescription() != null) {
-            variant.updateWebDescription(command.webDescription());
+            template.updateDescription(command.webDescription());
         }
         if (command.topSelling() != null) {
-            variant.updateTopSelling(command.topSelling());
+            template.updateTopSelling(command.topSelling());
         }
         if (command.featured() != null) {
-            variant.updateFeatured(command.featured());
+            template.updateFeatured(command.featured());
         }
 
-        saveListingVariantPort.save(variant);
+        saveProductPort.saveTemplate(template);
     }
 
     @Override
     public void addImage(String slug, String imageUrl) {
-        ListingVariant variant = loadListingVariantPort.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+        ProductVariant variant = loadVariantPort.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("Variant not found: " + slug));
 
-        variant.addImage(imageUrl);
-        saveListingVariantPort.save(variant);
+        ColorImages colorImages = loadOrCreate(variant);
+        colorImages.addImage(imageUrl);
+        saveColorImagesPort.save(colorImages);
     }
 
     @Override
     public void removeImage(String slug, String imageUrl) {
-        ListingVariant variant = loadListingVariantPort.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+        ProductVariant variant = loadVariantPort.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("Variant not found: " + slug));
 
-        variant.removeImage(imageUrl);
-        saveListingVariantPort.save(variant);
+        ColorImages colorImages = loadOrCreate(variant);
+        colorImages.removeImage(imageUrl);
+        saveColorImagesPort.save(colorImages);
+    }
+
+    private ColorImages loadOrCreate(ProductVariant variant) {
+        String colorKey = variant.getColor();
+        return loadColorImagesPort.findByTemplateAndColor(variant.getTemplateId(), colorKey)
+                .orElseGet(() -> new ColorImages(null, variant.getTemplateId(), colorKey, null));
     }
 }

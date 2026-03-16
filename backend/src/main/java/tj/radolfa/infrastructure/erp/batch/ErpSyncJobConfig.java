@@ -9,14 +9,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import tj.radolfa.domain.model.ProductBase;
+import tj.radolfa.domain.model.ProductTemplate;
 import tj.radolfa.infrastructure.erp.ErpProductSnapshot;
 
 /**
- * Spring Batch {@code @Configuration} that assembles the
- * {@code erpInitialImportJob}.
+ * Spring Batch configuration for the ERP product import job.
  *
- * <p>Chunk size is 10: each transaction commits after 10 products are
+ * <p>Chunk size is 10: each transaction commits after 10 items are
  * read, processed, and written.
  */
 @Configuration
@@ -39,7 +38,7 @@ public class ErpSyncJobConfig {
                               ErpProductProcessor processor,
                               ErpProductWriter    writer) {
         return new StepBuilder("erpImportStep", jobRepository)
-                .<ErpProductSnapshot, ProductBase>chunk(CHUNK_SIZE, transactionManager)
+                .<ErpProductSnapshot, ProductTemplate>chunk(CHUNK_SIZE, transactionManager)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)

@@ -7,11 +7,11 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Elasticsearch document representing a {@code ListingVariant} — the unit
+ * Elasticsearch document representing a {@code ProductVariant} — the unit
  * the storefront displays as a product card.
  *
- * <p>Denormalized: carries the {@code ProductBase.name}, the variant's own
- * fields, and aggregated SKU data so the grid can be served entirely from
+ * <p>Denormalized: carries the {@code ProductTemplate.name}, the variant's own
+ * fields, and stock/price data so the grid can be served entirely from
  * Elasticsearch without touching PostgreSQL.
  */
 @Document(indexName = "listings")

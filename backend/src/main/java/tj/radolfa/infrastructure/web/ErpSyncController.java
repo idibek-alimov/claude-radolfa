@@ -23,15 +23,12 @@ import tj.radolfa.application.ports.in.SyncOrdersUseCase.SyncOrderItemCommand;
 import tj.radolfa.application.ports.in.SyncDiscountUseCase;
 import tj.radolfa.application.ports.in.SyncDiscountUseCase.SyncDiscountCommand;
 import tj.radolfa.application.ports.in.RemoveDiscountUseCase;
-import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.in.SyncProductUseCase;
+import tj.radolfa.application.ports.in.SyncProductUseCase.SyncProductCommand;
 import tj.radolfa.application.ports.in.SyncUsersUseCase;
 import tj.radolfa.application.ports.in.SyncUsersUseCase.SyncUserCommand;
-import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand;
-import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.VariantCommand;
-import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase.HierarchySyncCommand.SkuCommand;
 import tj.radolfa.application.ports.out.IdempotencyPort;
 import tj.radolfa.application.ports.out.LogSyncEventPort;
-import tj.radolfa.domain.model.Money;
 import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.infrastructure.web.dto.ErpHierarchyPayload;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -43,16 +40,14 @@ import tj.radolfa.infrastructure.web.dto.SyncResultDto;
 import tj.radolfa.infrastructure.web.dto.SyncDiscountPayload;
 import tj.radolfa.infrastructure.web.dto.RemoveDiscountPayload;
 import tj.radolfa.infrastructure.web.dto.SyncUserPayload;
-import tj.radolfa.domain.model.UserRole;
-
 import java.util.List;
 
 /**
  * REST adapter for ERP product synchronisation.
  *
  * <p>
- * Accepts a rich hierarchy payload from ERPNext:
- * Template → Variant (Colour) → Item (Size/SKU).
+ * Accepts product sync payloads from ERPNext:
+ * Template → Variants (each with concrete attribute values).
  *
  * <h3>Security</h3>
  * Only users with the {@code SYSTEM} role can access this endpoint.
@@ -72,7 +67,7 @@ public class ErpSyncController {
         private static final String EVENT_LOYALTY_TIER = "LOYALTY_TIER";
         private static final String EVENT_DISCOUNT = "DISCOUNT";
 
-        private final SyncProductHierarchyUseCase syncUseCase;
+        private final SyncProductUseCase syncUseCase;
         private final SyncCategoriesUseCase syncCategoriesUseCase;
         private final SyncLoyaltyPointsUseCase loyaltyUseCase;
         private final SyncLoyaltyTiersUseCase syncLoyaltyTiersUseCase;
@@ -83,7 +78,7 @@ public class ErpSyncController {
         private final LogSyncEventPort logSyncEvent;
         private final IdempotencyPort idempotencyPort;
 
-        public ErpSyncController(SyncProductHierarchyUseCase syncUseCase,
+        public ErpSyncController(SyncProductUseCase syncUseCase,
                         SyncCategoriesUseCase syncCategoriesUseCase,
                         SyncLoyaltyPointsUseCase loyaltyUseCase,
                         SyncLoyaltyTiersUseCase syncLoyaltyTiersUseCase,
@@ -106,8 +101,8 @@ public class ErpSyncController {
         }
 
         /**
-         * Accepts a hierarchy payload, performs idempotent upsert
-         * across ProductBase → ListingVariant → Sku, and returns
+         * Accepts a product payload, performs idempotent upsert
+         * across ProductTemplate → ProductVariant, and returns
          * a summary of the operation.
          */
         @PostMapping("/products")
@@ -116,14 +111,14 @@ public class ErpSyncController {
                         @AuthenticationPrincipal JwtAuthenticatedUser caller,
                         @Valid @RequestBody ErpHierarchyPayload payload) {
 
-                LOG.info("[ERP-SYNC] Received hierarchy sync for template={}, caller={}",
+                LOG.info("[ERP-SYNC] Received product sync for template={}, caller={}",
                                 payload.templateCode(), caller.phone());
 
                 int synced = 0;
                 int errors = 0;
 
                 try {
-                        HierarchySyncCommand command = toCommand(payload);
+                        SyncProductCommand command = toCommand(payload);
                         syncUseCase.execute(command);
                         logSyncEvent.log(payload.templateCode(), true, null);
                         synced = 1;
@@ -475,31 +470,23 @@ public class ErpSyncController {
 
         // ---- Mapping: DTO → Command ----
 
-        private HierarchySyncCommand toCommand(ErpHierarchyPayload payload) {
-                var variants = payload.variants().stream()
-                                .map(this::toVariantCommand)
-                                .toList();
+        private SyncProductCommand toCommand(ErpHierarchyPayload payload) {
+                var variants = payload.variants() != null
+                        ? payload.variants().stream()
+                                .map(vp -> new SyncProductCommand.VariantCommand(
+                                        vp.erpVariantCode(),
+                                        vp.attributes() != null ? vp.attributes() : java.util.Map.of(),
+                                        vp.price(),
+                                        vp.stockQty(),
+                                        vp.disabled()))
+                                .toList()
+                        : java.util.List.<SyncProductCommand.VariantCommand>of();
 
-                return new HierarchySyncCommand(
+                return new SyncProductCommand(
                                 payload.templateCode(),
                                 payload.templateName(),
                                 payload.category(),
+                                payload.disabled(),
                                 variants);
-        }
-
-        private VariantCommand toVariantCommand(ErpHierarchyPayload.VariantPayload vp) {
-                var items = vp.items().stream()
-                                .map(this::toSkuCommand)
-                                .toList();
-
-                return new VariantCommand(vp.colorKey(), items);
-        }
-
-        private SkuCommand toSkuCommand(ErpHierarchyPayload.ItemPayload ip) {
-                return new SkuCommand(
-                                ip.erpItemCode(),
-                                ip.sizeLabel(),
-                                ip.stockQuantity(),
-                                Money.of(ip.listPrice()));
         }
 }

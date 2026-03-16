@@ -1,19 +1,32 @@
 package tj.radolfa.infrastructure.erp;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
- * Raw DTO that mirrors a single product record as returned by ERPNext.
+ * Raw DTO mirroring a single product record from ERPNext.
  *
- * Deliberately lives in {@code infrastructure}, not {@code domain} –
- * it is a transport object that exists only to carry wire-format data
- * from the ERP client into the application layer.
+ * <p>For template items (has_variants=1), {@code variants} is populated
+ * with the child variant snapshots. For standalone items, {@code variants}
+ * is empty and the template itself is the purchasable unit.
+ *
+ * <p>Lives in {@code infrastructure} — transport object only.
  */
 public record ErpProductSnapshot(
-        String     erpId,
-        String     name,
-        String     category,
-        BigDecimal standardRate,
-        Integer    stock,
-        boolean    disabled
-) {}
+        String              erpItemCode,
+        String              name,
+        String              category,
+        BigDecimal          standardRate,
+        Integer             stock,
+        boolean             disabled,
+        boolean             hasVariants,
+        String              variantOf,
+        Map<String, String> attributes
+) {
+    /** Convenience constructor for standalone/simple items. */
+    public ErpProductSnapshot(String erpItemCode, String name, String category,
+                              BigDecimal standardRate, Integer stock, boolean disabled) {
+        this(erpItemCode, name, category, standardRate, stock, disabled,
+             false, null, Map.of());
+    }
+}

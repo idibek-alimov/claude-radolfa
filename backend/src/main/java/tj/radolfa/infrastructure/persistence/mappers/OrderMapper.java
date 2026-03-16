@@ -24,13 +24,13 @@ public interface OrderMapper {
     OrderEntity toEntity(Order order);
 
     @Mapping(target = "price", source = "priceAtPurchase")
-    @Mapping(target = "skuId", source = "sku.id")
+    @Mapping(target = "variantId", source = "variant.id")
     OrderItem toOrderItem(OrderItemEntity entity);
 
     @Mapping(target = "priceAtPurchase", source = "price")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "order", ignore = true)
-    @Mapping(target = "sku", ignore = true)
+    @Mapping(target = "variant", ignore = true)
     OrderItemEntity toEntity(OrderItem item);
 
     // ---- Money <-> BigDecimal bridge --------------------------------

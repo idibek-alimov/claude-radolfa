@@ -6,28 +6,24 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
-import tj.radolfa.domain.model.ProductBase;
+import tj.radolfa.domain.model.ProductTemplate;
 
 /**
- * Spring Batch {@code ItemWriter} for the hierarchy sync pipeline.
+ * Spring Batch writer for the product sync pipeline.
  *
- * <p>The processor already persists data via
- * {@link tj.radolfa.application.ports.in.SyncProductHierarchyUseCase},
- * so this writer only handles post-processing (logging).
- *
- * <p>Elasticsearch re-indexing for the hierarchy model will be added
- * when the search adapter is migrated to the new schema.
+ * <p>The processor already persists via {@link tj.radolfa.application.ports.in.SyncProductUseCase},
+ * so this writer only logs the results.
  */
 @Component
-public class ErpProductWriter implements ItemWriter<ProductBase> {
+public class ErpProductWriter implements ItemWriter<ProductTemplate> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErpProductWriter.class);
 
     @Override
-    public void write(Chunk<? extends ProductBase> chunk) {
-        for (ProductBase base : chunk) {
-            LOG.debug("[BATCH-WRITER] Processed template={}", base.getErpTemplateCode());
+    public void write(Chunk<? extends ProductTemplate> chunk) {
+        for (ProductTemplate template : chunk) {
+            LOG.debug("[BATCH-WRITER] Processed template={}", template.getErpTemplateCode());
         }
-        LOG.info("[BATCH-WRITER] Wrote {} product bases", chunk.size());
+        LOG.info("[BATCH-WRITER] Wrote {} product templates", chunk.size());
     }
 }
