@@ -36,17 +36,7 @@ export default function ProductCard({ listing }: ProductCardProps) {
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
-        className="relative rounded-lg sm:rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
-        style={
-          hasSaleBorder
-            ? {
-                border: `2px solid ${listing.saleColorHex}`,
-                boxShadow: isHovered
-                  ? `0 8px 25px ${listing.saleColorHex}30`
-                  : `0 0 0 0 transparent`,
-              }
-            : { border: "1px solid var(--border)" }
-        }
+        className="relative rounded-lg sm:rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -77,7 +67,16 @@ export default function ProductCard({ listing }: ProductCardProps) {
         )}
 
         {/* Cover image with hover swap */}
-        <div className="relative w-full aspect-[4/5] sm:aspect-square bg-muted overflow-hidden">
+        <div
+          className="relative w-full aspect-[4/5] sm:aspect-square bg-muted overflow-hidden"
+          style={
+            hasSaleBorder
+              ? {
+                  boxShadow: `inset 0 0 0 2.5px ${listing.saleColorHex}`,
+                }
+              : undefined
+          }
+        >
           {coverImage ? (
             <>
               <Image
@@ -163,42 +162,67 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
           {/* Price section */}
           <div className="mt-auto pt-1 sm:pt-1.5 flex flex-col gap-0.5">
-            {/* Row 1: Main price + original crossed out */}
-            <div className="flex items-center justify-between gap-1">
-              <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-                {hasDiscount ? (
-                  <>
+            {hasLoyalty ? (
+              <>
+                {/* Loyalty: "Your price" is the hero */}
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+                    <span className="text-base sm:text-lg font-bold text-amber-600">
+                      {formatPrice(listing.loyaltyPrice)}
+                    </span>
+                    <span className="text-[10px] sm:text-xs font-medium text-amber-600/70">
+                      {tc("yourPrice")}
+                    </span>
+                  </div>
+                  {isLowStock && (
+                    <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
+                      {tc("lowStock", { count: stock })}
+                    </span>
+                  )}
+                </div>
+                {/* Smaller line: discounted + original crossed out */}
+                <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                  {hasDiscount && (
+                    <span className="text-xs sm:text-sm font-semibold text-red-500">
+                      {formatPrice(listing.discountedPrice)}
+                    </span>
+                  )}
+                  <span className="text-[11px] sm:text-sm text-muted-foreground line-through">
+                    {formatPrice(listing.originalPrice)}
+                  </span>
+                </div>
+              </>
+            ) : hasDiscount ? (
+              <>
+                {/* Discount only: discounted price is the hero */}
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-baseline gap-1.5 whitespace-nowrap">
                     <span className="text-base sm:text-lg font-bold text-red-600">
                       {formatPrice(listing.discountedPrice)}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
+                    <span className="text-xs sm:text-sm text-muted-foreground line-through">
                       {formatPrice(listing.originalPrice)}
                     </span>
-                  </>
-                ) : (
-                  <span className="text-base sm:text-lg font-bold text-foreground">
-                    {formatPrice(listing.originalPrice)}
+                  </div>
+                  {isLowStock && (
+                    <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
+                      {tc("lowStock", { count: stock })}
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* No discount, no loyalty: just original */
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-base sm:text-lg font-bold text-violet-600">
+                  {formatPrice(listing.originalPrice)}
+                </span>
+                {isLowStock && (
+                  <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
+                    {tc("lowStock", { count: stock })}
                   </span>
                 )}
-              </div>
-
-              {isLowStock && (
-                <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
-                  {tc("lowStock", { count: stock })}
-                </span>
-              )}
-            </div>
-
-            {/* Row 2: Loyalty "your price" */}
-            {hasLoyalty && (
-              <div className="flex items-center gap-1.5">
-                <Crown className="h-3 w-3 text-amber-500 shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-amber-600">
-                  {formatPrice(listing.loyaltyPrice)}
-                </span>
-                <span className="text-[10px] sm:text-xs text-amber-600/70">
-                  {tc("yourPrice")}
-                </span>
               </div>
             )}
           </div>
