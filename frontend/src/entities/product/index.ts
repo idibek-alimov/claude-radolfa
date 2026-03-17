@@ -3,6 +3,7 @@
 
 export type {
     Sku,
+    Attribute,
     ListingVariant,
     SiblingVariant,
     ListingVariantDetail,

@@ -54,6 +54,15 @@ export interface ListingVariant {
 }
 
 /**
+ * A single product attribute shown on the detail page.
+ * Examples: key="Material" value="Organic Wool", key="Fit" value="Oversized".
+ */
+export interface Attribute {
+  key: string;
+  value: string;
+}
+
+/**
  * Lightweight reference to another colour of the same product.
  * Enables frontend colour swatches without a second API call.
  */
@@ -69,6 +78,7 @@ export interface SiblingVariant {
  * Includes the SKU list (sizes/prices) and sibling colour swatches.
  */
 export interface ListingVariantDetail extends ListingVariant {
+  attributes: Attribute[];
   skus: Sku[];
   siblingVariants: SiblingVariant[];
 }

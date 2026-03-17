@@ -51,10 +51,17 @@
     "products": "Products",
     "noImage": "No image available",
     "loyaltyExtra": "Extra -{pct}% Loyalty",
-    "availableColours": "Available Colours",
-    "availableSizes": "Available Sizes",
+    "availableColours": "Colour",
+    "availableSizes": "Size",
     "description": "Description",
-    "youMayAlsoLike": "You May Also Like"
+    "youMayAlsoLike": "You May Also Like",
+    "specifications": "Specifications",
+    "bestseller": "Bestseller",
+    "featured": "Featured",
+    "color": "Colour",
+    "itemsLeft": "Only {count} left",
+    "loyaltyPrice": "With loyalty card",
+    "aboutProduct": "About product"
   },
   "auth": {
     "welcomeBack": "Welcome back",

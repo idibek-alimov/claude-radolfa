@@ -51,10 +51,17 @@
     "products": "Товары",
     "noImage": "Изображение недоступно",
     "loyaltyExtra": "Доп. -{pct}% Лояльность",
-    "availableColours": "Доступные цвета",
-    "availableSizes": "Доступные размеры",
+    "availableColours": "Цвет",
+    "availableSizes": "Размер",
     "description": "Описание",
-    "youMayAlsoLike": "Вам может понравиться"
+    "youMayAlsoLike": "Вам может понравиться",
+    "specifications": "Характеристики",
+    "bestseller": "Хит продаж",
+    "featured": "Рекомендуем",
+    "color": "Цвет",
+    "itemsLeft": "Осталось {count} шт.",
+    "loyaltyPrice": "С картой лояльности",
+    "aboutProduct": "О товаре"
   },
   "auth": {
     "welcomeBack": "С возвращением",

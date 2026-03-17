@@ -51,10 +51,17 @@
     "products": "Молҳо",
     "noImage": "Акс мавҷуд нест",
     "loyaltyExtra": "Иловагӣ -{pct}% Лоялӣ",
-    "availableColours": "Рангҳои мавҷуд",
-    "availableSizes": "Андозаҳои мавҷуд",
+    "availableColours": "Ранг",
+    "availableSizes": "Андоза",
     "description": "Тавсиф",
-    "youMayAlsoLike": "Шояд писандед"
+    "youMayAlsoLike": "Шояд писандед",
+    "specifications": "Хусусиятҳо",
+    "bestseller": "Бештар харида мешавад",
+    "featured": "Тавсияшуда",
+    "color": "Ранг",
+    "itemsLeft": "Танҳо {count} монд",
+    "loyaltyPrice": "Бо корти бонусӣ",
+    "aboutProduct": "Дар бораи мол"
   },
   "auth": {
     "welcomeBack": "Хуш омадед",
