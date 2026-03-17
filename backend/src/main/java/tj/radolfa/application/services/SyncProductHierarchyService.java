@@ -76,6 +76,7 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                             null,               // slug — will be generated
                             null,               // webDescription — empty skeleton
                             Collections.emptyList(),
+                            Collections.emptyList(), // attributes — added by content team later
                             false,              // topSelling — default off
                             false,              // featured — default off
                             null                // lastSyncAt — stamped by markSynced

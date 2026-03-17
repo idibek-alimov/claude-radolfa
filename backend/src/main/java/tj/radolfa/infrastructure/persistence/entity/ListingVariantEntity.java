@@ -47,6 +47,10 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @OrderBy("sortOrder ASC")
     private List<ListingVariantImageEntity> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    private List<ListingVariantAttributeEntity> attributes = new ArrayList<>();
+
     @Column(name = "last_sync_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant lastSyncAt;

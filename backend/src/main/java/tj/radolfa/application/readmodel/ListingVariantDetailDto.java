@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Full detail view for a single listing variant.
- * Includes the SKU list (sizes/prices) and sibling colour swatches.
+ * Includes the SKU list (sizes/prices), sibling colour swatches, and product attributes.
  */
 public record ListingVariantDetailDto(
         Long id,
@@ -17,6 +17,7 @@ public record ListingVariantDetailDto(
         String colorHexCode,
         String webDescription,
         List<String> images,
+        List<AttributeDto> attributes,
         BigDecimal originalPrice,
         BigDecimal discountedPrice,
         BigDecimal loyaltyPrice,
@@ -30,6 +31,12 @@ public record ListingVariantDetailDto(
         List<SkuDto> skus,
         List<SiblingVariant> siblingVariants
 ) {
+    /**
+     * A single product attribute shown on the detail page.
+     * Examples: key="Material" value="Organic Wool", key="Fit" value="Oversized".
+     */
+    public record AttributeDto(String key, String value) {}
+
     /**
      * Lightweight reference to another colour variant of the same product.
      * Enables the frontend to render colour swatches without a second API call.
@@ -56,7 +63,7 @@ public record ListingVariantDetailDto(
                 .toList();
 
         return new ListingVariantDetailDto(id, slug, name, category, colorKey, colorHexCode,
-                webDescription, images, originalPrice, discountedPrice, lp,
+                webDescription, images, attributes, originalPrice, discountedPrice, lp,
                 discountPercentage, loyaltyPct, saleTitle, saleColorHex,
                 totalStock, topSelling, featured, enrichedSkus, siblingVariants);
     }

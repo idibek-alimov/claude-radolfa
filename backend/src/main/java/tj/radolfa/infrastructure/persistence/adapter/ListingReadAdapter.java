@@ -14,8 +14,10 @@ import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto.AttributeDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.SkuDto;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -98,6 +100,10 @@ public class ListingReadAdapter implements LoadListingPort {
         private ListingVariantDetailDto toDetailDto(ListingVariantEntity entity) {
                 List<String> images = entity.getImages().stream()
                                 .map(ListingVariantImageEntity::getImageUrl)
+                                .toList();
+
+                List<AttributeDto> attributes = entity.getAttributes().stream()
+                                .map(a -> new AttributeDto(a.getAttrKey(), a.getAttrValue()))
                                 .toList();
 
                 List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
@@ -183,6 +189,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 colorHexCode,
                                 entity.getWebDescription(),
                                 images,
+                                attributes,
                                 originalPrice,
                                 discountedPrice,
                                 null,              // loyaltyPrice (enriched by controller)

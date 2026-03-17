@@ -84,6 +84,7 @@ tj/radolfa/application/ports/in/UpdateLoyaltyTierUseCase.class
 tj/radolfa/infrastructure/security/JwtProperties.class
 tj/radolfa/infrastructure/persistence/adapter/DiscountEnrichmentAdapter.class
 tj/radolfa/domain/model/Sku.class
+tj/radolfa/infrastructure/persistence/entity/ListingVariantAttributeEntity.class
 tj/radolfa/infrastructure/persistence/entity/SkuEntity.class
 tj/radolfa/infrastructure/erp/batch/ErpProductReader.class
 tj/radolfa/application/ports/in/VerifyOtpUseCase.class
@@ -112,6 +113,7 @@ tj/radolfa/infrastructure/persistence/entity/OrderEntity.class
 tj/radolfa/application/ports/in/UpdateLoyaltyTierUseCase$UpdateTierColorCommand.class
 tj/radolfa/domain/exception/ImageProcessingException.class
 tj/radolfa/application/services/SyncProductHierarchyService.class
+tj/radolfa/domain/model/ProductAttribute.class
 tj/radolfa/infrastructure/web/SearchController.class
 tj/radolfa/application/services/SyncLoyaltyPointsService.class
 tj/radolfa/infrastructure/web/SearchController$ReindexResult.class
@@ -200,6 +202,7 @@ tj/radolfa/application/services/ChangeUserRoleService.class
 tj/radolfa/infrastructure/erp/batch/ErpProductProcessor.class
 tj/radolfa/application/ports/in/SyncDiscountUseCase$SyncDiscountCommand.class
 tj/radolfa/application/services/SyncUsersService.class
+tj/radolfa/application/readmodel/ListingVariantDetailDto$AttributeDto.class
 tj/radolfa/application/ports/in/SyncOrdersUseCase$SyncResult.class
 tj/radolfa/application/ports/in/ResolveUserDiscountUseCase.class
 tj/radolfa/infrastructure/security/JwtAuthenticationFilter.class

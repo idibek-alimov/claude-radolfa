@@ -23,10 +23,11 @@ public class ListingVariant {
     private String       slug;
 
     // Enrichment fields — never overwritten by ERP sync
-    private String       webDescription;
-    private List<String> images;
-    private boolean      topSelling;
-    private boolean      featured;
+    private String                 webDescription;
+    private List<String>           images;
+    private List<ProductAttribute> attributes;
+    private boolean                topSelling;
+    private boolean                featured;
 
     // Audit
     private Instant lastSyncAt;
@@ -37,6 +38,7 @@ public class ListingVariant {
                           String slug,
                           String webDescription,
                           List<String> images,
+                          List<ProductAttribute> attributes,
                           boolean topSelling,
                           boolean featured,
                           Instant lastSyncAt) {
@@ -46,6 +48,7 @@ public class ListingVariant {
         this.slug           = slug;
         this.webDescription = webDescription;
         this.images         = new ArrayList<>(images != null ? images : List.of());
+        this.attributes     = new ArrayList<>(attributes != null ? attributes : List.of());
         this.topSelling     = topSelling;
         this.featured       = featured;
         this.lastSyncAt     = lastSyncAt;
@@ -76,6 +79,10 @@ public class ListingVariant {
 
     public void updateWebDescription(String webDescription) {
         this.webDescription = webDescription;
+    }
+
+    public void setAttributes(List<ProductAttribute> attributes) {
+        this.attributes = new ArrayList<>(attributes != null ? attributes : List.of());
     }
 
     private static final int MAX_IMAGES = 20;
@@ -110,13 +117,14 @@ public class ListingVariant {
     }
 
     // ---- Getters ----
-    public Long         getId()             { return id; }
-    public Long         getProductBaseId()  { return productBaseId; }
-    public String       getColorKey()       { return colorKey; }
-    public String       getSlug()           { return slug; }
-    public String       getWebDescription() { return webDescription; }
-    public List<String> getImages()         { return Collections.unmodifiableList(images); }
-    public boolean      isTopSelling()      { return topSelling; }
-    public boolean      isFeatured()        { return featured; }
-    public Instant      getLastSyncAt()     { return lastSyncAt; }
+    public Long                    getId()             { return id; }
+    public Long                    getProductBaseId()  { return productBaseId; }
+    public String                  getColorKey()       { return colorKey; }
+    public String                  getSlug()           { return slug; }
+    public String                  getWebDescription() { return webDescription; }
+    public List<String>            getImages()         { return Collections.unmodifiableList(images); }
+    public List<ProductAttribute>  getAttributes()     { return Collections.unmodifiableList(attributes); }
+    public boolean                 isTopSelling()      { return topSelling; }
+    public boolean                 isFeatured()        { return featured; }
+    public Instant                 getLastSyncAt()     { return lastSyncAt; }
 }
