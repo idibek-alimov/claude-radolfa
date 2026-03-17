@@ -40,31 +40,34 @@ export default function ProductCard({ listing }: ProductCardProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Top-left: Popular badge */}
-        {listing.topSelling && (
-          <Badge
-            variant="default"
-            className="absolute top-2 left-2 z-10 text-[10px] sm:text-xs sm:top-3 sm:left-3 gap-0.5"
-          >
-            <Flame className="h-3 w-3" />
-            {tc("popular")}
-          </Badge>
-        )}
+        {/* Top badges row */}
+        <div className="absolute top-1.5 left-1.5 right-1.5 z-10 sm:top-3 sm:left-3 sm:right-3 flex items-start justify-between gap-1">
+          {/* Left: Popular badge */}
+          {listing.topSelling ? (
+            <Badge
+              variant="default"
+              className="text-[9px] sm:text-xs gap-0.5 shrink-0"
+            >
+              <Flame className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              {tc("popular")}
+            </Badge>
+          ) : <div />}
 
-        {/* Top-right: Color dot + label */}
-        {listing.colorKey && (
-          <div className="absolute top-2 right-2 z-10 sm:top-3 sm:right-3 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-            {listing.colorHexCode && (
-              <span
-                className="inline-block w-3 h-3 rounded-full border border-black/10 shrink-0"
-                style={{ backgroundColor: listing.colorHexCode }}
-              />
-            )}
-            <span className="text-[10px] sm:text-xs font-medium text-foreground">
-              {listing.colorKey}
-            </span>
-          </div>
-        )}
+          {/* Right: Color dot + label */}
+          {listing.colorKey && (
+            <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-full px-1.5 sm:px-2 py-0.5 min-w-0">
+              {listing.colorHexCode && (
+                <span
+                  className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/10 shrink-0"
+                  style={{ backgroundColor: listing.colorHexCode }}
+                />
+              )}
+              <span className="text-[9px] sm:text-xs font-medium text-foreground truncate">
+                {listing.colorKey}
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Cover image with hover swap */}
         <div
@@ -117,32 +120,34 @@ export default function ProductCard({ listing }: ProductCardProps) {
             </div>
           )}
 
-          {/* Bottom-left: Discount % pill + Sale title badge */}
-          {listing.discountPercentage != null && (
-            <div className="absolute bottom-2 left-2 z-10 sm:bottom-3 sm:left-3 flex flex-col items-start gap-1">
-              <span className="inline-flex items-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm">
-                -{listing.discountPercentage}%
-              </span>
-              {listing.saleTitle && (
-                <span
-                  className="inline-flex items-center rounded-md px-2 py-0.5 text-[9px] sm:text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
-                  style={{
-                    backgroundColor: listing.saleColorHex ?? "#d946ef",
-                  }}
-                >
-                  {listing.saleTitle}
+          {/* Bottom image badges row */}
+          {(listing.discountPercentage != null || (hasLoyalty && listing.loyaltyDiscountPercentage != null)) && (
+            <div className="absolute bottom-1.5 left-1.5 right-1.5 z-10 sm:bottom-3 sm:left-3 sm:right-3 flex items-end justify-between gap-1">
+              {/* Left: Discount % + Sale title */}
+              {listing.discountPercentage != null ? (
+                <div className="flex flex-col items-start gap-0.5 sm:gap-1 min-w-0">
+                  <span className="inline-flex items-center rounded-full bg-red-500 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-xs font-bold text-white shadow-sm">
+                    -{listing.discountPercentage}%
+                  </span>
+                  {listing.saleTitle && (
+                    <span
+                      className="inline-flex items-center rounded-md px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[11px] font-bold uppercase tracking-wide text-white shadow-sm max-w-full truncate"
+                      style={{
+                        backgroundColor: listing.saleColorHex ?? "#d946ef",
+                      }}
+                    >
+                      {listing.saleTitle}
+                    </span>
+                  )}
+                </div>
+              ) : <div />}
+              {/* Right: Loyalty badge */}
+              {hasLoyalty && listing.loyaltyDiscountPercentage != null && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-xs font-bold text-white shadow-sm shrink-0">
+                  <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  -{listing.loyaltyDiscountPercentage}%
                 </span>
               )}
-            </div>
-          )}
-
-          {/* Bottom-right: Loyalty badge */}
-          {hasLoyalty && listing.loyaltyDiscountPercentage != null && (
-            <div className="absolute bottom-2 right-2 z-10 sm:bottom-3 sm:right-3">
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm">
-                <Crown className="h-3 w-3" />
-                {tc("loyaltyTag", { pct: listing.loyaltyDiscountPercentage })}
-              </span>
             </div>
           )}
         </div>
@@ -166,29 +171,29 @@ export default function ProductCard({ listing }: ProductCardProps) {
               <>
                 {/* Loyalty: "Your price" is the hero */}
                 <div className="flex items-center justify-between gap-1">
-                  <div className="flex items-center gap-1.5">
-                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
-                    <span className="text-base sm:text-lg font-bold text-amber-600">
+                  <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+                    <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+                    <span className="text-sm sm:text-lg font-bold text-amber-600 truncate">
                       {formatPrice(listing.loyaltyPrice)}
                     </span>
-                    <span className="text-[10px] sm:text-xs font-medium text-amber-600/70">
+                    <span className="hidden sm:inline text-xs font-medium text-amber-600/70">
                       {tc("yourPrice")}
                     </span>
                   </div>
                   {isLowStock && (
-                    <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap">
+                    <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap shrink-0">
                       {tc("lowStock", { count: stock })}
                     </span>
                   )}
                 </div>
                 {/* Smaller line: discounted + original crossed out */}
-                <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                <div className="flex items-baseline gap-1 sm:gap-1.5">
                   {hasDiscount && (
-                    <span className="text-xs sm:text-sm font-semibold text-red-500">
+                    <span className="text-[11px] sm:text-sm font-semibold text-red-500">
                       {formatPrice(listing.discountedPrice)}
                     </span>
                   )}
-                  <span className="text-[11px] sm:text-sm text-muted-foreground line-through">
+                  <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
                     {formatPrice(listing.originalPrice)}
                   </span>
                 </div>
