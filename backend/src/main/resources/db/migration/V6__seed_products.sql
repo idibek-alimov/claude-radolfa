@@ -1,7 +1,0 @@
--- ================================================================
--- V6__seed_products.sql
---
--- Product seed data intentionally omitted for production.
--- Products, categories, and inventory are managed exclusively
--- through ERPNext sync (SYSTEM role / ERP sync endpoints).
--- ================================================================

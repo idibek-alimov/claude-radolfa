@@ -3,6 +3,8 @@
 --
 -- Promotes flat String fields (category, color_key) to
 -- first-class entities with FK relationships.
+--
+-- Includes: denormalized category_name on product_bases (was V13)
 -- ============================================================
 
 -- 1. Create lookup tables
@@ -59,3 +61,11 @@ ALTER TABLE listing_variants DROP COLUMN color_key;
 -- 6. Update unique constraint
 ALTER TABLE listing_variants DROP CONSTRAINT IF EXISTS listing_variants_product_base_id_color_key_key;
 ALTER TABLE listing_variants ADD CONSTRAINT uq_variant_base_color UNIQUE (product_base_id, color_id);
+
+-- 7. Add denormalized category_name for resilience (preserved even if category FK deleted)
+ALTER TABLE product_bases ADD COLUMN category_name VARCHAR(255);
+
+UPDATE product_bases pb
+SET category_name = c.name
+FROM categories c
+WHERE pb.category_id = c.id;

@@ -3,6 +3,8 @@
 --
 -- 3-tier product schema:
 --   ProductBase (Template) -> ListingVariant (Colour) -> Sku (Size)
+--
+-- Includes: featured flag for homepage curation (was V7)
 -- ================================================================
 
 -- ----------------------------------------------------------------
@@ -30,6 +32,7 @@ CREATE TABLE listing_variants (
     slug                VARCHAR(255)    NOT NULL UNIQUE,
     web_description     TEXT,
     top_selling         BOOLEAN         NOT NULL DEFAULT FALSE,
+    featured            BOOLEAN         NOT NULL DEFAULT FALSE,
     last_sync_at        TIMESTAMPTZ,
     version             BIGINT          NOT NULL DEFAULT 0,
     created_at          TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
@@ -40,6 +43,7 @@ CREATE TABLE listing_variants (
 
 CREATE INDEX idx_listing_variants_base_id ON listing_variants (product_base_id);
 CREATE INDEX idx_listing_variants_slug    ON listing_variants (slug);
+CREATE INDEX idx_listing_variants_featured ON listing_variants (featured) WHERE featured = TRUE;
 
 -- ----------------------------------------------------------------
 -- listing_variant_images (S3 image URLs for a variant)
