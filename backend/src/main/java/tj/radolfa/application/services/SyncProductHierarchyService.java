@@ -79,7 +79,8 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                             Collections.emptyList(), // attributes — added by content team later
                             false,              // topSelling — default off
                             false,              // featured — default off
-                            null                // lastSyncAt — stamped by markSynced
+                            null,               // lastSyncAt — stamped by markSynced
+                            null                // productCode — assigned by persistence layer on first save
                     ));
 
             // Generate slug on first creation only (idempotent)

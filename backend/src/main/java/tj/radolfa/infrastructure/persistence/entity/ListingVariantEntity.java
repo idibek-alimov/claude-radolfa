@@ -34,6 +34,9 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "slug", nullable = false, unique = true, length = 255)
     private String slug;
 
+    @Column(name = "product_code", unique = true, length = 10)
+    private String productCode;
+
     @Column(name = "web_description", columnDefinition = "TEXT")
     private String webDescription;
 

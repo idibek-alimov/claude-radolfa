@@ -29,7 +29,8 @@ public record ListingVariantDetailDto(
         boolean topSelling,
         boolean featured,
         List<SkuDto> skus,
-        List<SiblingVariant> siblingVariants
+        List<SiblingVariant> siblingVariants,
+        String productCode
 ) {
     /**
      * A single product attribute shown on the detail page.
@@ -65,6 +66,6 @@ public record ListingVariantDetailDto(
         return new ListingVariantDetailDto(id, slug, name, category, colorKey, colorHexCode,
                 webDescription, images, attributes, originalPrice, discountedPrice, lp,
                 discountPercentage, loyaltyPct, saleTitle, saleColorHex,
-                totalStock, topSelling, featured, enrichedSkus, siblingVariants);
+                totalStock, topSelling, featured, enrichedSkus, siblingVariants, productCode);
     }
 }

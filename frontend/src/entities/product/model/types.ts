@@ -51,6 +51,7 @@ export interface ListingVariant {
   totalStock: number;
   topSelling: boolean;
   featured: boolean;
+  productCode: string | null;
 }
 
 /**

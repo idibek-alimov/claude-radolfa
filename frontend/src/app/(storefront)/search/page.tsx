@@ -1,13 +1,15 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { searchListings } from "@/entities/product";
 import { ProductGrid } from "@/widgets/ProductList";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { useTranslations } from "next-intl";
+
+const PRODUCT_CODE_RE = /^RD-\d{5,}$/i;
 
 const PAGE_LIMIT = 12;
 
@@ -36,7 +38,9 @@ export default function SearchPage() {
 function SearchContent() {
   const t = useTranslations("search");
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = searchParams.get("q")?.trim() || "";
+  const isProductCode = PRODUCT_CODE_RE.test(query);
 
   const {
     data,
@@ -58,6 +62,24 @@ function SearchContent() {
 
   const listings = data?.pages.flatMap((p) => p.items) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
+
+  // When a product code query returns exactly one result, navigate directly to its detail page.
+  useEffect(() => {
+    if (isProductCode && !isLoading && listings.length === 1 && listings[0].slug) {
+      router.replace(`/products/${listings[0].slug}`);
+    }
+  }, [isProductCode, isLoading, listings, router]);
+
+  if (isProductCode && (isLoading || listings.length === 1)) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mt-24 flex flex-col items-center text-center gap-4">
+          <Skeleton className="h-72 w-full max-w-xs rounded-lg" />
+          <Skeleton className="h-5 w-40" />
+        </div>
+      </div>
+    );
+  }
 
   if (!query) {
     return (

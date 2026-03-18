@@ -44,19 +44,22 @@ public class ProductHierarchyAdapter
     private final CategoryRepository       categoryRepo;
     private final ColorRepository          colorRepo;
     private final ProductHierarchyMapper   mapper;
+    private final ProductCodeGenerator     codeGenerator;
 
     public ProductHierarchyAdapter(ProductBaseRepository baseRepo,
                                    ListingVariantRepository variantRepo,
                                    SkuRepository skuRepo,
                                    CategoryRepository categoryRepo,
                                    ColorRepository colorRepo,
-                                   ProductHierarchyMapper mapper) {
-        this.baseRepo     = baseRepo;
-        this.variantRepo  = variantRepo;
-        this.skuRepo      = skuRepo;
-        this.categoryRepo = categoryRepo;
-        this.colorRepo    = colorRepo;
-        this.mapper       = mapper;
+                                   ProductHierarchyMapper mapper,
+                                   ProductCodeGenerator codeGenerator) {
+        this.baseRepo      = baseRepo;
+        this.variantRepo   = variantRepo;
+        this.skuRepo       = skuRepo;
+        this.categoryRepo  = categoryRepo;
+        this.colorRepo     = colorRepo;
+        this.mapper        = mapper;
+        this.codeGenerator = codeGenerator;
     }
 
     // ---- LoadProductBasePort ----
@@ -164,6 +167,7 @@ public class ProductHierarchyAdapter
             entity = mapper.toVariantEntity(variant);
             ProductBaseEntity baseRef = baseRepo.getReferenceById(productBaseId);
             entity.setProductBase(baseRef);
+            entity.setProductCode(codeGenerator.generate());
         }
 
         // Resolve colorKey String -> ColorEntity (auto-create if missing)

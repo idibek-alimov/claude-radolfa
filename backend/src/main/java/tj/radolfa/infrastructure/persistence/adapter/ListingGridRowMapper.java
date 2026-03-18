@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
  * <p>Used by both {@link ListingReadAdapter} and {@link HomeCollectionsAdapter}
  * to eliminate duplicated column-index logic.
  *
- * <p>Column layout (11 columns):
+ * <p>Column layout (12 columns):
  * [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
  * [5]=webDescription, [6]=topSelling, [7]=MIN(originalPrice),
- * [8]=totalStock, [9]=colorHexCode, [10]=featured
+ * [8]=totalStock, [9]=colorHexCode, [10]=featured, [11]=productCode
  */
 final class ListingGridRowMapper {
 
@@ -52,7 +52,8 @@ final class ListingGridRowMapper {
                 discount != null ? discount.saleColorHex() : null,
                 toInteger(row[8]),     // totalStock
                 (Boolean) row[6],      // topSelling
-                (Boolean) row[10]);    // featured
+                (Boolean) row[10],     // featured
+                (String) row[11]);     // productCode
     }
 
     static Map<Long, List<String>> loadImageMap(List<Long> variantIds,

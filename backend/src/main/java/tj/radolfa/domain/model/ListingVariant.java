@@ -32,6 +32,11 @@ public class ListingVariant {
     // Audit
     private Instant lastSyncAt;
 
+    // Human-friendly storefront identifier (e.g. "RD-10047").
+    // Null for unsaved variants — assigned by the persistence layer on first save.
+    // Never changes after initial assignment.
+    private String productCode;
+
     public ListingVariant(Long id,
                           Long productBaseId,
                           String colorKey,
@@ -41,7 +46,8 @@ public class ListingVariant {
                           List<ProductAttribute> attributes,
                           boolean topSelling,
                           boolean featured,
-                          Instant lastSyncAt) {
+                          Instant lastSyncAt,
+                          String productCode) {
         this.id             = id;
         this.productBaseId  = productBaseId;
         this.colorKey       = colorKey;
@@ -52,6 +58,7 @@ public class ListingVariant {
         this.topSelling     = topSelling;
         this.featured       = featured;
         this.lastSyncAt     = lastSyncAt;
+        this.productCode    = productCode;
     }
 
     /**
@@ -127,4 +134,5 @@ public class ListingVariant {
     public boolean                 isTopSelling()      { return topSelling; }
     public boolean                 isFeatured()        { return featured; }
     public Instant                 getLastSyncAt()     { return lastSyncAt; }
+    public String                  getProductCode()    { return productCode; }
 }

@@ -77,7 +77,8 @@ public interface ProductHierarchyMapper {
                 attributes,
                 entity.isTopSelling(),
                 entity.isFeatured(),
-                entity.getLastSyncAt()
+                entity.getLastSyncAt(),
+                entity.getProductCode()
         );
     }
 

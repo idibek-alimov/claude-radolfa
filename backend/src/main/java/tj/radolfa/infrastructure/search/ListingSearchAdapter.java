@@ -137,7 +137,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                         null,    // loyaltyDiscountPercentage (enriched by controller)
                                                         discount.saleTitle(),
                                                         discount.saleColorHex(),
-                                                        dto.totalStock(), dto.topSelling(), dto.featured());
+                                                        dto.totalStock(), dto.topSelling(), dto.featured(),
+                                                        dto.productCode());
                                 })
                                 .toList();
 
@@ -185,7 +186,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 null,    // saleColorHex (enriched post-query)
                                 doc.getTotalStock(),
                                 doc.getTopSelling() != null && doc.getTopSelling(),
-                                doc.getFeatured() != null && doc.getFeatured()
+                                doc.getFeatured() != null && doc.getFeatured(),
+                                null     // productCode — not stored in ES index; DB lookup returns it
                 );
         }
 }

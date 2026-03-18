@@ -14,6 +14,7 @@ import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Orchestrates storefront read operations.
@@ -25,7 +26,8 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class GetListingService implements GetListingUseCase {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GetListingService.class);
+    private static final Logger  LOG          = LoggerFactory.getLogger(GetListingService.class);
+    private static final Pattern PRODUCT_CODE = Pattern.compile("^RD-\\d{5,}$", Pattern.CASE_INSENSITIVE);
 
     private final LoadListingPort   loadListingPort;
     private final SearchListingPort searchListingPort;
@@ -48,6 +50,10 @@ public class GetListingService implements GetListingUseCase {
 
     @Override
     public PageResult<ListingVariantDto> search(String query, int page, int limit) {
+        // Exact product-code lookup: bypass Elasticsearch entirely for RD-XXXXX queries.
+        if (query != null && PRODUCT_CODE.matcher(query.trim()).matches()) {
+            return loadListingPort.findByProductCode(query.trim().toUpperCase(), page, limit);
+        }
         try {
             return searchListingPort.search(query, page, limit);
         } catch (Exception e) {

@@ -207,6 +207,7 @@ tj/radolfa/application/ports/in/SyncOrdersUseCase$SyncResult.class
 tj/radolfa/application/ports/in/ResolveUserDiscountUseCase.class
 tj/radolfa/infrastructure/security/JwtAuthenticationFilter.class
 tj/radolfa/infrastructure/persistence/mappers/ProductHierarchyMapper.class
+tj/radolfa/infrastructure/persistence/adapter/ProductCodeGenerator.class
 tj/radolfa/domain/model/Order.class
 tj/radolfa/application/ports/in/VerifyOtpUseCase$AuthResult.class
 tj/radolfa/application/readmodel/ListingVariantDto.class

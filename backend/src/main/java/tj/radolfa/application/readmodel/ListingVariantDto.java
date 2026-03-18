@@ -31,7 +31,8 @@ public record ListingVariantDto(
                 String saleColorHex,
                 Integer totalStock,
                 boolean topSelling,
-                boolean featured) {
+                boolean featured,
+                String productCode) {
 
     public ListingVariantDto withLoyaltyPrice(BigDecimal loyaltyPct) {
         if (loyaltyPct.compareTo(BigDecimal.ZERO) == 0) return this;
@@ -46,6 +47,6 @@ public record ListingVariantDto(
         return new ListingVariantDto(id, slug, name, category, colorKey, colorHexCode,
                 webDescription, images, originalPrice, discountedPrice, lp,
                 discountPercentage, loyaltyPct, saleTitle, saleColorHex,
-                totalStock, topSelling, featured);
+                totalStock, topSelling, featured, productCode);
     }
 }

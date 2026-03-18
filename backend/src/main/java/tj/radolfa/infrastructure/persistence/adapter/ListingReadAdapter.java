@@ -77,6 +77,12 @@ public class ListingReadAdapter implements LoadListingPort {
                 return toGridResult(raw, page, limit);
         }
 
+        @Override
+        public PageResult<ListingVariantDto> findByProductCode(String code, int page, int limit) {
+                Page<Object[]> raw = variantRepo.findGridByProductCode(code, PageRequest.of(page - 1, limit));
+                return toGridResult(raw, page, limit);
+        }
+
         // ---- Grid helpers ----
 
         private PageResult<ListingVariantDto> toGridResult(Page<Object[]> raw, int page, int limit) {
@@ -201,7 +207,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
                                 skus,
-                                siblings);
+                                siblings,
+                                entity.getProductCode());
         }
 
         // ---- SKU helpers (detail-page only) ----

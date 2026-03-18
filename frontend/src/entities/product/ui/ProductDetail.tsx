@@ -13,6 +13,8 @@ import {
   Flame,
   Star,
   Crown,
+  Copy,
+  Check,
 } from "lucide-react";
 import { fetchListingBySlug, fetchListings } from "@/entities/product/api";
 import type { Sku } from "@/entities/product";
@@ -89,6 +91,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [specsExpanded, setSpecsExpanded] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   /* ── Queries ─────────────────────────────────────────────────── */
 
@@ -633,6 +636,33 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               </span>
             )}
           </div>
+
+          {/* ── Артикул (product code) ────────────────────────────── */}
+          {listing.productCode && (
+            <div className="flex items-center gap-2 py-2 px-2 rounded bg-muted/30 text-sm">
+              <span className="text-muted-foreground min-w-[120px] shrink-0">
+                Код товара
+              </span>
+              <span className="font-medium text-foreground">
+                {listing.productCode}
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(listing.productCode!);
+                  setCodeCopied(true);
+                  setTimeout(() => setCodeCopied(false), 2000);
+                }}
+                className="ml-1 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Копировать код товара"
+              >
+                {codeCopied ? (
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
+          )}
 
           {/* ── Description ──────────────────────────────────────── */}
           {listing.webDescription && (
