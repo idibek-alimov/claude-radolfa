@@ -12,6 +12,7 @@ import tj.radolfa.application.ports.in.ListUsersUseCase;
 import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.services.GetRecentEarningsService;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -24,28 +25,32 @@ import tj.radolfa.infrastructure.web.dto.UserDto;
 public class UserController {
 
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
-    private final ListUsersUseCase listUsersUseCase;
-    private final ToggleUserStatusUseCase toggleUserStatusUseCase;
-    private final ChangeUserRoleUseCase changeUserRoleUseCase;
-    private final LoadUserPort loadUserPort;
+    private final ListUsersUseCase         listUsersUseCase;
+    private final ToggleUserStatusUseCase  toggleUserStatusUseCase;
+    private final ChangeUserRoleUseCase    changeUserRoleUseCase;
+    private final LoadUserPort             loadUserPort;
+    private final GetRecentEarningsService getRecentEarningsService;
 
     public UserController(UpdateUserProfileUseCase updateUserProfileUseCase,
                           ListUsersUseCase listUsersUseCase,
                           ToggleUserStatusUseCase toggleUserStatusUseCase,
                           ChangeUserRoleUseCase changeUserRoleUseCase,
-                          LoadUserPort loadUserPort) {
+                          LoadUserPort loadUserPort,
+                          GetRecentEarningsService getRecentEarningsService) {
         this.updateUserProfileUseCase = updateUserProfileUseCase;
-        this.listUsersUseCase = listUsersUseCase;
-        this.toggleUserStatusUseCase = toggleUserStatusUseCase;
-        this.changeUserRoleUseCase = changeUserRoleUseCase;
-        this.loadUserPort = loadUserPort;
+        this.listUsersUseCase         = listUsersUseCase;
+        this.toggleUserStatusUseCase  = toggleUserStatusUseCase;
+        this.changeUserRoleUseCase    = changeUserRoleUseCase;
+        this.loadUserPort             = loadUserPort;
+        this.getRecentEarningsService = getRecentEarningsService;
     }
 
     @GetMapping("/me")
     @Operation(summary = "Get my profile")
     public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal JwtAuthenticatedUser user) {
         return loadUserPort.loadById(user.userId())
-                .map(u -> ResponseEntity.ok(UserDto.fromDomain(u)))
+                .map(u -> ResponseEntity.ok(
+                        UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()))))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

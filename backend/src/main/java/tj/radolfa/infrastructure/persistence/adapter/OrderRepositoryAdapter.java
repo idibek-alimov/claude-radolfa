@@ -1,10 +1,12 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
@@ -45,6 +47,15 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
     public Optional<Order> loadByExternalOrderId(String externalOrderId) {
         return repository.findByExternalOrderId(externalOrderId)
                 .map(mapper::toOrder);
+    }
+
+    @Override
+    public List<Order> loadRecentPaidByUserId(Long userId, int limit) {
+        return repository.findByUser_IdAndStatusOrderByCreatedAtDesc(
+                        userId, OrderStatus.PAID, PageRequest.of(0, limit))
+                .stream()
+                .map(mapper::toOrder)
+                .toList();
     }
 
     @Override

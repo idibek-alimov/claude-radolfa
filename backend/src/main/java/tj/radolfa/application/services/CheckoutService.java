@@ -2,22 +2,20 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.ports.in.loyalty.RedeemLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
-import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
-import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.Cart;
 import tj.radolfa.domain.model.CartItem;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.LoyaltyProfile;
-import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
@@ -34,17 +32,16 @@ import java.util.List;
 @Service
 public class CheckoutService implements CheckoutUseCase {
 
-    private final LoadCartPort           loadCartPort;
-    private final SaveCartPort           saveCartPort;
-    private final LoadSkuPort            loadSkuPort;
-    private final LoadListingVariantPort loadListingVariantPort;
-    private final LoadProductBasePort    loadProductBasePort;
-    private final LoadUserPort           loadUserPort;
-    private final SaveUserPort           saveUserPort;
-    private final SaveOrderPort          saveOrderPort;
-    private final StockAdjustmentPort    stockAdjustmentPort;
-    private final LoadLoyaltyTierPort    loadLoyaltyTierPort;
-    private final LoyaltyCalculator      loyaltyCalculator;
+    private final LoadCartPort               loadCartPort;
+    private final SaveCartPort               saveCartPort;
+    private final LoadSkuPort                loadSkuPort;
+    private final LoadListingVariantPort     loadListingVariantPort;
+    private final LoadProductBasePort        loadProductBasePort;
+    private final LoadUserPort               loadUserPort;
+    private final SaveOrderPort              saveOrderPort;
+    private final StockAdjustmentPort        stockAdjustmentPort;
+    private final LoyaltyCalculator          loyaltyCalculator;
+    private final RedeemLoyaltyPointsUseCase redeemLoyaltyPointsUseCase;
 
     public CheckoutService(LoadCartPort loadCartPort,
                            SaveCartPort saveCartPort,
@@ -52,22 +49,20 @@ public class CheckoutService implements CheckoutUseCase {
                            LoadListingVariantPort loadListingVariantPort,
                            LoadProductBasePort loadProductBasePort,
                            LoadUserPort loadUserPort,
-                           SaveUserPort saveUserPort,
                            SaveOrderPort saveOrderPort,
                            StockAdjustmentPort stockAdjustmentPort,
-                           LoadLoyaltyTierPort loadLoyaltyTierPort,
-                           LoyaltyCalculator loyaltyCalculator) {
-        this.loadCartPort           = loadCartPort;
-        this.saveCartPort           = saveCartPort;
-        this.loadSkuPort            = loadSkuPort;
-        this.loadListingVariantPort = loadListingVariantPort;
-        this.loadProductBasePort    = loadProductBasePort;
-        this.loadUserPort           = loadUserPort;
-        this.saveUserPort           = saveUserPort;
-        this.saveOrderPort          = saveOrderPort;
-        this.stockAdjustmentPort    = stockAdjustmentPort;
-        this.loadLoyaltyTierPort    = loadLoyaltyTierPort;
-        this.loyaltyCalculator      = loyaltyCalculator;
+                           LoyaltyCalculator loyaltyCalculator,
+                           RedeemLoyaltyPointsUseCase redeemLoyaltyPointsUseCase) {
+        this.loadCartPort               = loadCartPort;
+        this.saveCartPort               = saveCartPort;
+        this.loadSkuPort                = loadSkuPort;
+        this.loadListingVariantPort     = loadListingVariantPort;
+        this.loadProductBasePort        = loadProductBasePort;
+        this.loadUserPort               = loadUserPort;
+        this.saveOrderPort              = saveOrderPort;
+        this.stockAdjustmentPort        = stockAdjustmentPort;
+        this.loyaltyCalculator          = loyaltyCalculator;
+        this.redeemLoyaltyPointsUseCase = redeemLoyaltyPointsUseCase;
     }
 
     @Override
@@ -102,7 +97,6 @@ public class CheckoutService implements CheckoutUseCase {
 
         // 5. Apply tier discount
         LoyaltyProfile profile = user.loyalty();
-        List<LoyaltyTier> allTiers = loadLoyaltyTierPort.findAll();
         Money tierDiscount = loyaltyCalculator.resolveDiscount(profile, subtotal);
         BigDecimal afterTierRaw = subtotal.amount()
                 .subtract(tierDiscount.amount())
@@ -118,15 +112,7 @@ public class CheckoutService implements CheckoutUseCase {
                 throw new IllegalArgumentException(
                         "Cannot redeem " + pointsToRedeem + " points (max=" + maxRedeemable + ")");
             }
-            pointsDiscount = loyaltyCalculator.pointsToMoney(pointsToRedeem);
-            LoyaltyProfile deducted = new LoyaltyProfile(
-                    profile.tier(),
-                    profile.points() - pointsToRedeem,
-                    profile.spendToNextTier(),
-                    profile.spendToMaintainTier(),
-                    profile.currentMonthSpending());
-            saveUserPort.save(new User(user.id(), user.phone(), user.role(), user.name(),
-                    user.email(), deducted, user.enabled(), user.version()));
+            pointsDiscount = redeemLoyaltyPointsUseCase.execute(command.userId(), pointsToRedeem);
         }
 
         // 7. Final total (floor at 0 — cannot go negative from discounts)
