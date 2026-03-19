@@ -12,7 +12,7 @@
 | Phase | Status | Summary |
 |-------|--------|---------|
 | 1 | [x] | Renamed all `erp`-prefixed domain fields, exceptions, methods, DTOs, and infrastructure classes. Moved sync use cases to `ports/in/sync/` subpackage. Renamed `infrastructure/erp/` → `infrastructure/importer/`. Reset all Flyway migrations to a single clean `V1__baseline_clean_schema.sql`. Renamed `SYSTEM` role → `SYNC`. Compile clean, zero `erp` references in executable code. |
-| 2 | [ ] | |
+| 2 | [x] | Added `CartStatus`, `CartItem`, `Cart` (mutable aggregate with add/remove/update/clear/checkout), `PaymentStatus`, `Payment` (immutable record with state-transition helpers), and `LoyaltyCalculator` pure domain service. Created `domain/service/` package. 14 unit tests for `LoyaltyCalculator` all passing. Zero framework dependencies in any new file. |
 | 3 | [ ] | |
 | 4 | [ ] | |
 | 5 | [ ] | |

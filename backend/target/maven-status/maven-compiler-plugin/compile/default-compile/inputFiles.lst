@@ -29,6 +29,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/importer/batch/ImportedProductProcessor.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/dto/CreateOrderRequestDto.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/adapter/OrderRepositoryAdapter.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/CartItem.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/OrderEntity.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/Discount.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/search/ListingSearchStub.java
@@ -74,8 +75,10 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/StringArrayConverter.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/DiscountEntity.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/importer/ProductImportClientHttp.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/service/LoyaltyCalculator.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/LoadListingVariantPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/SecurityConfig.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/CartStatus.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/LoyaltyProfile.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/adapter/ProductHierarchyAdapter.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/mappers/ProductHierarchyMapper.java
@@ -96,6 +99,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/ListingController.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/exception/ImageProcessingException.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/dto/LoginRequestDto.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/PaymentStatus.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/adapter/LoyaltyTierRepositoryAdapter.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/SyncCategoriesService.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/search/ListingSearchRepository.java
@@ -129,6 +133,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/security/OtpStore.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/LoadDiscountPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/repository/UserRepository.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/Payment.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/in/sync/SyncDiscountUseCase.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/SyncProductHierarchyService.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/security/JwtAuthenticationFilter.java
@@ -143,6 +148,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/TokenIssuerPort.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/importer/ImportedProductSnapshot.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/dto/ColorDto.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/domain/model/Cart.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/security/JwtProperties.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/in/sync/SyncLoyaltyTiersUseCase.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/readmodel/HomeSectionDto.java
