@@ -6,6 +6,6 @@
 - **Rules:**
   - All mapping between layers MUST use MapStruct (or explicit `default` mapper methods for complex domain types).
   - No JPA `@Entity` annotations in the Domain layer.
-  - Use Java 17 `record` for DTOs. Domain models may be mutable classes when they have business behaviour (e.g. `Cart`, `Sku`).
+  - Use Java 21 `record` for DTOs. Domain models may be mutable classes when they have business behaviour (e.g. `Cart`, `Sku`).
   - Constructor injection only — no `@Autowired` on fields.
   - `@Transactional` belongs on the service layer, not on adapters (except `SaveCartPort`, `SaveProductHierarchyPort` which are called from multiple services).

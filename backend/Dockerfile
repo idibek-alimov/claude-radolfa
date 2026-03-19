@@ -1,13 +1,13 @@
 # =============================================================================
 # Radolfa Backend - Multi-stage Dockerfile
 # Stage 1: Maven build using wrapper
-# Stage 2: OpenJDK 17 runtime
+# Stage 2: Eclipse Temurin 21 runtime
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # Stage 1: Build
 # -----------------------------------------------------------------------------
-FROM eclipse-temurin:17-jdk AS builder
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN ./mvnw clean package -DskipTests -B
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime
 # -----------------------------------------------------------------------------
-FROM eclipse-temurin:17-jre-alpine AS runtime
+FROM eclipse-temurin:21-jre-alpine AS runtime
 
 # Create non-root user for security
 RUN addgroup -g 1001 radolfa && \

@@ -13,6 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "listing_variants", uniqueConstraints = @UniqueConstraint(columnNames = { "product_base_id",
         "color_id" }))
+@org.hibernate.annotations.BatchSize(size = 50)
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor

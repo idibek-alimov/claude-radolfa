@@ -22,7 +22,6 @@ public class SkuEntity extends BaseAuditEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "listing_variant_id", nullable = false)
-    @org.hibernate.annotations.BatchSize(size = 50)
     private ListingVariantEntity listingVariant;
 
     @Column(name = "sku_code", nullable = false, unique = true, length = 64)
