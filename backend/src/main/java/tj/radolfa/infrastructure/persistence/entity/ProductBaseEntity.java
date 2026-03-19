@@ -5,12 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "product_bases")
+@BatchSize(size = 50)
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor

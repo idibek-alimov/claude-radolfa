@@ -1,8 +1,8 @@
 # Radolfa Backend — Frontend Endpoints Reference
 
-> Generated: 2026-03-20
+> Updated: 2026-03-20
 > Base URL: `/api/v1`
-> Auth: `Authorization: Bearer <accessToken>` or HTTP-only cookie `authToken`
+> Auth: `Authorization: Bearer <accessToken>` header **or** HTTP-only cookie `authToken`
 
 ---
 
@@ -17,11 +17,11 @@
 
 ## 1. Authentication (`/api/v1/auth`)
 
-All endpoints are public (unauthenticated).
+All auth endpoints are public unless noted.
 
 ---
 
-### `POST /api/v1/auth/otp/send` 🌐
+### `POST /api/v1/auth/login` 🌐
 
 Send a one-time password to a phone number.
 
@@ -35,17 +35,18 @@ Send a one-time password to a phone number.
 **Response `200 OK`**
 ```json
 {
-  "message": "OTP sent"
+  "message": "OTP sent",
+  "success": true
 }
 ```
 
 **Notes:**
-- OTP is 4 digits, expires in 5 minutes.
-- Rate-limited: max 5 requests per phone per 60 minutes.
+- OTP is 4–6 digits, expires in 5 minutes.
+- Rate-limited by IP and by phone number.
 
 ---
 
-### `POST /api/v1/auth/otp/verify` 🌐
+### `POST /api/v1/auth/verify` 🌐
 
 Verify OTP and receive JWT tokens. Automatically registers new users on first login.
 
@@ -61,21 +62,22 @@ Verify OTP and receive JWT tokens. Automatically registers new users on first lo
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
+  "tokenType": "Bearer",
   "user": {
     "id": 1,
     "phone": "+992901234567",
     "name": "Alijon",
     "email": "ali@example.com",
     "role": "USER",
-    "enabled": true
+    "enabled": true,
+    "loyalty": { /* LoyaltyDto — see §9 */ }
   }
 }
 ```
 
 **Notes:**
 - Access token expires in 15 minutes.
-- Refresh token expires in 7 days.
+- Refresh token expires in 7 days (stored as HTTP-only cookie).
 - Rate-limited: max 5 verification attempts per phone per 15 minutes.
 - New phone = account auto-created with `USER` role.
 
@@ -83,7 +85,7 @@ Verify OTP and receive JWT tokens. Automatically registers new users on first lo
 
 ### `POST /api/v1/auth/refresh` 🌐
 
-Exchange a refresh token for a new access token.
+Exchange the refresh token cookie for a new access token.
 
 **Request Body**
 ```json
@@ -96,8 +98,27 @@ Exchange a refresh token for a new access token.
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiJ9..."
+  "tokenType": "Bearer"
 }
+```
+
+---
+
+### `GET /api/v1/auth/me` 👤 USER+
+
+Get the currently authenticated user's profile (quick identity check).
+
+**Response `200 OK`** — `UserDto` (same shape as the `user` object in `/verify`).
+
+---
+
+### `POST /api/v1/auth/logout` 👤 USER+
+
+Clear authentication cookies server-side.
+
+**Response `200 OK`**
+```json
+{ "message": "Logged out", "success": true }
 ```
 
 ---
@@ -106,11 +127,13 @@ Exchange a refresh token for a new access token.
 
 Read operations are public. Write operations require MANAGER+.
 
+> **Important:** Write endpoints use `{slug}`, not a numeric ID.
+
 ---
 
 ### `GET /api/v1/listings` 🌐
 
-Search and browse listings with filters. Returns paginated results.
+Browse listings with filters. Returns paginated results with tier-enriched pricing.
 
 **Query Parameters**
 
@@ -118,7 +141,7 @@ Search and browse listings with filters. Returns paginated results.
 |---|---|---|
 | `q` | string | Full-text search query |
 | `categoryId` | Long | Filter by category |
-| `colorKey` | string | Filter by color |
+| `colorKey` | string | Filter by color key |
 | `minPrice` | BigDecimal | Minimum price |
 | `maxPrice` | BigDecimal | Maximum price |
 | `topSelling` | boolean | Filter top-selling variants |
@@ -159,21 +182,56 @@ Search and browse listings with filters. Returns paginated results.
   "totalElements": 150,
   "totalPages": 8,
   "number": 0,
-  "size": 20
+  "size": 20,
+  "first": true,
+  "last": false
 }
+```
+
+---
+
+### `GET /api/v1/listings/search` 🌐
+
+Full-text search via Elasticsearch (falls back to SQL if ES is unavailable).
+
+**Query Parameters**
+
+| Param | Type | Description |
+|---|---|---|
+| `q` | string | Search query (required) |
+| `page` | int | Page number (0-based) |
+| `size` | int | Page size |
+
+**Response `200 OK`** — Same paginated shape as `GET /listings`.
+
+---
+
+### `GET /api/v1/listings/autocomplete` 🌐
+
+Search suggestions for a type-ahead input.
+
+**Query Parameters**
+
+| Param | Type | Description |
+|---|---|---|
+| `q` | string | Partial search query |
+
+**Response `200 OK`**
+```json
+["Classic Hoodie", "Classic Tee", "Classic Parka"]
 ```
 
 ---
 
 ### `GET /api/v1/listings/{slug}` 🌐
 
-Get a single listing by its slug (used for product detail page).
+Get full variant detail including SKUs, sibling color variants, and attributes.
 
 **Path Parameters**
 
 | Param | Description |
 |---|---|
-| `slug` | URL-safe product variant identifier |
+| `slug` | URL-safe variant identifier (e.g., `black-hoodie-xl`) |
 
 **Response `200 OK`**
 ```json
@@ -200,6 +258,7 @@ Get a single listing by its slug (used for product detail page).
   "featured": false,
   "minPrice": 150.00,
   "maxPrice": 180.00,
+  "tierDiscountedMinPrice": 142.50,
   "skus": [
     {
       "skuId": 101,
@@ -221,9 +280,9 @@ Get a single listing by its slug (used for product detail page).
 
 ---
 
-### `PUT /api/v1/listings/{listingId}` 🔧 MANAGER+
+### `PUT /api/v1/listings/{slug}` 🔧 MANAGER+
 
-Update listing enrichment (description, attributes, flags). **Does not update price or stock.**
+Update listing enrichment fields. **Does not update price or stock.**
 
 **Request Body**
 ```json
@@ -237,11 +296,11 @@ Update listing enrichment (description, attributes, flags). **Does not update pr
 }
 ```
 
-**Response `200 OK`** — Updated `ListingVariantDetailDto` (same shape as GET /{slug}).
+**Response `200 OK`** — Updated listing detail (same shape as `GET /{slug}`).
 
 ---
 
-### `POST /api/v1/listings/{listingId}/images` 🔧 MANAGER+
+### `POST /api/v1/listings/{slug}/images` 🔧 MANAGER+
 
 Upload images for a listing. Java resizes and stores in S3.
 
@@ -264,11 +323,11 @@ Upload images for a listing. Java resizes and stores in S3.
 
 **Notes:**
 - Server produces three sizes: 150×150, 400×400, 800×800.
-- Frontend must use S3 URLs — no local image processing.
+- Frontend must always use S3 URLs — no local image processing.
 
 ---
 
-### `DELETE /api/v1/listings/{listingId}/images` 🔧 MANAGER+
+### `DELETE /api/v1/listings/{slug}/images` 🔧 MANAGER+
 
 Remove an image from a listing.
 
@@ -285,26 +344,31 @@ Remove an image from a listing.
 
 ## 3. Home & Collections (`/api/v1/home`)
 
-All public. Used for the homepage and collection pages.
+All public.
 
 ---
 
-### `GET /api/v1/home` 🌐
+### `GET /api/v1/home/collections` 🌐
 
-Returns data for the homepage: featured sections, top-selling products.
+Returns ordered homepage sections (Featured, New Arrivals, Deals) with tier-enriched pricing.
 
 **Response `200 OK`**
 ```json
 {
   "sections": [
     {
-      "title": "New Arrivals",
-      "slug": "new-arrivals",
+      "title": "Featured",
+      "key": "featured",
       "listings": [ /* ListingVariantDto[] */ ]
     },
     {
-      "title": "Top Selling",
-      "slug": "top-selling",
+      "title": "New Arrivals",
+      "key": "new-arrivals",
+      "listings": [ /* ListingVariantDto[] */ ]
+    },
+    {
+      "title": "Deals",
+      "key": "deals",
       "listings": [ /* ListingVariantDto[] */ ]
     }
   ]
@@ -313,15 +377,15 @@ Returns data for the homepage: featured sections, top-selling products.
 
 ---
 
-### `GET /api/v1/home/collections/{slug}` 🌐
+### `GET /api/v1/home/collections/{key}` 🌐
 
-Get a specific collection page.
+Get a paginated single collection by its key.
 
 **Response `200 OK`**
 ```json
 {
-  "title": "Summer Collection",
-  "slug": "summer-2026",
+  "title": "New Arrivals",
+  "key": "new-arrivals",
   "listings": [ /* ListingVariantDto[] */ ]
 }
 ```
@@ -334,7 +398,7 @@ Get a specific collection page.
 
 ### `GET /api/v1/categories` 🌐
 
-Get full category tree.
+Get the full category tree.
 
 **Response `200 OK`**
 ```json
@@ -342,11 +406,13 @@ Get full category tree.
   {
     "id": 1,
     "name": "Clothing",
+    "slug": "clothing",
     "parentId": null,
     "children": [
       {
         "id": 2,
         "name": "Hoodies",
+        "slug": "hoodies",
         "parentId": 1,
         "children": []
       }
@@ -354,6 +420,22 @@ Get full category tree.
   }
 ]
 ```
+
+---
+
+### `GET /api/v1/categories/{slug}/products` 🌐
+
+Get paginated listings belonging to a category (includes descendant categories).
+
+**Path Parameters**
+
+| Param | Description |
+|---|---|
+| `slug` | Category slug |
+
+**Query Parameters:** `page`, `size`, `sort` — same as `GET /listings`.
+
+**Response `200 OK`** — Same paginated shape as `GET /listings`.
 
 ---
 
@@ -376,12 +458,14 @@ Get the current user's active cart.
       "skuId": 101,
       "skuCode": "RAD-0001-BLACK-M",
       "productName": "Classic Hoodie",
-      "colorKey": "BLACK",
+      "colorName": "Black",
       "sizeLabel": "M",
-      "image": "https://s3.twcstorage.ru/.../img_150.jpg",
+      "imageUrl": "https://s3.twcstorage.ru/.../img_150.jpg",
       "unitPrice": 150.00,
       "quantity": 2,
-      "lineTotal": 300.00
+      "lineTotal": 300.00,
+      "availableStock": 15,
+      "inStock": true
     }
   ],
   "totalAmount": 300.00,
@@ -389,11 +473,14 @@ Get the current user's active cart.
 }
 ```
 
+**Notes:**
+- `availableStock` and `inStock` reflect live stock at read time — use these to warn the user before checkout.
+
 ---
 
 ### `POST /api/v1/cart/items` 👤 USER+
 
-Add an item to the cart.
+Add an item to the cart. If the SKU already exists, quantities are merged.
 
 **Request Body**
 ```json
@@ -403,7 +490,7 @@ Add an item to the cart.
 }
 ```
 
-**Response `200 OK`** — Updated cart (same shape as GET /cart).
+**Response `200 OK`** — Updated cart (same shape as `GET /cart`).
 
 **Errors:**
 - `404` — SKU not found.
@@ -413,7 +500,7 @@ Add an item to the cart.
 
 ### `PUT /api/v1/cart/items/{skuId}` 👤 USER+
 
-Update quantity of a cart item.
+Update quantity of a cart item. Passing `quantity <= 0` removes the item.
 
 **Request Body**
 ```json
@@ -428,7 +515,7 @@ Update quantity of a cart item.
 
 ### `DELETE /api/v1/cart/items/{skuId}` 👤 USER+
 
-Remove an item from the cart.
+Remove a specific item from the cart.
 
 **Response `200 OK`** — Updated cart.
 
@@ -448,20 +535,23 @@ Clear all items from the cart.
 
 ### `POST /api/v1/orders/checkout` 👤 USER+
 
-Convert the current cart into an order. Deducts stock and points at this point.
+Convert the current cart into a `PENDING` order. Deducts stock and redeems loyalty points at this point.
 
 **Request Body**
 ```json
 {
-  "loyaltyPointsToRedeem": 50
+  "loyaltyPointsToRedeem": 50,
+  "notes": "Leave at the door"
 }
 ```
-Pass `0` to skip loyalty redemption.
+
+Pass `0` for `loyaltyPointsToRedeem` to skip loyalty redemption. `notes` is optional.
 
 **Response `201 Created`**
 ```json
 {
   "orderId": 99,
+  "status": "PENDING",
   "subtotal": 300.00,
   "tierDiscount": 15.00,
   "pointsDiscount": 50.00,
@@ -476,7 +566,7 @@ Pass `0` to skip loyalty redemption.
 
 ---
 
-### `GET /api/v1/orders` 👤 USER+
+### `GET /api/v1/orders/my-orders` 👤 USER+
 
 Get the current user's order history.
 
@@ -484,13 +574,12 @@ Get the current user's order history.
 ```json
 [
   {
-    "orderId": 99,
+    "id": 99,
     "status": "PAID",
     "totalAmount": 235.00,
     "createdAt": "2026-03-15T10:30:00Z",
     "items": [
       {
-        "skuCode": "RAD-0001-BLACK-M",
         "productName": "Classic Hoodie",
         "quantity": 2,
         "price": 150.00
@@ -506,7 +595,18 @@ Get the current user's order history.
 
 Get a specific order. Users can only fetch their own orders.
 
-**Response `200 OK`** — Single `OrderDto` (same shape as items above).
+**Response `200 OK`** — Single `OrderDto` (same shape as items in `my-orders`).
+
+---
+
+### `PATCH /api/v1/orders/{orderId}/cancel` 👤 USER+ / 🔑 ADMIN
+
+Cancel an order.
+
+- `USER` — can only cancel their own `PENDING` orders.
+- `ADMIN` — can cancel any order that is not in a final state.
+
+**Response `200 OK`** — Updated `OrderDto`.
 
 ---
 
@@ -527,51 +627,41 @@ Valid transitions: `PENDING → PAID → SHIPPED → DELIVERED`.
 
 ---
 
-### `DELETE /api/v1/orders/{orderId}` 👤 USER+
-
-Cancel an order. Only possible when status is `PENDING`.
-
-**Response `204 No Content`**
-
----
-
 ## 7. Payments (`/api/v1/payments`)
 
 ---
 
-### `POST /api/v1/payments/initiate` 👤 USER+
+### `POST /api/v1/payments/initiate/{orderId}` 👤 USER+
 
-Initiate payment for an order. Returns a payment URL to redirect the user.
+Initiate payment for an order the user owns. Returns a redirect URL to the payment provider.
 
-**Request Body**
-```json
-{
-  "orderId": 99
-}
-```
+**Path Parameters**
+
+| Param | Description |
+|---|---|
+| `orderId` | ID of the `PENDING` order to pay |
 
 **Response `200 OK`**
 ```json
 {
   "paymentId": 55,
-  "paymentUrl": "https://payment-provider.com/pay/xyz123",
-  "status": "PENDING"
+  "redirectUrl": "https://payment-provider.com/pay/xyz123"
 }
 ```
 
 ---
 
-### `GET /api/v1/payments/{paymentId}/status` 👤 USER+
+### `GET /api/v1/payments/{orderId}` 🌐
 
-Check payment status (poll after redirect back from payment provider).
+Get payment status for an order (poll after redirect back from the payment provider).
 
 **Response `200 OK`**
 ```json
 {
   "paymentId": 55,
-  "orderId": 99,
   "status": "COMPLETED",
-  "message": "Payment successful"
+  "provider": "payme",
+  "amount": 235.00
 }
 ```
 
@@ -579,44 +669,46 @@ Status values: `PENDING`, `COMPLETED`, `REFUNDED`.
 
 ---
 
-### `POST /api/v1/payments/{paymentId}/refund` 🔑 ADMIN
+### `POST /api/v1/payments/{orderId}/refund` 🔑 ADMIN
 
-Refund a payment. Reverses loyalty points.
+Refund a payment. Reverses loyalty points and restores stock.
 
 **Response `200 OK`**
 ```json
 {
   "paymentId": 55,
-  "status": "REFUNDED"
+  "status": "REFUNDED",
+  "provider": "payme",
+  "amount": 235.00
 }
 ```
 
 ---
 
-## 8. Payment Webhook (`/api/v1/webhooks/payment`)
+## 8. Payment Webhook (`/api/v1/webhooks`)
 
-Called by the external payment provider. Not called by the frontend directly.
+Called by the external payment provider. **Not called by the frontend.**
 
 ---
 
-### `POST /api/v1/webhooks/payment/confirm`
+### `POST /api/v1/webhooks/payment` 🌐
 
 Payment provider confirms a successful payment.
 
-**Request Body** (provider-specific, example)
-```json
-{
-  "providerTransactionId": "txn_abc123",
-  "status": "SUCCESS"
-}
-```
+**Query Parameters**
+
+| Param | Description |
+|---|---|
+| `transactionId` | Provider-assigned transaction ID |
+
+**Request Body** — Raw string payload (provider-specific format).
 
 **Response `200 OK`**
 
 **Notes:**
 - Idempotent — safe to call multiple times.
 - Triggers loyalty point award after confirmation.
-- Protected by `X-Api-Key` header (system key).
+- Signature/integrity validated inside the use case.
 
 ---
 
@@ -626,7 +718,7 @@ Payment provider confirms a successful payment.
 
 ### `GET /api/v1/users/me` 👤 USER+
 
-Get the current user's profile and loyalty status.
+Get the current user's full profile including loyalty status.
 
 **Response `200 OK`**
 ```json
@@ -638,7 +730,9 @@ Get the current user's profile and loyalty status.
   "role": "USER",
   "enabled": true,
   "loyalty": {
+    "points": 120,
     "tier": {
+      "id": 2,
       "name": "Gold",
       "discountPercentage": 5.0,
       "cashbackPercentage": 5.0,
@@ -646,19 +740,26 @@ Get the current user's profile and loyalty status.
       "displayOrder": 2,
       "color": "#FFD700"
     },
-    "points": 120,
     "spendToNextTier": 500.00,
     "spendToMaintainTier": 200.00,
-    "currentMonthSpending": 750.00
+    "currentMonthSpending": 750.00,
+    "recentEarnings": [
+      {
+        "orderId": 99,
+        "pointsEarned": 12,
+        "orderAmount": 235.00,
+        "orderedAt": "2026-03-15T10:30:00Z"
+      }
+    ]
   }
 }
 ```
 
 ---
 
-### `PUT /api/v1/users/me` 👤 USER+
+### `PUT /api/v1/users/profile` 👤 USER+
 
-Update own profile (name and email).
+Update own profile (name and email only).
 
 **Request Body**
 ```json
@@ -668,15 +769,18 @@ Update own profile (name and email).
 }
 ```
 
-**Response `200 OK`** — Updated user profile.
+**Response `200 OK`** — Updated `UserDto`.
+
+**Errors:**
+- `409` — Email already in use by another account.
 
 ---
 
-### `GET /api/v1/users` 🔑 ADMIN
+### `GET /api/v1/users` 🔧 MANAGER+
 
 List all users (admin panel).
 
-**Query Parameters:** `page`, `size`, `q` (search by name/phone).
+**Query Parameters:** `page`, `size`, `q` (search by name or phone).
 
 **Response `200 OK`** — Paginated list of `UserDto`.
 
@@ -693,11 +797,13 @@ Change a user's role.
 }
 ```
 
+Valid roles: `USER`, `MANAGER`, `ADMIN`.
+
 **Response `200 OK`** — Updated `UserDto`.
 
 ---
 
-### `PATCH /api/v1/users/{userId}/status` 🔑 ADMIN
+### `PATCH /api/v1/users/{userId}/status` 🔧 MANAGER+
 
 Enable or disable a user account.
 
@@ -718,39 +824,32 @@ Enable or disable a user account.
 
 ### `POST /api/v1/admin/products` 🔧 MANAGER+
 
-Create a new product with variants and SKUs.
+Create a new product with one color variant and its SKUs.
 
 **Request Body**
 ```json
 {
   "name": "Classic Hoodie",
   "categoryId": 2,
-  "variants": [
-    {
-      "colorId": 3,
-      "skus": [
-        { "sizeLabel": "S", "price": 140.00, "stockQuantity": 20 },
-        { "sizeLabel": "M", "price": 150.00, "stockQuantity": 30 },
-        { "sizeLabel": "L", "price": 160.00, "stockQuantity": 25 }
-      ]
-    }
+  "colorId": 3,
+  "skus": [
+    { "sizeLabel": "S", "price": 140.00, "stockQuantity": 20 },
+    { "sizeLabel": "M", "price": 150.00, "stockQuantity": 30 },
+    { "sizeLabel": "L", "price": 160.00, "stockQuantity": 25 }
   ]
 }
 ```
+
+**Notes:**
+- One product creation call = one color variant. To add another color, create a second variant separately or use a future batch endpoint.
+- `price` and `stockQuantity` accept `0` (PositiveOrZero).
 
 **Response `201 Created`**
 ```json
 {
   "productBaseId": 5,
-  "productCode": "RAD-0005",
-  "variants": [
-    {
-      "variantId": 10,
-      "slug": "classic-hoodie-black",
-      "colorKey": "BLACK",
-      "skus": [ /* SkuDto[] */ ]
-    }
-  ]
+  "variantId": 10,
+  "slug": "classic-hoodie-black"
 }
 ```
 
@@ -796,6 +895,8 @@ Set or adjust stock quantity. **ADMIN only.**
 }
 ```
 
+Provide exactly one of `quantity` (≥0) or `delta` (signed integer).
+
 **Response `200 OK`**
 ```json
 {
@@ -822,6 +923,7 @@ Create a new category.
   "parentId": 1
 }
 ```
+
 Pass `null` for `parentId` to create a root category.
 
 **Response `201 Created`**
@@ -837,19 +939,24 @@ Pass `null` for `parentId` to create a root category.
 
 ### `DELETE /api/v1/admin/categories/{categoryId}` 🔑 ADMIN
 
-Delete a category.
+Delete a category. Fails if any products are still assigned to it.
 
 **Response `204 No Content`**
 
+**Errors:**
+- `422` — Category is in use by one or more products.
+
 ---
 
-## 12. Loyalty Tiers (`/api/v1/admin/loyalty-tiers`)
+## 12. Loyalty Tiers (`/api/v1/loyalty-tiers`)
+
+Public read. Only the tier color can be updated (MANAGER+). Full tier CRUD is backend-managed.
 
 ---
 
-### `GET /api/v1/admin/loyalty-tiers` 🔑 ADMIN
+### `GET /api/v1/loyalty-tiers` 🌐
 
-List all loyalty tiers (ordered by `displayOrder`).
+List all loyalty tiers ordered by `displayOrder`. Use this to display tier badges and benefits.
 
 **Response `200 OK`**
 ```json
@@ -877,51 +984,28 @@ List all loyalty tiers (ordered by `displayOrder`).
 
 ---
 
-### `POST /api/v1/admin/loyalty-tiers` 🔑 ADMIN
+### `PATCH /api/v1/loyalty-tiers/{tierId}/color` 🔧 MANAGER+
 
-Create a loyalty tier.
+Update the display color of a loyalty tier.
 
 **Request Body**
 ```json
 {
-  "name": "Platinum",
-  "discountPercentage": 10.0,
-  "cashbackPercentage": 10.0,
-  "minSpendRequirement": 3000.00,
-  "displayOrder": 3,
   "color": "#E5E4E2"
 }
 ```
-
-**Response `201 Created`** — Created `LoyaltyTierDto`.
-
----
-
-### `PUT /api/v1/admin/loyalty-tiers/{tierId}` 🔑 ADMIN
-
-Update a loyalty tier.
-
-**Request Body** — Same shape as POST.
 
 **Response `200 OK`** — Updated `LoyaltyTierDto`.
 
 ---
 
-### `DELETE /api/v1/admin/loyalty-tiers/{tierId}` 🔑 ADMIN
-
-Delete a loyalty tier.
-
-**Response `204 No Content`**
+## 13. Colors (`/api/v1/colors`)
 
 ---
 
-## 13. Colors (`/api/v1/admin/colors`)
+### `GET /api/v1/colors` 🌐
 
----
-
-### `GET /api/v1/admin/colors` 🔧 MANAGER+
-
-List all colors.
+List all available colors.
 
 **Response `200 OK`**
 ```json
@@ -933,26 +1017,19 @@ List all colors.
 
 ---
 
-### `POST /api/v1/admin/colors` 🔧 MANAGER+
+### `PATCH /api/v1/colors/{colorId}` 🔧 MANAGER+
 
-Create a color.
+Update a color's display name or hex code.
 
 **Request Body**
 ```json
 {
-  "colorKey": "NAVY",
-  "displayName": "Navy Blue",
-  "hexCode": "#001F5B"
+  "displayName": "Jet Black",
+  "hexCode": "#0A0A0A"
 }
 ```
 
-**Response `201 Created`** — Created color.
-
----
-
-### `PATCH /api/v1/admin/colors/{colorId}` 🔧 MANAGER+
-
-Update color display name or hex code.
+**Response `200 OK`** — Updated `ColorDto`.
 
 ---
 
@@ -962,12 +1039,13 @@ Update color display name or hex code.
 
 ### `POST /api/v1/search/reindex` 🔑 ADMIN
 
-Rebuild the Elasticsearch index from scratch. Run after bulk data imports.
+Rebuild the Elasticsearch index from PostgreSQL. Run after bulk data imports.
 
 **Response `200 OK`**
 ```json
 {
   "indexed": 1250,
+  "errorCount": 0,
   "message": "Reindex complete"
 }
 ```
@@ -992,10 +1070,19 @@ Rebuild the Elasticsearch index from scratch. Run after bulk data imports.
 |---|---|
 | `400` | Validation error or business rule violation |
 | `401` | Missing or invalid JWT |
-| `403` | Insufficient role |
+| `403` | Insufficient role or field locked |
 | `404` | Resource not found |
-| `409` | Conflict (e.g., duplicate phone) |
+| `409` | Conflict (e.g., duplicate email, optimistic lock) |
+| `422` | Unprocessable state (e.g., image processing failed, category in use) |
 | `500` | Internal server error |
+
+### Message Response
+
+Simple operations return a `MessageResponseDto`:
+
+```json
+{ "message": "OTP sent", "success": true }
+```
 
 ### Pagination Response Wrapper
 
@@ -1015,27 +1102,46 @@ Rebuild the Elasticsearch index from scratch. Run after bulk data imports.
 
 ## Frontend Quick Reference
 
-| Feature | Endpoint |
-|---|---|
-| Phone login (step 1) | `POST /auth/otp/send` |
-| Phone login (step 2) | `POST /auth/otp/verify` |
-| Token refresh | `POST /auth/refresh` |
-| My profile + loyalty | `GET /users/me` |
-| Product list / search | `GET /listings` |
-| Product detail | `GET /listings/{slug}` |
-| Homepage | `GET /home` |
-| Category tree | `GET /categories` |
-| Cart | `GET /cart` |
-| Add to cart | `POST /cart/items` |
-| Update cart item | `PUT /cart/items/{skuId}` |
-| Remove from cart | `DELETE /cart/items/{skuId}` |
-| Checkout | `POST /orders/checkout` |
-| My orders | `GET /orders` |
-| Order detail | `GET /orders/{orderId}` |
-| Initiate payment | `POST /payments/initiate` |
-| Payment status poll | `GET /payments/{id}/status` |
-| Upload product images | `POST /listings/{id}/images` |
-| Update listing content | `PUT /listings/{id}` |
-| Create product | `POST /admin/products` |
-| Update price (ADMIN) | `PUT /admin/skus/{id}/price` |
-| Update stock (ADMIN) | `PUT /admin/skus/{id}/stock` |
+| Feature | Method | Endpoint |
+|---|---|---|
+| Send OTP | POST | `/auth/login` |
+| Verify OTP / Login | POST | `/auth/verify` |
+| Refresh token | POST | `/auth/refresh` |
+| Current user (quick) | GET | `/auth/me` |
+| Logout | POST | `/auth/logout` |
+| My profile + loyalty | GET | `/users/me` |
+| Update profile | PUT | `/users/profile` |
+| Product grid | GET | `/listings` |
+| Full-text search | GET | `/listings/search` |
+| Search autocomplete | GET | `/listings/autocomplete` |
+| Product detail | GET | `/listings/{slug}` |
+| Homepage sections | GET | `/home/collections` |
+| Single collection | GET | `/home/collections/{key}` |
+| Category tree | GET | `/categories` |
+| Category products | GET | `/categories/{slug}/products` |
+| All colors | GET | `/colors` |
+| All loyalty tiers | GET | `/loyalty-tiers` |
+| Cart | GET | `/cart` |
+| Add to cart | POST | `/cart/items` |
+| Update cart item | PUT | `/cart/items/{skuId}` |
+| Remove cart item | DELETE | `/cart/items/{skuId}` |
+| Clear cart | DELETE | `/cart` |
+| Checkout | POST | `/orders/checkout` |
+| My orders | GET | `/orders/my-orders` |
+| Order detail | GET | `/orders/{orderId}` |
+| Cancel order | PATCH | `/orders/{orderId}/cancel` |
+| Initiate payment | POST | `/payments/initiate/{orderId}` |
+| Payment status poll | GET | `/payments/{orderId}` |
+| Upload listing images | POST | `/listings/{slug}/images` |
+| Update listing content | PUT | `/listings/{slug}` |
+| Create product | POST | `/admin/products` |
+| Update price (ADMIN) | PUT | `/admin/skus/{id}/price` |
+| Update stock (ADMIN) | PUT | `/admin/skus/{id}/stock` |
+| List users | GET | `/users` |
+| Change user role | PATCH | `/users/{id}/role` |
+| Block/unblock user | PATCH | `/users/{id}/status` |
+| Create category | POST | `/admin/categories` |
+| Delete category | DELETE | `/admin/categories/{id}` |
+| Update tier color | PATCH | `/loyalty-tiers/{id}/color` |
+| Update color | PATCH | `/colors/{id}` |
+| Reindex search | POST | `/search/reindex` |
