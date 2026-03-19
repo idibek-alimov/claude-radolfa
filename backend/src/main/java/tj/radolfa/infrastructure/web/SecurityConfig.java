@@ -143,8 +143,10 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
-                                                // USER role: Profile, wishlist, order history
+                                                // USER role: Cart, profile, wishlist, order history
                                                 // ============================================================
+                                                .requestMatchers("/api/v1/cart/**")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
                                                 .requestMatchers("/api/v1/wishlist/**")

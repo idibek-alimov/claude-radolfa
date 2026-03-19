@@ -78,6 +78,11 @@ public class ProductHierarchyAdapter
     // ---- LoadListingVariantPort ----
 
     @Override
+    public Optional<ListingVariant> findVariantById(Long id) {
+        return variantRepo.findById(id).map(mapper::toListingVariant);
+    }
+
+    @Override
     public Optional<ListingVariant> findByProductBaseIdAndColorKey(Long productBaseId, String colorKey) {
         return variantRepo.findByProductBaseIdAndColorKey(productBaseId, colorKey)
                 .map(mapper::toListingVariant);
