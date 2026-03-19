@@ -126,6 +126,7 @@
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/notification/NotificationPortStub.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/UserController.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/ports/out/SavePaymentPort.java
+/home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/RegisterUserService.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/application/services/LoyaltySpendCalculator.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/web/HomeController.java
 /home/idibek/Desktop/ERP/claude-radolfa/backend/src/main/java/tj/radolfa/infrastructure/persistence/entity/IdempotencyRecordEntity.java

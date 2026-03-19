@@ -11,6 +11,7 @@ import tj.radolfa.application.ports.in.ChangeUserRoleUseCase;
 import tj.radolfa.application.ports.in.ListUsersUseCase;
 import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
+import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -26,15 +27,26 @@ public class UserController {
     private final ListUsersUseCase listUsersUseCase;
     private final ToggleUserStatusUseCase toggleUserStatusUseCase;
     private final ChangeUserRoleUseCase changeUserRoleUseCase;
+    private final LoadUserPort loadUserPort;
 
     public UserController(UpdateUserProfileUseCase updateUserProfileUseCase,
                           ListUsersUseCase listUsersUseCase,
                           ToggleUserStatusUseCase toggleUserStatusUseCase,
-                          ChangeUserRoleUseCase changeUserRoleUseCase) {
+                          ChangeUserRoleUseCase changeUserRoleUseCase,
+                          LoadUserPort loadUserPort) {
         this.updateUserProfileUseCase = updateUserProfileUseCase;
         this.listUsersUseCase = listUsersUseCase;
         this.toggleUserStatusUseCase = toggleUserStatusUseCase;
         this.changeUserRoleUseCase = changeUserRoleUseCase;
+        this.loadUserPort = loadUserPort;
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get my profile")
+    public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal JwtAuthenticatedUser user) {
+        return loadUserPort.loadById(user.userId())
+                .map(u -> ResponseEntity.ok(UserDto.fromDomain(u)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/profile")

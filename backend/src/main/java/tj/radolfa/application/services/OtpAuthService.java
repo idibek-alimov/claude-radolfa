@@ -4,16 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.ports.in.RegisterUserUseCase;
 import tj.radolfa.application.ports.in.SendOtpUseCase;
 import tj.radolfa.application.ports.in.VerifyOtpUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
-import tj.radolfa.application.ports.out.SaveUserPort;
-import tj.radolfa.domain.model.PhoneNumber;
-import tj.radolfa.domain.model.LoyaltyProfile;
-import tj.radolfa.domain.model.User;
-import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.application.ports.out.OtpPort;
 import tj.radolfa.application.ports.out.TokenIssuerPort;
+import tj.radolfa.domain.model.PhoneNumber;
+import tj.radolfa.domain.model.User;
 
 import java.util.Optional;
 
@@ -41,16 +39,16 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     private final OtpPort otpPort;
     private final TokenIssuerPort tokenIssuer;
     private final LoadUserPort loadUserPort;
-    private final SaveUserPort saveUserPort;
+    private final RegisterUserUseCase registerUserUseCase;
 
     public OtpAuthService(OtpPort otpPort,
             TokenIssuerPort tokenIssuer,
             LoadUserPort loadUserPort,
-            SaveUserPort saveUserPort) {
+            RegisterUserUseCase registerUserUseCase) {
         this.otpPort = otpPort;
         this.tokenIssuer = tokenIssuer;
         this.loadUserPort = loadUserPort;
-        this.saveUserPort = saveUserPort;
+        this.registerUserUseCase = registerUserUseCase;
     }
 
     // ----------------------------------------------------------------
@@ -84,9 +82,9 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
             return Optional.empty();
         }
 
-        // Find existing user or create new one
+        // Find existing user or self-register on first login
         User user = loadUserPort.loadByPhone(normalized.value())
-                .orElseGet(() -> createNewUser(normalized));
+                .orElseGet(() -> registerUserUseCase.execute(normalized));
 
         if (!user.enabled()) {
             LOG.warn("[AUTH] Blocked user attempted login: phone={}", mask(normalized));
@@ -110,15 +108,5 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
         if (v.length() <= 4) return "***";
         return v.substring(0, v.length() - 4).replaceAll("\\d", "*")
                 + v.substring(v.length() - 4);
-    }
-
-    /**
-     * Creates a new user with default USER role.
-     */
-    private User createNewUser(PhoneNumber phone) {
-        User newUser = new User(null, phone, UserRole.USER, null, null, LoyaltyProfile.empty(), true, null);
-        User saved = saveUserPort.save(newUser);
-        LOG.info("[AUTH] Created new user: phone={}, id={}", mask(phone), saved.id());
-        return saved;
     }
 }
