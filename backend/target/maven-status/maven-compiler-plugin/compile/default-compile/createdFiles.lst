@@ -66,6 +66,7 @@ tj/radolfa/application/ports/in/order/CreateOrderUseCase.class
 tj/radolfa/infrastructure/search/ListingSearchStub.class
 tj/radolfa/infrastructure/persistence/adapter/DiscountAdapter.class
 tj/radolfa/application/ports/in/order/CheckoutUseCase$Result.class
+tj/radolfa/application/services/UpdateOrderStatusService$1.class
 tj/radolfa/infrastructure/web/dto/LoginRequestDto.class
 tj/radolfa/infrastructure/s3/S3ImageUploader.class
 tj/radolfa/application/ports/in/ChangeUserRoleUseCase.class

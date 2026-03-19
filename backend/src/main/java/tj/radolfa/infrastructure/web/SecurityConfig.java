@@ -151,6 +151,11 @@ public class SecurityConfig {
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
                                                 .requestMatchers("/api/v1/wishlist/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
+
+                                                // ADMIN only: order status transitions
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/*/status")
+                                                .hasRole("ADMIN")
+                                                // USER + ADMIN: checkout, cancel, order history
                                                 .requestMatchers("/api/v1/orders/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
 
