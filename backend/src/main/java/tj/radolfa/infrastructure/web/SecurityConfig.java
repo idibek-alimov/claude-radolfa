@@ -118,33 +118,39 @@ public class SecurityConfig {
 
                                                 // ============================================================
                                                 // SYNC role only: Import sync and Search index management
-                                                // Critical: Only SYNC can modify price/name/stock
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/sync/**").hasRole("SYNC")
-                                                .requestMatchers("/api/v1/search/**").hasRole("SYNC")
+                                                .requestMatchers("/api/v1/search/**").hasAnyRole("SYNC", "ADMIN")
 
                                                 // ============================================================
-                                                // MANAGER role: Listing enrichment (images, descriptions)
-                                                // Note: MANAGER can enrich listings but NOT modify ERP fields
+                                                // ADMIN role: price, stock, order management, full admin access
                                                 // ============================================================
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/admin/skus/*/price").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/admin/skus/*/stock").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/*").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // MANAGER + ADMIN: product creation, content enrichment
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/listings/*")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/listings/*/images")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/listings/*/images")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/v1/colors/*")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
                                                 // USER role: Profile, wishlist, order history
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYNC")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
                                                 .requestMatchers("/api/v1/wishlist/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYNC")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
                                                 .requestMatchers("/api/v1/orders/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYNC")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
 
                                                 // ============================================================
                                                 // Default: require authentication for all other endpoints

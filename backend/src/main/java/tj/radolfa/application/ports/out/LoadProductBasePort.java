@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface LoadProductBasePort {
 
     Optional<ProductBase> findByExternalRef(String externalRef);
+
+    Optional<ProductBase> findById(Long id);
 }

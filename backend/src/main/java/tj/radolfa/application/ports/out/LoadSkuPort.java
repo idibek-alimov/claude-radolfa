@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface LoadSkuPort {
 
     Optional<Sku> findBySkuCode(String skuCode);
+
+    Optional<Sku> findSkuById(Long id);
 }

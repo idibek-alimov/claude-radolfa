@@ -23,10 +23,7 @@
 -- 1. LOOKUP TABLES
 -- ================================================================
 
-INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('SYNC');
-
-INSERT INTO order_statuses (name) VALUES
-    ('PENDING'), ('PAID'), ('SHIPPED'), ('DELIVERED'), ('CANCELLED');
+-- roles and order_statuses are seeded by V1 (all environments)
 
 
 -- ================================================================

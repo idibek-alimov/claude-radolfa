@@ -70,6 +70,11 @@ public class ProductHierarchyAdapter
                 .map(mapper::toProductBase);
     }
 
+    @Override
+    public Optional<ProductBase> findById(Long id) {
+        return baseRepo.findById(id).map(mapper::toProductBase);
+    }
+
     // ---- LoadListingVariantPort ----
 
     @Override
@@ -118,6 +123,11 @@ public class ProductHierarchyAdapter
                 .map(mapper::toSku);
     }
 
+    @Override
+    public Optional<Sku> findSkuById(Long id) {
+        return skuRepo.findById(id).map(mapper::toSku);
+    }
+
     // ---- SaveProductHierarchyPort ----
 
     @Override
@@ -139,7 +149,7 @@ public class ProductHierarchyAdapter
         if (base.getCategory() != null && !base.getCategory().isBlank()) {
             CategoryEntity categoryEntity = categoryRepo.findByName(base.getCategory())
                     .orElseThrow(() -> new IllegalStateException(
-                            "Category not found: '" + base.getCategory() + "'. Sync categories first."));
+                            "Category not found: '" + base.getCategory() + "'. Create the category first."));
             entity.setCategory(categoryEntity);
             entity.setCategoryName(categoryEntity.getName());
         } else {
@@ -174,7 +184,7 @@ public class ProductHierarchyAdapter
         if (variant.getColorKey() != null) {
             ColorEntity colorEntity = colorRepo.findByColorKey(variant.getColorKey())
                     .orElseGet(() -> {
-                        LOG.warn("[PRODUCT-SYNC] Auto-creating color '{}' — hex code not set",
+                        LOG.warn("[PRODUCT-ADAPTER] Auto-creating color '{}' — hex code not set",
                                 variant.getColorKey());
                         ColorEntity newColor = new ColorEntity();
                         newColor.setColorKey(variant.getColorKey());

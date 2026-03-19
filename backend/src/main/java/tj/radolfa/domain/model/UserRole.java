@@ -8,5 +8,6 @@ package tj.radolfa.domain.model;
 public enum UserRole {
     USER,
     MANAGER,
-    SYNC
+    ADMIN,   // full platform administration — price, stock, orders, user management
+    SYNC     // machine-to-machine import role; removed in Phase 10
 }

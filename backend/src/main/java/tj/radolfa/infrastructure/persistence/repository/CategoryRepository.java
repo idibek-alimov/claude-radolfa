@@ -18,6 +18,9 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
 
     List<CategoryEntity> findByParentIsNull();
 
+    @Query("SELECT COUNT(pb) > 0 FROM ProductBaseEntity pb WHERE pb.category.id = :categoryId")
+    boolean existsProductBasesByCategoryId(@Param("categoryId") Long categoryId);
+
     @Query(value = """
         WITH RECURSIVE descendants AS (
             SELECT id FROM categories WHERE id = :rootId

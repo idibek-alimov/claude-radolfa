@@ -13,8 +13,8 @@
 |-------|--------|---------|
 | 1 | [x] | Renamed all `erp`-prefixed domain fields, exceptions, methods, DTOs, and infrastructure classes. Moved sync use cases to `ports/in/sync/` subpackage. Renamed `infrastructure/erp/` → `infrastructure/importer/`. Reset all Flyway migrations to a single clean `V1__baseline_clean_schema.sql`. Renamed `SYSTEM` role → `SYNC`. Compile clean, zero `erp` references in executable code. |
 | 2 | [x] | Added `CartStatus`, `CartItem`, `Cart` (mutable aggregate with add/remove/update/clear/checkout), `PaymentStatus`, `Payment` (immutable record with state-transition helpers), and `LoyaltyCalculator` pure domain service. Created `domain/service/` package. 14 unit tests for `LoyaltyCalculator` all passing. Zero framework dependencies in any new file. |
-| 3 | [ ] | |
-| 4 | [ ] | |
+| 3 | [x] | Declared all standalone e-commerce contracts: 21 new use case interfaces (product management, cart, checkout, payment, loyalty) in typed subpackages (`in/product/`, `in/cart/`, `in/order/`, `in/payment/`, `in/loyalty/`). Added 7 new out-ports (`LoadCartPort`, `SaveCartPort`, `LoadPaymentPort`, `SavePaymentPort`, `PaymentPort`, `StockAdjustmentPort`, `NotificationPort`). Added `CartView` read model. Created `PaymentPortStub` and `NotificationPortStub` for dev/test profiles. Spring context loads clean. |
+| 4 | [x] | Added `UserRole.ADMIN`. Implemented `CreateProductService`, `UpdateProductPriceService`, `UpdateProductStockService` (also implements `StockAdjustmentPort`), `CreateCategoryService`, `DeleteCategoryService`. Added `LoadSkuPort.findSkuById`, `DeleteCategoryPort`, `SaveCategoryPort`. Extended `ProductHierarchyAdapter` and `CategoryAdapter` with Phase 4 methods. New controllers: `ProductManagementController` (`POST /api/v1/admin/products`, `PUT /api/v1/admin/skus/{id}/price`, `PUT /api/v1/admin/skus/{id}/stock`) and `CategoryManagementController` (`POST /api/v1/admin/categories`, `DELETE /api/v1/admin/categories/{id}`). SecurityConfig updated with ADMIN role guards. Compile clean, all tests pass. |
 | 5 | [ ] | |
 | 6 | [ ] | |
 | 7 | [ ] | |

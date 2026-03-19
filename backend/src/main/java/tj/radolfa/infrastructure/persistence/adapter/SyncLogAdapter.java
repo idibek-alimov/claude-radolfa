@@ -23,13 +23,11 @@ public class SyncLogAdapter implements LogImportEventPort {
 
     @Override
     public void log(String importId, boolean success, String errorMessage) {
-        SyncLogEntity entity = new SyncLogEntity(
-                null,                          // id – generated
-                importId,
-                Instant.now(),                 // synced_at
-                success ? "SUCCESS" : "ERROR",
-                success ? null : errorMessage
-        );
+        SyncLogEntity entity = new SyncLogEntity();
+        entity.setImportId(importId);
+        entity.setSyncedAt(Instant.now());
+        entity.setStatus(success ? "SUCCESS" : "ERROR");
+        entity.setErrorMessage(success ? null : errorMessage);
         repository.save(entity);
     }
 }

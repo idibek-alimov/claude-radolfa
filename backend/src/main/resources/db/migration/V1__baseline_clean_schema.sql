@@ -30,6 +30,10 @@ CREATE TABLE order_statuses (
     name VARCHAR(32) PRIMARY KEY
 );
 
+-- Seed lookup values (present in all environments)
+INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC');
+INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('SHIPPED'), ('DELIVERED'), ('CANCELLED');
+
 -- ----------------------------------------------------------------
 -- Loyalty tiers (referenced by users)
 -- ----------------------------------------------------------------

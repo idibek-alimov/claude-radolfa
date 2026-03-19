@@ -1,6 +1,7 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.DeleteCategoryPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.SaveCategoryPort;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
@@ -10,12 +11,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort {
+public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort, DeleteCategoryPort {
 
     private final CategoryRepository categoryRepo;
 
     public CategoryAdapter(CategoryRepository categoryRepo) {
         this.categoryRepo = categoryRepo;
+    }
+
+    @Override
+    public Optional<CategoryView> findById(Long id) {
+        return categoryRepo.findById(id).map(this::toView);
     }
 
     @Override
@@ -58,6 +64,16 @@ public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort {
             entity.setParent(parent);
         }
         return toView(categoryRepo.save(entity));
+    }
+
+    @Override
+    public void deleteById(Long categoryId) {
+        boolean inUse = categoryRepo.existsProductBasesByCategoryId(categoryId);
+        if (inUse) {
+            throw new IllegalStateException(
+                    "Category id=" + categoryId + " is still assigned to products and cannot be deleted.");
+        }
+        categoryRepo.deleteById(categoryId);
     }
 
     private CategoryView toView(CategoryEntity entity) {
