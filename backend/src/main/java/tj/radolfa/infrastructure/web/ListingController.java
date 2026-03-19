@@ -90,7 +90,7 @@ public class ListingController {
     // ---- Manager Operations ----
 
     @org.springframework.web.bind.annotation.PutMapping("/{slug}")
-    @PreAuthorize("hasAnyRole('MANAGER', 'SYNC')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Update listing details", description = "Manager-enrichment: description, top-selling status")
     public ResponseEntity<Void> update(
             @PathVariable String slug,
@@ -106,7 +106,7 @@ public class ListingController {
     }
 
     @org.springframework.web.bind.annotation.PostMapping(value = "/{slug}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('MANAGER', 'SYNC')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Upload image to listing", description = "Processes and uploads an image file to S3, then appends the URL to the gallery")
     public ResponseEntity<Map<String, String>> addImage(
             @PathVariable String slug,
@@ -124,7 +124,7 @@ public class ListingController {
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{slug}/images")
-    @PreAuthorize("hasAnyRole('MANAGER', 'SYNC')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Remove image from listing", description = "Removes an image by URL")
     public ResponseEntity<Void> removeImage(
             @PathVariable String slug,

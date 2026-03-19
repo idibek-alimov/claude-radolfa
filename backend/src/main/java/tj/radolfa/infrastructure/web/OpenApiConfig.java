@@ -41,13 +41,9 @@ public class OpenApiConfig {
                                 4. Use the returned token in the Authorize button above
 
                                 ## Roles
-                                - **USER**: View products, profile, wishlist
+                                - **USER**: View products, profile, cart, order history
                                 - **MANAGER**: Upload images, edit descriptions
-                                - **SYNC**: External import operations
-
-                                ## Important
-                                `price`, `name`, and `stock` are managed by authoritative sources
-                                and can only be modified via the import endpoints (SYNC role).
+                                - **ADMIN**: Full platform access — price, stock, orders, user management
                                 """)
                         .version("0.1.0")
                         .contact(new Contact()

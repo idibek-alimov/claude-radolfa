@@ -3,10 +3,7 @@ tj/radolfa/infrastructure/web/ListingController.class
 tj/radolfa/infrastructure/web/AuthController.class
 tj/radolfa/infrastructure/persistence/adapter/LoyaltyTierRepositoryAdapter.class
 tj/radolfa/application/services/CreateProductService.class
-tj/radolfa/application/services/SyncDiscountService.class
 tj/radolfa/infrastructure/persistence/adapter/OrderRepositoryAdapter.class
-tj/radolfa/application/services/SyncLoyaltyTiersService.class
-tj/radolfa/application/services/SyncCategoriesService.class
 tj/radolfa/infrastructure/s3/ThumbnailatorImageProcessor.class
 tj/radolfa/infrastructure/security/RateLimiterService$RateWindow.class
 tj/radolfa/domain/service/LoyaltyCalculator.class
@@ -15,7 +12,6 @@ tj/radolfa/application/ports/out/ImageUploadPort.class
 tj/radolfa/application/ports/out/LoadPaymentPort.class
 tj/radolfa/application/ports/in/payment/ConfirmPaymentUseCase.class
 tj/radolfa/application/ports/in/order/CreateOrderUseCase$Command.class
-tj/radolfa/infrastructure/persistence/adapter/IdempotencyAdapter.class
 tj/radolfa/infrastructure/web/ColorController.class
 tj/radolfa/infrastructure/s3/S3ImageUploaderStub.class
 tj/radolfa/application/ports/out/SavePaymentPort.class
@@ -25,7 +21,6 @@ tj/radolfa/application/ports/out/LoadUserPort.class
 tj/radolfa/application/ports/out/DeleteDiscountPort.class
 tj/radolfa/infrastructure/persistence/repository/UserRepository.class
 tj/radolfa/application/ports/in/GetLoyaltyTiersUseCase.class
-tj/radolfa/infrastructure/importer/ProductImportClientHttp.class
 tj/radolfa/infrastructure/persistence/entity/UserEntity.class
 tj/radolfa/infrastructure/persistence/adapter/ListingGridRowMapper.class
 tj/radolfa/infrastructure/persistence/adapter/ColorAdapter.class
@@ -47,13 +42,10 @@ tj/radolfa/RadolfaApplication.class
 tj/radolfa/application/ports/in/UpdateListingUseCase.class
 tj/radolfa/application/services/ToggleUserStatusService.class
 tj/radolfa/domain/model/User.class
-tj/radolfa/infrastructure/importer/ProductImportClientHttp$ItemRecord.class
 tj/radolfa/application/ports/in/payment/RefundPaymentUseCase.class
 tj/radolfa/infrastructure/web/dto/CreateOrderRequestDto.class
 tj/radolfa/infrastructure/web/UserController.class
 tj/radolfa/application/ports/in/order/CreateOrderUseCase$Command$LineItem.class
-tj/radolfa/infrastructure/importer/ProductImportClientHttp$ItemListResponse.class
-tj/radolfa/infrastructure/importer/ProductImportClientStub.class
 tj/radolfa/application/services/UpdateLoyaltyTierService.class
 tj/radolfa/application/services/GetMyOrdersService.class
 tj/radolfa/application/ports/in/order/CheckoutUseCase.class

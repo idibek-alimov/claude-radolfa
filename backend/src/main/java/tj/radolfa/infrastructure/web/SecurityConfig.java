@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import tj.radolfa.infrastructure.security.ApiKeyAuthenticationFilter;
+import tj.radolfa.infrastructure.security.ServiceApiKeyFilter;
 import tj.radolfa.infrastructure.security.ApiKeyProperties;
 import tj.radolfa.infrastructure.security.CorsProperties;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
@@ -35,17 +35,9 @@ import java.util.List;
  *
  * <h3>Role Permissions</h3>
  * <ul>
- * <li><b>USER</b>: Can view profile, wishlist, history</li>
- * <li><b>MANAGER</b>: Can upload images, edit descriptions (NOT
- * price/name/stock)</li>
- * <li><b>SYNC</b>: Can call import sync endpoints</li>
- * </ul>
- *
- * <h3>Critical Constraints (from CLAUDE.md)</h3>
- * <ul>
- * <li>ERPNext is the SOURCE OF TRUTH for price, name, stock</li>
- * <li>MANAGER role cannot change Price</li>
- * <li>SYNC role handles import synchronisation</li>
+ * <li><b>USER</b>: Can view profile, cart, order history</li>
+ * <li><b>MANAGER</b>: Can upload images, edit descriptions (NOT price/stock)</li>
+ * <li><b>ADMIN</b>: Full platform access — price, stock, orders, user management</li>
  * </ul>
  */
 @Configuration
@@ -59,14 +51,14 @@ import java.util.List;
 })
 public class SecurityConfig {
 
-        private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
+        private final ServiceApiKeyFilter serviceApiKeyFilter;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final CorsProperties corsProperties;
 
-        public SecurityConfig(ApiKeyAuthenticationFilter apiKeyAuthenticationFilter,
+        public SecurityConfig(ServiceApiKeyFilter serviceApiKeyFilter,
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         CorsProperties corsProperties) {
-                this.apiKeyAuthenticationFilter = apiKeyAuthenticationFilter;
+                this.serviceApiKeyFilter = serviceApiKeyFilter;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.corsProperties = corsProperties;
         }
@@ -91,8 +83,8 @@ public class SecurityConfig {
                                                 .accessDeniedHandler((req, res, e) ->
                                                         res.sendError(403, "Forbidden")))
 
-                                // Add API key filter first (machine-to-machine clients, e.g. ERPNext)
-                                .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                // Add API key filter first (service-to-service clients)
+                                .addFilterBefore(serviceApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
 
                                 // Add JWT filter for browser / mobile clients
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -118,10 +110,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/v3/api-docs.yaml").permitAll()
 
                                                 // ============================================================
-                                                // SYNC role only: Import sync and Search index management
+                                                // ADMIN only: Search index management
                                                 // ============================================================
-                                                .requestMatchers("/api/v1/sync/**").hasRole("SYNC")
-                                                .requestMatchers("/api/v1/search/**").hasAnyRole("SYNC", "ADMIN")
+                                                .requestMatchers("/api/v1/search/**").hasRole("ADMIN")
 
                                                 // ============================================================
                                                 // ADMIN role: price, stock, order management, full admin access
@@ -149,16 +140,16 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/wishlist/**")
-                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
 
                                                 // ADMIN only: order status transitions
                                                 .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/*/status")
                                                 .hasRole("ADMIN")
                                                 // USER + ADMIN: checkout, cancel, order history
                                                 .requestMatchers("/api/v1/orders/**")
-                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
 
                                                 // ============================================================
                                                 // Payments
@@ -199,8 +190,7 @@ public class SecurityConfig {
                                 "Accept",
                                 "Origin",
                                 "X-Requested-With",
-                                "X-Api-Key",
-                                "Idempotency-Key"));
+                                "X-Api-Key"));
 
                 // Exposed headers (allow frontend to read these)
                 configuration.setExposedHeaders(List.of(

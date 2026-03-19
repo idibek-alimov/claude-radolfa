@@ -18,31 +18,29 @@ import java.security.MessageDigest;
 import java.util.List;
 
 /**
- * Authentication filter for machine-to-machine clients (e.g. ERPNext).
+ * Authentication filter for internal service-to-service clients.
  *
  * <p>Checks the {@code X-Api-Key} request header. If the value matches the
  * configured {@code radolfa.security.api-key.system-key}, the request is
- * authenticated with the {@code SYSTEM} role — no OTP or JWT required.
+ * authenticated with the {@code ADMIN} role — no OTP or JWT required.
+ *
+ * <p>Intended for admin tooling, automated scripts, and internal services
+ * that need full platform access without user credentials.
  *
  * <p>This filter runs <em>before</em> {@link JwtAuthenticationFilter}. If
  * a valid API key is present, the JWT filter still executes but finds the
  * {@code SecurityContext} already populated and leaves it unchanged.
- *
- * <h3>ERPNext usage</h3>
- * <pre>
- * headers = {"X-Api-Key": frappe.get_doc("App Settings").system_api_key}
- * </pre>
  */
 @Component
-public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
+public class ServiceApiKeyFilter extends OncePerRequestFilter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ApiKeyAuthenticationFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceApiKeyFilter.class);
 
     public static final String API_KEY_HEADER = "X-Api-Key";
 
     private final String systemKey;
 
-    public ApiKeyAuthenticationFilter(ApiKeyProperties properties) {
+    public ServiceApiKeyFilter(ApiKeyProperties properties) {
         this.systemKey = properties.systemKey();
     }
 
@@ -57,16 +55,16 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         if (key != null && MessageDigest.isEqual(
                 key.getBytes(StandardCharsets.UTF_8),
                 systemKey.getBytes(StandardCharsets.UTF_8))) {
-            // Use a stable synthetic identity so audit logs in ErpSyncController remain readable
+
             JwtAuthenticationFilter.JwtAuthenticatedUser principal =
-                    new JwtAuthenticationFilter.JwtAuthenticatedUser(0L, "import@system", "SYNC");
+                    new JwtAuthenticationFilter.JwtAuthenticatedUser(0L, "service@admin", "ADMIN");
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     principal, null,
-                    List.of(new SimpleGrantedAuthority("ROLE_SYNC")));
+                    List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
             SecurityContextHolder.getContext().setAuthentication(auth);
-            LOG.debug("[API-KEY] SYNC authenticated via {}", API_KEY_HEADER);
+            LOG.debug("[API-KEY] Service authenticated via {}", API_KEY_HEADER);
         }
 
         filterChain.doFilter(request, response);

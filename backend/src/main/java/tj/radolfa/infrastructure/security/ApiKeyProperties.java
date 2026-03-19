@@ -6,9 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Configuration properties for static API key authentication.
  * Bound to {@code radolfa.security.api-key.*} in application.yml.
  *
- * <p>The {@code system-key} is used by machine-to-machine clients (e.g. ERPNext)
- * that cannot participate in the OTP/JWT flow. A matching {@code X-Api-Key} header
- * grants the {@code SYSTEM} role.
+ * <p>The {@code system-key} is used by internal service clients that cannot
+ * participate in the OTP/JWT flow. A matching {@code X-Api-Key} header
+ * grants the {@code ADMIN} role.
  *
  * <p>Set via the {@code SYSTEM_API_KEY} environment variable in production.
  */

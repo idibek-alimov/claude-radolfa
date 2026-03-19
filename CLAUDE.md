@@ -19,7 +19,6 @@
 - `tj.radolfa.infrastructure`:
   - `web`: REST Controllers (Adapters).
   - `persistence`: JPA Entities & Repositories (Adapters).
-  - `importer`: Optional import layer for migrating legacy data.
 
 **Rules:**
 - **Mapping:** Use MapStruct for `DTO` ↔ `Domain` ↔ `Entity`.
@@ -49,4 +48,4 @@
 
 ## Critical Constraints
 - **Images:** NO processing on Frontend. Java resizes -> S3 -> Frontend reads S3 URL.
-- **Security:** `MANAGER` role cannot change Price or Stock. `ADMIN` role handles catalog management. `SYNC` role is reserved for the legacy import path only.
+- **Security:** `MANAGER` role cannot change Price or Stock. `ADMIN` role handles catalog management and all privileged operations. No external sync roles exist.

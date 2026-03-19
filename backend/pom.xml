@@ -69,12 +69,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Batch -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-batch</artifactId>
-        </dependency>
-
         <!-- Elasticsearch -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

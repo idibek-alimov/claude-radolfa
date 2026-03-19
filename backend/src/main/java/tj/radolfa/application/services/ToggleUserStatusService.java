@@ -29,10 +29,6 @@ public class ToggleUserStatusService implements ToggleUserStatusUseCase {
         User target = loadUserPort.loadById(targetUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + targetUserId));
 
-        if (target.role() == UserRole.SYNC) {
-            throw new IllegalArgumentException("Cannot change status of SYNC users");
-        }
-
         if (callerRole == UserRole.MANAGER && target.role() == UserRole.MANAGER) {
             throw new IllegalArgumentException("Managers cannot block other managers");
         }

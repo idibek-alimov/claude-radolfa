@@ -3,9 +3,8 @@ package tj.radolfa.application.ports.out;
 /**
  * Out-Port: index a listing variant into the search engine.
  *
- * <p>Called after every ERP sync to keep the search index fresh.
- * Implementations must be fire-and-forget: failures are logged
- * but never propagate to the sync pipeline.
+ * <p>Implementations must be fire-and-forget: failures are logged
+ * but never block the caller.
  */
 public interface ListingIndexPort {
 
