@@ -19,6 +19,7 @@ public record Payment(
         PaymentStatus status,
         String        provider,
         String        providerTransactionId,  // null until provider confirms
+        String        providerRedirectUrl,     // null for non-redirect-based providers
         Instant       createdAt,
         Instant       completedAt             // null until terminal state
 ) {
@@ -35,10 +36,11 @@ public record Payment(
 
     // ── Factories ─────────────────────────────────────────────────────────────
 
-    /** Creates a new PENDING payment. */
-    public static Payment initiate(Long orderId, Money amount, String currency, String provider) {
+    /** Creates a new PENDING payment with a gateway redirect URL. */
+    public static Payment initiate(Long orderId, Money amount, String currency,
+                                   String provider, String providerRedirectUrl) {
         return new Payment(null, orderId, amount, currency,
-                PaymentStatus.PENDING, provider, null, Instant.now(), null);
+                PaymentStatus.PENDING, provider, null, providerRedirectUrl, Instant.now(), null);
     }
 
     // ── State transitions ─────────────────────────────────────────────────────
@@ -46,30 +48,30 @@ public record Payment(
     /** Provider acknowledged the request; transaction in flight. */
     public Payment processing(String providerTransactionId) {
         return new Payment(id, orderId, amount, currency,
-                PaymentStatus.PROCESSING, provider, providerTransactionId, createdAt, null);
+                PaymentStatus.PROCESSING, provider, providerTransactionId, providerRedirectUrl, createdAt, null);
     }
 
     /** Provider confirmed successful charge. */
     public Payment completed(String providerTransactionId) {
         return new Payment(id, orderId, amount, currency,
-                PaymentStatus.COMPLETED, provider, providerTransactionId, createdAt, Instant.now());
+                PaymentStatus.COMPLETED, provider, providerTransactionId, providerRedirectUrl, createdAt, Instant.now());
     }
 
     /** Provider reported a failure or timeout. */
     public Payment failed() {
         return new Payment(id, orderId, amount, currency,
-                PaymentStatus.FAILED, provider, providerTransactionId, createdAt, Instant.now());
+                PaymentStatus.FAILED, provider, providerTransactionId, providerRedirectUrl, createdAt, Instant.now());
     }
 
     /** Full or partial refund was issued. */
     public Payment refunded() {
         return new Payment(id, orderId, amount, currency,
-                PaymentStatus.REFUNDED, provider, providerTransactionId, createdAt, Instant.now());
+                PaymentStatus.REFUNDED, provider, providerTransactionId, providerRedirectUrl, createdAt, Instant.now());
     }
 
     /** Payment was cancelled before completion. */
     public Payment cancelled() {
         return new Payment(id, orderId, amount, currency,
-                PaymentStatus.CANCELLED, provider, providerTransactionId, createdAt, Instant.now());
+                PaymentStatus.CANCELLED, provider, providerTransactionId, providerRedirectUrl, createdAt, Instant.now());
     }
 }

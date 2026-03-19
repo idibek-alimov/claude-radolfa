@@ -109,6 +109,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers").permitAll()
+                                                .requestMatchers("/api/v1/webhooks/**").permitAll()
 
                                                 // Swagger / OpenAPI endpoints
                                                 .requestMatchers("/swagger-ui/**").permitAll()
@@ -158,6 +159,16 @@ public class SecurityConfig {
                                                 // USER + ADMIN: checkout, cancel, order history
                                                 .requestMatchers("/api/v1/orders/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN", "SYNC")
+
+                                                // ============================================================
+                                                // Payments
+                                                // ============================================================
+                                                // ADMIN only: refunds
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/payments/*/refund")
+                                                .hasRole("ADMIN")
+                                                // USER: initiate payment + check status
+                                                .requestMatchers("/api/v1/payments/**")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
 
                                                 // ============================================================
                                                 // Default: require authentication for all other endpoints
