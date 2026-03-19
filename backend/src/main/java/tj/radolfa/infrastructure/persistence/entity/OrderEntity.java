@@ -30,8 +30,8 @@ public class OrderEntity extends BaseAuditEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(name = "erp_order_id", unique = true, length = 64)
-    private String erpOrderId;
+    @Column(name = "external_order_id", unique = true, length = 64)
+    private String externalOrderId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

@@ -47,7 +47,7 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "List all users (paginated, searchable)")
-    @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'SYNC')")
     public ResponseEntity<PageResult<UserDto>> listUsers(
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "1") int page,
@@ -66,7 +66,7 @@ public class UserController {
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Block or unblock a user")
-    @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'SYNC')")
     public ResponseEntity<UserDto> toggleUserStatus(
             @AuthenticationPrincipal JwtAuthenticatedUser caller,
             @PathVariable Long id,
@@ -77,8 +77,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/role")
-    @Operation(summary = "Change a user's role (SYSTEM only)")
-    @PreAuthorize("hasRole('SYSTEM')")
+    @Operation(summary = "Change a user's role (SYNC only)")
+    @PreAuthorize("hasRole('SYNC')")
     public ResponseEntity<UserDto> changeUserRole(
             @PathVariable Long id,
             @RequestParam String role) {

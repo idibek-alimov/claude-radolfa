@@ -12,12 +12,12 @@ import java.util.Optional;
 
 public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
 
-    Optional<SkuEntity> findByErpItemCode(String erpItemCode);
+    Optional<SkuEntity> findBySkuCode(String skuCode);
 
     List<SkuEntity> findByListingVariantId(Long listingVariantId);
 
     List<SkuEntity> findByListingVariantIdIn(List<Long> variantIds);
 
-    @Query("SELECT DISTINCT s.listingVariant.id FROM SkuEntity s WHERE s.erpItemCode IN :itemCodes")
-    List<Long> findVariantIdsByItemCodes(@Param("itemCodes") Collection<String> itemCodes);
+    @Query("SELECT DISTINCT s.listingVariant.id FROM SkuEntity s WHERE s.skuCode IN :skuCodes")
+    List<Long> findVariantIdsByItemCodes(@Param("skuCodes") Collection<String> skuCodes);
 }

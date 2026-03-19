@@ -23,8 +23,8 @@ public class DiscountEntity extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "erp_pricing_rule_id", nullable = false, unique = true, length = 140)
-    private String erpPricingRuleId;
+    @Column(name = "external_rule_id", nullable = false, unique = true, length = 140)
+    private String externalRuleId;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(

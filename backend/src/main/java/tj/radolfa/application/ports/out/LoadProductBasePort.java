@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface LoadProductBasePort {
 
-    Optional<ProductBase> findByErpTemplateCode(String erpTemplateCode);
+    Optional<ProductBase> findByExternalRef(String externalRef);
 }

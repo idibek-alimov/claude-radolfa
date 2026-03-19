@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import tj.radolfa.application.ports.in.RemoveDiscountUseCase;
-import tj.radolfa.application.ports.in.SyncDiscountUseCase;
+import tj.radolfa.application.ports.in.sync.RemoveDiscountUseCase;
+import tj.radolfa.application.ports.in.sync.SyncDiscountUseCase;
 import tj.radolfa.application.ports.out.DeleteDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
@@ -33,15 +33,15 @@ public class SyncDiscountService implements SyncDiscountUseCase, RemoveDiscountU
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void execute(SyncDiscountCommand command) {
-        LOG.info("[DISCOUNT-SYNC] Upsert erpPricingRuleId={}, itemCodes={}, disabled={}",
-                command.erpPricingRuleId(), command.itemCodes(), command.disabled());
+        LOG.info("[DISCOUNT-SYNC] Upsert externalRuleId={}, itemCodes={}, disabled={}",
+                command.externalRuleId(), command.itemCodes(), command.disabled());
 
-        Discount existing = loadPort.findByErpPricingRuleId(command.erpPricingRuleId())
+        Discount existing = loadPort.findByExternalRuleId(command.externalRuleId())
                 .orElse(null);
 
         Discount discount = new Discount(
                 existing != null ? existing.id() : null,
-                command.erpPricingRuleId(),
+                command.externalRuleId(),
                 command.itemCodes(),
                 command.discountValue(),
                 command.validFrom(),
@@ -52,14 +52,14 @@ public class SyncDiscountService implements SyncDiscountUseCase, RemoveDiscountU
         );
 
         savePort.save(discount);
-        LOG.info("[DISCOUNT-SYNC] {} erpPricingRuleId={}",
-                existing != null ? "Updated" : "Created", command.erpPricingRuleId());
+        LOG.info("[DISCOUNT-SYNC] {} externalRuleId={}",
+                existing != null ? "Updated" : "Created", command.externalRuleId());
     }
 
     @Override
     @Transactional
-    public void execute(String erpPricingRuleId) {
-        LOG.info("[DISCOUNT-SYNC] Removing erpPricingRuleId={}", erpPricingRuleId);
-        deletePort.deleteByErpPricingRuleId(erpPricingRuleId);
+    public void execute(String externalRuleId) {
+        LOG.info("[DISCOUNT-SYNC] Removing externalRuleId={}", externalRuleId);
+        deletePort.deleteByExternalRuleId(externalRuleId);
     }
 }

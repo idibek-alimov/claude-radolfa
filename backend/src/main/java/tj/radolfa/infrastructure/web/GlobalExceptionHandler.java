@@ -10,7 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import tj.radolfa.domain.exception.ErpLockViolationException;
+import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
@@ -102,12 +102,12 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles ERP lock violations (e.g. manual edit of price/name).
+     * Handles field lock violations (e.g. manual edit of price/name).
      * Returns 403 Forbidden.
      */
-    @ExceptionHandler(ErpLockViolationException.class)
-    public ResponseEntity<MessageResponseDto> handleErpLockViolation(ErpLockViolationException ex) {
-        LOG.warn("[ERP-LOCK] {}", ex.getMessage());
+    @ExceptionHandler(FieldLockException.class)
+    public ResponseEntity<MessageResponseDto> handleFieldLockViolation(FieldLockException ex) {
+        LOG.warn("[FIELD-LOCK] {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }

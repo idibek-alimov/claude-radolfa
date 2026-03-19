@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface LoadSkuPort {
 
-    Optional<Sku> findByErpItemCode(String erpItemCode);
+    Optional<Sku> findBySkuCode(String skuCode);
 }

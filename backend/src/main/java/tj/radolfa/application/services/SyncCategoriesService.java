@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import tj.radolfa.application.ports.in.SyncCategoriesUseCase;
+import tj.radolfa.application.ports.in.sync.SyncCategoriesUseCase;
 import tj.radolfa.domain.util.SlugUtils;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;

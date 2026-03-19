@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface LoadDiscountPort {
 
-    Optional<Discount> findByErpPricingRuleId(String erpPricingRuleId);
+    Optional<Discount> findByExternalRuleId(String externalRuleId);
 
     /**
      * Returns all currently active discounts covering the given item code.

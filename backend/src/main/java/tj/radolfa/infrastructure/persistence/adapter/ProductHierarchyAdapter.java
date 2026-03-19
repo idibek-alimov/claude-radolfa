@@ -65,8 +65,8 @@ public class ProductHierarchyAdapter
     // ---- LoadProductBasePort ----
 
     @Override
-    public Optional<ProductBase> findByErpTemplateCode(String erpTemplateCode) {
-        return baseRepo.findByErpTemplateCode(erpTemplateCode)
+    public Optional<ProductBase> findByExternalRef(String externalRef) {
+        return baseRepo.findByExternalRef(externalRef)
                 .map(mapper::toProductBase);
     }
 
@@ -113,8 +113,8 @@ public class ProductHierarchyAdapter
     // ---- LoadSkuPort ----
 
     @Override
-    public Optional<Sku> findByErpItemCode(String erpItemCode) {
-        return skuRepo.findByErpItemCode(erpItemCode)
+    public Optional<Sku> findBySkuCode(String skuCode) {
+        return skuRepo.findBySkuCode(skuCode)
                 .map(mapper::toSku);
     }
 

@@ -26,8 +26,8 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Dele
     // ---- LoadDiscountPort ----
 
     @Override
-    public Optional<Discount> findByErpPricingRuleId(String erpPricingRuleId) {
-        return repository.findByErpPricingRuleId(erpPricingRuleId)
+    public Optional<Discount> findByExternalRuleId(String externalRuleId) {
+        return repository.findByExternalRuleId(externalRuleId)
                 .map(mapper::toDomain);
     }
 
@@ -48,7 +48,7 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Dele
             entity = repository.findById(discount.id())
                     .orElseThrow(() -> new IllegalStateException(
                             "Discount not found: " + discount.id()));
-            entity.setErpPricingRuleId(discount.erpPricingRuleId());
+            entity.setExternalRuleId(discount.externalRuleId());
             entity.setDiscountValue(discount.discountValue());
             entity.setValidFrom(discount.validFrom());
             entity.setValidUpto(discount.validUpto());
@@ -68,7 +68,7 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Dele
     // ---- DeleteDiscountPort ----
 
     @Override
-    public void deleteByErpPricingRuleId(String erpPricingRuleId) {
-        repository.deleteByErpPricingRuleId(erpPricingRuleId);
+    public void deleteByExternalRuleId(String externalRuleId) {
+        repository.deleteByExternalRuleId(externalRuleId);
     }
 }

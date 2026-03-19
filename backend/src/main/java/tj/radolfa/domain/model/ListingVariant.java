@@ -65,9 +65,9 @@ public class ListingVariant {
      * Generates a URL-safe slug from the template code and colour key.
      * Called once during creation; idempotent on subsequent syncs.
      */
-    public void generateSlug(String erpTemplateCode) {
+    public void generateSlug(String templateCode) {
         if (this.slug == null || this.slug.isBlank()) {
-            this.slug = (erpTemplateCode + "-" + colorKey)
+            this.slug = (templateCode + "-" + colorKey)
                     .toLowerCase()
                     .replaceAll("[^a-z0-9-]", "-")
                     .replaceAll("-+", "-");

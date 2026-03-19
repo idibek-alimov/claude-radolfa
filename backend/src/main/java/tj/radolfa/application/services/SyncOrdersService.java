@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tj.radolfa.application.ports.in.SyncOrdersUseCase;
+import tj.radolfa.application.ports.in.sync.SyncOrdersUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
@@ -43,7 +43,7 @@ public class SyncOrdersService implements SyncOrdersUseCase {
         var userOpt = loadUserPort.loadByPhone(command.customerPhone());
         if (userOpt.isEmpty()) {
             String reason = "No user found for phone=" + command.customerPhone()
-                    + ", order=" + command.erpOrderId();
+                    + ", order=" + command.externalOrderId();
             LOG.warn("[ORDER-SYNC] {}", reason);
             return SyncResult.skipped(reason);
         }
@@ -54,16 +54,16 @@ public class SyncOrdersService implements SyncOrdersUseCase {
 
         List<OrderItem> items = command.items().stream()
                 .map(item -> {
-                    var skuOpt = loadSkuPort.findByErpItemCode(item.erpItemCode());
+                    var skuOpt = loadSkuPort.findBySkuCode(item.skuCode());
                     if (skuOpt.isEmpty()) {
-                        LOG.warn("[ORDER-SYNC] No SKU found for erpItemCode={}, order={} — skipping item",
-                                item.erpItemCode(), command.erpOrderId());
+                        LOG.warn("[ORDER-SYNC] No SKU found for skuCode={}, order={} — skipping item",
+                                item.skuCode(), command.externalOrderId());
                         return null;
                     }
                     return new OrderItem(
                             null,
                             skuOpt.get().getId(),
-                            item.erpItemCode(),
+                            item.skuCode(),
                             item.productName(),
                             item.quantity(),
                             Money.of(item.price()));
@@ -71,34 +71,34 @@ public class SyncOrdersService implements SyncOrdersUseCase {
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
-        var existingOpt = loadOrderPort.loadByErpOrderId(command.erpOrderId());
+        var existingOpt = loadOrderPort.loadByExternalOrderId(command.externalOrderId());
 
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             Order updated = new Order(
                     existing.id(),
                     existing.userId(),
-                    existing.erpOrderId(),
+                    existing.externalOrderId(),
                     status,
                     totalAmount,
                     items,
                     existing.createdAt());
             saveOrderPort.save(updated);
-            LOG.info("[ORDER-SYNC] Updated order erpId={}, status={}", command.erpOrderId(), status);
+            LOG.info("[ORDER-SYNC] Updated order externalId={}, status={}", command.externalOrderId(), status);
         } else {
             Order newOrder = new Order(
                     null,
                     user.id(),
-                    command.erpOrderId(),
+                    command.externalOrderId(),
                     status,
                     totalAmount,
                     items,
                     Instant.now());
             saveOrderPort.save(newOrder);
-            LOG.info("[ORDER-SYNC] Created order erpId={} for phone={}", command.erpOrderId(), command.customerPhone());
+            LOG.info("[ORDER-SYNC] Created order externalId={} for phone={}", command.externalOrderId(), command.customerPhone());
         }
 
-        return SyncResult.synced(command.erpOrderId());
+        return SyncResult.synced(command.externalOrderId());
     }
 
     private OrderStatus parseStatus(String status) {

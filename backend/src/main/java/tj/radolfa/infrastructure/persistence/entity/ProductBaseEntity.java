@@ -21,8 +21,8 @@ public class ProductBaseEntity extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "erp_template_code", nullable = false, unique = true, length = 64)
-    private String erpTemplateCode;
+    @Column(name = "external_ref", nullable = false, unique = true, length = 64)
+    private String externalRef;
 
     @Column(name = "name", length = 255)
     private String name;

@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * An ERPNext Pricing Rule that can be applied to one or more SKU item codes.
+ * A Pricing Rule discount that can be applied to one or more SKU item codes.
  *
- * <p>All core fields are ERP-locked — synced from ERPNext via Server Script webhooks.
+ * <p>All core fields are authoritative-source-locked — synced via import webhooks.
  * {@code title} and {@code colorHex} are UI display attributes also set during sync.
  * Active check is performed on-the-fly: {@link #isActive(Instant)}.
  *
@@ -16,7 +16,7 @@ import java.util.Objects;
  */
 public record Discount(
         Long id,
-        String erpPricingRuleId,
+        String externalRuleId,
         List<String> itemCodes,
         BigDecimal discountValue,
         Instant validFrom,
@@ -27,7 +27,7 @@ public record Discount(
 ) {
 
     public Discount {
-        Objects.requireNonNull(erpPricingRuleId, "erpPricingRuleId must not be null");
+        Objects.requireNonNull(externalRuleId, "externalRuleId must not be null");
         Objects.requireNonNull(itemCodes, "itemCodes must not be null");
         Objects.requireNonNull(discountValue, "discountValue must not be null");
         Objects.requireNonNull(validFrom, "validFrom must not be null");

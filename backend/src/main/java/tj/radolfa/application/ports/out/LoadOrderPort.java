@@ -9,5 +9,5 @@ public interface LoadOrderPort {
 
     Optional<Order> loadById(Long id);
 
-    Optional<Order> loadByErpOrderId(String erpOrderId);
+    Optional<Order> loadByExternalOrderId(String externalOrderId);
 }

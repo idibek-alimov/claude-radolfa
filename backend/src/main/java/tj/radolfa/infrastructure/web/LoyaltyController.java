@@ -46,7 +46,7 @@ public class LoyaltyController {
             String color) {}
 
     @PatchMapping("/{id}/color")
-    @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'SYNC')")
     public ResponseEntity<Void> updateTierColor(@PathVariable Long id,
                                                 @Valid @RequestBody UpdateColorRequest request) {
         updateLoyaltyTierUseCase.updateColor(new UpdateTierColorCommand(id, request.color()));

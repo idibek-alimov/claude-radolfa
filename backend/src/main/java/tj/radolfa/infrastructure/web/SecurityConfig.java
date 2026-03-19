@@ -38,14 +38,14 @@ import java.util.List;
  * <li><b>USER</b>: Can view profile, wishlist, history</li>
  * <li><b>MANAGER</b>: Can upload images, edit descriptions (NOT
  * price/name/stock)</li>
- * <li><b>SYSTEM</b>: Can call ERP sync endpoints</li>
+ * <li><b>SYNC</b>: Can call import sync endpoints</li>
  * </ul>
  *
  * <h3>Critical Constraints (from CLAUDE.md)</h3>
  * <ul>
  * <li>ERPNext is the SOURCE OF TRUTH for price, name, stock</li>
  * <li>MANAGER role cannot change Price</li>
- * <li>SYSTEM role handles ERP Sync</li>
+ * <li>SYNC role handles import synchronisation</li>
  * </ul>
  */
 @Configuration
@@ -117,11 +117,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/v3/api-docs.yaml").permitAll()
 
                                                 // ============================================================
-                                                // SYSTEM role only: ERP Sync and Search index management
-                                                // Critical: Only SYSTEM can modify price/name/stock
+                                                // SYNC role only: Import sync and Search index management
+                                                // Critical: Only SYNC can modify price/name/stock
                                                 // ============================================================
-                                                .requestMatchers("/api/v1/sync/**").hasRole("SYSTEM")
-                                                .requestMatchers("/api/v1/search/**").hasRole("SYSTEM")
+                                                .requestMatchers("/api/v1/sync/**").hasRole("SYNC")
+                                                .requestMatchers("/api/v1/search/**").hasRole("SYNC")
 
                                                 // ============================================================
                                                 // MANAGER role: Listing enrichment (images, descriptions)
@@ -140,11 +140,11 @@ public class SecurityConfig {
                                                 // USER role: Profile, wishlist, order history
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYSTEM")
+                                                .hasAnyRole("USER", "MANAGER", "SYNC")
                                                 .requestMatchers("/api/v1/wishlist/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYSTEM")
+                                                .hasAnyRole("USER", "MANAGER", "SYNC")
                                                 .requestMatchers("/api/v1/orders/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYSTEM")
+                                                .hasAnyRole("USER", "MANAGER", "SYNC")
 
                                                 // ============================================================
                                                 // Default: require authentication for all other endpoints

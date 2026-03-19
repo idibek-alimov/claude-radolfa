@@ -46,7 +46,7 @@ public class DiscountEnrichmentAdapter {
         if (allSkus.isEmpty()) return Map.of();
 
         List<String> itemCodes = allSkus.stream()
-                .map(SkuEntity::getErpItemCode)
+                .map(SkuEntity::getSkuCode)
                 .distinct()
                 .toList();
 
@@ -63,7 +63,7 @@ public class DiscountEnrichmentAdapter {
             DiscountInfo best = null;
 
             for (SkuEntity sku : entry.getValue()) {
-                DiscountEntity discount = bestByItemCode.get(sku.getErpItemCode());
+                DiscountEntity discount = bestByItemCode.get(sku.getSkuCode());
                 if (discount == null || sku.getOriginalPrice() == null) continue;
 
                 BigDecimal discountedPrice = computeDiscountedPrice(

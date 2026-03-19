@@ -42,8 +42,8 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
     }
 
     @Override
-    public Optional<Order> loadByErpOrderId(String erpOrderId) {
-        return repository.findByErpOrderId(erpOrderId)
+    public Optional<Order> loadByExternalOrderId(String externalOrderId) {
+        return repository.findByExternalOrderId(externalOrderId)
                 .map(mapper::toOrder);
     }
 

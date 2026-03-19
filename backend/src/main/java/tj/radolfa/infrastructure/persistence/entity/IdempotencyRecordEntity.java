@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 /**
- * JPA persistence model for the {@code erp_sync_idempotency} table.
- * Tracks processed idempotency keys to prevent duplicate sync processing.
+ * JPA persistence model for the {@code import_idempotency} table.
+ * Tracks processed idempotency keys to prevent duplicate import processing.
  */
 @Entity
-@Table(name = "erp_sync_idempotency",
+@Table(name = "import_idempotency",
        uniqueConstraints = @UniqueConstraint(columnNames = {"idempotency_key", "event_type"}))
 @Data
 @NoArgsConstructor

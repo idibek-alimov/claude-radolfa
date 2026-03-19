@@ -59,14 +59,14 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
                 systemKey.getBytes(StandardCharsets.UTF_8))) {
             // Use a stable synthetic identity so audit logs in ErpSyncController remain readable
             JwtAuthenticationFilter.JwtAuthenticatedUser principal =
-                    new JwtAuthenticationFilter.JwtAuthenticatedUser(0L, "erp@system", "SYSTEM");
+                    new JwtAuthenticationFilter.JwtAuthenticatedUser(0L, "import@system", "SYNC");
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     principal, null,
-                    List.of(new SimpleGrantedAuthority("ROLE_SYSTEM")));
+                    List.of(new SimpleGrantedAuthority("ROLE_SYNC")));
 
             SecurityContextHolder.getContext().setAuthentication(auth);
-            LOG.debug("[API-KEY] SYSTEM authenticated via {}", API_KEY_HEADER);
+            LOG.debug("[API-KEY] SYNC authenticated via {}", API_KEY_HEADER);
         }
 
         filterChain.doFilter(request, response);

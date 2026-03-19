@@ -10,7 +10,7 @@ import java.time.Instant;
  */
 public record SkuDto(
         Long id,
-        String erpItemCode,
+        String skuCode,
         String sizeLabel,
         Integer stockQuantity,
         BigDecimal originalPrice,
@@ -31,7 +31,7 @@ public record SkuDto(
                 loyaltyPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
         BigDecimal computed = effective.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
 
-        return new SkuDto(id, erpItemCode, sizeLabel, stockQuantity,
+        return new SkuDto(id, skuCode, sizeLabel, stockQuantity,
                 originalPrice, discountedPrice, computed,
                 discountPercentage, loyaltyPct, saleTitle, saleColorHex,
                 onSale, discountedEndsAt);

@@ -116,13 +116,13 @@ public class ListingReadAdapter implements LoadListingPort {
 
                 // Resolve discounts for all item codes in this variant
                 List<String> itemCodes = skuEntities.stream()
-                                .map(SkuEntity::getErpItemCode)
+                                .map(SkuEntity::getSkuCode)
                                 .toList();
                 Map<String, DiscountEntity> discountsByItemCode =
                                 discountEnrichment.resolveForItemCodes(itemCodes);
 
                 List<SkuDto> skus = skuEntities.stream()
-                                .map(sku -> toSkuDto(sku, discountsByItemCode.get(sku.getErpItemCode())))
+                                .map(sku -> toSkuDto(sku, discountsByItemCode.get(sku.getSkuCode())))
                                 .toList();
 
                 BigDecimal originalPrice = skuEntities.stream()
@@ -138,7 +138,7 @@ public class ListingReadAdapter implements LoadListingPort {
                 String saleColorHex = null;
 
                 for (SkuEntity sku : skuEntities) {
-                        DiscountEntity discount = discountsByItemCode.get(sku.getErpItemCode());
+                        DiscountEntity discount = discountsByItemCode.get(sku.getSkuCode());
                         if (discount == null || sku.getOriginalPrice() == null) continue;
 
                         BigDecimal dp = computeDiscountedPrice(sku.getOriginalPrice(), discount.getDiscountValue());
@@ -226,7 +226,7 @@ public class ListingReadAdapter implements LoadListingPort {
 
                 return new SkuDto(
                                 entity.getId(),
-                                entity.getErpItemCode(),
+                                entity.getSkuCode(),
                                 entity.getSizeLabel(),
                                 entity.getStockQuantity(),
                                 entity.getOriginalPrice(),

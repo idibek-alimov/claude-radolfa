@@ -7,7 +7,7 @@ import java.util.List;
 public record Order(
         Long id,
         Long userId,
-        String erpOrderId,
+        String externalOrderId,
         OrderStatus status,
         Money totalAmount,
         List<OrderItem> items,

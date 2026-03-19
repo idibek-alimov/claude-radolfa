@@ -6,7 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import tj.radolfa.application.ports.in.SyncProductHierarchyUseCase;
+import tj.radolfa.application.ports.in.sync.SyncProductHierarchyUseCase;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
@@ -22,14 +22,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Handles an inbound ERP sync event for a full product hierarchy.
+ * Handles an inbound import event for a full product hierarchy.
  *
  * <p>Strategy — idempotent upsert across three tiers:
  * <ol>
  *   <li><b>ProductBase</b>: Find-or-create by templateCode. Always update name.</li>
  *   <li><b>ListingVariant</b>: Find-or-create by (baseId, colorKey).
  *       Never overwrite webDescription/images if they already exist.</li>
- *   <li><b>Sku</b>: Find-or-create by erpItemCode. Always overwrite price/stock.</li>
+ *   <li><b>Sku</b>: Find-or-create by skuCode. Always overwrite price/stock.</li>
  * </ol>
  */
 @Service
@@ -91,18 +91,18 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
             List<Sku> savedSkus = new ArrayList<>();
             for (HierarchySyncCommand.SkuCommand sc : vc.items()) {
                 final Long variantId = savedVariant.getId();
-                Sku sku = loadSkuPort.findByErpItemCode(sc.erpItemCode())
+                Sku sku = loadSkuPort.findBySkuCode(sc.skuCode())
                         .orElseGet(() -> new Sku(
                                 null,
                                 variantId,
-                                sc.erpItemCode(),
+                                sc.skuCode(),
                                 sc.sizeLabel(),
                                 0,
                                 null
                         ));
 
                 sku.updateSizeLabel(sc.sizeLabel());
-                sku.updateFromErp(sc.stockQuantity(), sc.listPrice());
+                sku.updatePriceAndStock(sc.listPrice(), sc.stockQuantity());
 
                 savedSkus.add(savePort.saveSku(sku, variantId));
             }
@@ -127,19 +127,19 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
      * unique constraint violation, re-fetch the existing row and update it.
      */
     private ProductBase upsertBase(HierarchySyncCommand command) {
-        ProductBase base = loadBasePort.findByErpTemplateCode(command.templateCode())
+        ProductBase base = loadBasePort.findByExternalRef(command.templateCode())
                 .orElseGet(() -> new ProductBase(null, command.templateCode(), null, null));
 
-        base.updateFromErp(command.templateName(), command.category());
+        base.applyExternalUpdate(command.templateName(), command.category());
 
         try {
             return savePort.saveBase(base);
         } catch (DataIntegrityViolationException ex) {
             LOG.warn("[HIERARCHY-SYNC] Concurrent insert for template={}, retrying as update",
                     command.templateCode());
-            ProductBase existing = loadBasePort.findByErpTemplateCode(command.templateCode())
+            ProductBase existing = loadBasePort.findByExternalRef(command.templateCode())
                     .orElseThrow(() -> ex);
-            existing.updateFromErp(command.templateName(), command.category());
+            existing.applyExternalUpdate(command.templateName(), command.category());
             return savePort.saveBase(existing);
         }
     }
@@ -168,8 +168,8 @@ public class SyncProductHierarchyService implements SyncProductHierarchyUseCase 
                 variant.getImages(),
                 price,
                 totalStock,
-                false,  // topSelling — enrichment field, not set during ERP sync
-                false,  // featured — enrichment field, not set during ERP sync
+                false,  // topSelling — enrichment field, not set during import sync
+                false,  // featured — enrichment field, not set during import sync
                 variant.getLastSyncAt()
         );
     }

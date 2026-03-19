@@ -35,7 +35,7 @@ public interface ProductHierarchyMapper {
         if (entity == null) return null;
         return new ProductBase(
                 entity.getId(),
-                entity.getErpTemplateCode(),
+                entity.getExternalRef(),
                 entity.getName(),
                 entity.getCategoryName()
         );
@@ -96,7 +96,7 @@ public interface ProductHierarchyMapper {
         return new Sku(
                 entity.getId(),
                 entity.getListingVariant() != null ? entity.getListingVariant().getId() : null,
-                entity.getErpItemCode(),
+                entity.getSkuCode(),
                 entity.getSizeLabel(),
                 entity.getStockQuantity(),
                 Money.of(entity.getOriginalPrice())

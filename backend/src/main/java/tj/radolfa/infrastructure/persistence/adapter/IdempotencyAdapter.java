@@ -7,7 +7,7 @@ import tj.radolfa.infrastructure.persistence.repository.IdempotencyRecordReposit
 
 /**
  * Hexagonal adapter that checks and persists idempotency keys
- * into the {@code erp_sync_idempotency} table via Spring Data.
+ * into the {@code import_idempotency} table via Spring Data.
  */
 @Component
 public class IdempotencyAdapter implements IdempotencyPort {

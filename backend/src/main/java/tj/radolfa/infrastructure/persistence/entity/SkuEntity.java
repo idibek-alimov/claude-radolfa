@@ -25,8 +25,8 @@ public class SkuEntity extends BaseAuditEntity {
     @org.hibernate.annotations.BatchSize(size = 50)
     private ListingVariantEntity listingVariant;
 
-    @Column(name = "erp_item_code", nullable = false, unique = true, length = 64)
-    private String erpItemCode;
+    @Column(name = "sku_code", nullable = false, unique = true, length = 64)
+    private String skuCode;
 
     @Column(name = "size_label", length = 32)
     private String sizeLabel;

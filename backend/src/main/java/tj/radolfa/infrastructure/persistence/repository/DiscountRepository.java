@@ -11,10 +11,10 @@ import java.util.Optional;
 
 public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> {
 
-    Optional<DiscountEntity> findByErpPricingRuleId(String erpPricingRuleId);
+    Optional<DiscountEntity> findByExternalRuleId(String externalRuleId);
 
     @org.springframework.transaction.annotation.Transactional
-    void deleteByErpPricingRuleId(String erpPricingRuleId);
+    void deleteByExternalRuleId(String externalRuleId);
 
     /**
      * Returns [DiscountEntity, matchedItemCode] pairs for active discounts covering any of the

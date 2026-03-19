@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tj.radolfa.application.ports.in.SyncLoyaltyTiersUseCase;
+import tj.radolfa.application.ports.in.sync.SyncLoyaltyTiersUseCase;
 import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
 import tj.radolfa.application.ports.out.SaveLoyaltyTierPort;
 import tj.radolfa.domain.model.LoyaltyTier;

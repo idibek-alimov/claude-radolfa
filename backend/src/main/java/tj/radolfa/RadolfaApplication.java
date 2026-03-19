@@ -35,7 +35,7 @@ public class RadolfaApplication {
                                 "system-launcher", null,
                                 java.util.List
                                         .of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                                                "ROLE_SYSTEM"))));
+                                                "ROLE_SYNC"))));
                 searchController.reindex();
                 System.out.println("--- TEMPORARY HACK: Startup re-index completed ---");
             } catch (Exception e) {

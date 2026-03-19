@@ -45,9 +45,9 @@ public class SearchController {
      * Rebuild the entire listings search index from PostgreSQL.
      */
     @PostMapping("/reindex")
-    @PreAuthorize("hasRole('SYSTEM')")
+    @PreAuthorize("hasRole('SYNC')")
     @Operation(summary = "Reindex all listings",
-               description = "Rebuilds the Elasticsearch listings index from PostgreSQL (SYSTEM only)")
+               description = "Rebuilds the Elasticsearch listings index from PostgreSQL (SYNC only)")
     public ResponseEntity<ReindexResult> reindex() {
         LOG.info("[REINDEX] Starting full listings reindex");
 
