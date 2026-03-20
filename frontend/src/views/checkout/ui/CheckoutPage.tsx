@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import Link from "next/link";
 import {
   ShoppingBag,
   AlertTriangle,
   Star,
-  CheckCircle2,
-  ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -19,7 +17,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { useCartQuery } from "@/features/cart";
 import { useAuth } from "@/features/auth";
 import { checkout } from "@/features/checkout";
-import type { CheckoutResponse } from "@/features/checkout";
+import { initiatePayment } from "@/features/payment";
 import { getErrorMessage } from "@/shared/lib";
 
 export function CheckoutPage() {
@@ -32,7 +30,7 @@ export function CheckoutPage() {
 
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [notes, setNotes] = useState("");
-  const [successData, setSuccessData] = useState<CheckoutResponse | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
 
   const availablePoints = user?.loyalty?.points ?? 0;
   const hasOutOfStockItems = cart?.items.some((i) => !i.inStock) ?? false;
@@ -40,10 +38,17 @@ export function CheckoutPage() {
   const checkoutMutation = useMutation({
     mutationFn: () =>
       checkout({ loyaltyPointsToRedeem: pointsToRedeem, notes: notes || undefined }),
-    onSuccess: (data) => {
-      setSuccessData(data);
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      setRedirecting(true);
+      try {
+        const { redirectUrl } = await initiatePayment(data.orderId);
+        window.location.href = redirectUrl;
+      } catch {
+        // Payment initiation failed — order was still placed; send user to orders
+        router.push("/profile?tab=orders");
+      }
     },
     onError: (err: unknown) => {
       toast.error(getErrorMessage(err));
@@ -67,26 +72,12 @@ export function CheckoutPage() {
     return null;
   }
 
-  /* ── Success screen ──────────────────────────────────────────── */
-  if (successData) {
+  /* ── Redirecting to payment provider ────────────────────────── */
+  if (redirecting) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <div className="flex justify-center mb-6">
-          <CheckCircle2 className="h-16 w-16 text-green-500" />
-        </div>
-        <h1 className="text-2xl font-bold mb-2">{t("successTitle")}</h1>
-        <p className="text-muted-foreground mb-1">
-          {t("orderNumber", { id: successData.orderId })}
-        </p>
-        <p className="text-muted-foreground mb-8">
-          {t("total")}: {successData.total.toFixed(2)} TJS
-        </p>
-        <Link href="/profile?tab=orders">
-          <Button className="gap-2">
-            {t("viewOrders")}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </Link>
+        <Loader2 className="h-16 w-16 text-primary mx-auto mb-6 animate-spin" />
+        <h1 className="text-xl font-semibold mb-2">{t("redirecting")}</h1>
       </div>
     );
   }

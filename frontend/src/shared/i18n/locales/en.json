@@ -234,6 +234,7 @@
     "tierDiscount": "Tier Discount",
     "pointsDiscount": "Points Discount",
     "total": "Total",
+    "redirecting": "Redirecting to payment...",
     "placeOrder": "Place Order",
     "placing": "Placing Order...",
     "outOfStockWarning": "Some items in your cart are out of stock. Please remove them before checking out.",
@@ -241,6 +242,24 @@
     "successTitle": "Order Placed!",
     "orderNumber": "Order #{id}",
     "viewOrders": "View My Orders"
+  },
+  "payment": {
+    "pollingTitle": "Verifying payment...",
+    "pollingDesc": "Please wait while we confirm your payment.",
+    "successTitle": "Payment Successful!",
+    "successDesc": "Your order has been confirmed.",
+    "via": "via",
+    "processingTitle": "Payment is Being Processed",
+    "processingDesc": "Your payment is taking longer than expected. Check back in a few minutes.",
+    "refundedTitle": "Payment Refunded",
+    "refundedDesc": "Your payment was refunded. Please contact support if you have questions.",
+    "failureTitle": "Payment Failed",
+    "failureDesc": "Something went wrong with your payment. Please try again.",
+    "errorTitle": "Invalid Payment Link",
+    "errorDesc": "No order ID was found. Please check your payment link.",
+    "viewOrders": "View My Orders",
+    "retryCheck": "Check Again",
+    "browsProducts": "Browse Products"
   },
   "userManagement": {
     "searchPlaceholder": "Search by phone or name...",

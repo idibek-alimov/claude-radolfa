@@ -22,7 +22,7 @@
 | 3 | [x] | Switched useAuth to /users/me; removed stale listings invalidation; ADMIN role badge fixed in profile; recentEarnings section added to LoyaltyDashboard; tsc ✅ build ✅ |
 | 4 | [x] | Created entities/cart (types + API), features/cart (hooks + CartItemRow), widgets/CartDrawer (Sheet + CartIconButton); Navbar updated with cart icon badge; ProductDetail updated with quantity stepper + Add to Cart button; tsc ✅ build ✅ |
 | 5 | [x] | Created features/checkout (API + types), pages/checkout/CheckoutPage with cart summary + loyalty points + notes + total breakdown; added cancelOrder to profile API; Cancel button on PENDING orders in profile; Order.status typed union; tsc ✅ build ✅ |
-| 6 | [ ] | |
+| 6 | [x] | Created features/payment (initiatePayment + getPaymentStatus); views/payment/return/PaymentReturnPage with 30s polling, completed/pending/refunded/error states; updated CheckoutPage to call initiatePayment after checkout → redirect to provider; renamed FSD pages/ layer to views/ (avoids Next.js Pages Router conflict); tsc ✅ build ✅ |
 | 7 | [ ] | |
 | 8 | [ ] | |
 
