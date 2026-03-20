@@ -29,18 +29,18 @@ import { toast } from "sonner";
 import LoyaltyDashboard from "@/widgets/loyalty-dashboard/LoyaltyDashboard";
 
 /* ── Order status steps ────────────────────────────────────────── */
-const ORDER_STEPS = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"] as const;
+const ORDER_STEPS = ["PENDING", "PAID", "SHIPPED", "DELIVERED"] as const;
 
 const STEP_ICONS = {
   PENDING: Clock,
-  CONFIRMED: Check,
+  PAID: Check,
   SHIPPED: Truck,
   DELIVERED: CircleCheckBig,
 } as const;
 
 const STEP_KEYS = {
   PENDING: "orderPlaced",
-  CONFIRMED: "orderConfirmed",
+  PAID: "orderConfirmed",
   SHIPPED: "orderShipped",
   DELIVERED: "orderDelivered",
 } as const;
@@ -276,7 +276,7 @@ export default function ProfilePage() {
   const points = loyalty?.points ?? 0;
 
   const avatarRing =
-    user?.role === "MANAGER" || user?.role === "SYSTEM"
+    user?.role === "MANAGER" || user?.role === "ADMIN"
       ? "ring-purple-400"
       : "ring-primary/30";
 

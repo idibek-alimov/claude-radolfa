@@ -1,24 +1,13 @@
-// AUTO-GENERATED FROM BACKEND - DO NOT EDIT
-//
-// Source: tj.radolfa.infrastructure.web.dto.SyncResultDto  (record)
-// Re-run `/bridge` after any change to the Java source.
-//
-// ── Type-mapping key ─────────────────────────────────────────────
-//   Java int  → number   (primitive; never null)
-// ─────────────────────────────────────────────────────────────────
-
 /**
- * Response body of `POST /api/v1/sync/products`.
- *
- * This is a system-level DTO consumed only by internal tooling or
- * admin dashboards — not by the public storefront.  Placed in
- * {@code shared/api} because it is not scoped to a single entity slice.
- *
- * Source: tj.radolfa.infrastructure.web.dto.SyncResultDto
- *   int  synced → number   – count of products successfully upserted
- *   int  errors → number   – count of snapshots that failed (logged, non-fatal)
+ * Generic Spring Page wrapper returned by all paginated endpoints.
+ * Backend is 0-based; frontend converts before sending (page - 1).
  */
-export interface SyncResult {
-  synced: number;
-  errors: number;
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;   // 0-based current page
+  size: number;
+  first: boolean;
+  last: boolean;
 }

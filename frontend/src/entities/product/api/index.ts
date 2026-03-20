@@ -1,7 +1,7 @@
 import { apiClient } from "@/shared/api";
+import type { PaginatedResponse } from "@/shared/api/types";
 import type {
   ListingVariantDetail,
-  PaginatedListings,
   ListingVariant,
   HomeSection,
   CollectionPage,
@@ -18,14 +18,14 @@ export interface ImageUploadResponse {
   images: string[];
 }
 
-/** Paginated listing grid (colour cards). */
+/** Paginated listing grid (colour cards). Backend is 0-based. */
 export async function fetchListings(
   page: number = 1,
-  limit: number = 12
-): Promise<PaginatedListings> {
-  const { data } = await apiClient.get<PaginatedListings>(
+  size: number = 12
+): Promise<PaginatedResponse<ListingVariant>> {
+  const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     "/api/v1/listings",
-    { params: { page, limit } }
+    { params: { page: page - 1, size } }
   );
   return data;
 }
@@ -44,11 +44,11 @@ export async function fetchListingBySlug(
 export async function searchListings(
   q: string,
   page: number = 1,
-  limit: number = 12
-): Promise<PaginatedListings> {
-  const { data } = await apiClient.get<PaginatedListings>(
+  size: number = 12
+): Promise<PaginatedResponse<ListingVariant>> {
+  const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     "/api/v1/listings/search",
-    { params: { q, page, limit } }
+    { params: { q, page: page - 1, size } }
   );
   return data;
 }
@@ -67,21 +67,18 @@ export async function fetchAutocomplete(
 
 /** Homepage collection sections (Featured, New Arrivals, Deals). */
 export async function fetchHomeCollections(): Promise<HomeSection[]> {
-  const { data } = await apiClient.get<HomeSection[]>(
+  const { data } = await apiClient.get<{ sections: HomeSection[] }>(
     "/api/v1/home/collections"
   );
-  return data;
+  return data.sections;
 }
 
-/** Paginated collection page (e.g. "View All" for New Arrivals). */
+/** Single collection page — returns all items (no server-side pagination). */
 export async function fetchCollectionPage(
-  key: string,
-  page: number = 1,
-  limit: number = 12
+  key: string
 ): Promise<CollectionPage> {
   const { data } = await apiClient.get<CollectionPage>(
-    `/api/v1/home/collections/${key}`,
-    { params: { page, limit } }
+    `/api/v1/home/collections/${key}`
   );
   return data;
 }
@@ -94,7 +91,7 @@ export async function updateListing(
   await apiClient.put(`/api/v1/listings/${slug}`, data);
 }
 
-/** Upload an image to a listing (manager only). */
+/** Upload images to a listing (manager only). Field name must be "files". */
 export async function uploadListingImage(
   slug: string,
   file: File
@@ -103,7 +100,7 @@ export async function uploadListingImage(
     throw new Error("File must be an image");
   }
   const form = new FormData();
-  form.append("image", file);
+  form.append("files", file);
   await apiClient.post(`/api/v1/listings/${slug}/images`, form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
@@ -113,11 +110,11 @@ export async function uploadListingImage(
 export async function fetchCategoryProducts(
   slug: string,
   page: number = 1,
-  limit: number = 12,
-): Promise<PaginatedListings> {
-  const { data } = await apiClient.get<PaginatedListings>(
+  size: number = 12,
+): Promise<PaginatedResponse<ListingVariant>> {
+  const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     `/api/v1/categories/${slug}/products`,
-    { params: { page, limit } },
+    { params: { page: page - 1, size } },
   );
   return data;
 }
@@ -133,8 +130,7 @@ export async function removeListingImage(
   slug: string,
   imageUrl: string
 ): Promise<void> {
-  // DELETE with body is tricky in some clients/proxies, but axios supports it via `data` config.
   await apiClient.delete(`/api/v1/listings/${slug}/images`, {
-    data: { url: imageUrl },
+    data: { imageUrl },
   });
 }

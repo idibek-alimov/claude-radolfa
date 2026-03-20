@@ -37,12 +37,12 @@ export default function CategoryProductsPage({
       fetchCategoryProducts(slug, pageParam, PAGE_LIMIT),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasMore) return undefined;
+      if (lastPage.last) return undefined;
       return allPages.length + 1;
     },
   });
 
-  const listings = data?.pages.flatMap((p) => p.items) ?? [];
+  const listings = data?.pages.flatMap((p) => p.content) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
   const title = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 

@@ -1,2 +1,2 @@
 export { default as apiClient } from "./axios";
-export type { SyncResult } from "./types";
+export type { PaginatedResponse } from "./types";

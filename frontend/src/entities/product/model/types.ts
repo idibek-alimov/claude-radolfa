@@ -1,62 +1,40 @@
-// ── Storefront types – 3-Tier Product Hierarchy ─────────────────
-//
-// These interfaces mirror the backend DTOs exposed by ListingController:
-//   ListingVariantDto, ListingVariantDetailDto, SkuDto
-//
-// The Admin panel uses a separate Product type in features/products/types.ts.
+import type { PaginatedResponse } from "@/shared/api/types";
 
 /**
  * A purchasable unit — one size of one colour variant.
  * Displayed on the product detail page as a size selector.
  */
 export interface Sku {
-  id: number;
-  erpItemCode: string;
+  skuId: number;
+  skuCode: string;
   sizeLabel: string;
   stockQuantity: number;
-  originalPrice: number;
-  discountedPrice: number | null;
-  loyaltyPrice: number | null;
-  discountPercentage: number | null;
-  loyaltyDiscountPercentage: number | null;
-  saleTitle: string | null;
-  saleColorHex: string | null;
-  onSale: boolean;
-  discountedEndsAt: string | null;
+  price: number;
 }
 
 /**
  * Product card shown on the grid/listing page.
  * One card per colour variant (e.g. "T-Shirt — Red").
- *
- * Aggregate pricing fields (originalPrice, discountedPrice, etc.) and
- * totalStock are computed server-side from the variant's SKUs.
  */
 export interface ListingVariant {
-  id: number;
+  variantId: number;
+  productCode: string;
   slug: string;
-  name: string;
-  category: string | null;
   colorKey: string;
-  colorHexCode: string | null;
-  webDescription: string | null;
-  images: string[];
-  originalPrice: number;
-  discountedPrice: number | null;
-  loyaltyPrice: number | null;
-  discountPercentage: number | null;
-  loyaltyDiscountPercentage: number | null;
-  saleTitle: string | null;
-  saleColorHex: string | null;
-  totalStock: number;
+  colorDisplayName: string;
+  colorHex: string | null;
+  categoryName: string | null;
   topSelling: boolean;
   featured: boolean;
-  productCode: string | null;
+  images: string[];
+  minPrice: number;
+  maxPrice: number;
+  tierDiscountedMinPrice: number | null;
+  skus: Sku[];
 }
 
 /**
  * A single product attribute shown on the detail page.
- * Examples: key="Material" value="Organic Wool", key="Fit" value="Oversized".
  */
 export interface Attribute {
   key: string;
@@ -64,55 +42,34 @@ export interface Attribute {
 }
 
 /**
- * Lightweight reference to another colour of the same product.
- * Enables frontend colour swatches without a second API call.
- */
-export interface SiblingVariant {
-  slug: string;
-  colorKey: string;
-  colorHexCode: string | null;
-  thumbnail: string | null;
-}
-
-/**
  * Full detail view for a single listing variant.
- * Includes the SKU list (sizes/prices) and sibling colour swatches.
  */
 export interface ListingVariantDetail extends ListingVariant {
+  productBaseId: number;
+  categoryId: number | null;
+  webDescription: string | null;
   attributes: Attribute[];
-  skus: Sku[];
-  siblingVariants: SiblingVariant[];
 }
 
-/**
- * Paginated response returned by the listings API.
- * Mirrors backend `PageResult<ListingVariantDto>`.
- */
-export interface PaginatedListings {
-  items: ListingVariant[];
-  totalElements: number;
-  page: number;
-  hasMore: boolean;
-}
+/** Paginated response for listings — alias of the shared generic. */
+export type PaginatedListings = PaginatedResponse<ListingVariant>;
 
 /**
  * A single homepage collection row (e.g. "Featured", "New Arrivals").
- * Mirrors backend `HomeSectionDto`.
  */
 export interface HomeSection {
   key: string;
   title: string;
-  items: ListingVariant[];
+  listings: ListingVariant[];
 }
 
 /**
- * Paginated response for a single collection's "View All" page.
- * Mirrors backend `CollectionPageDto`.
+ * Single collection page — returns all items (not paginated server-side).
  */
 export interface CollectionPage {
   key: string;
   title: string;
-  page: PaginatedListings;
+  listings: ListingVariant[];
 }
 
 /**
@@ -122,6 +79,7 @@ export interface CategoryTree {
   id: number;
   name: string;
   slug: string;
+  parentId: number | null;
   children: CategoryTree[];
 }
 

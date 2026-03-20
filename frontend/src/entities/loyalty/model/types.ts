@@ -1,5 +1,5 @@
 /**
- * Loyalty tier definition synced from ERPNext.
+ * Loyalty tier definition.
  * Returned by GET /api/v1/loyalty-tiers.
  */
 export interface LoyaltyTier {
@@ -15,8 +15,19 @@ export interface LoyaltyTier {
 }
 
 /**
+ * A single loyalty point earning record.
+ * Embedded in LoyaltyProfile.recentEarnings[].
+ */
+export interface LoyaltyEarning {
+  orderId: number;
+  pointsEarned: number;
+  orderAmount: number;
+  orderedAt: string;  // ISO-8601
+}
+
+/**
  * User's loyalty profile, nested inside the User object.
- * Returned as part of GET /api/v1/auth/me.
+ * Returned as part of GET /api/v1/users/me.
  */
 export interface LoyaltyProfile {
   points: number;
@@ -24,4 +35,5 @@ export interface LoyaltyProfile {
   spendToNextTier: number | null;
   spendToMaintainTier: number | null;
   currentMonthSpending: number | null;
+  recentEarnings: LoyaltyEarning[];
 }

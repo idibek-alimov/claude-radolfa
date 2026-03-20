@@ -19,8 +19,8 @@ function chunk<T>(arr: T[], size: number): T[][] {
 function getDominantCategory(items: ListingVariant[]): string | null {
   const counts: Record<string, number> = {};
   for (const item of items) {
-    if (item.category) {
-      counts[item.category] = (counts[item.category] || 0) + 1;
+    if (item.categoryName) {
+      counts[item.categoryName] = (counts[item.categoryName] || 0) + 1;
     }
   }
   let max = 0;

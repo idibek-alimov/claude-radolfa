@@ -11,11 +11,11 @@ import { useAuth } from "@/features/auth";
 import { fetchUsers, toggleUserStatus } from "../api";
 import type { UserDto } from "../types";
 
-const ROLE_RANK: Record<string, number> = { USER: 0, MANAGER: 1, SYSTEM: 2 };
+const ROLE_RANK: Record<string, number> = { USER: 0, MANAGER: 1, ADMIN: 2 };
 
 function canToggleStatus(callerRole: string, callerId: number | null, target: UserDto): boolean {
   if (callerId === target.id) return false;
-  if (target.role === "SYSTEM") return false;
+  if (target.role === "ADMIN") return false;
   return (ROLE_RANK[callerRole] ?? 0) > (ROLE_RANK[target.role] ?? 0);
 }
 import {
@@ -60,7 +60,7 @@ export function UserManagementTable() {
     placeholderData: keepPreviousData,
   });
 
-  const users = data?.items ?? [];
+  const users = data?.content ?? [];
 
   const toggleMutation = useMutation({
     mutationFn: toggleUserStatus,
@@ -85,7 +85,7 @@ export function UserManagementTable() {
     switch (role) {
       case "MANAGER":
         return "default" as const;
-      case "SYSTEM":
+      case "ADMIN":
         return "destructive" as const;
       default:
         return "secondary" as const;
@@ -212,7 +212,7 @@ export function UserManagementTable() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!data.hasMore}
+              disabled={data.last}
               onClick={() => setPage((p) => p + 1)}
             >
               <ChevronRight className="h-4 w-4" />

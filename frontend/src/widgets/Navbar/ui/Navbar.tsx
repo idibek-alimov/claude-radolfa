@@ -68,7 +68,7 @@ function UserAvatar({
     : phone.slice(-2);
 
   const ringColor =
-    role === "MANAGER" || role === "SYSTEM"
+    role === "MANAGER" || role === "ADMIN"
       ? "ring-purple-400"
       : "ring-primary/30";
 
@@ -237,7 +237,7 @@ function DesktopAuth() {
               {t("myProfile")}
             </Link>
           </DropdownMenuItem>
-          {(user.role === "MANAGER" || user.role === "SYSTEM") && (
+          {(user.role === "MANAGER" || user.role === "ADMIN") && (
             <DropdownMenuItem asChild className="py-3 cursor-pointer">
               <Link href="/manage">
                 <Settings className="mr-2 h-4 w-4" />
@@ -353,7 +353,7 @@ function MobileMenu() {
             {/* Categories accordion */}
             <MegaMenuMobile />
 
-            {(user?.role === "MANAGER" || user?.role === "SYSTEM") && (
+            {(user?.role === "MANAGER" || user?.role === "ADMIN") && (
               <SheetClose asChild>
                 <Link
                   href="/manage"

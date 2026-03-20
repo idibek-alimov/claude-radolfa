@@ -130,7 +130,7 @@ function ProductManagement() {
     placeholderData: keepPreviousData,
   });
 
-  const listings = data?.items ?? [];
+  const listings = data?.content ?? [];
 
   // ── Dialog State ────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -198,7 +198,7 @@ function ProductManagement() {
     setSaveError("");
     setEditingProduct(product);
     setFormData({
-      webDescription: product.webDescription || "",
+      webDescription: "",
       topSelling: product.topSelling || false,
       featured: product.featured || false,
     });
@@ -209,6 +209,10 @@ function ProductManagement() {
     try {
       const d = await fetchListingBySlug(product.slug);
       setDetail(d);
+      setFormData((prev) => ({
+        ...prev,
+        webDescription: d.webDescription ?? "",
+      }));
     } catch {
       // Non-critical
     } finally {
@@ -252,8 +256,11 @@ function ProductManagement() {
   };
 
   const displayPrice = (item: ListingVariant) => {
-    const price = item.discountedPrice ?? item.originalPrice;
-    return `${price.toFixed(2)} TJS`;
+    return `${item.minPrice.toFixed(2)} TJS`;
+  };
+
+  const computeStock = (item: ListingVariant) => {
+    return item.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
   };
 
   return (
@@ -292,13 +299,13 @@ function ProductManagement() {
             </TableHeader>
             <TableBody>
               {listings.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.variantId}>
                   <TableCell className="pl-4">
                     {item.images?.[0] ? (
                       <div className="relative h-10 w-10 rounded-md border overflow-hidden">
                         <Image
                           src={item.images[0]}
-                          alt={item.name}
+                          alt={item.colorDisplayName}
                           width={40}
                           height={40}
                           className="object-cover aspect-square"
@@ -314,10 +321,10 @@ function ProductManagement() {
                   <TableCell>
                     <div>
                       <p className="font-medium text-sm">
-                        {item.name}
+                        {item.colorDisplayName}
                       </p>
                       <p className="text-xs text-muted-foreground truncate max-w-xs">
-                        {item.webDescription}
+                        {item.productCode}
                       </p>
                     </div>
                   </TableCell>
@@ -337,7 +344,7 @@ function ProductManagement() {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Lock className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{item.totalStock}</span>
+                      <span className="text-sm">{computeStock(item)}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -396,7 +403,7 @@ function ProductManagement() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!data.hasMore}
+              disabled={data.last}
               onClick={() => setPage((p) => p + 1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -421,7 +428,7 @@ function ProductManagement() {
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <Lock className="h-3 w-3" />
-                  {t("erpSyncedData")}
+                  Catalog Data
                 </p>
                 <div className="space-y-2">
                   <div className="space-y-1">
@@ -436,7 +443,7 @@ function ProductManagement() {
                     <label className="text-xs text-muted-foreground">{t("nameAndColor")}</label>
                     <Input
                       disabled
-                      value={`${editingProduct.name} — ${editingProduct.colorKey}`}
+                      value={`${editingProduct.colorDisplayName} — ${editingProduct.colorKey}`}
                       className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
                     />
                   </div>
@@ -453,7 +460,7 @@ function ProductManagement() {
                       <label className="text-xs text-muted-foreground">{t("stock")}</label>
                       <Input
                         disabled
-                        value={String(editingProduct.totalStock)}
+                        value={String(computeStock(editingProduct))}
                         className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
                       />
                     </div>
@@ -480,22 +487,14 @@ function ProductManagement() {
                         <tr className="border-b bg-muted/50">
                           <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("size")}</th>
                           <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("price")}</th>
-                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("sale")}</th>
                           <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("stock")}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {detail.skus.map((sku) => (
-                          <tr key={sku.id} className="border-b last:border-0">
+                          <tr key={sku.skuId} className="border-b last:border-0">
                             <td className="px-3 py-1.5 font-medium">{sku.sizeLabel}</td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.originalPrice.toFixed(2)} TJS</td>
-                            <td className="px-3 py-1.5 text-right">
-                              {sku.onSale && sku.discountedPrice != null ? (
-                                <span className="text-green-600 font-medium">{sku.discountedPrice.toFixed(2)} TJS</span>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </td>
+                            <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.price.toFixed(2)} TJS</td>
                             <td className={`px-3 py-1.5 text-right font-medium ${sku.stockQuantity === 0 ? "text-destructive" : ""}`}>
                               {sku.stockQuantity}
                             </td>

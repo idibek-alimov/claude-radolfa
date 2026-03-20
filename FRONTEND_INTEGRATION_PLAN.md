@@ -16,8 +16,8 @@
 
 | Phase | Status | Summary |
 |-------|--------|---------|
-| 0 | [ ] | |
-| 1 | [ ] | |
+| 0 | [x] | Next.js 15, React 19, ESLint 9 upgraded; Turbopack enabled; async cookies() and useRef initial-value fixes applied; build ✅ |
+| 1 | [x] | All type contracts updated (Sku, ListingVariant, roles, auth, pagination); API functions migrated to new field names; all UI consumers fixed; tsc ✅ build ✅ |
 | 2 | [ ] | |
 | 3 | [ ] | |
 | 4 | [ ] | |

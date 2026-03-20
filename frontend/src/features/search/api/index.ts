@@ -11,7 +11,7 @@ export async function searchProducts(
   const result = await searchListings(
     params.query,
     params.page ?? 1,
-    params.limit ?? 12
+    params.size ?? 12
   );
   return result;
 }

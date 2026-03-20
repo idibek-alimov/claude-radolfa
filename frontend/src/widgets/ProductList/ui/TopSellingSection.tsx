@@ -11,7 +11,7 @@ export default function TopSellingSection() {
     queryFn: () => fetchListings(1, 4),
   });
 
-  const listings = data?.items ?? [];
+  const listings = data?.content ?? [];
 
   return (
     <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-14">

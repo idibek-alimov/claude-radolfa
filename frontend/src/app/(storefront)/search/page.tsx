@@ -54,13 +54,13 @@ function SearchContent() {
       searchListings(query, pageParam, PAGE_LIMIT),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasMore) return undefined;
+      if (lastPage.last) return undefined;
       return allPages.length + 1;
     },
     enabled: query.length > 0,
   });
 
-  const listings = data?.pages.flatMap((p) => p.items) ?? [];
+  const listings = data?.pages.flatMap((p) => p.content) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
 
   // When a product code query returns exactly one result, navigate directly to its detail page.

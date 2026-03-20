@@ -140,34 +140,11 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [lightboxOpen, nextImage, prevImage]);
 
-  /* ── Stable colour swatches (fixed order) ────────────────────── */
-
-  const allSwatches = useMemo(() => {
-    if (!listing) return [];
-    const current = {
-      slug: listing.slug,
-      colorKey: listing.colorKey,
-      colorHexCode: listing.colorHexCode,
-      thumbnail: listing.images[0] ?? "",
-      isCurrent: true,
-    };
-    const siblings = (listing.siblingVariants ?? []).map((s) => ({
-      slug: s.slug,
-      colorKey: s.colorKey,
-      colorHexCode: s.colorHexCode,
-      thumbnail: s.thumbnail,
-      isCurrent: false,
-    }));
-    return [current, ...siblings].sort((a, b) =>
-      a.colorKey.localeCompare(b.colorKey),
-    );
-  }, [listing]);
-
   /* ── Related products (exclude current) ─────────────────────── */
 
   const relatedProducts = useMemo(() => {
     if (!relatedData) return [];
-    return relatedData.items.filter((item) => item.slug !== slug).slice(0, 4);
+    return relatedData.content.filter((item) => item.slug !== slug).slice(0, 4);
   }, [relatedData, slug]);
 
   /* ── Loading / Error ─────────────────────────────────────────── */
@@ -183,23 +160,15 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
 
   /* ── Price computation ──────────────────────────────────────── */
 
-  const sku = selectedSku;
-  const original = sku ? sku.originalPrice : listing.originalPrice;
-  const discounted = sku ? sku.discountedPrice : listing.discountedPrice;
-  const loyalty = sku ? sku.loyaltyPrice : listing.loyaltyPrice;
-  const currentPrice = discounted ?? original;
-  const discPct = sku ? sku.discountPercentage : listing.discountPercentage;
-  const loyaltyPct = sku
-    ? sku.loyaltyDiscountPercentage
-    : listing.loyaltyDiscountPercentage;
-  const saleTitle = sku ? sku.saleTitle : listing.saleTitle;
-  const saleColor = sku ? sku.saleColorHex : listing.saleColorHex;
-  const hasDiscount = discounted != null;
-  const currentStock = selectedSku
-    ? selectedSku.stockQuantity
-    : listing.totalStock;
+  const skuPrice = selectedSku?.price ?? null;
+  const displayPrice = skuPrice ?? listing.minPrice;
+  const hasTierPrice = listing.tierDiscountedMinPrice != null;
+  const totalStock = listing.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
+  const currentStock = selectedSku ? selectedSku.stockQuantity : totalStock;
 
   /* ── Render ──────────────────────────────────────────────────── */
+
+  const productName = listing.colorDisplayName ?? listing.productCode ?? slug;
 
   return (
     <motion.div
@@ -222,13 +191,13 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               <Link href="/products">{t("products")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {listing.category && (
+          {listing.categoryName && (
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href={`/products?category=${listing.category}`}>
-                    {listing.category}
+                  <Link href={`/products?category=${listing.categoryName}`}>
+                    {listing.categoryName}
                   </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -237,7 +206,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className="line-clamp-1">
-              {listing.name ?? slug}
+              {productName}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -246,8 +215,6 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
         {/* ══════════════════════════════════════════════════════════
             LEFT — Image gallery
-            Desktop: vertical thumbs + main image (7 cols)
-            Mobile: full-width swipeable carousel
            ══════════════════════════════════════════════════════════ */}
         <div className="lg:col-span-7">
           <div className="flex gap-3">
@@ -267,7 +234,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                   >
                     <Image
                       src={url}
-                      alt={`${listing.name ?? "Product"} — thumbnail ${idx + 1}`}
+                      alt={`${productName} — thumbnail ${idx + 1}`}
                       fill
                       className="object-cover"
                       unoptimized
@@ -294,7 +261,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                     >
                       <Image
                         src={url}
-                        alt={`${listing.name ?? "Product"} — image ${idx + 1}`}
+                        alt={`${productName} — image ${idx + 1}`}
                         fill
                         className="object-cover"
                         unoptimized
@@ -309,35 +276,12 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                   </div>
                 )}
 
-                {/* Top-left: Sale badge */}
-                {saleTitle && (
-                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
-                    <span
-                      className="inline-flex items-center rounded-md px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide text-white shadow-md"
-                      style={{
-                        backgroundColor: saleColor ?? "#d946ef",
-                      }}
-                    >
-                      {saleTitle}
-                    </span>
-                  </div>
-                )}
-
-                {/* Top-right: Discount badge */}
-                {discPct != null && (
+                {/* Tier price badge on image */}
+                {hasTierPrice && (
                   <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
-                    <span className="inline-flex items-center rounded-full bg-red-500 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-white shadow-md">
-                      -{discPct}%
-                    </span>
-                  </div>
-                )}
-
-                {/* Bottom badges: loyalty % */}
-                {loyalty != null && loyaltyPct != null && (
-                  <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 z-10">
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-md">
                       <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                      -{loyaltyPct}%
+                      {tc("yourPrice")}
                     </span>
                   </div>
                 )}
@@ -390,7 +334,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                     >
                       <Image
                         src={url}
-                        alt={`${listing.name ?? "Product"} — thumbnail ${idx + 1}`}
+                        alt={`${productName} — thumbnail ${idx + 1}`}
                         fill
                         className="object-cover"
                         unoptimized
@@ -408,19 +352,19 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
            ══════════════════════════════════════════════════════════ */}
         <div className="lg:col-span-5 space-y-5">
           {/* Category / Brand line */}
-          {listing.category && (
+          {listing.categoryName && (
             <Link
-              href={`/products?category=${listing.category}`}
+              href={`/products?category=${listing.categoryName}`}
               className="text-sm text-primary hover:underline font-medium"
             >
-              {listing.category}
+              {listing.categoryName}
             </Link>
           )}
 
           {/* Product name + badges */}
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold text-foreground leading-snug">
-              {listing.name ?? "—"}
+              {productName}
             </h1>
 
             {/* Status badges */}
@@ -448,137 +392,60 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             )}
           </div>
 
-          {/* ── Price block — matches ProductCard styling ─────────── */}
+          {/* ── Price block ───────────────────────────────────────── */}
           <div className="bg-muted/40 rounded-xl px-3 py-3 sm:p-4 space-y-1.5 sm:space-y-2">
-            {loyalty != null ? (
+            {hasTierPrice ? (
               <>
-                {/* Loyalty user: loyalty price is the hero */}
+                {/* Tier user: tier price is hero */}
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
                   <span className="text-2xl sm:text-[2rem] font-bold text-amber-600">
-                    {formatPrice(loyalty)}
+                    {formatPrice(listing.tierDiscountedMinPrice!)}
                   </span>
                   <span className="text-xs sm:text-sm font-medium text-amber-600/70">
                     {tc("yourPrice")}
                   </span>
-                  {loyaltyPct != null && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white">
-                      <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                      -{loyaltyPct}%
-                    </span>
-                  )}
                 </div>
-                {/* Smaller line: discounted + original crossed out */}
                 <div className="flex items-baseline gap-1.5 sm:gap-2">
-                  {hasDiscount && (
-                    <span className="text-xs sm:text-sm font-semibold text-red-500">
-                      {formatPrice(discounted)}
-                    </span>
-                  )}
                   <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                    {formatPrice(original)}
+                    {formatPrice(displayPrice)}
                   </span>
-                  {discPct != null && (
-                    <span className="inline-flex items-center rounded-full bg-red-500 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white">
-                      -{discPct}%
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : hasDiscount ? (
-              <>
-                {/* Discount only: discounted price is the hero */}
-                <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
-                  <span className="text-2xl sm:text-[2rem] font-bold text-red-600">
-                    {formatPrice(currentPrice)}
-                  </span>
-                  <span className="text-sm sm:text-base text-muted-foreground line-through">
-                    {formatPrice(original)}
-                  </span>
-                  {discPct != null && (
-                    <span className="inline-flex items-center rounded-full bg-red-500 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white">
-                      -{discPct}%
+                  {listing.minPrice !== listing.maxPrice && !selectedSku && (
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      — {formatPrice(listing.maxPrice)}
                     </span>
                   )}
                 </div>
               </>
             ) : (
-              /* No discount, no loyalty: just original */
-              <span className="text-2xl sm:text-[2rem] font-bold text-violet-600">
-                {formatPrice(original)}
-              </span>
+              /* No tier: show selected SKU price or min price */
+              <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                <span className="text-2xl sm:text-[2rem] font-bold text-violet-600">
+                  {formatPrice(displayPrice)}
+                </span>
+                {listing.minPrice !== listing.maxPrice && !selectedSku && (
+                  <span className="text-sm sm:text-base text-muted-foreground">
+                    — {formatPrice(listing.maxPrice)}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
-          {/* ── Colour swatches ──────────────────────────────────── */}
-          {allSwatches.length > 1 && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">
-                {t("availableColours")}:{" "}
-                <span className="text-foreground font-medium">
-                  {listing.colorKey}
-                </span>
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {allSwatches.map((swatch) => {
-                  const thumb = swatch.thumbnail ? (
-                    <Image
-                      src={swatch.thumbnail}
-                      alt={swatch.colorKey}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : swatch.colorHexCode ? (
-                    <div
-                      className="w-full h-full"
-                      style={{ backgroundColor: swatch.colorHexCode }}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center text-[10px]">
-                      {swatch.colorKey.slice(0, 3)}
-                    </div>
-                  );
-
-                  const wrapper = (
-                    <div
-                      key={swatch.slug}
-                      className={`relative w-11 h-11 rounded-full overflow-hidden border-2 transition-all ${
-                        swatch.isCurrent
-                          ? "border-primary ring-2 ring-primary/20"
-                          : "border-muted hover:border-muted-foreground/50"
-                      }`}
-                    >
-                      {thumb}
-                    </div>
-                  );
-
-                  if (swatch.isCurrent) return wrapper;
-
-                  return (
-                    <Link key={swatch.slug} href={`/products/${swatch.slug}`}>
-                      {wrapper}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Single-colour display */}
-          {allSwatches.length <= 1 && listing.colorKey && (
+          {/* ── Colour display ────────────────────────────────────── */}
+          {listing.colorKey && (
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">
                 {t("color")}:
               </p>
-              {listing.colorHexCode && (
+              {listing.colorHex && (
                 <span
                   className="w-5 h-5 rounded-full border border-muted-foreground/20 inline-block"
-                  style={{ backgroundColor: listing.colorHexCode }}
+                  style={{ backgroundColor: listing.colorHex }}
                 />
               )}
               <span className="text-sm font-medium text-foreground">
-                {listing.colorKey}
+                {listing.colorDisplayName ?? listing.colorKey}
               </span>
             </div>
           )}
@@ -592,11 +459,11 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               <div className="flex gap-2 flex-wrap">
                 {listing.skus.map((skuItem) => {
                   const isOutOfStock = skuItem.stockQuantity === 0;
-                  const isSelected = selectedSku?.id === skuItem.id;
+                  const isSelected = selectedSku?.skuId === skuItem.skuId;
 
                   return (
                     <button
-                      key={skuItem.id}
+                      key={skuItem.skuId}
                       onClick={() =>
                         !isOutOfStock &&
                         setSelectedSku(isSelected ? null : skuItem)
@@ -637,7 +504,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             )}
           </div>
 
-          {/* ── Артикул (product code) ────────────────────────────── */}
+          {/* ── Product code ─────────────────────────────────────── */}
           {listing.productCode && (
             <div className="flex items-center gap-2 py-2 px-2 rounded bg-muted/30 text-sm">
               <span className="text-muted-foreground min-w-[120px] shrink-0">
@@ -778,7 +645,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             [&>button]:text-white [&>button]:opacity-100 [&>button>svg]:h-6 [&>button>svg]:w-6"
         >
           <DialogTitle className="sr-only">
-            {listing.name} — Image {selectedImageIdx + 1} of {imageCount}
+            {productName} — Image {selectedImageIdx + 1} of {imageCount}
           </DialogTitle>
 
           <div
@@ -822,7 +689,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                   >
                     <Image
                       src={url}
-                      alt={`${listing.name} — image ${idx + 1}`}
+                      alt={`${productName} — image ${idx + 1}`}
                       fill
                       className="object-contain"
                       unoptimized

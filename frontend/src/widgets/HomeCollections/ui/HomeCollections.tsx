@@ -79,7 +79,7 @@ function CollectionRow({ section }: { section: HomeSection }) {
         viewport={{ once: true, margin: "-50px" }}
         className="hidden md:grid md:grid-cols-4 gap-5"
       >
-        {section.items.slice(0, 8).map((item) => (
+        {section.listings.slice(0, 8).map((item) => (
           <motion.div key={item.slug} variants={staggerItem}>
             <ProductCard listing={item} />
           </motion.div>
@@ -94,7 +94,7 @@ function CollectionRow({ section }: { section: HomeSection }) {
         viewport={{ once: true, margin: "-50px" }}
         className="flex md:hidden gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory"
       >
-        {section.items.map((item) => (
+        {section.listings.map((item) => (
           <motion.div
             key={item.slug}
             variants={staggerItem}

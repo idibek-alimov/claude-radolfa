@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ProductGrid } from "@/widgets/ProductList";
 import { fetchCollectionPage } from "@/entities/product";
 import {
@@ -14,8 +14,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb";
 
-const PAGE_LIMIT = 12;
-
 export default function CollectionViewAllPage({
   params,
 }: {
@@ -23,28 +21,13 @@ export default function CollectionViewAllPage({
 }) {
   const { key } = use(params);
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isLoading,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["collection", key],
-    queryFn: async ({ pageParam = 1 }) => {
-      const result = await fetchCollectionPage(key, pageParam, PAGE_LIMIT);
-      return result;
-    },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.page.hasMore) return undefined;
-      return allPages.length + 1;
-    },
+    queryFn: () => fetchCollectionPage(key),
   });
 
-  const title = data?.pages[0]?.title ?? "Collection";
-  const listings = data?.pages.flatMap((p) => p.page.items) ?? [];
-  const totalCount = data?.pages[0]?.page.totalElements ?? 0;
+  const title = data?.title ?? "Collection";
+  const listings = data?.listings ?? [];
 
   return (
     <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -68,18 +51,18 @@ export default function CollectionViewAllPage({
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           {title}
         </h1>
-        {!isLoading && totalCount > 0 && (
+        {!isLoading && listings.length > 0 && (
           <p className="text-sm text-muted-foreground mt-1">
-            {totalCount} products
+            {listings.length} products
           </p>
         )}
       </div>
 
       <ProductGrid
         listings={listings}
-        loading={isLoading || isFetchingNextPage}
-        hasMore={hasNextPage}
-        onLoadMore={fetchNextPage}
+        loading={isLoading}
+        hasMore={false}
+        onLoadMore={undefined}
       />
     </section>
   );

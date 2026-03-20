@@ -5,11 +5,12 @@ export type {
     Sku,
     Attribute,
     ListingVariant,
-    SiblingVariant,
     ListingVariantDetail,
     PaginatedListings,
     HomeSection,
     CollectionPage,
+    CategoryTree,
+    Color,
 } from "./model/types";
 export { default as ProductCard } from "./ui/ProductCard";
 export { default as ProductDetail } from "./ui/ProductDetail";

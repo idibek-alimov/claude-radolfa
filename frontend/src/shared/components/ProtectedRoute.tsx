@@ -6,13 +6,13 @@ import { useEffect } from "react";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: "USER" | "MANAGER" | "SYSTEM";
+    requiredRole?: "USER" | "MANAGER" | "ADMIN";
 }
 
 const ROLE_HIERARCHY: Record<string, number> = {
     USER: 0,
     MANAGER: 1,
-    SYSTEM: 2,
+    ADMIN: 2,
 };
 
 function hasRequiredRole(
