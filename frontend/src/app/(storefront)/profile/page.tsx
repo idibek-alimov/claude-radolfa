@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
-import { getMyOrders, updateProfile } from "@/features/profile/api";
+import { getMyOrders, updateProfile, cancelOrder } from "@/features/profile/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -235,6 +235,7 @@ export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "account";
+  const queryClient = useQueryClient();
 
   const {
     data: orders = [],
@@ -242,6 +243,17 @@ export default function ProfilePage() {
   } = useQuery({
     queryKey: ["my-orders"],
     queryFn: getMyOrders,
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (orderId: number) => cancelOrder(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      toast.success(t("orderCancelled"));
+    },
+    onError: (err: unknown) => {
+      toast.error(t("failedToCancel") + " " + getErrorMessage(err));
+    },
   });
 
   const handleFieldSave = useCallback(
@@ -399,7 +411,7 @@ export default function ProfilePage() {
                         className="border rounded-xl p-4 hover:border-primary/20 transition-colors"
                       >
                         <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm">
                               {t("orderNumber", { id: order.id })}
                             </span>
@@ -419,9 +431,22 @@ export default function ProfilePage() {
                               {order.status}
                             </span>
                           </div>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {order.status === "PENDING" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
+                                disabled={cancelMutation.isPending}
+                                onClick={() => cancelMutation.mutate(order.id)}
+                              >
+                                {cancelMutation.isPending ? t("cancelling") : t("cancelOrder")}
+                              </Button>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
                         </div>
                         <ul className="text-sm text-muted-foreground mb-1 space-y-0.5">
                           {order.items.map((i, idx) => (
