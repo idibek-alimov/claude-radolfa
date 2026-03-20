@@ -1,1 +1,1 @@
-export { fetchColors } from "./api";
+export { fetchColors, updateColor } from "./api";

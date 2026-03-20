@@ -24,7 +24,7 @@
 | 5 | [x] | Created features/checkout (API + types), pages/checkout/CheckoutPage with cart summary + loyalty points + notes + total breakdown; added cancelOrder to profile API; Cancel button on PENDING orders in profile; Order.status typed union; tsc ✅ build ✅ |
 | 6 | [x] | Created features/payment (initiatePayment + getPaymentStatus); views/payment/return/PaymentReturnPage with 30s polling, completed/pending/refunded/error states; updated CheckoutPage to call initiatePayment after checkout → redirect to provider; renamed FSD pages/ layer to views/ (avoids Next.js Pages Router conflict); tsc ✅ build ✅ |
 | 7 | [x] | Created entities/product/api/admin.ts (createProduct, updateSkuPrice, updateSkuStock), entities/color (fetchColors), features/product-creation/CreateProductDialog (2-step: name/category/color + dynamic SKU rows); added "+ New Product" button to admin panel; ADMIN-only inline price (onBlur) and stock (confirm button) editing in SKU table; tsc ✅ build ✅ |
-| 8 | [ ] | |
+| 8 | [x] | Created entities/category (createCategory, deleteCategory), extended entities/color (updateColor), extended features/search/api (reindexSearch); added Categories tab (tree + create form + ADMIN delete with 422 guard), Colors tab (editable display name + hex picker per row), and ADMIN-only Search Tools section (reindex button + result); removed all ERP-era strings from UI and locales; tsc ✅ build ✅ |
 
 ---
 
