@@ -316,7 +316,7 @@ export default function ProfilePage() {
               </div>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                  user?.role === "MANAGER"
+                  user?.role === "MANAGER" || user?.role === "ADMIN"
                     ? "bg-purple-100 text-purple-700"
                     : "bg-blue-100 text-blue-700"
                 }`}

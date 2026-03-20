@@ -18,8 +18,8 @@
 |-------|--------|---------|
 | 0 | [x] | Next.js 15, React 19, ESLint 9 upgraded; Turbopack enabled; async cookies() and useRef initial-value fixes applied; build ✅ |
 | 1 | [x] | All type contracts updated (Sku, ListingVariant, roles, auth, pagination); API functions migrated to new field names; all UI consumers fixed; tsc ✅ build ✅ |
-| 2 | [ ] | |
-| 3 | [ ] | |
+| 2 | [x] | All product display components already updated during Phase 1; zero stale field references confirmed by grep; tsc ✅ |
+| 3 | [x] | Switched useAuth to /users/me; removed stale listings invalidation; ADMIN role badge fixed in profile; recentEarnings section added to LoyaltyDashboard; tsc ✅ build ✅ |
 | 4 | [ ] | |
 | 5 | [ ] | |
 | 6 | [ ] | |

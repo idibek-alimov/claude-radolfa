@@ -39,16 +39,13 @@ export function useAuth(): UseAuthReturn {
 
     async function fetchCurrentUser() {
       try {
-        const { data } = await apiClient.get<User>("/api/v1/auth/me");
+        const { data } = await apiClient.get<User>("/api/v1/users/me");
         if (!cancelled) {
           setAuthState({
             user: data,
             isAuthenticated: true,
             isLoading: false,
           });
-          // Tier prices depend on auth — invalidate cached product listings
-          queryClient.invalidateQueries({ queryKey: ["listings"] });
-          queryClient.invalidateQueries({ queryKey: ["home-collections"] });
         }
       } catch {
         if (!cancelled) {
@@ -86,7 +83,7 @@ export function useAuth(): UseAuthReturn {
 
   const refreshUser = useCallback(async () => {
     try {
-      const { data } = await apiClient.get<User>("/api/v1/auth/me");
+      const { data } = await apiClient.get<User>("/api/v1/users/me");
       setAuthState({ user: data, isAuthenticated: true, isLoading: false });
     } catch {
       // If refresh fails, keep current state

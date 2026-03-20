@@ -208,6 +208,7 @@
     "hideTiers": "Hide",
     "demotionWarning": "Spend {amount} TJS in the next {days} days to keep your tier",
     "sessionExpired": "Your session has expired. Please sign in again.",
+    "recentEarnings": "Recent Earnings",
     "loyaltyHowTitle": "How it works",
     "loyaltyHowEarn": "You earn points automatically with every purchase.",
     "loyaltyHowRedeem": "Points can be used as a discount on future orders."
