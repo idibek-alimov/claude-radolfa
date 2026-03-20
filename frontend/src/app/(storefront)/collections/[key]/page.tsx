@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ProductGrid } from "@/widgets/ProductList";
@@ -18,9 +19,9 @@ const PAGE_LIMIT = 12;
 export default function CollectionViewAllPage({
   params,
 }: {
-  params: { key: string };
+  params: Promise<{ key: string }>;
 }) {
-  const { key } = params;
+  const { key } = use(params);
 
   const {
     data,

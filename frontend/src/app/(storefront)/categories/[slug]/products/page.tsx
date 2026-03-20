@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ProductGrid } from "@/widgets/ProductList";
@@ -19,9 +20,9 @@ const PAGE_LIMIT = 12;
 export default function CategoryProductsPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = use(params);
   const t = useTranslations("common");
 
   const {
