@@ -42,6 +42,7 @@ import {
   AlertDialogCancel,
 } from "@/shared/ui/alert-dialog";
 import { MegaMenu, MegaMenuMobile } from "@/widgets/MegaMenu";
+import { CartIconButton, CartDrawer } from "@/widgets/CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -421,6 +422,7 @@ export default function Navbar() {
           {/* Right — Utilities */}
           <div className="flex items-center gap-2 shrink-0">
             <LanguageSwitcher />
+            <CartIconButton />
             <DesktopAuth />
           </div>
         </div>
@@ -440,6 +442,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-1">
               <LanguageSwitcher />
+              <CartIconButton />
               <MobileMenu />
             </div>
           </div>
@@ -453,6 +456,9 @@ export default function Navbar() {
 
       {/* Desktop: MegaMenu category bar */}
       <MegaMenu />
+
+      {/* Cart drawer — single instance, opened via "cart:open" custom event */}
+      <CartDrawer />
     </nav>
   );
 }

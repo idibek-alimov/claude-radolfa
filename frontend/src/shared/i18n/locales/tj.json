@@ -61,7 +61,12 @@
     "color": "Ранг",
     "itemsLeft": "Танҳо {count} монд",
     "loyaltyPrice": "Бо корти бонусӣ",
-    "aboutProduct": "Дар бораи мол"
+    "aboutProduct": "Дар бораи мол",
+    "quantity": "Миқдор",
+    "addToCart": "Ба сабад илова кунед",
+    "adding": "Илова карда мешавад...",
+    "addedToCart": "Ба сабад илова карда шуд!",
+    "outOfStockError": "Ин мол дастрас нест"
   },
   "auth": {
     "welcomeBack": "Хуш омадед",

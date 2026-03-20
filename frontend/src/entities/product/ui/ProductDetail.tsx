@@ -15,11 +15,17 @@ import {
   Crown,
   Copy,
   Check,
+  Minus,
+  Plus,
+  ShoppingCart,
 } from "lucide-react";
 import { fetchListingBySlug, fetchListings } from "@/entities/product/api";
 import type { Sku } from "@/entities/product";
+import { useAddToCart } from "@/features/cart";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -89,9 +95,12 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
   const tc = useTranslations("common");
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [specsExpanded, setSpecsExpanded] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+
+  const addToCart = useAddToCart();
 
   /* ── Queries ─────────────────────────────────────────────────── */
 
@@ -465,8 +474,10 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                     <button
                       key={skuItem.skuId}
                       onClick={() =>
-                        !isOutOfStock &&
-                        setSelectedSku(isSelected ? null : skuItem)
+                        !isOutOfStock && (
+                        setSelectedSku(isSelected ? null : skuItem),
+                        setQuantity(1)
+                      )
                       }
                       disabled={isOutOfStock}
                       className={`
@@ -503,6 +514,62 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               </span>
             )}
           </div>
+
+          {/* ── Quantity + Add to Cart ────────────────────────────── */}
+          {selectedSku && selectedSku.stockQuantity > 0 && (
+            <div className="space-y-3">
+              {/* Quantity stepper */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">{t("quantity")}</span>
+                <div className="flex items-center rounded-lg border bg-background">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-r-none"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium w-10 text-center">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-l-none"
+                    onClick={() =>
+                      setQuantity((q) => Math.min(selectedSku.stockQuantity, q + 1))
+                    }
+                    disabled={quantity >= selectedSku.stockQuantity}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Add to Cart button */}
+              <Button
+                className="w-full h-11 gap-2"
+                disabled={addToCart.isPending}
+                onClick={() => {
+                  addToCart.mutate(
+                    { skuId: selectedSku.skuId, quantity },
+                    {
+                      onSuccess: () => {
+                        toast.success(t("addedToCart"));
+                        window.dispatchEvent(new CustomEvent("cart:open"));
+                      },
+                      onError: () => {
+                        toast.error(t("outOfStockError"));
+                      },
+                    },
+                  );
+                }}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {addToCart.isPending ? t("adding") : t("addToCart")}
+              </Button>
+            </div>
+          )}
 
           {/* ── Product code ─────────────────────────────────────── */}
           {listing.productCode && (

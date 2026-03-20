@@ -61,7 +61,12 @@
     "color": "Цвет",
     "itemsLeft": "Осталось {count} шт.",
     "loyaltyPrice": "С картой лояльности",
-    "aboutProduct": "О товаре"
+    "aboutProduct": "О товаре",
+    "quantity": "Количество",
+    "addToCart": "Добавить в корзину",
+    "adding": "Добавление...",
+    "addedToCart": "Добавлено в корзину!",
+    "outOfStockError": "Этот товар недоступен"
   },
   "auth": {
     "welcomeBack": "С возвращением",

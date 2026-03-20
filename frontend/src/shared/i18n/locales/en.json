@@ -61,7 +61,12 @@
     "color": "Colour",
     "itemsLeft": "Only {count} left",
     "loyaltyPrice": "With loyalty card",
-    "aboutProduct": "About product"
+    "aboutProduct": "About product",
+    "quantity": "Quantity",
+    "addToCart": "Add to Cart",
+    "adding": "Adding...",
+    "addedToCart": "Added to cart!",
+    "outOfStockError": "This item is out of stock"
   },
   "auth": {
     "welcomeBack": "Welcome back",
