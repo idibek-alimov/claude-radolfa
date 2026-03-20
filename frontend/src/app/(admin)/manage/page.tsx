@@ -20,9 +20,11 @@ import {
   removeListingImage,
   searchListings,
 } from "@/entities/product/api";
+import { updateSkuPrice, updateSkuStock } from "@/entities/product/api/admin";
 import type { ListingVariant, ListingVariantDetail } from "@/entities/product/model/types";
 import { useLoyaltyTiers, updateTierColor } from "@/entities/loyalty";
 import type { LoyaltyTier } from "@/entities/loyalty";
+import { CreateProductDialog } from "@/features/product-creation";
 import {
   Table,
   TableHeader,
@@ -45,7 +47,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users, ChevronLeft, ChevronRight, Award, Check } from "lucide-react";
+import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users, ChevronLeft, ChevronRight, Award, Check, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function ManagePage() {
@@ -104,6 +106,11 @@ export default function ManagePage() {
 function ProductManagement() {
   const t = useTranslations("manage");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+
+  // ── Create dialog state ──────────────────────────────────────────
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // ── Query State ─────────────────────────────────────────────────
   const [page, setPage] = useState(1);
@@ -192,6 +199,72 @@ function ProductManagement() {
     onError: (err: unknown) => toast.error(getErrorMessage(err, t("failedToRemoveImage"))),
   });
 
+  // ── ADMIN: SKU Price / Stock editing ─────────────────────────
+  const [pendingPrices, setPendingPrices] = useState<Record<number, string>>({});
+  const [pendingStocks, setPendingStocks] = useState<Record<number, string>>({});
+
+  const skuPriceMutation = useMutation({
+    mutationFn: ({ skuId, price }: { skuId: number; price: number }) =>
+      updateSkuPrice(skuId, price),
+    onSuccess: (result) => {
+      toast.success(t("priceUpdated"));
+      if (detail) {
+        setDetail({
+          ...detail,
+          skus: detail.skus.map((s) =>
+            s.skuId === result.skuId ? { ...s, price: result.price } : s
+          ),
+        });
+      }
+      setPendingPrices((prev) => {
+        const next = { ...prev };
+        delete next[result.skuId];
+        return next;
+      });
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+    },
+    onError: (err: unknown) => toast.error(getErrorMessage(err)),
+  });
+
+  const skuStockMutation = useMutation({
+    mutationFn: ({ skuId, quantity }: { skuId: number; quantity: number }) =>
+      updateSkuStock(skuId, { quantity }),
+    onSuccess: (result) => {
+      toast.success(t("stockUpdated"));
+      if (detail) {
+        setDetail({
+          ...detail,
+          skus: detail.skus.map((s) =>
+            s.skuId === result.skuId ? { ...s, stockQuantity: result.stockQuantity } : s
+          ),
+        });
+      }
+      setPendingStocks((prev) => {
+        const next = { ...prev };
+        delete next[result.skuId];
+        return next;
+      });
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
+    },
+    onError: (err: unknown) => toast.error(getErrorMessage(err)),
+  });
+
+  const handleSkuPriceBlur = (skuId: number) => {
+    const raw = pendingPrices[skuId];
+    if (raw === undefined) return;
+    const price = parseFloat(raw);
+    if (isNaN(price) || price < 0) return;
+    skuPriceMutation.mutate({ skuId, price });
+  };
+
+  const handleSkuStockSave = (skuId: number) => {
+    const raw = pendingStocks[skuId];
+    if (raw === undefined) return;
+    const quantity = parseInt(raw, 10);
+    if (isNaN(quantity) || quantity < 0) return;
+    skuStockMutation.mutate({ skuId, quantity });
+  };
+
   // ── Handlers ────────────────────────────────────────────────────
 
   const handleOpenDialog = async (product: ListingVariant) => {
@@ -265,15 +338,21 @@ function ProductManagement() {
 
   return (
     <>
-      {/* Search */}
-      <div className="mb-4 relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder={t("searchByName")}
-          className="pl-9"
-        />
+      {/* Toolbar: Search + New Product */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder={t("searchByName")}
+            className="pl-9"
+          />
+        </div>
+        <Button className="gap-1.5" onClick={() => setIsCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          {t("newProduct")}
+        </Button>
       </div>
 
       {/* Product Table */}
@@ -468,11 +547,16 @@ function ProductManagement() {
                 </div>
               </div>
 
-              {/* ── SKU Breakdown (Read-Only) ─────────────────────── */}
+              {/* ── SKU Breakdown ─────────────────────────────────── */}
               <div className="border-t pt-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Lock className="h-3 w-3" />
+                  {!isAdmin && <Lock className="h-3 w-3" />}
                   {t("sizesAndStock")}
+                  {isAdmin && (
+                    <span className="ml-1 text-xs font-normal text-muted-foreground normal-case tracking-normal">
+                      — {t("adminEditable")}
+                    </span>
+                  )}
                 </p>
                 {detailLoading ? (
                   <div className="space-y-1.5">
@@ -486,18 +570,67 @@ function ProductManagement() {
                       <thead>
                         <tr className="border-b bg-muted/50">
                           <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("size")}</th>
-                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("price")}</th>
-                          <th className="text-right px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("stock")}</th>
+                          <th className={`px-3 py-1.5 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>{t("price")}</th>
+                          <th className={`px-3 py-1.5 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>{t("stock")}</th>
+                          {isAdmin && <th className="w-16 px-2 py-1.5" />}
                         </tr>
                       </thead>
                       <tbody>
                         {detail.skus.map((sku) => (
                           <tr key={sku.skuId} className="border-b last:border-0">
                             <td className="px-3 py-1.5 font-medium">{sku.sizeLabel}</td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.price.toFixed(2)} TJS</td>
-                            <td className={`px-3 py-1.5 text-right font-medium ${sku.stockQuantity === 0 ? "text-destructive" : ""}`}>
-                              {sku.stockQuantity}
-                            </td>
+                            {isAdmin ? (
+                              <>
+                                <td className="px-2 py-1.5">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    step={0.01}
+                                    value={pendingPrices[sku.skuId] ?? sku.price.toFixed(2)}
+                                    onChange={(e) =>
+                                      setPendingPrices((prev) => ({ ...prev, [sku.skuId]: e.target.value }))
+                                    }
+                                    onBlur={() => handleSkuPriceBlur(sku.skuId)}
+                                    className="h-7 w-28 text-sm"
+                                  />
+                                </td>
+                                <td className="px-2 py-1.5">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    value={pendingStocks[sku.skuId] ?? sku.stockQuantity}
+                                    onChange={(e) =>
+                                      setPendingStocks((prev) => ({ ...prev, [sku.skuId]: e.target.value }))
+                                    }
+                                    className="h-7 w-20 text-sm"
+                                  />
+                                </td>
+                                <td className="px-2 py-1.5">
+                                  {pendingStocks[sku.skuId] !== undefined && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-xs"
+                                      disabled={skuStockMutation.isPending}
+                                      onClick={() => handleSkuStockSave(sku.skuId)}
+                                    >
+                                      {skuStockMutation.isPending ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <Check className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  )}
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.price.toFixed(2)} TJS</td>
+                                <td className={`px-3 py-1.5 text-right font-medium ${sku.stockQuantity === 0 ? "text-destructive" : ""}`}>
+                                  {sku.stockQuantity}
+                                </td>
+                              </>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -654,6 +787,11 @@ function ProductManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateProductDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+      />
     </>
   );
 }
