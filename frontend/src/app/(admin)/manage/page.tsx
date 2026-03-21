@@ -226,7 +226,7 @@ function ProductManagement() {
             className="pl-9"
           />
         </div>
-        <Button className="gap-1.5" onClick={() => setIsCreateOpen(true)}>
+        <Button className="gap-1.5" onClick={() => router.push("/manage/products/new")}>
           <Plus className="h-4 w-4" />
           {t("newProduct")}
         </Button>
