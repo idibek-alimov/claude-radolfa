@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,11 +16,14 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE u.phone = :phone")
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier LEFT JOIN FETCH u.lowestTierEver WHERE u.phone = :phone")
     Optional<UserEntity> findByPhone(@Param("phone") String phone);
 
-    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE u.id = :id")
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier LEFT JOIN FETCH u.lowestTierEver WHERE u.id = :id")
     Optional<UserEntity> findByIdWithTier(@Param("id") Long id);
+
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier LEFT JOIN FETCH u.lowestTierEver WHERE u.loyaltyPermanent = false")
+    List<UserEntity> findAllNonPermanent();
 
     @Query(value = "SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE " +
             "(:query IS NULL OR :query = '' OR " +

@@ -32,7 +32,9 @@ public record UserDto(
             BigDecimal spendToNextTier,
             BigDecimal spendToMaintainTier,
             BigDecimal currentMonthSpending,
-            List<RecentEarningDto> recentEarnings
+            List<RecentEarningDto> recentEarnings,
+            boolean permanent,
+            String floorTierName
     ) {}
 
     public static UserDto fromDomain(User user) {
@@ -48,8 +50,10 @@ public record UserDto(
                         lp.spendToNextTier(),
                         lp.spendToMaintainTier(),
                         lp.currentMonthSpending(),
-                        recentEarnings.stream().map(RecentEarningDto::from).toList())
-                : new LoyaltyDto(0, null, null, null, null, List.of());
+                        recentEarnings.stream().map(RecentEarningDto::from).toList(),
+                        lp.permanent(),
+                        lp.lowestTierEver() != null ? lp.lowestTierEver().name() : null)
+                : new LoyaltyDto(0, null, null, null, null, List.of(), false, null);
 
         return new UserDto(
                 user.id(),

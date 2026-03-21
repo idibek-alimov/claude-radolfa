@@ -7,9 +7,11 @@ public record LoyaltyProfile(
         int points,
         BigDecimal spendToNextTier,
         BigDecimal spendToMaintainTier,
-        BigDecimal currentMonthSpending
+        BigDecimal currentMonthSpending,
+        boolean permanent,
+        LoyaltyTier lowestTierEver
 ) {
     public static LoyaltyProfile empty() {
-        return new LoyaltyProfile(null, 0, null, null, null);
+        return new LoyaltyProfile(null, 0, null, null, null, false, null);
     }
 }

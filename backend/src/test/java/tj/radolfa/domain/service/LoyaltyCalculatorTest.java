@@ -67,7 +67,7 @@ class LoyaltyCalculatorTest {
     @Test
     @DisplayName("Silver tier 3% cashback on 1000 TJS → 30 points")
     void awardPoints_silverTier_awardsCorrectPoints() {
-        LoyaltyProfile profile = new LoyaltyProfile(silver, 100, null, null, new BigDecimal("800"));
+        LoyaltyProfile profile = new LoyaltyProfile(silver, 100, null, null, new BigDecimal("800"), false, null);
         Money order = money("1000");
 
         LoyaltyProfile result = calculator.awardPoints(profile, order, allTiers);
@@ -82,7 +82,7 @@ class LoyaltyCalculatorTest {
     @DisplayName("Gold tier — spend crosses Platinum threshold → tier upgraded")
     void awardPoints_crossesPlatinumThreshold_upgradesTier() {
         // User is Gold, has spent 4800 this month, places 300 TJS order → total 5100 ≥ Platinum
-        LoyaltyProfile profile = new LoyaltyProfile(gold, 200, null, null, new BigDecimal("4800"));
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 200, null, null, new BigDecimal("4800"), false, null);
         Money order = money("300");
 
         LoyaltyProfile result = calculator.awardPoints(profile, order, allTiers);
@@ -98,7 +98,7 @@ class LoyaltyCalculatorTest {
     @Test
     @DisplayName("awardPoints — spendToNextTier calculated correctly")
     void awardPoints_spendToNextTierIsCorrect() {
-        LoyaltyProfile profile = new LoyaltyProfile(silver, 50, null, null, new BigDecimal("800"));
+        LoyaltyProfile profile = new LoyaltyProfile(silver, 50, null, null, new BigDecimal("800"), false, null);
         Money order = money("500"); // new total = 1300, next tier (Gold) needs 2000
 
         LoyaltyProfile result = calculator.awardPoints(profile, order, allTiers);
@@ -123,7 +123,7 @@ class LoyaltyCalculatorTest {
     @Test
     @DisplayName("Gold tier 5% discount on 800 TJS → 40 TJS")
     void resolveDiscount_goldTier_correctAmount() {
-        LoyaltyProfile profile = new LoyaltyProfile(gold, 0, null, null, BigDecimal.ZERO);
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 0, null, null, BigDecimal.ZERO, false, null);
         Money orderTotal = money("800");
 
         Money discount = calculator.resolveDiscount(profile, orderTotal);
@@ -134,7 +134,7 @@ class LoyaltyCalculatorTest {
     @Test
     @DisplayName("Platinum tier 10% discount on 3000 TJS → 300 TJS")
     void resolveDiscount_platinumTier_correctAmount() {
-        LoyaltyProfile profile = new LoyaltyProfile(platinum, 0, null, null, BigDecimal.ZERO);
+        LoyaltyProfile profile = new LoyaltyProfile(platinum, 0, null, null, BigDecimal.ZERO, false, null);
         Money orderTotal = money("3000");
 
         Money discount = calculator.resolveDiscount(profile, orderTotal);
@@ -147,7 +147,7 @@ class LoyaltyCalculatorTest {
     @Test
     @DisplayName("User has fewer points than the 30% cap → returns all user points")
     void maxRedeemablePoints_underCap_returnsAllPoints() {
-        LoyaltyProfile profile = new LoyaltyProfile(gold, 50, null, null, BigDecimal.ZERO);
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 50, null, null, BigDecimal.ZERO, false, null);
         Money orderTotal = money("1000"); // 30% cap = 300 points
 
         int redeemable = calculator.maxRedeemablePoints(profile, orderTotal);
@@ -158,7 +158,7 @@ class LoyaltyCalculatorTest {
     @Test
     @DisplayName("User has more points than the 30% cap → capped at 30% of order")
     void maxRedeemablePoints_overCap_cappedAtThirtyPercent() {
-        LoyaltyProfile profile = new LoyaltyProfile(gold, 500, null, null, BigDecimal.ZERO);
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 500, null, null, BigDecimal.ZERO, false, null);
         Money orderTotal = money("1000"); // 30% cap = 300 points
 
         int redeemable = calculator.maxRedeemablePoints(profile, orderTotal);
@@ -195,6 +195,87 @@ class LoyaltyCalculatorTest {
     void pointsToMoney_negative_throws() {
         assertThatThrownBy(() -> calculator.pointsToMoney(-1))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ── evaluateMonthlyTier ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("No tier + spending qualifies for Silver → gets Silver, floor set to Silver (lowest)")
+    void evaluateMonthlyTier_noTier_qualifiesForSilver() {
+        LoyaltyProfile profile = LoyaltyProfile.empty();
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("600"), profile, allTiers);
+
+        assertThat(result.tier()).isEqualTo(silver);
+        assertThat(result.lowestTierEver()).isEqualTo(silver); // Silver has lowest displayOrder (1)
+        assertThat(result.currentMonthSpending()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("Has Platinum, spending only qualifies for Silver → demoted to Silver (above floor Gold)")
+    void evaluateMonthlyTier_hasPlatinum_demotedToSilver_notBelowFloor() {
+        // floor is Gold (displayOrder=2), but Silver has displayOrder=1 < Gold
+        // So user should stay at Gold (the floor), not go to Silver
+        LoyaltyProfile profile = new LoyaltyProfile(platinum, 500, null, null, BigDecimal.ZERO, false, gold);
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("800"), profile, allTiers);
+
+        // 800 qualifies for Silver only; but floor is Gold → clamped to Gold
+        assertThat(result.tier()).isEqualTo(gold);
+        assertThat(result.lowestTierEver()).isEqualTo(gold);
+    }
+
+    @Test
+    @DisplayName("Has Gold (= floor), spending qualifies for nothing → stays at Gold")
+    void evaluateMonthlyTier_hasGold_spendingTooLow_staysAtFloor() {
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 200, null, null, BigDecimal.ZERO, false, gold);
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("100"), profile, allTiers);
+
+        assertThat(result.tier()).isEqualTo(gold);
+        assertThat(result.currentMonthSpending()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("No tier + spending too low → stays null tier")
+    void evaluateMonthlyTier_noTier_spendingTooLow_remainsNull() {
+        LoyaltyProfile profile = LoyaltyProfile.empty();
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("100"), profile, allTiers);
+
+        assertThat(result.tier()).isNull();
+        assertThat(result.lowestTierEver()).isNull();
+    }
+
+    @Test
+    @DisplayName("Has Platinum, spending qualifies for Platinum → stays Platinum")
+    void evaluateMonthlyTier_maintainsPlatinum() {
+        LoyaltyProfile profile = new LoyaltyProfile(platinum, 300, null, null, BigDecimal.ZERO, false, silver);
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("6000"), profile, allTiers);
+
+        assertThat(result.tier()).isEqualTo(platinum);
+    }
+
+    @Test
+    @DisplayName("currentMonthSpending is always reset to zero after evaluation")
+    void evaluateMonthlyTier_resetsCurrentMonthSpending() {
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 100, null, null, new BigDecimal("3000"), false, silver);
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("2500"), profile, allTiers);
+
+        assertThat(result.currentMonthSpending()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("points and permanent flag are preserved during evaluation")
+    void evaluateMonthlyTier_preservesPointsAndPermanent() {
+        LoyaltyProfile profile = new LoyaltyProfile(gold, 999, null, null, BigDecimal.ZERO, true, gold);
+
+        LoyaltyProfile result = calculator.evaluateMonthlyTier(new BigDecimal("3000"), profile, allTiers);
+
+        assertThat(result.points()).isEqualTo(999);
+        assertThat(result.permanent()).isTrue();
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

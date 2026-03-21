@@ -145,6 +145,7 @@ tj/radolfa/infrastructure/web/dto/UpdateStockRequestDto.class
 tj/radolfa/application/ports/out/OtpPort.class
 tj/radolfa/application/ports/out/LoadColorPort.class
 tj/radolfa/infrastructure/web/ListingController$ImageUrlRequest.class
+tj/radolfa/application/services/MonthlyTierEvaluationService$Result.class
 tj/radolfa/infrastructure/web/dto/CheckoutRequestDto.class
 tj/radolfa/application/ports/out/LoadListingPort.class
 tj/radolfa/infrastructure/web/ListingController$UpdateListingRequest.class
@@ -200,6 +201,7 @@ tj/radolfa/application/ports/in/product/DeleteCategoryUseCase.class
 tj/radolfa/infrastructure/security/ApiKeyProperties.class
 tj/radolfa/application/ports/in/SendOtpUseCase.class
 tj/radolfa/application/services/UploadImageService.class
+tj/radolfa/infrastructure/scheduling/MonthlyTierEvaluationJob.class
 tj/radolfa/application/services/UpdateLoyaltyTierService.class
 tj/radolfa/application/ports/in/product/UpdateProductNameUseCase.class
 tj/radolfa/infrastructure/persistence/adapter/ListingReadAdapter.class
@@ -253,6 +255,7 @@ tj/radolfa/infrastructure/persistence/adapter/DiscountAdapter.class
 tj/radolfa/application/ports/in/order/CheckoutUseCase$Result.class
 tj/radolfa/infrastructure/persistence/repository/ListingVariantRepository.class
 tj/radolfa/application/services/UpdateOrderStatusService$1.class
+tj/radolfa/application/services/MonthlyTierEvaluationService.class
 tj/radolfa/infrastructure/persistence/mappers/PaymentMapperImpl.class
 tj/radolfa/domain/model/Money.class
 tj/radolfa/domain/model/CartItem.class

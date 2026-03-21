@@ -135,6 +135,14 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
+                                                // Loyalty tier management
+                                                // ============================================================
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/loyalty-permanent")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/tier")
+                                                .hasAnyRole("MANAGER", "ADMIN")
+
+                                                // ============================================================
                                                 // USER role: Cart, profile, wishlist, order history
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/cart/**")

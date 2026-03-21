@@ -55,6 +55,13 @@ public class UserEntity extends BaseAuditEntity {
     @Column(name = "current_month_spending")
     private BigDecimal currentMonthSpending;
 
+    @Column(name = "loyalty_permanent", nullable = false)
+    private boolean loyaltyPermanent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lowest_tier_ever_id")
+    private LoyaltyTierEntity lowestTierEver;
+
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 }

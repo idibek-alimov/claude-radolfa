@@ -14,6 +14,7 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.UserMapper;
 import tj.radolfa.infrastructure.persistence.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -52,6 +53,13 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
         return repository.findByIdWithTier(saved.getId())
                 .map(mapper::toUser)
                 .orElseThrow();
+    }
+
+    @Override
+    public List<User> findAllNonPermanent() {
+        return repository.findAllNonPermanent().stream()
+                .map(mapper::toUser)
+                .toList();
     }
 
     @Override

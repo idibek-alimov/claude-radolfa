@@ -71,7 +71,16 @@ public class LoyaltyCalculator {
         // 4. Calculate how much more spend is needed for the next tier
         BigDecimal spendToNextTier = calculateSpendToNextTier(newMonthlySpend, newTier, allTiers);
 
-        return new LoyaltyProfile(newTier, totalPoints, spendToNextTier, null, newMonthlySpend);
+        // 5. Set lowestTierEver once: the entry-level tier (min displayOrder) the first time any tier is earned
+        LoyaltyTier lowestTierEver = current.lowestTierEver();
+        if (lowestTierEver == null && newTier != null) {
+            lowestTierEver = allTiers.stream()
+                    .min(Comparator.comparingInt(LoyaltyTier::displayOrder))
+                    .orElse(null);
+        }
+
+        return new LoyaltyProfile(newTier, totalPoints, spendToNextTier, null, newMonthlySpend,
+                current.permanent(), lowestTierEver);
     }
 
     // ── Tier Discount ─────────────────────────────────────────────────────────
@@ -125,6 +134,66 @@ public class LoyaltyCalculator {
     public Money pointsToMoney(int points) {
         if (points < 0) throw new IllegalArgumentException("points cannot be negative");
         return new Money(BigDecimal.valueOf((long) points * POINTS_PER_TJS));
+    }
+
+    // ── Monthly Evaluation ────────────────────────────────────────────────────
+
+    /**
+     * Evaluates a user's tier based on their net spending for a completed calendar month.
+     *
+     * <p>Rules:
+     * <ul>
+     *   <li>Tier is determined purely from {@code netSpending} — no fallback to the current tier.</li>
+     *   <li>A user never drops below their {@code lowestTierEver} (the floor tier).</li>
+     *   <li>{@code currentMonthSpending} is reset to zero for the new month.</li>
+     *   <li>{@code points} and {@code permanent} are preserved unchanged.</li>
+     * </ul>
+     *
+     * @param netSpending completed-payments minus refunded-payments for the evaluated month
+     * @param current     the user's current loyalty profile
+     * @param allTiers    all active tier definitions
+     * @return a new {@link LoyaltyProfile} with updated tier and reset monthly spending
+     */
+    public LoyaltyProfile evaluateMonthlyTier(BigDecimal netSpending,
+                                              LoyaltyProfile current,
+                                              List<LoyaltyTier> allTiers) {
+        if (allTiers == null || allTiers.isEmpty()) return current;
+
+        BigDecimal spending = netSpending != null ? netSpending : BigDecimal.ZERO;
+
+        // Determine tier purely by spending (no current-tier fallback)
+        LoyaltyTier earned = allTiers.stream()
+                .filter(t -> t.minSpendRequirement() != null
+                        && t.minSpendRequirement().compareTo(spending) <= 0)
+                .max(Comparator.comparing(LoyaltyTier::minSpendRequirement))
+                .orElse(null);
+
+        // Apply floor: never drop below lowestTierEver (compare by displayOrder)
+        LoyaltyTier floor = current.lowestTierEver();
+        if (floor != null) {
+            if (earned == null || earned.displayOrder() < floor.displayOrder()) {
+                earned = floor;
+            }
+        }
+
+        // Record floor tier the first time a tier is assigned
+        LoyaltyTier newFloor = floor;
+        if (newFloor == null && earned != null) {
+            newFloor = allTiers.stream()
+                    .min(Comparator.comparingInt(LoyaltyTier::displayOrder))
+                    .orElse(null);
+        }
+
+        BigDecimal spendToNext = calculateSpendToNextTier(BigDecimal.ZERO, earned, allTiers);
+
+        return new LoyaltyProfile(
+                earned,
+                current.points(),
+                spendToNext,
+                null,
+                BigDecimal.ZERO,      // reset for the new month
+                current.permanent(),
+                newFloor);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

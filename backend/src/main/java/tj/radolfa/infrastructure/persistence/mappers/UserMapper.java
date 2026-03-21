@@ -29,22 +29,24 @@ public interface UserMapper {
     @Mapping(target = "spendToNextTier", source = "loyalty.spendToNextTier")
     @Mapping(target = "spendToMaintainTier", source = "loyalty.spendToMaintainTier")
     @Mapping(target = "currentMonthSpending", source = "loyalty.currentMonthSpending")
+    @Mapping(target = "loyaltyPermanent", source = "loyalty.permanent")
+    @Mapping(target = "lowestTierEver", source = "loyalty.lowestTierEver", qualifiedByName = "tierToEntity")
     UserEntity toEntity(User user);
 
     // ---- LoyaltyProfile assembly --------------------------------
 
     @Named("toLoyaltyProfile")
     default LoyaltyProfile toLoyaltyProfile(UserEntity entity) {
-        LoyaltyTier tier = null;
-        if (entity.getTier() != null) {
-            tier = tierEntityToDomain(entity.getTier());
-        }
+        LoyaltyTier tier = entity.getTier() != null ? tierEntityToDomain(entity.getTier()) : null;
+        LoyaltyTier lowestTierEver = entity.getLowestTierEver() != null ? tierEntityToDomain(entity.getLowestTierEver()) : null;
         return new LoyaltyProfile(
                 tier,
                 entity.getLoyaltyPoints(),
                 entity.getSpendToNextTier(),
                 entity.getSpendToMaintainTier(),
-                entity.getCurrentMonthSpending());
+                entity.getCurrentMonthSpending(),
+                entity.isLoyaltyPermanent(),
+                lowestTierEver);
     }
 
     @Named("tierToEntity")

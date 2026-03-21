@@ -57,7 +57,9 @@ public class RedeemLoyaltyPointsService implements RedeemLoyaltyPointsUseCase {
                 profile.points() - pointsToRedeem,
                 profile.spendToNextTier(),
                 profile.spendToMaintainTier(),
-                profile.currentMonthSpending());
+                profile.currentMonthSpending(),
+                profile.permanent(),
+                profile.lowestTierEver());
 
         saveUserPort.save(new User(
                 user.id(), user.phone(), user.role(), user.name(),

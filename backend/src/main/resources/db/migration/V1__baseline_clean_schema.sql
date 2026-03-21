@@ -67,6 +67,8 @@ CREATE TABLE users (
     spend_to_next_tier     NUMERIC(12,2),
     spend_to_maintain_tier NUMERIC(12,2),
     current_month_spending NUMERIC(12,2),
+    loyalty_permanent      BOOLEAN      NOT NULL DEFAULT FALSE,
+    lowest_tier_ever_id    BIGINT       REFERENCES loyalty_tiers(id),
     version                BIGINT       NOT NULL DEFAULT 0,
     created_at             TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ  NOT NULL DEFAULT NOW()
