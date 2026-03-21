@@ -23,7 +23,9 @@ export default function ProductCard({ listing }: ProductCardProps) {
   const coverImage = listing.images[0] ?? null;
   const hoverImage = listing.images[1] ?? null;
 
-  const hasTierPrice = listing.tierDiscountedMinPrice != null;
+  const hasDiscount     = listing.discountPrice != null;
+  const hasLoyalty      = listing.loyaltyPrice != null;
+  const hasCheaperPrice = hasDiscount || hasLoyalty;
   const stock = listing.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
   const isOutOfStock = stock === 0;
   const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
@@ -39,16 +41,29 @@ export default function ProductCard({ listing }: ProductCardProps) {
       >
         {/* Top badges row */}
         <div className="absolute top-1.5 left-1.5 right-1.5 z-10 sm:top-3 sm:left-3 sm:right-3 flex items-start justify-between gap-1">
-          {/* Left: Popular badge */}
-          {listing.topSelling ? (
-            <Badge
-              variant="default"
-              className="text-[9px] sm:text-xs gap-0.5 shrink-0"
-            >
-              <Flame className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-              {tc("popular")}
-            </Badge>
-          ) : <div />}
+          {/* Left: Popular + sale badges stacked */}
+          <div className="flex flex-col gap-1">
+            {listing.topSelling && (
+              <Badge
+                variant="default"
+                className="text-[9px] sm:text-xs gap-0.5 shrink-0"
+              >
+                <Flame className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                {tc("popular")}
+              </Badge>
+            )}
+            {hasDiscount && (
+              <Badge
+                style={{ backgroundColor: listing.discountColorHex ?? "#ef4444" }}
+                className="text-white text-[9px] sm:text-xs shrink-0 border-0"
+              >
+                {listing.discountName} · -{listing.discountPercentage}%
+                {listing.isPartialDiscount && (
+                  <span className="font-normal opacity-80"> · select sizes</span>
+                )}
+              </Badge>
+            )}
+          </div>
 
           {/* Right: Color dot + label */}
           {listing.colorKey && (
@@ -109,7 +124,7 @@ export default function ProductCard({ listing }: ProductCardProps) {
           )}
 
           {/* Tier price badge */}
-          {hasTierPrice && (
+          {hasLoyalty && (
             <div className="absolute bottom-1.5 right-1.5 z-10 sm:bottom-3 sm:right-3">
               <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-xs font-bold text-white shadow-sm shrink-0">
                 <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -134,57 +149,61 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
           {/* Price section */}
           <div className="mt-auto pt-1 sm:pt-1.5 flex flex-col gap-0.5">
-            {hasTierPrice ? (
-              <>
-                {/* Tier price: amber hero */}
-                <div className="flex items-center justify-between gap-1">
-                  <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+
+            {/* Hero price row */}
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-baseline gap-1 sm:gap-1.5 min-w-0">
+                {hasLoyalty ? (
+                  <>
                     <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
                     <span className="text-sm sm:text-lg font-bold text-amber-600 truncate">
-                      {formatPrice(listing.tierDiscountedMinPrice!)}
+                      {formatPrice(listing.loyaltyPrice!)}
                     </span>
                     <span className="hidden sm:inline text-xs font-medium text-amber-600/70">
                       {tc("yourPrice")}
                     </span>
-                  </div>
-                  {isLowStock && (
-                    <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap shrink-0">
-                      {tc("lowStock", { count: stock })}
-                    </span>
-                  )}
-                </div>
-                {/* Smaller line: regular min price crossed out */}
-                <div className="flex items-baseline gap-1 sm:gap-1.5">
-                  <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
-                    {formatPrice(listing.minPrice)}
+                  </>
+                ) : hasDiscount ? (
+                  <span className="text-base sm:text-lg font-bold text-red-600">
+                    {formatPrice(listing.discountPrice!)}
                   </span>
-                  {listing.minPrice !== listing.maxPrice && (
-                    <span className="text-[10px] sm:text-sm text-muted-foreground">
-                      — {formatPrice(listing.maxPrice)}
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* No tier: minPrice as hero; show range if different */
-              <div className="flex items-center justify-between gap-1">
-                <div className="flex items-baseline gap-1 sm:gap-1.5 min-w-0">
+                ) : (
                   <span className="text-base sm:text-lg font-bold text-violet-600">
-                    {formatPrice(listing.minPrice)}
+                    {formatPrice(listing.originalPrice)}
                   </span>
-                  {listing.minPrice !== listing.maxPrice && (
-                    <span className="text-[10px] sm:text-sm text-muted-foreground">
-                      — {formatPrice(listing.maxPrice)}
-                    </span>
-                  )}
-                </div>
-                {isLowStock && (
-                  <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap shrink-0">
-                    {tc("lowStock", { count: stock })}
+                )}
+              </div>
+              {isLowStock && (
+                <span className="text-[10px] sm:text-xs font-medium text-orange-600 whitespace-nowrap shrink-0">
+                  {tc("lowStock", { count: stock })}
+                </span>
+              )}
+            </div>
+
+            {/* Strikethrough row — only when a cheaper price exists */}
+            {hasCheaperPrice && (
+              <div className="flex items-baseline gap-1">
+                <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
+                  {formatPrice(listing.originalPrice)}
+                </span>
+                {hasDiscount && (
+                  <span
+                    className="text-[9px] sm:text-xs font-semibold px-1 rounded text-white"
+                    style={{ backgroundColor: listing.discountColorHex ?? "#ef4444" }}
+                  >
+                    -{listing.discountPercentage}%
                   </span>
                 )}
               </div>
             )}
+
+            {/* Loyalty tier label */}
+            {hasLoyalty && listing.loyaltyPercentage != null && (
+              <span className="text-[9px] sm:text-xs text-amber-600 font-medium">
+                {tc("loyaltyTierBadge", { pct: listing.loyaltyPercentage })}
+              </span>
+            )}
+
           </div>
         </div>
       </motion.div>
