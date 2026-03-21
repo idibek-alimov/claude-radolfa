@@ -44,13 +44,12 @@ Exceptions:
 - Touch targets (interactive icon buttons): minimum 28px hit area via `h-7 w-7` (consistent with existing SKU table rows in `CreateProductDialog`)
 - Card container outer padding: `px-4 sm:px-6 lg:px-8` (matches `ProductEditPage.tsx` pattern)
 - Section dividers inside cards: `border-t pt-4` (existing pattern from `CreateProductDialog`)
-- Toolbar micro-spacing: `py-1.5`, `px-1.5`, `mr-1.5` (6px) used only on TipTap toolbar container, toolbar buttons, and submit button spinner — these are sub-component micro-spacing values for tight inline controls, not layout spacing. Not promoted to the main scale.
 
 ---
 
 ## Typography
 
-Two declared weights only: 400 (regular) and 600 (semibold/bold emphasis).
+Two declared weights only: 400 (regular) and 600 (semibold).
 
 | Role | Size | Weight | Line Height | Tailwind Classes | Usage in This Phase |
 |------|------|--------|-------------|-----------------|---------------------|
@@ -58,9 +57,6 @@ Two declared weights only: 400 (regular) and 600 (semibold/bold emphasis).
 | Label | 14px | 600 (semibold) | 1.4 | `text-sm font-semibold` | Field labels above inputs |
 | Section heading | 12px | 600 (semibold) | 1.3 | `text-xs font-semibold uppercase tracking-wider text-muted-foreground` | Card section labels (matches existing pattern: "BASIC INFO", "SKUs") |
 | Page heading | 24px | 600 (semibold) | 1.2 | `text-2xl font-semibold text-foreground` | Page title "Create Product" |
-
-Named exception — page heading bold:
-If the executor finds that `font-semibold` visually deviates from the existing `ProductEditPage` heading (which uses `text-2xl font-bold`), use `font-bold` on the page heading only and document the override inline. Justification: matches the established `text-2xl font-bold` pattern on `ProductEditPage.tsx`. This is the sole permitted use of weight 700 in this phase.
 
 Character counter: `text-xs text-muted-foreground text-right` — matches existing `EnrichmentCard` pattern.
 
@@ -116,7 +112,7 @@ Two-column grid inside the card area:
 
 Page structure top-to-bottom:
 1. Breadcrumb: `<ChevronLeft> Back to Products` link — `text-sm text-muted-foreground` (matches `ProductEditPage`)
-2. Page heading: "Create Product" — `text-2xl font-semibold text-foreground` (see typography named exception if bold alignment needed)
+2. Page heading: "Create Product" — `text-2xl font-semibold text-foreground`
 3. Subheading (optional): "Fill in the details below to add a new product to the catalog." — `text-sm text-muted-foreground mt-1`
 4. Two-column form area (one card wrapping both columns OR two separate cards — left card + right card)
 5. Form action bar: Cancel + Create Product buttons — `flex justify-end gap-3 pt-4`
@@ -139,7 +135,7 @@ Toolbar buttons (source: CONTEXT.md "Claude's Discretion" — standard set):
 | Unordered list | toggleBulletList | same |
 | Ordered list | toggleOrderedList | same |
 
-Toolbar container: `flex gap-1 border-b border-input px-2 py-1.5`
+Toolbar container: `flex gap-1 border-b border-input px-2 py-1`
 Editor content area: `px-3 py-2 min-h-[120px] text-sm` (increased from 100px to give usable writing area)
 Outer wrapper: `rounded-md border border-input bg-transparent text-sm shadow-sm focus-within:ring-1 focus-within:ring-ring`
 
@@ -158,8 +154,8 @@ Button is the primary visual indicator of async progress (source: D-09).
 | State | Label | Icon | Disabled |
 |-------|-------|------|---------|
 | idle | "Create Product" | none | false |
-| creating | "Creating..." | `Loader2 animate-spin h-4 w-4 mr-1.5` | true |
-| uploading | "Uploading images..." | `Loader2 animate-spin h-4 w-4 mr-1.5` | true |
+| creating | "Creating..." | `Loader2 animate-spin h-4 w-4 mr-1` | true |
+| uploading | "Uploading images..." | `Loader2 animate-spin h-4 w-4 mr-1` | true |
 
 No separate progress bar. No step indicator. Spinner inside the button is the only feedback.
 
@@ -269,5 +265,6 @@ No third-party shadcn registries declared. Registry safety gate: not applicable.
 ---
 
 *UI-SPEC created: 2026-03-21*
-*UI-SPEC revised: 2026-03-21 — checker revision: collapsed typography to 2 weights, added 1.5-unit spacing exception, added Cancel button copy, added accessibility notes for icon-only elements*
+*UI-SPEC revised: 2026-03-21 — checker revision 1: collapsed typography to 2 weights, added 1.5-unit spacing exception, added Cancel button copy, added accessibility notes for icon-only elements*
+*UI-SPEC revised: 2026-03-21 — checker revision 2: replaced non-grid 6px spacing (py-1.5/px-1.5/mr-1.5) with on-grid values (toolbar py-1/px-2, spinner mr-1); removed font-bold 700 exception, locked page heading to font-semibold 600*
 *Phase: 01-product-create-edit-overhaul*
