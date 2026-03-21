@@ -11,10 +11,10 @@
 
 ### Product Creation
 
-- [ ] **CREATE-01**: Clicking "New Product" navigates to `/manage/products/new` (full page, not popup)
-- [ ] **CREATE-02**: Create page has name, category, color, description (rich text), image upload zone, and SKU table
-- [ ] **CREATE-03**: On submit — creates product with description in one backend call, then uploads images if provided, then redirects to edit page
-- [ ] **CREATE-04**: Image upload on create is optional — product can be created without images
+- [x] **CREATE-01**: Clicking "New Product" navigates to `/manage/products/new` (full page, not popup)
+- [x] **CREATE-02**: Create page has name, category, color, description (rich text), image upload zone, and SKU table
+- [x] **CREATE-03**: On submit — creates product with description in one backend call, then uploads images if provided, then redirects to edit page
+- [x] **CREATE-04**: Image upload on create is optional — product can be created without images
 
 ### Product Edit
 
@@ -35,10 +35,10 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BE-01 | Phase 1 | Complete |
-| CREATE-01 | Phase 1 | Pending |
-| CREATE-02 | Phase 1 | Pending |
-| CREATE-03 | Phase 1 | Pending |
-| CREATE-04 | Phase 1 | Pending |
+| CREATE-01 | Phase 1 | Complete |
+| CREATE-02 | Phase 1 | Complete |
+| CREATE-03 | Phase 1 | Complete |
+| CREATE-04 | Phase 1 | Complete |
 | EDIT-01 | Phase 1 | Complete |
 | EDIT-02 | Phase 1 | Complete |
 
