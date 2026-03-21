@@ -66,7 +66,8 @@
     "addToCart": "Добавить в корзину",
     "adding": "Добавление...",
     "addedToCart": "Добавлено в корзину!",
-    "outOfStockError": "Этот товар недоступен"
+    "outOfStockError": "Этот товар недоступен",
+    "partialDiscountHint": "Цена со скидкой действует только на отдельные размеры"
   },
   "auth": {
     "welcomeBack": "С возвращением",
@@ -107,7 +108,9 @@
     "popular": "Популярное",
     "currency": "TJS",
     "yourPrice": "Ваша цена",
-    "loyaltyTag": "-{pct}% бонус"
+    "loyaltyTag": "-{pct}% бонус",
+    "loyaltyTierBadge": "Скидка уровня {pct}%",
+    "loyaltyTierDetail": "Ваш уровень лояльности · скидка {pct}%"
   },
   "megaMenu": {
     "categories": "Категории"

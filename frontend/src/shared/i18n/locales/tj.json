@@ -66,7 +66,8 @@
     "addToCart": "Ба сабад илова кунед",
     "adding": "Илова карда мешавад...",
     "addedToCart": "Ба сабад илова карда шуд!",
-    "outOfStockError": "Ин мол дастрас нест"
+    "outOfStockError": "Ин мол дастрас нест",
+    "partialDiscountHint": "Нархи тахфифӣ танҳо барои андозаҳои муайян татбиқ мешавад"
   },
   "auth": {
     "welcomeBack": "Хуш омадед",
@@ -107,7 +108,9 @@
     "popular": "Маъмул",
     "currency": "TJS",
     "yourPrice": "Нархи шумо",
-    "loyaltyTag": "-{pct}% бонус"
+    "loyaltyTag": "-{pct}% бонус",
+    "loyaltyTierBadge": "Тахфифи сатҳ {pct}%",
+    "loyaltyTierDetail": "Сатҳи вафодории шумо · тахфифи {pct}%"
   },
   "megaMenu": {
     "categories": "Категорияҳо"

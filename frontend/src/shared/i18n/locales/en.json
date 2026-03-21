@@ -66,7 +66,8 @@
     "addToCart": "Add to Cart",
     "adding": "Adding...",
     "addedToCart": "Added to cart!",
-    "outOfStockError": "This item is out of stock"
+    "outOfStockError": "This item is out of stock",
+    "partialDiscountHint": "Sale price applies to select sizes only"
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -107,7 +108,9 @@
     "popular": "Popular",
     "currency": "TJS",
     "yourPrice": "Your price",
-    "loyaltyTag": "-{pct}% loyalty"
+    "loyaltyTag": "-{pct}% loyalty",
+    "loyaltyTierBadge": "{pct}% tier discount",
+    "loyaltyTierDetail": "Your loyalty tier · {pct}% off applied"
   },
   "megaMenu": {
     "categories": "Categories"
