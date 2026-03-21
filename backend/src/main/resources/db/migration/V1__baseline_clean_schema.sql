@@ -226,11 +226,27 @@ CREATE INDEX idx_order_items_order_id ON order_items (order_id);
 CREATE INDEX idx_order_items_sku_id   ON order_items (sku_id);
 
 -- ----------------------------------------------------------------
--- Discounts  (previously: erp_pricing_rule_id → external_rule_id)
+-- Discount types (ADMIN-managed, rank determines conflict priority)
+-- ----------------------------------------------------------------
+CREATE TABLE discount_types (
+    id         BIGSERIAL    PRIMARY KEY,
+    name       VARCHAR(64)  NOT NULL UNIQUE,
+    rank       INT          NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO discount_types (name, rank) VALUES
+    ('FLASH_SALE',   1),
+    ('CLEARANCE',    2),
+    ('SEASONAL',     3),
+    ('PROMOTIONAL',  4);
+
+-- ----------------------------------------------------------------
+-- Discounts
 -- ----------------------------------------------------------------
 CREATE TABLE discounts (
     id               BIGSERIAL      PRIMARY KEY,
-    external_rule_id VARCHAR(140)   NOT NULL UNIQUE,
+    discount_type_id BIGINT         NOT NULL REFERENCES discount_types(id),
     discount_value   NUMERIC(5,2)   NOT NULL,
     valid_from       TIMESTAMPTZ    NOT NULL,
     valid_upto       TIMESTAMPTZ    NOT NULL,

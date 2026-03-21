@@ -122,7 +122,12 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/*").hasRole("ADMIN")
 
                                                 // ============================================================
-                                                // MANAGER + ADMIN: product creation, content enrichment
+                                                // ADMIN only: discount type management
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/admin/discount-types/**").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // MANAGER + ADMIN: product creation, content enrichment, discounts
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/listings/*")

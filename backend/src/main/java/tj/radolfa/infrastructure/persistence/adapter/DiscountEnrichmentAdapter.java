@@ -18,9 +18,10 @@ import java.util.stream.Collectors;
 /**
  * Encapsulates discount resolution logic for listing/home adapters.
  *
- * <p>Resolves active discounts from the {@code discounts} table
- * (populated by ERP Pricing Rule sync) and computes effective
- * discounted prices per variant or per item code.
+ * <p>Resolves active discounts from the {@code discounts} table and computes
+ * effective discounted prices per variant or per item code.
+ * When multiple discounts are active on the same SKU, the one with the
+ * lowest type rank (highest priority) wins — enforced by the DB query ORDER BY.
  */
 @Component
 public class DiscountEnrichmentAdapter {
@@ -76,7 +77,8 @@ public class DiscountEnrichmentAdapter {
                             discount.getDiscountValue(),
                             discount.getValidUpto(),
                             discount.getTitle(),
-                            discount.getColorHex());
+                            discount.getColorHex(),
+                            discount.getType().getName());
                 }
             }
 
@@ -115,7 +117,7 @@ public class DiscountEnrichmentAdapter {
         List<Object[]> pairs = discountRepo.findActiveDiscountsByItemCodes(itemCodes);
 
         // Each row: [0]=DiscountEntity, [1]=matchedItemCode
-        // Already ordered by discountValue DESC — first per itemCode wins
+        // Already ordered by type.rank ASC — lowest rank (highest priority type) wins per item code
         Map<String, DiscountEntity> best = new HashMap<>();
         for (Object[] row : pairs) {
             String itemCode = (String) row[1];
@@ -136,6 +138,7 @@ public class DiscountEnrichmentAdapter {
             BigDecimal discountPercentage,
             Instant validUpto,
             String saleTitle,
-            String saleColorHex
+            String saleColorHex,
+            String typeName
     ) {}
 }

@@ -482,29 +482,24 @@ INSERT INTO order_items (order_id, sku_code, product_name, quantity, price_at_pu
 -- 9. DISCOUNTS & DISCOUNT ITEMS
 -- ================================================================
 
--- Group 2: 15% "Winter Collection" (suits, blazers, sweaters…) — active, no near expiry
-INSERT INTO discounts (external_rule_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
-SELECT
-    'PRC-RULE-' || s.sku_code,
-    15.00,
-    NOW() - INTERVAL '30 days',
-    NOW() + INTERVAL '365 days',
-    FALSE,
-    'Winter Collection',
-    '#3B82F6'
-FROM skus s
-JOIN listing_variants lv ON s.listing_variant_id = lv.id
-JOIN product_bases pb    ON lv.product_base_id   = pb.id
-WHERE pb.external_ref IN (
-    'TPL-SUIT-001', 'TPL-SWEATER-001', 'TPL-CARDGN-001',
-    'TPL-BLAZER-001', 'TPL-TRENCH-001', 'TPL-SHORTS-001'
+-- Group 1: 15% "Winter Collection" (SEASONAL) — active, no near expiry
+WITH ins AS (
+    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    VALUES (
+        (SELECT id FROM discount_types WHERE name = 'SEASONAL'),
+        15.00,
+        NOW() - INTERVAL '30 days',
+        NOW() + INTERVAL '365 days',
+        FALSE,
+        'Winter Collection',
+        '#3B82F6'
+    )
+    RETURNING id
 )
-ON CONFLICT (external_rule_id) DO NOTHING;
-
 INSERT INTO discount_items (discount_id, item_code)
-SELECT d.id, s.sku_code
-FROM discounts d
-JOIN skus s ON d.external_rule_id = 'PRC-RULE-' || s.sku_code
+SELECT ins.id, s.sku_code
+FROM ins
+CROSS JOIN skus s
 JOIN listing_variants lv ON s.listing_variant_id = lv.id
 JOIN product_bases pb    ON lv.product_base_id   = pb.id
 WHERE pb.external_ref IN (
@@ -513,29 +508,24 @@ WHERE pb.external_ref IN (
 )
 ON CONFLICT DO NOTHING;
 
--- Group 3: 25% "Flash Sale" (swimwear, polo, fleece…) — active, expires in 14 days
-INSERT INTO discounts (external_rule_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
-SELECT
-    'PRC-RULE-' || s.sku_code,
-    25.00,
-    NOW() - INTERVAL '7 days',
-    NOW() + INTERVAL '14 days',
-    FALSE,
-    'Flash Sale',
-    '#EF4444'
-FROM skus s
-JOIN listing_variants lv ON s.listing_variant_id = lv.id
-JOIN product_bases pb    ON lv.product_base_id   = pb.id
-WHERE pb.external_ref IN (
-    'TPL-SWIM-001', 'TPL-PAJAMA-001', 'TPL-POLO-001',
-    'TPL-LINEN-001', 'TPL-JOGGER-001', 'TPL-FLEECE-001'
+-- Group 2: 25% "Flash Sale" (FLASH_SALE) — active, expires in 14 days
+WITH ins AS (
+    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    VALUES (
+        (SELECT id FROM discount_types WHERE name = 'FLASH_SALE'),
+        25.00,
+        NOW() - INTERVAL '7 days',
+        NOW() + INTERVAL '14 days',
+        FALSE,
+        'Flash Sale',
+        '#EF4444'
+    )
+    RETURNING id
 )
-ON CONFLICT (external_rule_id) DO NOTHING;
-
 INSERT INTO discount_items (discount_id, item_code)
-SELECT d.id, s.sku_code
-FROM discounts d
-JOIN skus s ON d.external_rule_id = 'PRC-RULE-' || s.sku_code
+SELECT ins.id, s.sku_code
+FROM ins
+CROSS JOIN skus s
 JOIN listing_variants lv ON s.listing_variant_id = lv.id
 JOIN product_bases pb    ON lv.product_base_id   = pb.id
 WHERE pb.external_ref IN (
@@ -544,28 +534,24 @@ WHERE pb.external_ref IN (
 )
 ON CONFLICT DO NOTHING;
 
--- Group 4: 30% "End of Season" — expired (tests expiry filtering)
-INSERT INTO discounts (external_rule_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
-SELECT
-    'PRC-RULE-' || s.sku_code,
-    30.00,
-    NOW() - INTERVAL '30 days',
-    NOW() - INTERVAL '3 days',
-    FALSE,
-    'End of Season',
-    '#6B7280'
-FROM skus s
-JOIN listing_variants lv ON s.listing_variant_id = lv.id
-JOIN product_bases pb    ON lv.product_base_id   = pb.id
-WHERE pb.external_ref IN (
-    'TPL-TIE-001', 'TPL-SCARF-001', 'TPL-SNEAK-001', 'TPL-BOOTS-001'
+-- Group 3: 30% "End of Season" (CLEARANCE) — expired (tests expiry filtering)
+WITH ins AS (
+    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    VALUES (
+        (SELECT id FROM discount_types WHERE name = 'CLEARANCE'),
+        30.00,
+        NOW() - INTERVAL '30 days',
+        NOW() - INTERVAL '3 days',
+        FALSE,
+        'End of Season',
+        '#6B7280'
+    )
+    RETURNING id
 )
-ON CONFLICT (external_rule_id) DO NOTHING;
-
 INSERT INTO discount_items (discount_id, item_code)
-SELECT d.id, s.sku_code
-FROM discounts d
-JOIN skus s ON d.external_rule_id = 'PRC-RULE-' || s.sku_code
+SELECT ins.id, s.sku_code
+FROM ins
+CROSS JOIN skus s
 JOIN listing_variants lv ON s.listing_variant_id = lv.id
 JOIN product_bases pb    ON lv.product_base_id   = pb.id
 WHERE pb.external_ref IN (
@@ -573,28 +559,24 @@ WHERE pb.external_ref IN (
 )
 ON CONFLICT DO NOTHING;
 
--- Group 5: 10% "New Members" — active, no expiry
-INSERT INTO discounts (external_rule_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
-SELECT
-    'PRC-RULE-' || s.sku_code,
-    10.00,
-    NOW() - INTERVAL '30 days',
-    NOW() + INTERVAL '365 days',
-    FALSE,
-    'New Members',
-    '#8B5CF6'
-FROM skus s
-JOIN listing_variants lv ON s.listing_variant_id = lv.id
-JOIN product_bases pb    ON lv.product_base_id   = pb.id
-WHERE pb.external_ref IN (
-    'TPL-SANDAL-001', 'TPL-CAP-001', 'TPL-BKPCK-001', 'TPL-WALLET-001'
+-- Group 4: 10% "New Members" (PROMOTIONAL) — active, no expiry
+WITH ins AS (
+    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    VALUES (
+        (SELECT id FROM discount_types WHERE name = 'PROMOTIONAL'),
+        10.00,
+        NOW() - INTERVAL '30 days',
+        NOW() + INTERVAL '365 days',
+        FALSE,
+        'New Members',
+        '#8B5CF6'
+    )
+    RETURNING id
 )
-ON CONFLICT (external_rule_id) DO NOTHING;
-
 INSERT INTO discount_items (discount_id, item_code)
-SELECT d.id, s.sku_code
-FROM discounts d
-JOIN skus s ON d.external_rule_id = 'PRC-RULE-' || s.sku_code
+SELECT ins.id, s.sku_code
+FROM ins
+CROSS JOIN skus s
 JOIN listing_variants lv ON s.listing_variant_id = lv.id
 JOIN product_bases pb    ON lv.product_base_id   = pb.id
 WHERE pb.external_ref IN (
@@ -602,56 +584,50 @@ WHERE pb.external_ref IN (
 )
 ON CONFLICT DO NOTHING;
 
--- Group A: "New Season" 35% — single rule covering 4 accessories
-INSERT INTO discounts (external_rule_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
-VALUES (
-    'PRC-RULE-NEW-SEASON',
-    35.00,
-    NOW() - INTERVAL '1 day',
-    NOW() + INTERVAL '60 days',
-    FALSE,
-    'New Season',
-    '#F97316'
+-- Group 5: "New Season" 35% (CLEARANCE) — single discount covering 4 accessories
+WITH ins AS (
+    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    VALUES (
+        (SELECT id FROM discount_types WHERE name = 'CLEARANCE'),
+        35.00,
+        NOW() - INTERVAL '1 day',
+        NOW() + INTERVAL '60 days',
+        FALSE,
+        'New Season',
+        '#F97316'
+    )
+    RETURNING id
 )
-ON CONFLICT (external_rule_id) DO NOTHING;
-
 INSERT INTO discount_items (discount_id, item_code)
-SELECT d.id, s.sku_code
-FROM discounts d
-CROSS JOIN (
-    SELECT s.sku_code
-    FROM skus s
-    JOIN listing_variants lv ON s.listing_variant_id = lv.id
-    JOIN product_bases pb    ON lv.product_base_id   = pb.id
-    WHERE pb.external_ref IN ('TPL-TIE-001', 'TPL-SCARF-001', 'TPL-SNEAK-001', 'TPL-BOOTS-001')
-) s
-WHERE d.external_rule_id = 'PRC-RULE-NEW-SEASON'
+SELECT ins.id, s.sku_code
+FROM ins
+CROSS JOIN skus s
+JOIN listing_variants lv ON s.listing_variant_id = lv.id
+JOIN product_bases pb    ON lv.product_base_id   = pb.id
+WHERE pb.external_ref IN ('TPL-TIE-001', 'TPL-SCARF-001', 'TPL-SNEAK-001', 'TPL-BOOTS-001')
 ON CONFLICT DO NOTHING;
 
--- Group B: "Summer Bundle" 20% — cross-category
-INSERT INTO discounts (external_rule_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
-VALUES (
-    'PRC-RULE-SUMMER-BUNDLE',
-    20.00,
-    NOW() - INTERVAL '3 days',
-    NOW() + INTERVAL '30 days',
-    FALSE,
-    'Summer Bundle',
-    '#10B981'
+-- Group 6: "Summer Bundle" 20% (PROMOTIONAL) — cross-category
+WITH ins AS (
+    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    VALUES (
+        (SELECT id FROM discount_types WHERE name = 'PROMOTIONAL'),
+        20.00,
+        NOW() - INTERVAL '3 days',
+        NOW() + INTERVAL '30 days',
+        FALSE,
+        'Summer Bundle',
+        '#10B981'
+    )
+    RETURNING id
 )
-ON CONFLICT (external_rule_id) DO NOTHING;
-
 INSERT INTO discount_items (discount_id, item_code)
-SELECT d.id, s.sku_code
-FROM discounts d
-CROSS JOIN (
-    SELECT s.sku_code
-    FROM skus s
-    JOIN listing_variants lv ON s.listing_variant_id = lv.id
-    JOIN product_bases pb    ON lv.product_base_id   = pb.id
-    WHERE pb.external_ref IN ('TPL-SWIM-001', 'TPL-SANDAL-001', 'TPL-CAP-001')
-) s
-WHERE d.external_rule_id = 'PRC-RULE-SUMMER-BUNDLE'
+SELECT ins.id, s.sku_code
+FROM ins
+CROSS JOIN skus s
+JOIN listing_variants lv ON s.listing_variant_id = lv.id
+JOIN product_bases pb    ON lv.product_base_id   = pb.id
+WHERE pb.external_ref IN ('TPL-SWIM-001', 'TPL-SANDAL-001', 'TPL-CAP-001')
 ON CONFLICT DO NOTHING;
 
 

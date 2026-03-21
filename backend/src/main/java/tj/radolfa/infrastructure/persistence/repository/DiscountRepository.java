@@ -1,25 +1,22 @@
 package tj.radolfa.infrastructure.persistence.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
-public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> {
+public interface DiscountRepository extends JpaRepository<DiscountEntity, Long>,
+        JpaSpecificationExecutor<DiscountEntity> {
 
-    Optional<DiscountEntity> findByExternalRuleId(String externalRuleId);
-
-    @org.springframework.transaction.annotation.Transactional
-    void deleteByExternalRuleId(String externalRuleId);
+    long countByType_Id(Long typeId);
 
     /**
      * Returns [DiscountEntity, matchedItemCode] pairs for active discounts covering any of the
-     * given item codes. Ordered by discountValue DESC so first occurrence per item code is best.
-     * Uses a JOIN on the discount_items join table — no secondary lazy-load needed.
+     * given item codes. Ordered by type.rank ASC so the highest-priority type wins per item code.
      */
     @Query("""
         SELECT d, ic FROM DiscountEntity d JOIN d.itemCodes ic
@@ -27,13 +24,13 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> 
           AND d.disabled = false
           AND d.validFrom <= CURRENT_TIMESTAMP
           AND d.validUpto >= CURRENT_TIMESTAMP
-        ORDER BY d.discountValue DESC
+        ORDER BY d.type.rank ASC
     """)
     List<Object[]> findActiveDiscountsByItemCodes(@Param("itemCodes") Collection<String> itemCodes);
 
     /**
      * Returns [DiscountEntity, matchedItemCode] pairs for active discounts covering the given
-     * single item code.
+     * single item code. Ordered by type.rank ASC.
      */
     @Query("""
         SELECT d, ic FROM DiscountEntity d JOIN d.itemCodes ic
@@ -41,7 +38,7 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> 
           AND d.disabled = false
           AND d.validFrom <= CURRENT_TIMESTAMP
           AND d.validUpto >= CURRENT_TIMESTAMP
-        ORDER BY d.discountValue DESC
+        ORDER BY d.type.rank ASC
     """)
     List<Object[]> findActiveDiscountsByItemCode(@Param("itemCode") String itemCode);
 

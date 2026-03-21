@@ -88,7 +88,7 @@ earned via monthly spending thresholds or manually assigned by staff.
 
 ## 3. Discount Redesign — Per-SKU, Hierarchy & Conflict Resolution
 
-**Status:** Needs discussion.
+**Status: Implemented ✓** (2026-03-21)
 
 **Current behavior:**
 - Discounts are stored in a `discounts` table, linked by item code (sku code).
@@ -156,6 +156,14 @@ earned via monthly spending thresholds or manually assigned by staff.
 - [x] Discount types → Stored in `discount_types` DB table (ADMIN-managed). Initial 4 types
   in rank order: `FLASH_SALE(1) > CLEARANCE(2) > SEASONAL(3) > PROMOTIONAL(4)`.
   ADMIN can add/reorder via REST.
+- [x] Discount deletion → **Disable only** (soft). No hard delete. `is_disabled` toggle is the
+  only removal mechanism. Preserves audit trail for historical orders.
+- [x] Discount type deletion → **Block** if any discounts reference the type. ADMIN must
+  manually change those discounts to a different type first, then delete. Error response
+  includes the count of discounts blocking deletion. Rationale: Reassign-on-delete risks
+  creating same-type conflicts on overlapping SKUs; Block is safe and explicit.
+- [x] Who manages discounts → MANAGER + ADMIN can create, edit, and disable discounts.
+  Discount type management (create/reorder/delete types) is ADMIN-only.
 - [x] ADMIN discount list → Paginated list with filters: by type, by active status
   (active now / scheduled / expired / disabled), by date range. `LoadDiscountPort` needs
   a filtered `findAll(DiscountFilter, Pageable)` query. Each row shows: title, type,

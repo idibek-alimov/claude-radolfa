@@ -23,8 +23,9 @@ public class DiscountEntity extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "external_rule_id", nullable = false, unique = true, length = 140)
-    private String externalRuleId;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "discount_type_id", nullable = false)
+    private DiscountTypeEntity type;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(

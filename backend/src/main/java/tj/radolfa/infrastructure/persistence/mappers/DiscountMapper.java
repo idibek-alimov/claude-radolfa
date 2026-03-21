@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import tj.radolfa.domain.model.Discount;
 import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {DiscountTypeMapper.class})
 public interface DiscountMapper {
 
     @Mapping(target = "version", ignore = true)

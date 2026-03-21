@@ -104,6 +104,15 @@ public class LoyaltyCalculator {
         return new Money(discountAmount);
     }
 
+    /**
+     * Returns the tier discount percentage for the given profile, or ZERO if no tier assigned.
+     */
+    public BigDecimal resolveTierPercentage(LoyaltyProfile profile) {
+        if (profile.tier() == null) return BigDecimal.ZERO;
+        BigDecimal pct = profile.tier().discountPercentage();
+        return pct != null ? pct : BigDecimal.ZERO;
+    }
+
     // ── Points Redemption ─────────────────────────────────────────────────────
 
     /**

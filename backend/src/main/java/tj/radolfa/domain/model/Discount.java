@@ -6,17 +6,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A Pricing Rule discount that can be applied to one or more SKU item codes.
+ * A discount that can be applied to one or more SKU item codes.
  *
- * <p>All core fields are authoritative-source-locked — synced via import webhooks.
- * {@code title} and {@code colorHex} are UI display attributes also set during sync.
+ * <p>Managed natively by ADMIN / MANAGER via the admin REST API.
  * Active check is performed on-the-fly: {@link #isActive(Instant)}.
  *
  * <p>Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
  */
 public record Discount(
         Long id,
-        String externalRuleId,
+        DiscountType type,
         List<String> itemCodes,
         BigDecimal discountValue,
         Instant validFrom,
@@ -27,7 +26,7 @@ public record Discount(
 ) {
 
     public Discount {
-        Objects.requireNonNull(externalRuleId, "externalRuleId must not be null");
+        Objects.requireNonNull(type, "type must not be null");
         Objects.requireNonNull(itemCodes, "itemCodes must not be null");
         Objects.requireNonNull(discountValue, "discountValue must not be null");
         Objects.requireNonNull(validFrom, "validFrom must not be null");
