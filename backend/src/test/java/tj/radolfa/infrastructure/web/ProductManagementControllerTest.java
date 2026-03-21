@@ -1,9 +1,9 @@
 package tj.radolfa.infrastructure.web;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
@@ -14,12 +14,18 @@ import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
 import tj.radolfa.domain.model.Money;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 /**
  * Standalone MockMvc test for {@link ProductManagementController}.
  *
  * <p>Uses in-memory fakes (no Spring context, no security filter chain).
- * Tests are @Disabled pending Plan 01-01 production code changes
- * (CreateProductResponseDto with slug + variantId).
+ * Verifies:
+ * <ul>
+ *   <li>Valid payload → 201 with {productBaseId, variantId, slug}</li>
+ *   <li>Optional webDescription field is accepted</li>
+ * </ul>
  */
 class ProductManagementControllerTest {
 
@@ -41,32 +47,28 @@ class ProductManagementControllerTest {
     }
 
     @Test
-    @Disabled("Awaiting Plan 01-01 production code changes")
     @DisplayName("POST /api/v1/admin/products returns 201 with productBaseId, variantId, slug")
     void createProduct_returns201WithFullResponse() throws Exception {
-        // TODO: After Plan 01-01 changes response to CreateProductResponseDto:
-        // mockMvc.perform(post("/api/v1/admin/products")
-        //     .contentType(MediaType.APPLICATION_JSON)
-        //     .content("""
-        //         {"name":"Test","categoryId":1,"colorId":1,"skus":[{"sizeLabel":"M","price":10.00,"stockQuantity":5}]}
-        //     """))
-        //     .andExpect(status().isCreated())
-        //     .andExpect(jsonPath("$.productBaseId").isNumber())
-        //     .andExpect(jsonPath("$.variantId").isNumber())
-        //     .andExpect(jsonPath("$.slug").isString());
+        mockMvc.perform(post("/api/v1/admin/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"name":"Test","categoryId":1,"colorId":1,"skus":[{"sizeLabel":"M","price":10.00,"stockQuantity":5}]}
+                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.productBaseId").isNumber())
+                .andExpect(jsonPath("$.variantId").isNumber())
+                .andExpect(jsonPath("$.slug").isString());
     }
 
     @Test
-    @Disabled("Awaiting Plan 01-01 production code changes")
     @DisplayName("POST /api/v1/admin/products accepts optional webDescription")
     void createProduct_acceptsWebDescription() throws Exception {
-        // TODO: After Plan 01-01 adds webDescription to request DTO:
-        // mockMvc.perform(post("/api/v1/admin/products")
-        //     .contentType(MediaType.APPLICATION_JSON)
-        //     .content("""
-        //         {"name":"Test","categoryId":1,"colorId":1,"webDescription":"<p>Hello</p>","skus":[{"sizeLabel":"M","price":10.00,"stockQuantity":5}]}
-        //     """))
-        //     .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/v1/admin/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"name":"Test","categoryId":1,"colorId":1,"webDescription":"<p>Hello</p>","skus":[{"sizeLabel":"M","price":10.00,"stockQuantity":5}]}
+                """))
+                .andExpect(status().isCreated());
     }
 
     // ==== In-Memory Fakes ====
