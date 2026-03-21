@@ -7,7 +7,7 @@
 
 ### Backend
 
-- [ ] **BE-01**: `POST /api/v1/admin/products` accepts optional `webDescription` field and persists it on the listing variant
+- [x] **BE-01**: `POST /api/v1/admin/products` accepts optional `webDescription` field and persists it on the listing variant
 
 ### Product Creation
 
@@ -34,7 +34,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BE-01 | Phase 1 | Pending |
+| BE-01 | Phase 1 | Complete |
 | CREATE-01 | Phase 1 | Pending |
 | CREATE-02 | Phase 1 | Pending |
 | CREATE-03 | Phase 1 | Pending |
