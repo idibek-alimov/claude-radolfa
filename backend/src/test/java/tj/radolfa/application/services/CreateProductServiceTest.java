@@ -1,7 +1,6 @@
 package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
@@ -14,19 +13,24 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for {@link CreateProductService}.
  *
- * <p>Uses in-memory fakes (not Mockito). Tests are @Disabled pending
- * Plan 01-01 production code changes (webDescription in Command, Result return type).
+ * <p>Uses in-memory fakes (not Mockito). Verifies:
+ * <ul>
+ *   <li>Result contains productBaseId, variantId, and slug</li>
+ *   <li>webDescription is propagated to the ListingVariant</li>
+ *   <li>null webDescription still succeeds</li>
+ * </ul>
  */
 class CreateProductServiceTest {
 
@@ -52,44 +56,37 @@ class CreateProductServiceTest {
     }
 
     @Test
-    @Disabled("Awaiting Plan 01-01 production code changes")
     @DisplayName("execute returns Result with productBaseId, variantId, and slug")
     void execute_returnsResultWithIds() {
-        // TODO: After Plan 01-01 changes Command to include webDescription
-        // and return type to Result:
-        // var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, "A <b>bold</b> description", List.of(
-        //     new CreateProductUseCase.Command.SkuDefinition("M", new Money(new java.math.BigDecimal("29.99")), 5)
-        // ));
-        // CreateProductUseCase.Result result = service.execute(command);
-        // assertNotNull(result.productBaseId());
-        // assertNotNull(result.variantId());
-        // assertNotNull(result.slug());
-        // assertTrue(result.slug().contains("test-shirt"));
+        var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, "A <b>bold</b> description", List.of(
+                new CreateProductUseCase.Command.SkuDefinition("M", new Money(new BigDecimal("29.99")), 5)
+        ));
+        CreateProductUseCase.Result result = service.execute(command);
+        assertNotNull(result.productBaseId());
+        assertNotNull(result.variantId());
+        assertNotNull(result.slug());
+        assertTrue(result.slug().contains("test-shirt"));
     }
 
     @Test
-    @Disabled("Awaiting Plan 01-01 production code changes")
     @DisplayName("execute propagates webDescription to ListingVariant")
     void execute_propagatesWebDescription() {
-        // TODO: After Plan 01-01 changes Command to include webDescription:
-        // var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, "<p>Rich desc</p>", List.of(
-        //     new CreateProductUseCase.Command.SkuDefinition("M", new Money(new java.math.BigDecimal("29.99")), 5)
-        // ));
-        // service.execute(command);
-        // ListingVariant saved = fakeSavePort.getLastSavedVariant();
-        // assertEquals("<p>Rich desc</p>", saved.getWebDescription());
+        var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, "<p>Rich desc</p>", List.of(
+                new CreateProductUseCase.Command.SkuDefinition("M", new Money(new BigDecimal("29.99")), 5)
+        ));
+        service.execute(command);
+        ListingVariant saved = fakeSavePort.getLastSavedVariant();
+        assertEquals("<p>Rich desc</p>", saved.getWebDescription());
     }
 
     @Test
-    @Disabled("Awaiting Plan 01-01 production code changes")
     @DisplayName("execute with null webDescription still succeeds")
     void execute_nullWebDescription_succeeds() {
-        // TODO: Same as above but webDescription = null
-        // var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, null, List.of(
-        //     new CreateProductUseCase.Command.SkuDefinition("M", new Money(new java.math.BigDecimal("29.99")), 5)
-        // ));
-        // CreateProductUseCase.Result result = service.execute(command);
-        // assertNotNull(result.productBaseId());
+        var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, null, List.of(
+                new CreateProductUseCase.Command.SkuDefinition("M", new Money(new BigDecimal("29.99")), 5)
+        ));
+        CreateProductUseCase.Result result = service.execute(command);
+        assertNotNull(result.productBaseId());
     }
 
     // ==== In-Memory Fakes ====
