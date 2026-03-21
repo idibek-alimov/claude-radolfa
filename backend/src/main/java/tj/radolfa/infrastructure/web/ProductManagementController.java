@@ -13,14 +13,13 @@ import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
+import tj.radolfa.infrastructure.web.dto.CreateProductResponseDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.UpdatePriceRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateProductCategoryRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateProductNameRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateSkuSizeLabelRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateStockRequestDto;
-
-import java.util.Map;
 
 /**
  * Admin endpoints for native product management.
@@ -57,13 +56,14 @@ public class ProductManagementController {
      */
     @PostMapping("/products")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<Map<String, Long>> createProduct(
+    public ResponseEntity<CreateProductResponseDto> createProduct(
             @Valid @RequestBody CreateProductRequestDto request) {
 
         var command = new CreateProductUseCase.Command(
                 request.name(),
                 request.categoryId(),
                 request.colorId(),
+                request.webDescription(),
                 request.skus().stream()
                         .map(s -> new CreateProductUseCase.Command.SkuDefinition(
                                 s.sizeLabel(),
@@ -72,9 +72,9 @@ public class ProductManagementController {
                         .toList()
         );
 
-        Long productBaseId = createProductUseCase.execute(command);
+        CreateProductUseCase.Result result = createProductUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("productBaseId", productBaseId));
+                .body(new CreateProductResponseDto(result.productBaseId(), result.variantId(), result.slug()));
     }
 
     /**

@@ -45,7 +45,7 @@ public class CreateProductService implements CreateProductUseCase {
 
     @Override
     @Transactional
-    public Long execute(Command command) {
+    public CreateProductUseCase.Result execute(Command command) {
         // 1. Resolve category
         LoadCategoryPort.CategoryView category = loadCategoryPort.findById(command.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -69,14 +69,14 @@ public class CreateProductService implements CreateProductUseCase {
                 null,
                 savedBase.getId(),
                 color.colorKey(),
-                null,                    // slug — generated below
-                null,
+                null,                           // slug — generated below
+                command.webDescription(),       // optional web description from create request
                 Collections.emptyList(),
                 Collections.emptyList(),
                 false,
                 false,
                 null,
-                null                     // productCode — assigned by persistence layer on first save
+                null                            // productCode — assigned by persistence layer on first save
         );
         variant.generateSlug(command.name());   // slug = slugify(name + "-" + colorKey)
         ListingVariant savedVariant = savePort.saveVariant(variant, savedBase.getId());
@@ -103,7 +103,7 @@ public class CreateProductService implements CreateProductUseCase {
                     savedVariant.getSlug(), ex.getMessage());
         }
 
-        return savedBase.getId();
+        return new CreateProductUseCase.Result(savedBase.getId(), savedVariant.getId(), savedVariant.getSlug());
     }
 
     private void indexVariant(ListingVariant variant, String productName, String category,

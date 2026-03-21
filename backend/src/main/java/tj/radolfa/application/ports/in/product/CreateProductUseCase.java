@@ -14,14 +14,17 @@ public interface CreateProductUseCase {
     /**
      * Creates a ProductBase → ListingVariant → SKUs hierarchy.
      *
-     * @return the ID of the newly created ProductBase
+     * @return a Result record containing the productBaseId, variantId, and slug of the created product
      */
-    Long execute(Command command);
+    Result execute(Command command);
+
+    record Result(Long productBaseId, Long variantId, String slug) {}
 
     record Command(
             String name,
             Long   categoryId,
             Long   colorId,
+            String webDescription,
             List<SkuDefinition> skus
     ) {
         public record SkuDefinition(

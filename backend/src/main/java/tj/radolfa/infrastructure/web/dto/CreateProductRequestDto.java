@@ -20,6 +20,8 @@ public record CreateProductRequestDto(
         @NotNull(message = "colorId is required")
         Long colorId,
 
+        String webDescription,
+
         @NotEmpty(message = "At least one SKU definition is required")
         @Valid
         List<SkuDefinitionDto> skus
