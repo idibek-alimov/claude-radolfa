@@ -19,12 +19,16 @@ Admins can create and edit products with all catalog data (description, images, 
 
 ### Active
 
-- [ ] Backend: `POST /admin/products` accepts optional `webDescription` field
-- [ ] Frontend: Product creation becomes a full dedicated page at `/manage/products/new`
-- [ ] Frontend: Create page includes name, category, color, description (rich text), image upload, SKUs
-- [ ] Frontend: On create submit — create product (with description) then upload images transparently, redirect to edit
-- [ ] Frontend: Product edit page is full-width (matching `max-w-[1600px]` of manage dashboard)
-- [ ] Frontend: Description field on edit page upgraded to rich text editor
+_All requirements validated in Phase 01._
+
+### Validated in Phase 01: product-create-edit-overhaul
+
+- ✓ Backend: `POST /admin/products` accepts optional `webDescription` field
+- ✓ Frontend: Product creation becomes a full dedicated page at `/manage/products/new`
+- ✓ Frontend: Create page includes name, category, color, description (rich text), image upload, SKUs
+- ✓ Frontend: On create submit — create product (with description) then upload images transparently, redirect to edit
+- ✓ Frontend: Product edit page is full-width (matching `max-w-[1600px]` of manage dashboard)
+- ✓ Frontend: Description field on edit page upgraded to rich text editor
 
 ### Out of Scope
 
@@ -51,10 +55,10 @@ Admins can create and edit products with all catalog data (description, images, 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Full page for create (not drawer) | Room for images + rich text; consistent with industry standard | — Pending |
-| Description in create request (backend change) | Avoid frontend multi-step workaround post-creation | — Pending |
-| Images uploaded transparently after create | Multipart upload requires slug (returned after creation); transparent to user | — Pending |
-| Rich text editor for description | User explicitly requested; plain textarea insufficient for product descriptions | — Pending |
+| Full page for create (not drawer) | Room for images + rich text; consistent with industry standard | ✓ Implemented Phase 01 |
+| Description in create request (backend change) | Avoid frontend multi-step workaround post-creation | ✓ Implemented Phase 01 |
+| Images uploaded transparently after create | Multipart upload requires slug (returned after creation); transparent to user | ✓ Implemented Phase 01 |
+| Rich text editor for description | User explicitly requested; plain textarea insufficient for product descriptions | ✓ TipTap v3, Phase 01 |
 
 ## Evolution
 
@@ -74,4 +78,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after initialization*
+*Last updated: 2026-03-21 — Phase 01 complete*
