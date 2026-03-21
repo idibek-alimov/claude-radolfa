@@ -53,29 +53,48 @@ Response fields: `content[]`, `totalElements`, `totalPages`, `number`, `size`, `
 The backend now returns all these fields directly — no adapter or transformation needed.
 
 ### Price Model
-The backend sends three price tiers per listing variant. There are **no** per-variant
-sale discounts, sale titles, or per-SKU loyalty prices:
 
-| Field | Meaning |
-|---|---|
-| `minPrice` | Lowest SKU price (always present) |
-| `maxPrice` | Highest SKU price (may equal minPrice) |
-| `tierDiscountedMinPrice` | Authenticated user's tier-discounted price (null if no tier) |
+The backend sends a full pricing block per listing variant and per SKU.
+All monetary values are numbers (not strings). Percentages are whole integers (20 = 20%).
 
-Display logic:
-- **With tier:** `tierDiscountedMinPrice` as hero price (amber, Crown icon); `minPrice` struck through
-- **No tier / guest:** `minPrice` as hero; show range `minPrice – maxPrice` if they differ
+**Variant-level fields (always present on `ListingVariant`):**
 
-Never render `discountedPrice`, `loyaltyPrice`, `saleTitle`, or `saleColorHex` — those fields
-were removed from the backend and do not exist.
+| Field | Type | Meaning |
+|-------|------|---------|
+| `originalPrice` | `number` | Pre-discount price of cheapest SKU. Show as strikethrough when a cheaper price exists. |
+| `discountPrice` | `number \| null` | Sale price. `null` if no active sale on this variant. |
+| `discountPercentage` | `number \| null` | Sale discount %. Whole number. `null` if no sale. |
+| `discountName` | `string \| null` | Sale campaign name, e.g. "Winter Collection". |
+| `discountColorHex` | `string \| null` | Badge background color for the sale campaign. |
+| `loyaltyPrice` | `number \| null` | User's best price (best-of sale vs tier). `null` for guests and no-tier users. |
+| `loyaltyPercentage` | `number \| null` | User's tier %. Badge shows this, NOT the effective applied %. |
+| `isPartialDiscount` | `boolean` | `true` if only some sizes are on sale or have different campaigns. |
+
+**SKU-level fields (on each `Sku` in `skus[]`):**
+
+Same set as variant-level except `isPartialDiscount` (not on SKU).
+When the user selects a size, swap to that SKU's pricing — discount may appear
+or disappear depending on whether that SKU is part of an active campaign.
+
+**Display logic:**
+
+| User type | Hero price | Strikethrough |
+|-----------|-----------|---------------|
+| Guest / no tier, no sale | `originalPrice` (violet) | — |
+| Guest / no tier, sale active | `discountPrice` (red) | `originalPrice` |
+| Auth + tier, no sale | `loyaltyPrice` (amber, Crown) | `originalPrice` |
+| Auth + tier, sale active | `loyaltyPrice` (amber, Crown) | `originalPrice` + sale badge |
+
+**Formula (for reference — computed on backend, do not recompute on frontend):**
+`loyaltyPrice = originalPrice × (1 − max(discountPercentage, loyaltyPercentage) / 100)`
 
 ### Key Type Field Names
 These differ from legacy ERP-era names — use the correct ones:
 
 | Entity | Old (deleted) | Current |
 |---|---|---|
-| `Sku` | `id`, `erpItemCode`, `originalPrice` | `skuId`, `skuCode`, `price` |
-| `ListingVariant` | `id`, `colorHexCode`, `category`, `totalStock` | `variantId`, `colorHex`, `categoryName`, *(compute from skus)* |
+| `Sku` | `id`, `erpItemCode`, `price` | `skuId`, `skuCode`, `originalPrice` (+ full pricing block — see Price Model) |
+| `ListingVariant` | `id`, `colorHexCode`, `category`, `totalStock`, `minPrice`, `maxPrice`, `tierDiscountedMinPrice` | `variantId`, `colorHex`, `categoryName`, `originalPrice` (+ full pricing block — see Price Model) |
 | `AuthResponse` | `token` | `accessToken` |
 | Pagination | `items`, `hasMore` | `content`, `last` |
 | `HomeSection` items array | `items` | `listings` |
