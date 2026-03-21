@@ -169,9 +169,18 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
 
   /* ── Price computation ──────────────────────────────────────── */
 
-  const skuPrice = selectedSku?.price ?? null;
-  const displayPrice = skuPrice ?? listing.minPrice;
-  const hasTierPrice = listing.tierDiscountedMinPrice != null;
+  // When a SKU is selected, use its per-SKU pricing; otherwise fall back to variant-level.
+  const activeOriginal     = selectedSku?.originalPrice     ?? listing.originalPrice;
+  const activeDiscount     = selectedSku?.discountPrice     ?? listing.discountPrice;
+  const activeDiscountPct  = selectedSku?.discountPercentage ?? listing.discountPercentage;
+  const activeDiscountName = selectedSku?.discountName      ?? listing.discountName;
+  const activeDiscountHex  = selectedSku?.discountColorHex  ?? listing.discountColorHex;
+  const activeLoyalty      = selectedSku?.loyaltyPrice      ?? listing.loyaltyPrice;
+
+  const hasDiscount     = activeDiscount != null;
+  const hasLoyalty      = activeLoyalty != null;
+  const hasCheaperPrice = hasDiscount || hasLoyalty;
+
   const totalStock = listing.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
   const currentStock = selectedSku ? selectedSku.stockQuantity : totalStock;
 
@@ -286,7 +295,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                 )}
 
                 {/* Tier price badge on image */}
-                {hasTierPrice && (
+                {hasLoyalty && (
                   <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-md">
                       <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -403,42 +412,77 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
 
           {/* ── Price block ───────────────────────────────────────── */}
           <div className="bg-muted/40 rounded-xl px-3 py-3 sm:p-4 space-y-1.5 sm:space-y-2">
-            {hasTierPrice ? (
-              <>
-                {/* Tier user: tier price is hero */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+
+            {/* Hero price */}
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              {hasLoyalty ? (
+                <>
                   <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
                   <span className="text-2xl sm:text-[2rem] font-bold text-amber-600">
-                    {formatPrice(listing.tierDiscountedMinPrice!)}
+                    {formatPrice(activeLoyalty!)}
                   </span>
                   <span className="text-xs sm:text-sm font-medium text-amber-600/70">
                     {tc("yourPrice")}
                   </span>
-                </div>
-                <div className="flex items-baseline gap-1.5 sm:gap-2">
-                  <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                    {formatPrice(displayPrice)}
-                  </span>
-                  {listing.minPrice !== listing.maxPrice && !selectedSku && (
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      — {formatPrice(listing.maxPrice)}
+                  {hasDiscount && (
+                    <span
+                      className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: activeDiscountHex ?? "#ef4444" }}
+                    >
+                      {activeDiscountName} · -{activeDiscountPct}%
                     </span>
                   )}
-                </div>
-              </>
-            ) : (
-              /* No tier: show selected SKU price or min price */
-              <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                </>
+              ) : hasDiscount ? (
+                <>
+                  <span className="text-2xl sm:text-[2rem] font-bold text-red-600">
+                    {formatPrice(activeDiscount!)}
+                  </span>
+                  <span
+                    className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                    style={{ backgroundColor: activeDiscountHex ?? "#ef4444" }}
+                  >
+                    {activeDiscountName} · -{activeDiscountPct}%
+                  </span>
+                </>
+              ) : (
                 <span className="text-2xl sm:text-[2rem] font-bold text-violet-600">
-                  {formatPrice(displayPrice)}
+                  {formatPrice(activeOriginal)}
                 </span>
-                {listing.minPrice !== listing.maxPrice && !selectedSku && (
-                  <span className="text-sm sm:text-base text-muted-foreground">
-                    — {formatPrice(listing.maxPrice)}
+              )}
+            </div>
+
+            {/* Strikethrough row */}
+            {hasCheaperPrice && (
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                  {formatPrice(activeOriginal)}
+                </span>
+                {hasDiscount && !hasLoyalty && (
+                  <span
+                    className="text-xs font-semibold px-1.5 py-0.5 rounded text-white"
+                    style={{ backgroundColor: activeDiscountHex ?? "#ef4444" }}
+                  >
+                    -{activeDiscountPct}%
                   </span>
                 )}
               </div>
             )}
+
+            {/* Loyalty tier detail */}
+            {hasLoyalty && listing.loyaltyPercentage != null && (
+              <p className="text-xs text-amber-600 font-medium">
+                {tc("loyaltyTierDetail", { pct: listing.loyaltyPercentage })}
+              </p>
+            )}
+
+            {/* Partial discount hint — shown at variant level before a size is selected */}
+            {listing.isPartialDiscount && !selectedSku && (
+              <p className="text-xs text-muted-foreground">
+                {t("partialDiscountHint")}
+              </p>
+            )}
+
           </div>
 
           {/* ── Colour display ────────────────────────────────────── */}
@@ -493,6 +537,12 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                       `}
                     >
                       {skuItem.sizeLabel}
+                      {skuItem.discountPrice != null && (
+                        <span
+                          className="absolute -top-1 -right-1 w-2 h-2 rounded-full border border-background"
+                          style={{ backgroundColor: skuItem.discountColorHex ?? "#ef4444" }}
+                        />
+                      )}
                       {isOutOfStock && (
                         <span className="absolute inset-0 flex items-center justify-center">
                           <span className="block w-[calc(100%-12px)] h-px bg-muted-foreground/30 rotate-[-20deg]" />
