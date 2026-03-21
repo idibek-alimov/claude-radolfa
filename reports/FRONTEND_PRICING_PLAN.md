@@ -210,7 +210,7 @@ Replace with the new Price Model table (from `FRONTEND_PRICING_IMPLEMENTATION.md
 
 | Phase | Status | Summary |
 |-------|--------|---------|
-| Phase 1 — TypeScript Types | [ ] | |
+| Phase 1 — TypeScript Types | [x] | Removed `Sku.price`, `ListingVariant.minPrice/maxPrice/tierDiscountedMinPrice`. Added full 6-field pricing block to `Sku`, 8-field pricing block to `ListingVariant`, new `SiblingVariant` interface, and `siblingVariants` field on `ListingVariantDetail`. |
 | Phase 2 — Compiler Error Triage | [ ] | |
 | Phase 3 — ProductCard Rewrite | [ ] | |
 | Phase 4 — ProductDetail Rewrite | [ ] | |
