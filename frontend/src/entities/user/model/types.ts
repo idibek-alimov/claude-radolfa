@@ -20,6 +20,6 @@ export interface User {
   role: UserRole;
   name?: string;
   email?: string;
-  loyalty: LoyaltyProfile;
+  loyalty: LoyaltyProfile | null;
   enabled: boolean;
 }

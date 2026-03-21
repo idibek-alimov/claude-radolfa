@@ -1,8 +1,9 @@
 import { apiClient } from "@/shared/api";
 import type { PaginatedResponse } from "@/shared/api/types";
 import type {
-  ListingVariantDetail,
+  Sku,
   ListingVariant,
+  ListingVariantDetail,
   HomeSection,
   CollectionPage,
   CategoryTree,
@@ -18,14 +19,16 @@ export interface ImageUploadResponse {
   images: string[];
 }
 
-/** Paginated listing grid (colour cards). Backend is 0-based. */
+// ── API functions ─────────────────────────────────────────────────
+
+/** Paginated listing grid. Backend is 1-based. */
 export async function fetchListings(
   page: number = 1,
   size: number = 12
 ): Promise<PaginatedResponse<ListingVariant>> {
   const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     "/api/v1/listings",
-    { params: { page: page - 1, size } }
+    { params: { page, size } }
   );
   return data;
 }
@@ -48,7 +51,7 @@ export async function searchListings(
 ): Promise<PaginatedResponse<ListingVariant>> {
   const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     "/api/v1/listings/search",
-    { params: { q, page: page - 1, size } }
+    { params: { q, page, size } }
   );
   return data;
 }
@@ -65,15 +68,15 @@ export async function fetchAutocomplete(
   return data;
 }
 
-/** Homepage collection sections (Featured, New Arrivals, Deals). */
+/** Homepage collection sections. */
 export async function fetchHomeCollections(): Promise<HomeSection[]> {
-  const { data } = await apiClient.get<{ sections: HomeSection[] }>(
+  const { data } = await apiClient.get<HomeSection[]>(
     "/api/v1/home/collections"
   );
-  return data.sections;
+  return data ?? [];
 }
 
-/** Single collection page — returns all items (no server-side pagination). */
+/** Single collection page. */
 export async function fetchCollectionPage(
   key: string
 ): Promise<CollectionPage> {
@@ -114,7 +117,7 @@ export async function fetchCategoryProducts(
 ): Promise<PaginatedResponse<ListingVariant>> {
   const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     `/api/v1/categories/${slug}/products`,
-    { params: { page: page - 1, size } },
+    { params: { page, size } },
   );
   return data;
 }

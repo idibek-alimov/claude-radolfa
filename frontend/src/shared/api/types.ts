@@ -1,6 +1,6 @@
 /**
  * Generic Spring Page wrapper returned by all paginated endpoints.
- * Backend is 0-based; frontend converts before sending (page - 1).
+ * Backend is 1-based; frontend sends page as-is (starting from 1).
  */
 export interface PaginatedResponse<T> {
   content: T[];

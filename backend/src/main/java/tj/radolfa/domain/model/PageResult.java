@@ -6,11 +6,17 @@ import java.util.List;
  * Framework-agnostic pagination wrapper.
  * Pure Java — no Spring, no JPA dependencies.
  *
- * @param <T> the type of items in the page
+ * @param content       the items on this page
+ * @param totalElements total count across all pages
+ * @param number        current page number (1-based)
+ * @param size          requested page size
+ * @param last          true when no further pages exist
+ * @param <T>           the type of items in the page
  */
 public record PageResult<T>(
-        List<T> items,
+        List<T> content,
         long totalElements,
-        int page,
-        boolean hasMore
+        int number,
+        int size,
+        boolean last
 ) {}

@@ -1,13 +1,13 @@
 package tj.radolfa.application.readmodel;
 
-import tj.radolfa.domain.model.PageResult;
+import java.util.List;
 
 /**
- * Paginated response for a single collection's "View All" page.
+ * Response for a single collection's "View All" page.
  * Includes the display title so the frontend doesn't need to maintain a key-to-title mapping.
  */
 public record CollectionPageDto(
         String key,
         String title,
-        PageResult<ListingVariantDto> page) {
+        List<ListingVariantDto> listings) {
 }

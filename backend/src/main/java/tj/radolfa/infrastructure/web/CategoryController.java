@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.application.ports.out.LoadListingPort;
-import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.web.dto.CategoryTreeDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -40,7 +39,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{slug}/products")
-    public ResponseEntity<PageResult<ListingVariantDto>> getProductsByCategory(
+    public ResponseEntity<PageResponse<ListingVariantDto>> getProductsByCategory(
             @PathVariable String slug,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int limit) {
@@ -51,8 +50,8 @@ public class CategoryController {
         }
 
         List<Long> categoryIds = loadCategoryPort.getAllDescendantIds(category.id());
-        PageResult<ListingVariantDto> result = loadListingPort.loadByCategoryIds(categoryIds, page, limit);
-        return ResponseEntity.ok(tierPricing.enrich(result));
+        tj.radolfa.domain.model.PageResult<ListingVariantDto> result = loadListingPort.loadByCategoryIds(categoryIds, page, limit);
+        return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(result)));
     }
 
     private List<CategoryTreeDto> buildTree(List<CategoryView> all) {

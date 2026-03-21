@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.in.UploadImageUseCase;
 import tj.radolfa.domain.exception.ImageProcessingException;
-import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -52,11 +51,11 @@ public class ListingController {
 
     @GetMapping
     @Operation(summary = "Paginated listing grid", description = "Returns colour cards with aggregated price/stock")
-    public ResponseEntity<PageResult<ListingVariantDto>> grid(
+    public ResponseEntity<PageResponse<ListingVariantDto>> grid(
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
-        return ResponseEntity.ok(tierPricing.enrich(getListingUseCase.getPage(page, limit)));
+        return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(getListingUseCase.getPage(page, limit))));
     }
 
     @GetMapping("/{slug}")
@@ -70,12 +69,12 @@ public class ListingController {
 
     @GetMapping("/search")
     @Operation(summary = "Search listings", description = "Full-text fuzzy search (ES with SQL fallback)")
-    public ResponseEntity<PageResult<ListingVariantDto>> search(
+    public ResponseEntity<PageResponse<ListingVariantDto>> search(
             @Parameter(description = "Search query") @RequestParam String q,
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
-        return ResponseEntity.ok(tierPricing.enrich(getListingUseCase.search(q, page, limit)));
+        return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(getListingUseCase.search(q, page, limit))));
     }
 
     @GetMapping("/autocomplete")

@@ -69,14 +69,14 @@ public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
             default -> throw new IllegalStateException("Unknown key: " + key);
         };
 
-        return Optional.of(new CollectionPageDto(key, title, result));
+        return Optional.of(new CollectionPageDto(key, title, result.content()));
     }
 
     private void addIfNotEmpty(List<HomeSectionDto> sections,
                                String key, String title,
                                List<ListingVariantDto> items) {
         if (!items.isEmpty()) {
-            sections.add(new HomeSectionDto(key, title, items));
+            sections.add(new HomeSectionDto(key, title, items)); // listings = items
         }
     }
 }

@@ -9,23 +9,18 @@ import java.util.List;
  * Includes the SKU list (sizes/prices), sibling colour swatches, and product attributes.
  */
 public record ListingVariantDetailDto(
-        Long id,
+        Long variantId,
         String slug,
-        String name,
-        String category,
+        String colorDisplayName,
+        String categoryName,
         String colorKey,
-        String colorHexCode,
+        String colorHex,
         String webDescription,
         List<String> images,
         List<AttributeDto> attributes,
-        BigDecimal originalPrice,
-        BigDecimal discountedPrice,
-        BigDecimal loyaltyPrice,
-        BigDecimal discountPercentage,
-        BigDecimal loyaltyDiscountPercentage,
-        String saleTitle,
-        String saleColorHex,
-        Integer totalStock,
+        BigDecimal minPrice,
+        BigDecimal maxPrice,
+        BigDecimal tierDiscountedMinPrice,
         boolean topSelling,
         boolean featured,
         List<SkuDto> skus,
@@ -45,27 +40,20 @@ public record ListingVariantDetailDto(
     public record SiblingVariant(
             String slug,
             String colorKey,
-            String colorHexCode,
+            String colorHex,
             String thumbnail
     ) {}
 
     public ListingVariantDetailDto withLoyaltyPrice(BigDecimal loyaltyPct) {
         if (loyaltyPct.compareTo(BigDecimal.ZERO) == 0) return this;
 
-        BigDecimal base = discountedPrice != null ? discountedPrice : originalPrice;
-        if (base == null) return this;
-
         BigDecimal multiplier = BigDecimal.ONE.subtract(
                 loyaltyPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
-        BigDecimal lp = base.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal tierPrice = minPrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
 
-        List<SkuDto> enrichedSkus = skus.stream()
-                .map(sku -> sku.withLoyaltyPrice(loyaltyPct))
-                .toList();
-
-        return new ListingVariantDetailDto(id, slug, name, category, colorKey, colorHexCode,
-                webDescription, images, attributes, originalPrice, discountedPrice, lp,
-                discountPercentage, loyaltyPct, saleTitle, saleColorHex,
-                totalStock, topSelling, featured, enrichedSkus, siblingVariants, productCode);
+        return new ListingVariantDetailDto(variantId, slug, colorDisplayName, categoryName,
+                colorKey, colorHex, webDescription, images, attributes,
+                minPrice, maxPrice, tierPrice,
+                topSelling, featured, skus, siblingVariants, productCode);
     }
 }

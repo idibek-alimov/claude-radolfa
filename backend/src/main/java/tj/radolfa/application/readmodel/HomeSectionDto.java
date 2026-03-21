@@ -11,5 +11,5 @@ import java.util.List;
 public record HomeSectionDto(
         String key,
         String title,
-        List<ListingVariantDto> items) {
+        List<ListingVariantDto> listings) {
 }

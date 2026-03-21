@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Enriches product DTOs with tier-based pricing.
  * Resolves the authenticated user's discount percentage from the security context
- * and applies it to product price fields.
+ * and applies it to {@code tierDiscountedMinPrice} on product DTOs.
  */
 @Component
 @RequestScope
@@ -48,10 +48,10 @@ public class TierPricingEnricher {
         BigDecimal discount = resolveDiscount();
         if (discount.compareTo(BigDecimal.ZERO) == 0) return page;
 
-        List<ListingVariantDto> enriched = page.items().stream()
+        List<ListingVariantDto> enriched = page.content().stream()
                 .map(dto -> dto.withLoyaltyPrice(discount))
                 .toList();
-        return new PageResult<>(enriched, page.totalElements(), page.page(), page.hasMore());
+        return new PageResult<>(enriched, page.totalElements(), page.number(), page.size(), page.last());
     }
 
     public ListingVariantDetailDto enrich(ListingVariantDetailDto detail) {
@@ -66,7 +66,7 @@ public class TierPricingEnricher {
 
         return sections.stream()
                 .map(s -> new HomeSectionDto(s.key(), s.title(),
-                        s.items().stream().map(dto -> dto.withLoyaltyPrice(discount)).toList()))
+                        s.listings().stream().map(dto -> dto.withLoyaltyPrice(discount)).toList()))
                 .toList();
     }
 
@@ -74,11 +74,9 @@ public class TierPricingEnricher {
         BigDecimal discount = resolveDiscount();
         if (discount.compareTo(BigDecimal.ZERO) == 0) return cp;
 
-        PageResult<ListingVariantDto> page = cp.page();
-        List<ListingVariantDto> enriched = page.items().stream()
+        List<ListingVariantDto> enriched = cp.listings().stream()
                 .map(dto -> dto.withLoyaltyPrice(discount))
                 .toList();
-        return new CollectionPageDto(cp.key(), cp.title(),
-                new PageResult<>(enriched, page.totalElements(), page.page(), page.hasMore()));
+        return new CollectionPageDto(cp.key(), cp.title(), enriched);
     }
 }

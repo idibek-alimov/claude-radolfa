@@ -63,6 +63,7 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
                 result.getContent().stream().map(mapper::toUser).toList(),
                 result.getTotalElements(),
                 page,
-                result.hasNext());
+                size,
+                !result.hasNext());
     }
 }

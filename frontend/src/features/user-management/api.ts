@@ -8,7 +8,7 @@ export async function fetchUsers(
   size: number = 20
 ): Promise<PaginatedResponse<UserDto>> {
   const { data } = await apiClient.get<PaginatedResponse<UserDto>>("/api/v1/users", {
-    params: { search, page: page - 1, size },
+    params: { search, page, size },
   });
   return data;
 }

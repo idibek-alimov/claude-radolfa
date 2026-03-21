@@ -31,7 +31,7 @@ import java.util.Optional;
  *
  * <p>
  * Grid queries use JPQL aggregates (single query, no N+1).
- * Images are batch-loaded in a second query for the page.
+ * Images and SKUs are batch-loaded in separate queries for the page.
  * Discounts are resolved from the discounts table post-query.
  */
 @Component
@@ -92,12 +92,13 @@ public class ListingReadAdapter implements LoadListingPort {
 
                 Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
+                Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
 
-                List<ListingVariantDto> items = raw.getContent().stream()
-                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap))
+                List<ListingVariantDto> content = raw.getContent().stream()
+                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap))
                                 .toList();
 
-                return new PageResult<>(items, raw.getTotalElements(), page,
+                return new PageResult<>(content, raw.getTotalElements(), page, limit,
                                 (long) page * limit < raw.getTotalElements());
         }
 
@@ -114,47 +115,38 @@ public class ListingReadAdapter implements LoadListingPort {
 
                 List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
 
-                // Resolve discounts for all item codes in this variant
-                List<String> itemCodes = skuEntities.stream()
+                // Resolve discounts for all SKU codes in this variant
+                List<String> skuCodes = skuEntities.stream()
                                 .map(SkuEntity::getSkuCode)
                                 .toList();
-                Map<String, DiscountEntity> discountsByItemCode =
-                                discountEnrichment.resolveForItemCodes(itemCodes);
+                Map<String, DiscountEntity> discountsBySkuCode =
+                                discountEnrichment.resolveForItemCodes(skuCodes);
 
                 List<SkuDto> skus = skuEntities.stream()
-                                .map(sku -> toSkuDto(sku, discountsByItemCode.get(sku.getSkuCode())))
+                                .map(sku -> toSkuDto(sku, discountsBySkuCode.get(sku.getSkuCode())))
                                 .toList();
 
-                BigDecimal originalPrice = skuEntities.stream()
-                                .map(SkuEntity::getOriginalPrice)
+                // minPrice: effective lowest SKU price (sale discount applied if active)
+                BigDecimal minPrice = skuEntities.stream()
+                                .map(sku -> {
+                                        DiscountEntity d = discountsBySkuCode.get(sku.getSkuCode());
+                                        if (d != null && sku.getOriginalPrice() != null) {
+                                                return computeDiscountedPrice(sku.getOriginalPrice(), d.getDiscountValue());
+                                        }
+                                        return sku.getOriginalPrice();
+                                })
                                 .filter(Objects::nonNull)
                                 .min(BigDecimal::compareTo)
                                 .orElse(null);
 
-                // Find cheapest discounted price across all SKUs
-                BigDecimal discountedPrice = null;
-                BigDecimal discountPercentage = null;
-                String saleTitle = null;
-                String saleColorHex = null;
+                // maxPrice: raw highest SKU original price
+                BigDecimal maxPrice = skuEntities.stream()
+                                .map(SkuEntity::getOriginalPrice)
+                                .filter(Objects::nonNull)
+                                .max(BigDecimal::compareTo)
+                                .orElse(minPrice);
 
-                for (SkuEntity sku : skuEntities) {
-                        DiscountEntity discount = discountsByItemCode.get(sku.getSkuCode());
-                        if (discount == null || sku.getOriginalPrice() == null) continue;
-
-                        BigDecimal dp = computeDiscountedPrice(sku.getOriginalPrice(), discount.getDiscountValue());
-                        if (discountedPrice == null || dp.compareTo(discountedPrice) < 0) {
-                                discountedPrice = dp;
-                                discountPercentage = discount.getDiscountValue();
-                                saleTitle = discount.getTitle();
-                                saleColorHex = discount.getColorHex();
-                        }
-                }
-
-                int totalStock = skuEntities.stream()
-                                .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
-                                .sum();
-
-                // Siblings: load IDs, slugs, colorKeys, hexCodes — then batch-load thumbnails
+                // Siblings: load slugs, colorKeys, hexCodes — then batch-load thumbnails
                 Long baseId = entity.getProductBase().getId();
                 List<Object[]> siblingRows = variantRepo.findSiblings(baseId, entity.getId());
 
@@ -171,7 +163,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                         return new ListingVariantDetailDto.SiblingVariant(
                                                         (String) row[1],   // slug
                                                         (String) row[2],   // colorKey
-                                                        (String) row[3],   // colorHexCode
+                                                        (String) row[3],   // colorHex (hexCode)
                                                         thumbnail);
                                 })
                                 .toList();
@@ -182,7 +174,7 @@ public class ListingReadAdapter implements LoadListingPort {
                 String colorKey = entity.getColor() != null
                                 ? entity.getColor().getColorKey()
                                 : null;
-                String colorHexCode = entity.getColor() != null
+                String colorHex = entity.getColor() != null
                                 ? entity.getColor().getHexCode()
                                 : null;
 
@@ -192,18 +184,13 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getProductBase().getName(),
                                 categoryName,
                                 colorKey,
-                                colorHexCode,
+                                colorHex,
                                 entity.getWebDescription(),
                                 images,
                                 attributes,
-                                originalPrice,
-                                discountedPrice,
-                                null,              // loyaltyPrice (enriched by controller)
-                                discountPercentage,
-                                null,              // loyaltyDiscountPercentage (enriched by controller)
-                                saleTitle,
-                                saleColorHex,
-                                totalStock,
+                                minPrice,
+                                maxPrice,
+                                null,              // tierDiscountedMinPrice — enriched by TierPricingEnricher
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
                                 skus,
@@ -214,30 +201,16 @@ public class ListingReadAdapter implements LoadListingPort {
         // ---- SKU helpers (detail-page only) ----
 
         private SkuDto toSkuDto(SkuEntity entity, DiscountEntity discount) {
-                boolean onSale = discount != null && entity.getOriginalPrice() != null;
-
-                BigDecimal effectiveDiscounted = null;
-                BigDecimal effectiveDiscountPct = null;
-                if (onSale) {
-                        effectiveDiscounted = computeDiscountedPrice(
-                                        entity.getOriginalPrice(), discount.getDiscountValue());
-                        effectiveDiscountPct = discount.getDiscountValue();
+                BigDecimal effectivePrice = entity.getOriginalPrice();
+                if (discount != null && effectivePrice != null) {
+                        effectivePrice = computeDiscountedPrice(effectivePrice, discount.getDiscountValue());
                 }
-
                 return new SkuDto(
                                 entity.getId(),
                                 entity.getSkuCode(),
                                 entity.getSizeLabel(),
                                 entity.getStockQuantity(),
-                                entity.getOriginalPrice(),
-                                effectiveDiscounted,
-                                null,               // loyaltyPrice (enriched by controller)
-                                effectiveDiscountPct,
-                                null,               // loyaltyDiscountPercentage (enriched by controller)
-                                onSale ? discount.getTitle() : null,
-                                onSale ? discount.getColorHex() : null,
-                                onSale,
-                                onSale ? discount.getValidUpto() : null);
+                                effectivePrice);
         }
 
         private BigDecimal computeDiscountedPrice(BigDecimal originalPrice, BigDecimal discountPct) {

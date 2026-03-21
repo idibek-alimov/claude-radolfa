@@ -45,12 +45,12 @@ Logic (hooks, mutations, API calls) lives in `features/` or `entities/`, never i
   Read `err.response.data.message` for user-facing error toasts via `getErrorMessage()`.
 
 ### Pagination
-Backend is **0-based**. Frontend page state is 1-based. Always subtract 1 before sending:
+Backend is **1-based**. Frontend page state is also 1-based. Send page as-is (no subtraction):
 ```ts
-params: { page: page - 1, size }
+params: { page, size }
 ```
 Response fields: `content[]`, `totalElements`, `totalPages`, `number`, `size`, `first`, `last`.
-Map `last` → `!hasMore`. Do **not** use `items` or `hasMore` — those are old ERP-era fields.
+The backend now returns all these fields directly — no adapter or transformation needed.
 
 ### Price Model
 The backend sends three price tiers per listing variant. There are **no** per-variant

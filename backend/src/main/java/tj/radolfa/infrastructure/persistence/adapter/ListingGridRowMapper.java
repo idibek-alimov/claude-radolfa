@@ -1,8 +1,10 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.SkuDto;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,44 +18,47 @@ import java.util.stream.Collectors;
  * <p>Used by both {@link ListingReadAdapter} and {@link HomeCollectionsAdapter}
  * to eliminate duplicated column-index logic.
  *
- * <p>Column layout (12 columns):
+ * <p>Column layout (13 columns):
  * [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
  * [5]=webDescription, [6]=topSelling, [7]=MIN(originalPrice),
- * [8]=totalStock, [9]=colorHexCode, [10]=featured, [11]=productCode
+ * [8]=totalStock, [9]=colorHexCode, [10]=featured, [11]=productCode,
+ * [12]=MAX(originalPrice)
  */
 final class ListingGridRowMapper {
 
     private ListingGridRowMapper() {}
 
     static ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
-                                       Map<Long, DiscountInfo> discountMap) {
-        Long id = (Long) row[0];
-        DiscountInfo discount = discountMap.get(id);
+                                       Map<Long, DiscountInfo> discountMap,
+                                       Map<Long, List<SkuDto>> skuMap) {
+        Long variantId = (Long) row[0];
+        DiscountInfo discount = discountMap.get(variantId);
 
-        BigDecimal originalPrice = discount != null
-                ? discount.originalPrice()
+        // minPrice: effective lowest price — discounted if a sale is active
+        BigDecimal minPrice = discount != null
+                ? discount.discountedPrice()
                 : toBigDecimal(row[7]);
 
+        // maxPrice: raw highest SKU price (used for strikethrough display)
+        BigDecimal maxPrice = toBigDecimal(row[12]);
+        if (maxPrice == null) maxPrice = minPrice;
+
         return new ListingVariantDto(
-                id,
+                variantId,
                 (String) row[1],   // slug
-                (String) row[2],   // name
-                (String) row[3],   // category
+                (String) row[2],   // colorDisplayName (product name)
+                (String) row[3],   // categoryName
                 (String) row[4],   // colorKey
-                (String) row[9],   // colorHexCode
+                (String) row[9],   // colorHex (hexCode)
                 (String) row[5],   // webDescription
-                imageMap.getOrDefault(id, List.of()),
-                originalPrice,
-                discount != null ? discount.discountedPrice() : null,
-                null,                                              // loyaltyPrice (enriched by controller)
-                discount != null ? discount.discountPercentage() : null,
-                null,                                              // loyaltyDiscountPercentage (enriched by controller)
-                discount != null ? discount.saleTitle() : null,
-                discount != null ? discount.saleColorHex() : null,
-                toInteger(row[8]),     // totalStock
-                (Boolean) row[6],      // topSelling
-                (Boolean) row[10],     // featured
-                (String) row[11]);     // productCode
+                imageMap.getOrDefault(variantId, List.of()),
+                minPrice,
+                maxPrice,
+                null,              // tierDiscountedMinPrice — enriched later by TierPricingEnricher
+                (Boolean) row[6],  // topSelling
+                (Boolean) row[10], // featured
+                (String) row[11],  // productCode
+                skuMap.getOrDefault(variantId, List.of()));
     }
 
     static Map<Long, List<String>> loadImageMap(List<Long> variantIds,
@@ -63,6 +68,21 @@ final class ListingGridRowMapper {
                 .collect(Collectors.groupingBy(
                         row -> (Long) row[0],
                         Collectors.mapping(row -> (String) row[1], Collectors.toList())));
+    }
+
+    static Map<Long, List<SkuDto>> loadSkuMap(List<Long> variantIds,
+                                               SkuRepository skuRepo) {
+        if (variantIds.isEmpty()) return Map.of();
+        return skuRepo.findGridSkusByVariantIds(variantIds).stream()
+                .collect(Collectors.groupingBy(
+                        row -> (Long) row[0],
+                        Collectors.mapping(row -> new SkuDto(
+                                (Long) row[1],
+                                (String) row[2],
+                                (String) row[3],
+                                toInteger(row[4]),
+                                toBigDecimal(row[5])
+                        ), Collectors.toList())));
     }
 
     static BigDecimal toBigDecimal(Object value) {

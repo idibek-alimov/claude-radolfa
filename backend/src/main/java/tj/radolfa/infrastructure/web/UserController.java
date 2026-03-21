@@ -65,7 +65,7 @@ public class UserController {
     @GetMapping
     @Operation(summary = "List all users (paginated, searchable)")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<PageResult<UserDto>> listUsers(
+    public ResponseEntity<PageResponse<UserDto>> listUsers(
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -73,12 +73,13 @@ public class UserController {
         PageResult<tj.radolfa.domain.model.User> result = listUsersUseCase.execute(search, page, size);
 
         PageResult<UserDto> dtoResult = new PageResult<>(
-                result.items().stream().map(UserDto::fromDomain).toList(),
+                result.content().stream().map(UserDto::fromDomain).toList(),
                 result.totalElements(),
-                result.page(),
-                result.hasMore());
+                result.number(),
+                result.size(),
+                result.last());
 
-        return ResponseEntity.ok(dtoResult);
+        return ResponseEntity.ok(PageResponse.from(dtoResult));
     }
 
     @PatchMapping("/{id}/status")

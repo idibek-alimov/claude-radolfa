@@ -41,7 +41,7 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     @Override
     public PageResult<ListingVariantDto> search(String query, int page, int limit) {
         LOG.info("[LISTING-ES-STUB] Would search for query={}", query);
-        return new PageResult<>(List.of(), 0, page, false);
+        return new PageResult<>(List.of(), 0, page, limit, true);
     }
 
     @Override

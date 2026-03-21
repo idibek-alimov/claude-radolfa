@@ -20,4 +20,17 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
 
     @Query("SELECT DISTINCT s.listingVariant.id FROM SkuEntity s WHERE s.skuCode IN :skuCodes")
     List<Long> findVariantIdsByItemCodes(@Param("skuCodes") Collection<String> skuCodes);
+
+    /**
+     * Batch-load SKU grid data for a set of variant IDs.
+     * Column layout: [0]=variantId, [1]=skuId, [2]=skuCode, [3]=sizeLabel,
+     *                [4]=stockQuantity, [5]=originalPrice
+     */
+    @Query("""
+            SELECT s.listingVariant.id, s.id, s.skuCode, s.sizeLabel, s.stockQuantity, s.originalPrice
+            FROM SkuEntity s
+            WHERE s.listingVariant.id IN :variantIds
+            ORDER BY s.listingVariant.id ASC, s.sizeLabel ASC
+            """)
+    List<Object[]> findGridSkusByVariantIds(@Param("variantIds") List<Long> variantIds);
 }

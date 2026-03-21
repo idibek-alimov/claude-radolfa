@@ -38,11 +38,12 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         List<ListingVariantEntity> findByProductBaseId(Long productBaseId);
 
         // ---- Grid queries with SKU aggregates ----
-        // Column layout (12 columns):
+        // Column layout (13 columns):
         // [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
         // [5]=webDescription, [6]=topSelling,
-        // [7]=MIN(originalPrice),
-        // [8]=totalStock, [9]=colorHexCode, [10]=featured, [11]=productCode
+        // [7]=MIN(originalPrice), [8]=totalStock,
+        // [9]=colorHexCode, [10]=featured, [11]=productCode,
+        // [12]=MAX(originalPrice)
 
         /**
          * Paginated grid: variant card data with aggregated price/stock from SKUs.
@@ -53,7 +54,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -71,7 +73,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -90,7 +93,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -125,7 +129,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -144,7 +149,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -162,7 +168,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
@@ -182,7 +189,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                                lv.webDescription, lv.topSelling,
                                MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured, lv.productCode
+                               lv.color.hexCode, lv.featured, lv.productCode,
+                               MAX(s.originalPrice)
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
