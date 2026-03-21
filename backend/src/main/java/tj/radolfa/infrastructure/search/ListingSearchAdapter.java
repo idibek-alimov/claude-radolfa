@@ -22,7 +22,6 @@ import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.SkuDto;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -135,20 +134,25 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                 List<ListingVariantDto> enriched = items.stream()
                                 .map(dto -> {
                                         DiscountInfo discount = discountMap.get(dto.variantId());
-                                        BigDecimal minPrice = discount != null
-                                                        ? discount.discountedPrice()
-                                                        : dto.minPrice();
-                                        // maxPrice: use raw original from discount info, else same as minPrice
-                                        BigDecimal maxPrice = discount != null
+                                        BigDecimal originalPrice = discount != null
                                                         ? discount.originalPrice()
-                                                        : dto.maxPrice();
+                                                        : dto.originalPrice();
+                                        BigDecimal discountPrice = discount != null
+                                                        ? discount.discountedPrice() : null;
+                                        Integer discountPercentage = discount != null
+                                                        ? discount.discountPercentage().intValue() : null;
+                                        String discountName = discount != null ? discount.saleTitle() : null;
+                                        String discountColorHex = discount != null ? discount.saleColorHex() : null;
+                                        boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
                                         List<SkuDto> skus = skuMap.getOrDefault(dto.variantId(), List.of());
                                         return new ListingVariantDto(
                                                         dto.variantId(), dto.slug(), dto.colorDisplayName(),
                                                         dto.categoryName(), dto.colorKey(), dto.colorHex(),
                                                         dto.webDescription(), dto.images(),
-                                                        minPrice, maxPrice,
-                                                        null,    // tierDiscountedMinPrice (enriched by controller)
+                                                        originalPrice, discountPrice, discountPercentage,
+                                                        discountName, discountColorHex,
+                                                        null, null, // loyaltyPrice, loyaltyPercentage — enriched by controller
+                                                        isPartialDiscount,
                                                         dto.topSelling(), dto.featured(), dto.productCode(),
                                                         skus);
                                 })
@@ -190,13 +194,18 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getColorHexCode(),   // colorHex
                                 doc.getWebDescription(),
                                 doc.getImages() != null ? doc.getImages() : List.of(),
-                                price,                   // minPrice
-                                price,                   // maxPrice — ES index has single price; enriched post-query
-                                null,                    // tierDiscountedMinPrice (enriched by controller)
+                                price,   // originalPrice — discount fields enriched post-query
+                                null,    // discountPrice
+                                null,    // discountPercentage
+                                null,    // discountName
+                                null,    // discountColorHex
+                                null,    // loyaltyPrice — enriched by controller
+                                null,    // loyaltyPercentage
+                                false,   // isPartialDiscount — enriched post-query
                                 doc.getTopSelling() != null && doc.getTopSelling(),
                                 doc.getFeatured() != null && doc.getFeatured(),
-                                null,                    // productCode — not stored in ES index
-                                List.of()                // skus — batch-loaded post-query
+                                null,    // productCode — not stored in ES index
+                                List.of() // skus — batch-loaded post-query
                 );
         }
 
@@ -212,7 +221,13 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                                         : row[4] instanceof Integer i ? i
                                                                         : row[4] != null ? ((Number) row[4]).intValue() : 0;
                                                         return new SkuDto((Long) row[1], (String) row[2],
-                                                                        (String) row[3], stock, price);
+                                                                        (String) row[3], stock,
+                                                                        price,   // originalPrice
+                                                                        null,    // discountPrice
+                                                                        null,    // discountPercentage
+                                                                        null,    // discountName
+                                                                        null,    // discountColorHex
+                                                                        null);   // loyaltyPrice
                                                 }, Collectors.toList())));
         }
 }

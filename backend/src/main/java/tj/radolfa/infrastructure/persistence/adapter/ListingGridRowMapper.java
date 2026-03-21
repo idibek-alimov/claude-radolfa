@@ -34,14 +34,12 @@ final class ListingGridRowMapper {
         Long variantId = (Long) row[0];
         DiscountInfo discount = discountMap.get(variantId);
 
-        // minPrice: effective lowest price — discounted if a sale is active
-        BigDecimal minPrice = discount != null
-                ? discount.discountedPrice()
-                : toBigDecimal(row[7]);
-
-        // maxPrice: raw highest SKU price (used for strikethrough display)
-        BigDecimal maxPrice = toBigDecimal(row[12]);
-        if (maxPrice == null) maxPrice = minPrice;
+        BigDecimal originalPrice = discount != null ? discount.originalPrice() : toBigDecimal(row[7]);
+        BigDecimal discountPrice = discount != null ? discount.discountedPrice() : null;
+        Integer discountPercentage = discount != null ? discount.discountPercentage().intValue() : null;
+        String discountName = discount != null ? discount.saleTitle() : null;
+        String discountColorHex = discount != null ? discount.saleColorHex() : null;
+        boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
 
         return new ListingVariantDto(
                 variantId,
@@ -52,9 +50,14 @@ final class ListingGridRowMapper {
                 (String) row[9],   // colorHex (hexCode)
                 (String) row[5],   // webDescription
                 imageMap.getOrDefault(variantId, List.of()),
-                minPrice,
-                maxPrice,
-                null,              // tierDiscountedMinPrice — enriched later by TierPricingEnricher
+                originalPrice,
+                discountPrice,
+                discountPercentage,
+                discountName,
+                discountColorHex,
+                null,              // loyaltyPrice — stamped by TierPricingEnricher
+                null,              // loyaltyPercentage — stamped by TierPricingEnricher
+                isPartialDiscount,
                 (Boolean) row[6],  // topSelling
                 (Boolean) row[10], // featured
                 (String) row[11],  // productCode
@@ -81,7 +84,12 @@ final class ListingGridRowMapper {
                                 (String) row[2],
                                 (String) row[3],
                                 toInteger(row[4]),
-                                toBigDecimal(row[5])
+                                toBigDecimal(row[5]), // originalPrice
+                                null,  // discountPrice — not resolved for grid-path SKUs
+                                null,  // discountPercentage
+                                null,  // discountName
+                                null,  // discountColorHex
+                                null   // loyaltyPrice — stamped by TierPricingEnricher
                         ), Collectors.toList())));
     }
 

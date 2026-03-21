@@ -6,15 +6,20 @@ import java.math.BigDecimal;
  * Purchasable unit — one size of one colour variant.
  * Displayed on the product detail page as a size selector.
  *
- * <p>
- * {@code price} is the effective price after any active sale discount.
- * Tier (loyalty) pricing is applied at the variant level via
- * {@code tierDiscountedMinPrice}, not per-SKU.
+ * <p>All pricing fields follow the same rules as {@link ListingVariantDto}:
+ * {@code originalPrice} is always set; {@code discountPrice} is null when no
+ * active sale applies to this SKU; {@code loyaltyPrice} is null for guests
+ * and users without a loyalty tier.
  */
 public record SkuDto(
         Long skuId,
         String skuCode,
         String sizeLabel,
         Integer stockQuantity,
-        BigDecimal price
+        BigDecimal originalPrice,
+        BigDecimal discountPrice,
+        Integer discountPercentage,
+        String discountName,
+        String discountColorHex,
+        BigDecimal loyaltyPrice
 ) {}

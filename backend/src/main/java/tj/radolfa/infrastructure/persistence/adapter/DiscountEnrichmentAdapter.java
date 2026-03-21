@@ -61,12 +61,25 @@ public class DiscountEnrichmentAdapter {
         Map<Long, DiscountInfo> result = new HashMap<>();
         for (var entry : skusByVariant.entrySet()) {
             Long variantId = entry.getKey();
+            List<SkuEntity> variantSkus = entry.getValue();
             DiscountInfo best = null;
 
-            for (SkuEntity sku : entry.getValue()) {
+            long discountedCount = 0;
+            List<SkuEntity> pricedSkus = variantSkus.stream()
+                    .filter(s -> s.getOriginalPrice() != null)
+                    .toList();
+            long distinctDiscountIds = pricedSkus.stream()
+                    .map(s -> bestByItemCode.get(s.getSkuCode()))
+                    .filter(d -> d != null)
+                    .map(DiscountEntity::getId)
+                    .distinct()
+                    .count();
+
+            for (SkuEntity sku : variantSkus) {
                 DiscountEntity discount = bestByItemCode.get(sku.getSkuCode());
                 if (discount == null || sku.getOriginalPrice() == null) continue;
 
+                discountedCount++;
                 BigDecimal discountedPrice = computeDiscountedPrice(
                         sku.getOriginalPrice(), discount.getDiscountValue());
 
@@ -78,12 +91,17 @@ public class DiscountEnrichmentAdapter {
                             discount.getValidUpto(),
                             discount.getTitle(),
                             discount.getColorHex(),
-                            discount.getType().getName());
+                            discount.getType().getName(),
+                            false); // placeholder; corrected below
                 }
             }
 
             if (best != null) {
-                result.put(variantId, best);
+                boolean isPartial = discountedCount < pricedSkus.size() || distinctDiscountIds > 1;
+                result.put(variantId, new DiscountInfo(
+                        best.originalPrice(), best.discountedPrice(), best.discountPercentage(),
+                        best.validUpto(), best.saleTitle(), best.saleColorHex(), best.typeName(),
+                        isPartial));
             }
         }
 
@@ -139,6 +157,7 @@ public class DiscountEnrichmentAdapter {
             Instant validUpto,
             String saleTitle,
             String saleColorHex,
-            String typeName
+            String typeName,
+            boolean isPartialDiscount
     ) {}
 }

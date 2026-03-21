@@ -49,7 +49,7 @@ public class TierPricingEnricher {
         if (discount.compareTo(BigDecimal.ZERO) == 0) return page;
 
         List<ListingVariantDto> enriched = page.content().stream()
-                .map(dto -> dto.withLoyaltyPrice(discount))
+                .map(dto -> dto.withLoyalty(discount))
                 .toList();
         return new PageResult<>(enriched, page.totalElements(), page.number(), page.size(), page.last());
     }
@@ -57,7 +57,7 @@ public class TierPricingEnricher {
     public ListingVariantDetailDto enrich(ListingVariantDetailDto detail) {
         BigDecimal discount = resolveDiscount();
         if (discount.compareTo(BigDecimal.ZERO) == 0) return detail;
-        return detail.withLoyaltyPrice(discount);
+        return detail.withLoyalty(discount);
     }
 
     public List<HomeSectionDto> enrichSections(List<HomeSectionDto> sections) {
@@ -66,7 +66,7 @@ public class TierPricingEnricher {
 
         return sections.stream()
                 .map(s -> new HomeSectionDto(s.key(), s.title(),
-                        s.listings().stream().map(dto -> dto.withLoyaltyPrice(discount)).toList()))
+                        s.listings().stream().map(dto -> dto.withLoyalty(discount)).toList()))
                 .toList();
     }
 
@@ -75,7 +75,7 @@ public class TierPricingEnricher {
         if (discount.compareTo(BigDecimal.ZERO) == 0) return cp;
 
         List<ListingVariantDto> enriched = cp.listings().stream()
-                .map(dto -> dto.withLoyaltyPrice(discount))
+                .map(dto -> dto.withLoyalty(discount))
                 .toList();
         return new CollectionPageDto(cp.key(), cp.title(), enriched);
     }

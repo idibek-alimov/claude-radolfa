@@ -7,28 +7,160 @@
 
 ## 1. Pricing Display — `ListingVariantDto` & `ListingVariantDetailDto`
 
-**Status:** Needs discussion before touching code.
+**Status:** All decisions made ✓. Ready for implementation planning.
 
 **Goal:** Product cards and detail pages should show rich pricing info:
-- Original price (strikethrough)
-- Sale discounted price + discount % badge
-- Discount name + color badge (e.g. "Winter Collection" in blue)
-- Loyalty/tier price as "Your price" (for authenticated users with a tier)
-- Loyalty % badge (visible to guests too, as a marketing signal)
+- Original price (strikethrough when a cheaper price exists)
+- Sale discounted price + discount % badge + discount name + color
+- Loyalty "Your Price" (for authenticated users with a tier only)
+- Loyalty % badge (for authenticated users with a tier only)
 
-**Known issues with current DTO:**
-- `maxPrice` is semantically wrong — it is `MAX(originalPrice)` across ALL SKUs,
-  but for the strikethrough we need the original price of the same SKU that produced `minPrice`.
-  Proposal: rename to `originalMinPrice`.
-- `discountPercentage`, `discountName`, `discountColorHex` exist inside
-  `DiscountEnrichmentAdapter.DiscountInfo` but are never wired into the DTO.
-- `loyaltyPercentage` is missing from the DTO entirely.
+---
 
-**Open decisions:**
-- [ ] Confirm rename: `maxPrice` → `originalMinPrice`
-- [ ] Confirm fields to add: `discountPercentage`, `discountName`, `discountColorHex`, `loyaltyPercentage`
-- [ ] How does `ListingVariantDetailDto` change? (per-SKU vs. variant-level pricing)
-- [ ] What does a guest see vs. a logged-in user without a tier vs. a user with a tier?
+### Settled Decisions ✓
+
+**Field rename — free to rename everything:**
+Old field names (`minPrice`, `maxPrice`, `tierDiscountedMinPrice`) can be replaced
+entirely. No backwards-compat obligation.
+
+**`originalPrice`** (replaces `maxPrice` / `minPrice` raw)
+- The original (pre-discount) price of the cheapest SKU when comparing discounted prices.
+- Always populated. When no discount is active it equals the effective price (no strikethrough needed).
+
+**`discountPrice`** (replaces `minPrice` effective)
+- The sale-discounted price. `null` when no active discount exists for this variant.
+
+**`discountPercentage`, `discountName`, `discountColorHex`**
+- All included. Already computed inside `DiscountEnrichmentAdapter.DiscountInfo`; just need wiring into the DTO.
+- `null` when no active discount.
+
+**`loyaltyPrice` ("Your Price") and `loyaltyPercentage`**
+- Shown **only** to authenticated users who have a loyalty tier. `null` for guests and
+  users without a tier. No marketing teaser for guests.
+
+**Visibility matrix:**
+
+| Field | Guest | Auth (no tier) | Auth (with tier) |
+|-------|-------|----------------|------------------|
+| `originalPrice` | ✓ | ✓ | ✓ |
+| `discountPrice` | ✓ (if sale) | ✓ (if sale) | ✓ (if sale) |
+| `discountPercentage` | ✓ (if sale) | ✓ (if sale) | ✓ (if sale) |
+| `discountName` | ✓ (if sale) | ✓ (if sale) | ✓ (if sale) |
+| `discountColorHex` | ✓ (if sale) | ✓ (if sale) | ✓ (if sale) |
+| `loyaltyPrice` | ✗ | ✗ | ✓ |
+| `loyaltyPercentage` | ✗ | ✗ | ✓ |
+
+**Card vs. detail — same fields everywhere:**
+Both product card and detail page expose the same set of fields.
+Detail page additionally supports per-SKU price swap: when the user selects a size,
+the frontend swaps to that `SkuDto`'s own `originalPrice` / `discountPrice` / `loyaltyPrice`.
+`SkuDto` must therefore carry the same pricing fields (not just one `price`).
+
+**No stacking — best-of is the rule (already implemented in backend logic):**
+When a SKU has an active sale discount AND the user has a loyalty tier, the backend
+picks whichever gives the lower price. They never multiply together.
+
+---
+
+### `loyaltyPrice` — Decision ✓
+
+**Formula:**
+```
+loyaltyPrice = originalPrice × (1 − max(discountPercentage, loyaltyPercentage) / 100)
+```
+Discounts are stored as whole percentages (e.g. 20 means 20%, not 0.2).
+
+- Takes whichever percentage is higher — sale or tier — and applies it once to `originalPrice`.
+- No stacking. No double-discounting.
+- Always shown to authenticated users who have a tier, regardless of which percentage wins.
+  Reason: always displaying "Your Price" makes the card/detail more appealing and reinforces
+  the value of having a loyalty tier.
+
+**Worked examples (originalPrice = 1000, percentages as whole numbers):**
+
+| Scenario | discountPct | loyaltyPct | max | loyaltyPrice |
+|----------|-------------|------------|-----|--------------|
+| No sale, has tier | 0 | 10 | 10 | 1000 × (1 − 10/100) = **900** |
+| Sale beats tier | 15 | 5 | 15 | 1000 × (1 − 15/100) = **850** |
+| Tier beats sale | 5 | 15 | 15 | 1000 × (1 − 15/100) = **850** |
+| No sale, no tier | — | — | — | `null` |
+
+**`loyaltyPercentage` in the DTO** = the user's own tier discount %, not the effective %.
+The frontend shows the tier badge ("Gold 5%") independently of which % was actually applied.
+
+---
+
+### Open Question — `loyaltyPercentage` badge when sale wins
+
+When `discountPercentage (15%) > loyaltyPercentage (5%)`:
+- `loyaltyPrice = 850` (sale drove it, not tier)
+- `loyaltyPercentage = 5%` (user's tier %)
+- The badge would say "Gold 5%" but the actual saving is 15%
+
+**Does this matter for the UI?** Two options:
+- **A — Show tier % as-is.** Badge always says the tier benefit. User can infer the price
+  is 850 because the sale happened to be better.
+- **B — Show `effectivePercentage` = `max(discountPct, loyaltyPct)`.** Badge says "15% off"
+  when sale wins, "5% off" when tier wins. More accurate but the badge now conflates
+  two different mechanisms.
+
+> **Decision ✓ — Option A.** `loyaltyPercentage` always reflects the user's own tier %, not
+> the effective applied %. The badge describes the tier benefit; `loyaltyPrice` shows the
+> result. They are independent and do not need to match.
+
+---
+
+### Partial & Mixed Discounts Across SKUs — Decision ✓
+
+**Researched against Amazon, Noon, and Wildberries.** None of the three platforms show
+a "From X" price range or a "select sizes on sale" indicator on the product card.
+The universal industry pattern: card shows one representative price/badge; the detail
+page reveals per-SKU truth when a size is selected.
+
+Radolfa follows the same pattern.
+
+**Definitions:**
+
+- **Partial discount** — some SKUs of the variant have an active discount, some do not
+  (e.g., XL and XXL on sale, M and L at full price).
+- **Mixed discount** — different SKUs of the same variant have *different* active discount
+  campaigns (e.g., XL → "Summer Sale 20%", XXL → "Clearance 30%").
+
+**Card behavior (both cases):**
+- Show the discount info (`discountPrice`, `discountPercentage`, `discountName`,
+  `discountColorHex`) of the SKU that produces the **cheapest discounted price**.
+  This is the existing `DiscountEnrichmentAdapter` behavior — no change needed.
+- Add `isPartialDiscount: boolean` to the DTO. `true` when at least one SKU in the
+  variant has no active discount (or a different discount campaign). Frontend can use
+  this to optionally render a subtle "on select sizes" hint alongside the badge, but
+  the main price and badge stand as-is.
+- For mixed discounts specifically: the winning discount's `discountName` and
+  `discountColorHex` are shown on the card. Other campaigns are invisible at card level.
+
+**`isPartialDiscount` logic:**
+```
+isPartialDiscount = true
+  if any SKU in the variant has no active discount
+  OR if discounted SKUs do not all share the same discount campaign (discountId differs)
+```
+
+**Detail page (per-SKU truth):**
+- Each `SkuDto` carries its own full pricing block:
+  `originalPrice`, `discountPrice`, `discountPercentage`, `discountName`,
+  `discountColorHex`, `loyaltyPrice` (for auth tier users).
+- When the user selects a size, the frontend swaps to that SKU's pricing.
+- A non-discounted size → `discountPrice = null`, discount badge disappears.
+- A differently-discounted size → its own campaign name and color badge appear.
+
+**`SkuDto` full field list (replaces current single `price` field):**
+```
+originalPrice        — always populated
+discountPrice        — null if this SKU has no active discount
+discountPercentage   — null if no discount
+discountName         — null if no discount
+discountColorHex     — null if no discount
+loyaltyPrice         — null for guests/no-tier users; best-of formula applied per SKU
+```
 
 ---
 
@@ -173,8 +305,44 @@ earned via monthly spending thresholds or manually assigned by staff.
 
 ## Implementation Plan
 
-> To be filled in once all decisions above are made.
+### Phase 1 — Pricing Display (Section 1)
 
-| Phase | Scope | Status |
-|-------|-------|--------|
-| TBD | | |
+**Status:** In progress
+
+Files modified in dependency order:
+
+| # | File | Change |
+|---|---|---|
+| 1 | `application/readmodel/SkuDto.java` | Remove `price`; add `originalPrice`, `discountPrice`, `discountPercentage`, `discountName`, `discountColorHex`, `loyaltyPrice` |
+| 2 | `application/readmodel/ListingVariantDto.java` | Remove `minPrice`, `maxPrice`, `tierDiscountedMinPrice`; add 7 new fields; rewrite `withLoyaltyPrice` → `withLoyalty` |
+| 3 | `application/readmodel/ListingVariantDetailDto.java` | Same as #2; `withLoyalty` also cascades to each SKU in the list |
+| 4 | `infrastructure/persistence/adapter/DiscountEnrichmentAdapter.java` | Add `isPartialDiscount` to `DiscountInfo`; compute it in `resolveForVariants` |
+| 5 | `infrastructure/persistence/adapter/ListingGridRowMapper.java` | Update `toGridDto` and `loadSkuMap` to new DTO signatures |
+| 6 | `infrastructure/persistence/adapter/ListingReadAdapter.java` | Rewrite `toSkuDto` and `toDetailDto`; winning-SKU selection replaces `minPrice`/`maxPrice` |
+| 7 | `infrastructure/search/ListingSearchAdapter.java` | Update `toDto`, enrichment loop, and `loadSkuMap` |
+| 8 | `infrastructure/web/TierPricingEnricher.java` | Call `withLoyalty` instead of `withLoyaltyPrice`; cascade loyalty to per-SKU list |
+| 9 | `test/.../ListingControllerTest.java` | Update fake DTO constructors to new signatures; add pricing assertions |
+
+**Key derivation rules:**
+
+Grid-path variant fields (from `DiscountInfo`):
+- `originalPrice` = `discountInfo.originalPrice()` if discount exists, else `minOriginalPrice` from query
+- `discountPrice` = `discountInfo.discountedPrice()` if discount, else `null`
+- `discountPercentage` = `discountInfo.discountPercentage().intValue()` if discount, else `null`
+- `discountName` = `discountInfo.saleTitle()` if discount, else `null`
+- `discountColorHex` = `discountInfo.saleColorHex()` if discount, else `null`
+- `isPartialDiscount` = `discountInfo.isPartialDiscount()` if discount, else `false`
+- `loyaltyPrice`, `loyaltyPercentage` = `null` at construction; stamped by `TierPricingEnricher`
+
+Detail-path SKU fields (from `SkuEntity` + `DiscountEntity`):
+- `originalPrice` = `SkuEntity.getOriginalPrice()`
+- `discountPrice` = `originalPrice * (1 - discount.discountValue / 100)` if discount, else `null`
+- `loyaltyPrice` = `null` at construction; stamped by `TierPricingEnricher` via cascade in `withLoyalty`
+
+`TierPricingEnricher.withLoyalty` formula:
+```
+effectivePct = max(discountPercentage ?? 0, loyaltyTierPct)
+loyaltyPrice  = originalPrice * (1 - effectivePct / 100)
+loyaltyPercentage = loyaltyTierPct   ← user's own tier %, not effectivePct
+```
+Applied at variant level AND per-SKU level (detail page).
