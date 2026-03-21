@@ -10,6 +10,7 @@ export interface CreateProductRequest {
   name: string;
   categoryId: number;
   colorId: number;
+  webDescription?: string;
   skus: SkuDefinition[];
 }
 
