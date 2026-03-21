@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Save, Loader2, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
+import { RichTextEditor } from "@/shared/ui/RichTextEditor";
 import { updateListing } from "@/entities/product/api";
 import { getErrorMessage } from "@/shared/lib";
 import type { ListingVariantDetail } from "@/entities/product/model/types";
@@ -46,16 +47,11 @@ export function EnrichmentCard({ detail }: Props) {
 
       <div className="space-y-1.5">
         <label className="text-sm font-medium">{t("webDescription")}</label>
-        <textarea
-          value={webDescription}
-          onChange={(e) => setWebDescription(e.target.value)}
-          rows={4}
+        <RichTextEditor
+          initialContent={webDescription}
+          onChange={(html) => setWebDescription(html)}
           maxLength={5000}
-          className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
         />
-        <p className="text-xs text-muted-foreground text-right">
-          {webDescription.length} / 5000
-        </p>
       </div>
 
       <div className="flex items-center gap-6">

@@ -45,7 +45,7 @@ export function ProductEditPage({ slug }: Props) {
 
   return (
     <div className="min-h-screen bg-muted/30 py-10">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link
