@@ -42,6 +42,16 @@ public class ProductBase {
         this.category = category;
     }
 
+    /**
+     * Updates the product category (MANAGER / ADMIN action).
+     */
+    public void updateCategory(String category) {
+        if (category == null || category.isBlank()) {
+            throw new IllegalArgumentException("category must not be blank");
+        }
+        this.category = category;
+    }
+
     // ---- Getters (no setters — mutation is controlled) ----
     public Long   getId()              { return id; }
     public String getErpTemplateCode() { return erpTemplateCode; }

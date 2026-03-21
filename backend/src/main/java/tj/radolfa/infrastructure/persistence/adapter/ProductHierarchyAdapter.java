@@ -44,30 +44,43 @@ public class ProductHierarchyAdapter
     private final CategoryRepository       categoryRepo;
     private final ColorRepository          colorRepo;
     private final ProductHierarchyMapper   mapper;
+    private final ProductCodeGenerator     codeGenerator;
 
     public ProductHierarchyAdapter(ProductBaseRepository baseRepo,
                                    ListingVariantRepository variantRepo,
                                    SkuRepository skuRepo,
                                    CategoryRepository categoryRepo,
                                    ColorRepository colorRepo,
-                                   ProductHierarchyMapper mapper) {
-        this.baseRepo     = baseRepo;
-        this.variantRepo  = variantRepo;
-        this.skuRepo      = skuRepo;
-        this.categoryRepo = categoryRepo;
-        this.colorRepo    = colorRepo;
-        this.mapper       = mapper;
+                                   ProductHierarchyMapper mapper,
+                                   ProductCodeGenerator codeGenerator) {
+        this.baseRepo      = baseRepo;
+        this.variantRepo   = variantRepo;
+        this.skuRepo       = skuRepo;
+        this.categoryRepo  = categoryRepo;
+        this.colorRepo     = colorRepo;
+        this.mapper        = mapper;
+        this.codeGenerator = codeGenerator;
     }
 
     // ---- LoadProductBasePort ----
 
     @Override
-    public Optional<ProductBase> findByErpTemplateCode(String erpTemplateCode) {
-        return baseRepo.findByErpTemplateCode(erpTemplateCode)
+    public Optional<ProductBase> findByExternalRef(String externalRef) {
+        return baseRepo.findByExternalRef(externalRef)
                 .map(mapper::toProductBase);
     }
 
+    @Override
+    public Optional<ProductBase> findById(Long id) {
+        return baseRepo.findById(id).map(mapper::toProductBase);
+    }
+
     // ---- LoadListingVariantPort ----
+
+    @Override
+    public Optional<ListingVariant> findVariantById(Long id) {
+        return variantRepo.findById(id).map(mapper::toListingVariant);
+    }
 
     @Override
     public Optional<ListingVariant> findByProductBaseIdAndColorKey(Long productBaseId, String colorKey) {
@@ -79,6 +92,13 @@ public class ProductHierarchyAdapter
     public Optional<ListingVariant> findBySlug(String slug) {
         return variantRepo.findBySlug(slug)
                 .map(mapper::toListingVariant);
+    }
+
+    @Override
+    public List<ListingVariant> findAllByProductBaseId(Long productBaseId) {
+        return variantRepo.findByProductBaseId(productBaseId).stream()
+                .map(mapper::toListingVariant)
+                .toList();
     }
 
     // ---- SaveListingVariantPort ----
@@ -110,9 +130,21 @@ public class ProductHierarchyAdapter
     // ---- LoadSkuPort ----
 
     @Override
-    public Optional<Sku> findByErpItemCode(String erpItemCode) {
-        return skuRepo.findByErpItemCode(erpItemCode)
+    public Optional<Sku> findBySkuCode(String skuCode) {
+        return skuRepo.findBySkuCode(skuCode)
                 .map(mapper::toSku);
+    }
+
+    @Override
+    public Optional<Sku> findSkuById(Long id) {
+        return skuRepo.findById(id).map(mapper::toSku);
+    }
+
+    @Override
+    public List<Sku> findSkusByVariantId(Long variantId) {
+        return skuRepo.findByListingVariantId(variantId).stream()
+                .map(mapper::toSku)
+                .toList();
     }
 
     // ---- SaveProductHierarchyPort ----
@@ -136,7 +168,7 @@ public class ProductHierarchyAdapter
         if (base.getCategory() != null && !base.getCategory().isBlank()) {
             CategoryEntity categoryEntity = categoryRepo.findByName(base.getCategory())
                     .orElseThrow(() -> new IllegalStateException(
-                            "Category not found: '" + base.getCategory() + "'. Sync categories first."));
+                            "Category not found: '" + base.getCategory() + "'. Create the category first."));
             entity.setCategory(categoryEntity);
             entity.setCategoryName(categoryEntity.getName());
         } else {
@@ -164,13 +196,14 @@ public class ProductHierarchyAdapter
             entity = mapper.toVariantEntity(variant);
             ProductBaseEntity baseRef = baseRepo.getReferenceById(productBaseId);
             entity.setProductBase(baseRef);
+            entity.setProductCode(codeGenerator.generate());
         }
 
         // Resolve colorKey String -> ColorEntity (auto-create if missing)
         if (variant.getColorKey() != null) {
             ColorEntity colorEntity = colorRepo.findByColorKey(variant.getColorKey())
                     .orElseGet(() -> {
-                        LOG.warn("[PRODUCT-SYNC] Auto-creating color '{}' — hex code not set",
+                        LOG.warn("[PRODUCT-ADAPTER] Auto-creating color '{}' — hex code not set",
                                 variant.getColorKey());
                         ColorEntity newColor = new ColorEntity();
                         newColor.setColorKey(variant.getColorKey());
@@ -209,9 +242,7 @@ public class ProductHierarchyAdapter
                             "Sku not found: " + sku.getId()));
             entity.setSizeLabel(sku.getSizeLabel());
             entity.setStockQuantity(sku.getStockQuantity());
-            entity.setPrice(sku.getPrice() != null ? sku.getPrice().amount() : null);
-            entity.setSalePrice(sku.getSalePrice() != null ? sku.getSalePrice().amount() : null);
-            entity.setSaleEndsAt(sku.getSaleEndsAt());
+            entity.setOriginalPrice(sku.getPrice() != null ? sku.getPrice().amount() : null);
         } else {
             // Create new
             entity = mapper.toSkuEntity(sku);
