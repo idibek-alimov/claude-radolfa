@@ -405,7 +405,7 @@ function ProductManagement() {
   };
 
   const displayPrice = (item: ListingVariant) => {
-    return `${item.minPrice.toFixed(2)} TJS`;
+    return `${item.originalPrice.toFixed(2)} TJS`;
   };
 
   const computeStock = (item: ListingVariant) => {
@@ -662,7 +662,7 @@ function ProductManagement() {
                                     type="number"
                                     min={0}
                                     step={0.01}
-                                    value={pendingPrices[sku.skuId] ?? sku.price.toFixed(2)}
+                                    value={pendingPrices[sku.skuId] ?? sku.originalPrice.toFixed(2)}
                                     onChange={(e) =>
                                       setPendingPrices((prev) => ({ ...prev, [sku.skuId]: e.target.value }))
                                     }
@@ -701,7 +701,7 @@ function ProductManagement() {
                               </>
                             ) : (
                               <>
-                                <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.price.toFixed(2)} TJS</td>
+                                <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.originalPrice.toFixed(2)} TJS</td>
                                 <td className={`px-3 py-1.5 text-right font-medium ${sku.stockQuantity === 0 ? "text-destructive" : ""}`}>
                                   {sku.stockQuantity}
                                 </td>

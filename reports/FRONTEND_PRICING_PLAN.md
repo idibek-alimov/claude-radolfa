@@ -211,7 +211,7 @@ Replace with the new Price Model table (from `FRONTEND_PRICING_IMPLEMENTATION.md
 | Phase | Status | Summary |
 |-------|--------|---------|
 | Phase 1 — TypeScript Types | [x] | Removed `Sku.price`, `ListingVariant.minPrice/maxPrice/tierDiscountedMinPrice`. Added full 6-field pricing block to `Sku`, 8-field pricing block to `ListingVariant`, new `SiblingVariant` interface, and `siblingVariants` field on `ListingVariantDetail`. |
-| Phase 2 — Compiler Error Triage | [ ] | |
+| Phase 2 — Compiler Error Triage | [x] | 23 errors found across 3 files. 3 orphan errors in `(admin)/manage/page.tsx` fixed immediately (`minPrice → originalPrice`, `sku.price → sku.originalPrice`). 20 errors remain in ProductCard (10) and ProductDetail (10) — resolved by Phases 3 & 4. |
 | Phase 3 — ProductCard Rewrite | [ ] | |
 | Phase 4 — ProductDetail Rewrite | [ ] | |
 | Phase 5 — i18n Keys | [ ] | |
