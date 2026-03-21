@@ -212,7 +212,17 @@
     "searchToolsTitle": "Инструменты поиска",
     "reindexButton": "Перестроить индекс поиска",
     "reindexing": "Индексация...",
-    "reindexResult": "Проиндексировано {count} товаров ({errors} ошибок)"
+    "reindexResult": "Проиндексировано {count} товаров ({errors} ошибок)",
+    "generalInfo": "Основная информация",
+    "productNameUpdated": "Название товара обновлено",
+    "productCategoryUpdated": "Категория обновлена",
+    "colorPermanentHint": "Постоянное",
+    "backToProducts": "Назад к товарам",
+    "priceStockAdminOnly": "Цена и склад: только для администратора",
+    "sizeLabelUpdated": "Размер обновлён",
+    "loading": "Загрузка...",
+    "failedToLoad": "Не удалось загрузить товар",
+    "maxImagesReached": "Достигнут максимум 20 изображений"
   },
   "profile": {
     "yourProfile": "Ваш профиль",

@@ -68,3 +68,27 @@ export async function updateSkuStock(
   );
   return data;
 }
+
+/** Update the name of a product base (MANAGER+). */
+export async function updateProductName(
+  productBaseId: number,
+  name: string
+): Promise<void> {
+  await apiClient.patch(`/api/v1/admin/products/${productBaseId}/name`, { name });
+}
+
+/** Update the size label of a single SKU (MANAGER+). */
+export async function updateSkuSizeLabel(
+  skuId: number,
+  sizeLabel: string
+): Promise<void> {
+  await apiClient.patch(`/api/v1/admin/skus/${skuId}/size-label`, { sizeLabel });
+}
+
+/** Update the category of a product base (MANAGER+). */
+export async function updateProductCategory(
+  productBaseId: number,
+  categoryId: number
+): Promise<void> {
+  await apiClient.patch(`/api/v1/admin/products/${productBaseId}/category`, { categoryId });
+}

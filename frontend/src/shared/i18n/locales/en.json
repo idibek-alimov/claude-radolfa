@@ -212,7 +212,17 @@
     "searchToolsTitle": "Search Tools",
     "reindexButton": "Rebuild Search Index",
     "reindexing": "Reindexing...",
-    "reindexResult": "Indexed {count} products ({errors} errors)"
+    "reindexResult": "Indexed {count} products ({errors} errors)",
+    "generalInfo": "General Info",
+    "productNameUpdated": "Product name updated",
+    "productCategoryUpdated": "Category updated",
+    "colorPermanentHint": "Permanent",
+    "backToProducts": "Back to Products",
+    "priceStockAdminOnly": "Price & stock: admin only",
+    "sizeLabelUpdated": "Size label updated",
+    "loading": "Loading...",
+    "failedToLoad": "Failed to load product",
+    "maxImagesReached": "Maximum of 20 images reached"
   },
   "profile": {
     "yourProfile": "Your Profile",

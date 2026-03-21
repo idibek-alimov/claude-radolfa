@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
 import { UserManagementTable } from "@/features/user-management";
@@ -14,15 +15,10 @@ import {
 } from "@tanstack/react-query";
 import {
   fetchListings,
-  fetchListingBySlug,
-  updateListing,
-  uploadListingImage,
-  removeListingImage,
   searchListings,
 } from "@/entities/product/api";
-import { updateSkuPrice, updateSkuStock } from "@/entities/product/api/admin";
 import { fetchCategoryTree } from "@/entities/product/api";
-import type { ListingVariant, ListingVariantDetail, CategoryTree, Color } from "@/entities/product/model/types";
+import type { ListingVariant, CategoryTree, Color } from "@/entities/product/model/types";
 import { useLoyaltyTiers, updateTierColor } from "@/entities/loyalty";
 import type { LoyaltyTier } from "@/entities/loyalty";
 import { createCategory, deleteCategory } from "@/entities/category";
@@ -52,7 +48,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, AlertCircle, Search, Package, Upload, Loader2, X, Star, Users, ChevronLeft, ChevronRight, Award, Check, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2 } from "lucide-react";
+import { Pencil, Lock, Search, Package, Star, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -177,13 +173,11 @@ export default function ManagePage() {
   );
 }
 
-// ── Product Management (extracted from original page) ───────────────
+// ── Product Management ───────────────────────────────────────────
 
 function ProductManagement() {
   const t = useTranslations("manage");
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const router = useRouter();
 
   // ── Create dialog state ──────────────────────────────────────────
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -215,202 +209,9 @@ function ProductManagement() {
 
   const listings = data?.content ?? [];
 
-  // ── Dialog State ────────────────────────────────────────────────
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ListingVariant | null>(null);
-  const [saveError, setSaveError] = useState("");
-
-  // Form State
-  const [formData, setFormData] = useState({
-    webDescription: "",
-    topSelling: false,
-    featured: false,
-  });
-
-  // Detail data (SKUs) loaded when dialog opens
-  const [detail, setDetail] = useState<ListingVariantDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-
-  // Image upload state
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // ── Mutations ──────────────────────────────────────────────────
-  const updateMutation = useMutation({
-    mutationFn: ({ slug, data }: { slug: string; data: any }) =>
-      updateListing(slug, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-      toast.success(t("productUpdated"));
-      setIsDialogOpen(false);
-    },
-    onError: (err: unknown) => {
-      setSaveError(getErrorMessage(err, "Failed to update"));
-    },
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: ({ slug, file }: { slug: string; file: File }) =>
-      uploadListingImage(slug, file),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-      toast.success(t("imageUploaded"));
-    },
-    onError: (err: unknown) => toast.error(getErrorMessage(err, t("uploadFailed"))),
-  });
-
-  const deleteImageMutation = useMutation({
-    mutationFn: ({ slug, url }: { slug: string; url: string }) =>
-      removeListingImage(slug, url),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-      toast.success(t("imageRemoved"));
-      if (editingProduct) {
-        setEditingProduct({
-          ...editingProduct,
-          images: editingProduct.images.filter(url => url !== variables.url)
-        });
-      }
-    },
-    onError: (err: unknown) => toast.error(getErrorMessage(err, t("failedToRemoveImage"))),
-  });
-
-  // ── ADMIN: SKU Price / Stock editing ─────────────────────────
-  const [pendingPrices, setPendingPrices] = useState<Record<number, string>>({});
-  const [pendingStocks, setPendingStocks] = useState<Record<number, string>>({});
-
-  const skuPriceMutation = useMutation({
-    mutationFn: ({ skuId, price }: { skuId: number; price: number }) =>
-      updateSkuPrice(skuId, price),
-    onSuccess: (result) => {
-      toast.success(t("priceUpdated"));
-      if (detail) {
-        setDetail({
-          ...detail,
-          skus: detail.skus.map((s) =>
-            s.skuId === result.skuId ? { ...s, price: result.price } : s
-          ),
-        });
-      }
-      setPendingPrices((prev) => {
-        const next = { ...prev };
-        delete next[result.skuId];
-        return next;
-      });
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-    },
-    onError: (err: unknown) => toast.error(getErrorMessage(err)),
-  });
-
-  const skuStockMutation = useMutation({
-    mutationFn: ({ skuId, quantity }: { skuId: number; quantity: number }) =>
-      updateSkuStock(skuId, { quantity }),
-    onSuccess: (result) => {
-      toast.success(t("stockUpdated"));
-      if (detail) {
-        setDetail({
-          ...detail,
-          skus: detail.skus.map((s) =>
-            s.skuId === result.skuId ? { ...s, stockQuantity: result.stockQuantity } : s
-          ),
-        });
-      }
-      setPendingStocks((prev) => {
-        const next = { ...prev };
-        delete next[result.skuId];
-        return next;
-      });
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-    },
-    onError: (err: unknown) => toast.error(getErrorMessage(err)),
-  });
-
-  const handleSkuPriceBlur = (skuId: number) => {
-    const raw = pendingPrices[skuId];
-    if (raw === undefined) return;
-    const price = parseFloat(raw);
-    if (isNaN(price) || price < 0) return;
-    skuPriceMutation.mutate({ skuId, price });
-  };
-
-  const handleSkuStockSave = (skuId: number) => {
-    const raw = pendingStocks[skuId];
-    if (raw === undefined) return;
-    const quantity = parseInt(raw, 10);
-    if (isNaN(quantity) || quantity < 0) return;
-    skuStockMutation.mutate({ skuId, quantity });
-  };
-
-  // ── Handlers ────────────────────────────────────────────────────
-
-  const handleOpenDialog = async (product: ListingVariant) => {
-    setSaveError("");
-    setEditingProduct(product);
-    setFormData({
-      webDescription: "",
-      topSelling: product.topSelling || false,
-      featured: product.featured || false,
-    });
-    setDetail(null);
-    setIsDialogOpen(true);
-
-    setDetailLoading(true);
-    try {
-      const d = await fetchListingBySlug(product.slug);
-      setDetail(d);
-      setFormData((prev) => ({
-        ...prev,
-        webDescription: d.webDescription ?? "",
-      }));
-    } catch {
-      // Non-critical
-    } finally {
-      setDetailLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!editingProduct) return;
-    setSaveError("");
-
-    updateMutation.mutate({
-      slug: editingProduct.slug,
-      data: {
-        webDescription: formData.webDescription,
-        topSelling: formData.topSelling,
-        featured: formData.featured,
-      },
-    });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingProduct) return;
-    e.target.value = "";
-
-    setUploading(true);
-    try {
-      await uploadMutation.mutateAsync({
-        slug: editingProduct.slug,
-        file,
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleRemoveImage = async (url: string) => {
-    if (!editingProduct) return;
-    await deleteImageMutation.mutateAsync({ slug: editingProduct.slug, url });
-  };
-
-  const displayPrice = (item: ListingVariant) => {
-    return `${item.originalPrice.toFixed(2)} TJS`;
-  };
-
-  const computeStock = (item: ListingVariant) => {
-    return item.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
-  };
+  const displayPrice = (item: ListingVariant) => `${item.originalPrice.toFixed(2)} TJS`;
+  const computeStock = (item: ListingVariant) =>
+    item.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
 
   return (
     <>
@@ -475,9 +276,7 @@ function ProductManagement() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium text-sm">
-                        {item.colorDisplayName}
-                      </p>
+                      <p className="font-medium text-sm">{item.colorDisplayName}</p>
                       <p className="text-xs text-muted-foreground truncate max-w-xs">
                         {item.productCode}
                       </p>
@@ -491,9 +290,7 @@ function ProductManagement() {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Lock className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">
-                        {displayPrice(item)}
-                      </span>
+                      <span className="text-sm">{displayPrice(item)}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -519,7 +316,7 @@ function ProductManagement() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleOpenDialog(item)}
+                      onClick={() => router.push(`/manage/products/${item.slug}/edit`)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -567,306 +364,12 @@ function ProductManagement() {
         </div>
       )}
 
-      {/* Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl px-8">
-          <DialogHeader>
-            <DialogTitle>{t("editProductTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("editProductDesc")}
-            </DialogDescription>
-          </DialogHeader>
-
-          {editingProduct && (
-            <div className="space-y-5 py-2 max-h-[70vh] overflow-y-auto pr-1">
-              {/* ── Catalog Data (Read-Only) ─────────────────────── */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <Lock className="h-3 w-3" />
-                  {t("erpSyncedData")}
-                </p>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">{t("slug")}</label>
-                    <Input
-                      disabled
-                      value={editingProduct.slug}
-                      className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">{t("nameAndColor")}</label>
-                    <Input
-                      disabled
-                      value={`${editingProduct.colorDisplayName} — ${editingProduct.colorKey}`}
-                      className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">{t("price")}</label>
-                      <Input
-                        disabled
-                        value={displayPrice(editingProduct)}
-                        className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">{t("stock")}</label>
-                      <Input
-                        disabled
-                        value={String(computeStock(editingProduct))}
-                        className="bg-slate-50 dark:bg-slate-900 h-8 text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── SKU Breakdown ─────────────────────────────────── */}
-              <div className="border-t pt-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  {!isAdmin && <Lock className="h-3 w-3" />}
-                  {t("sizesAndStock")}
-                  {isAdmin && (
-                    <span className="ml-1 text-xs font-normal text-muted-foreground normal-case tracking-normal">
-                      — {t("adminEditable")}
-                    </span>
-                  )}
-                </p>
-                {detailLoading ? (
-                  <div className="space-y-1.5">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton key={i} className="h-6 w-full" />
-                    ))}
-                  </div>
-                ) : detail?.skus && detail.skus.length > 0 ? (
-                  <div className="rounded-md border text-sm">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b bg-muted/50">
-                          <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("size")}</th>
-                          <th className={`px-3 py-1.5 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>{t("price")}</th>
-                          <th className={`px-3 py-1.5 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>{t("stock")}</th>
-                          {isAdmin && <th className="w-16 px-2 py-1.5" />}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {detail.skus.map((sku) => (
-                          <tr key={sku.skuId} className="border-b last:border-0">
-                            <td className="px-3 py-1.5 font-medium">{sku.sizeLabel}</td>
-                            {isAdmin ? (
-                              <>
-                                <td className="px-2 py-1.5">
-                                  <Input
-                                    type="number"
-                                    min={0}
-                                    step={0.01}
-                                    value={pendingPrices[sku.skuId] ?? sku.originalPrice.toFixed(2)}
-                                    onChange={(e) =>
-                                      setPendingPrices((prev) => ({ ...prev, [sku.skuId]: e.target.value }))
-                                    }
-                                    onBlur={() => handleSkuPriceBlur(sku.skuId)}
-                                    className="h-7 w-28 text-sm"
-                                  />
-                                </td>
-                                <td className="px-2 py-1.5">
-                                  <Input
-                                    type="number"
-                                    min={0}
-                                    value={pendingStocks[sku.skuId] ?? sku.stockQuantity}
-                                    onChange={(e) =>
-                                      setPendingStocks((prev) => ({ ...prev, [sku.skuId]: e.target.value }))
-                                    }
-                                    className="h-7 w-20 text-sm"
-                                  />
-                                </td>
-                                <td className="px-2 py-1.5">
-                                  {pendingStocks[sku.skuId] !== undefined && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-7 px-2 text-xs"
-                                      disabled={skuStockMutation.isPending}
-                                      onClick={() => handleSkuStockSave(sku.skuId)}
-                                    >
-                                      {skuStockMutation.isPending ? (
-                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                      ) : (
-                                        <Check className="h-3 w-3" />
-                                      )}
-                                    </Button>
-                                  )}
-                                </td>
-                              </>
-                            ) : (
-                              <>
-                                <td className="px-3 py-1.5 text-right text-muted-foreground">{sku.originalPrice.toFixed(2)} TJS</td>
-                                <td className={`px-3 py-1.5 text-right font-medium ${sku.stockQuantity === 0 ? "text-destructive" : ""}`}>
-                                  {sku.stockQuantity}
-                                </td>
-                              </>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{t("noSkuData")}</p>
-                )}
-              </div>
-
-              {/* ── Enrichment (Editable) ─────────────────────────── */}
-              <div className="border-t pt-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  {t("enrichment")}
-                </p>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">{t("webDescription")}</label>
-                    <textarea
-                      value={formData.webDescription}
-                      onChange={(e) =>
-                        setFormData({ ...formData, webDescription: e.target.value })
-                      }
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="topSelling"
-                        checked={formData.topSelling}
-                        onChange={(e) =>
-                          setFormData({ ...formData, topSelling: e.target.checked })
-                        }
-                        className="h-4 w-4 rounded border-input"
-                      />
-                      <label htmlFor="topSelling" className="text-sm">
-                        {t("topSelling")}
-                      </label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="featured"
-                        checked={formData.featured}
-                        onChange={(e) =>
-                          setFormData({ ...formData, featured: e.target.checked })
-                        }
-                        className="h-4 w-4 rounded border-input"
-                      />
-                      <label htmlFor="featured" className="text-sm flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5" />
-                        {t("featured")}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Image Management ──────────────────────────────── */}
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {t("productImages")}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    disabled={uploading}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {uploading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="h-3.5 w-3.5" />
-                    )}
-                    {uploading ? t("uploading") : t("addImage")}
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 relative">
-                  {uploading && (
-                    <div className="absolute inset-0 bg-background/60 z-10 flex items-center justify-center rounded-md">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                    </div>
-                  )}
-                  {editingProduct.images.length > 0 ? (
-                    editingProduct.images.map((url, idx) => (
-                      <div
-                        key={url}
-                        className="group relative aspect-square rounded-md border overflow-hidden bg-muted"
-                      >
-                        <Image
-                          src={url}
-                          alt="Product"
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                        {idx === 0 && (
-                          <span className="absolute bottom-1 left-1 z-10 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                            {t("primary")}
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(url)}
-                          aria-label="Remove image"
-                          className="absolute top-1 right-1 z-10 rounded-full bg-destructive p-1 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 flex flex-col items-center justify-center rounded-md border border-dashed py-6 text-muted-foreground">
-                      <Package className="h-8 w-8 mb-2" />
-                      <p className="text-sm">{t("noImagesYet")}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {saveError && (
-                <div className="flex items-center gap-2 text-destructive text-sm">
-                  <AlertCircle className="h-4 w-4" />
-                  {saveError}
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-            <Button onClick={handleSave} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? t("saving") : t("save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <CreateProductDialog
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onOpenChange={(open) => {
+          setIsCreateOpen(open);
+        }}
+        onCreated={(slug) => router.push(`/manage/products/${slug}/edit`)}
       />
     </>
   );

@@ -6,12 +6,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
+import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
+import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
+import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.UpdatePriceRequestDto;
+import tj.radolfa.infrastructure.web.dto.UpdateProductCategoryRequestDto;
+import tj.radolfa.infrastructure.web.dto.UpdateProductNameRequestDto;
+import tj.radolfa.infrastructure.web.dto.UpdateSkuSizeLabelRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateStockRequestDto;
 
 import java.util.Map;
@@ -24,16 +30,25 @@ import java.util.Map;
 @RequestMapping("/api/v1/admin")
 public class ProductManagementController {
 
-    private final CreateProductUseCase      createProductUseCase;
-    private final UpdateProductPriceUseCase updateProductPriceUseCase;
-    private final UpdateProductStockUseCase updateProductStockUseCase;
+    private final CreateProductUseCase         createProductUseCase;
+    private final UpdateProductPriceUseCase    updateProductPriceUseCase;
+    private final UpdateProductStockUseCase    updateProductStockUseCase;
+    private final UpdateProductNameUseCase     updateProductNameUseCase;
+    private final UpdateSkuSizeLabelUseCase    updateSkuSizeLabelUseCase;
+    private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
                                        UpdateProductPriceUseCase updateProductPriceUseCase,
-                                       UpdateProductStockUseCase updateProductStockUseCase) {
-        this.createProductUseCase      = createProductUseCase;
-        this.updateProductPriceUseCase = updateProductPriceUseCase;
-        this.updateProductStockUseCase = updateProductStockUseCase;
+                                       UpdateProductStockUseCase updateProductStockUseCase,
+                                       UpdateProductNameUseCase updateProductNameUseCase,
+                                       UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
+                                       UpdateProductCategoryUseCase updateProductCategoryUseCase) {
+        this.createProductUseCase         = createProductUseCase;
+        this.updateProductPriceUseCase    = updateProductPriceUseCase;
+        this.updateProductStockUseCase    = updateProductStockUseCase;
+        this.updateProductNameUseCase     = updateProductNameUseCase;
+        this.updateSkuSizeLabelUseCase    = updateSkuSizeLabelUseCase;
+        this.updateProductCategoryUseCase = updateProductCategoryUseCase;
     }
 
     /**
@@ -94,5 +109,47 @@ public class ProductManagementController {
             updateProductStockUseCase.adjust(skuId, request.delta());
         }
         return ResponseEntity.ok(MessageResponseDto.success("Stock updated successfully."));
+    }
+
+    /**
+     * PATCH /api/v1/admin/products/{productBaseId}/name
+     * Rename a product. MANAGER + ADMIN.
+     */
+    @PatchMapping("/products/{productBaseId}/name")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<MessageResponseDto> updateProductName(
+            @PathVariable Long productBaseId,
+            @Valid @RequestBody UpdateProductNameRequestDto request) {
+
+        updateProductNameUseCase.execute(productBaseId, request.name());
+        return ResponseEntity.ok(MessageResponseDto.success("Product name updated successfully."));
+    }
+
+    /**
+     * PATCH /api/v1/admin/skus/{skuId}/size-label
+     * Update the size label of a specific SKU. MANAGER + ADMIN.
+     */
+    @PatchMapping("/skus/{skuId}/size-label")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<MessageResponseDto> updateSkuSizeLabel(
+            @PathVariable Long skuId,
+            @Valid @RequestBody UpdateSkuSizeLabelRequestDto request) {
+
+        updateSkuSizeLabelUseCase.execute(skuId, request.sizeLabel());
+        return ResponseEntity.ok(MessageResponseDto.success("SKU size label updated successfully."));
+    }
+
+    /**
+     * PATCH /api/v1/admin/products/{productBaseId}/category
+     * Reassign the category of a product. MANAGER + ADMIN.
+     */
+    @PatchMapping("/products/{productBaseId}/category")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<MessageResponseDto> updateProductCategory(
+            @PathVariable Long productBaseId,
+            @Valid @RequestBody UpdateProductCategoryRequestDto request) {
+
+        updateProductCategoryUseCase.execute(productBaseId, request.categoryId());
+        return ResponseEntity.ok(MessageResponseDto.success("Product category updated successfully."));
     }
 }

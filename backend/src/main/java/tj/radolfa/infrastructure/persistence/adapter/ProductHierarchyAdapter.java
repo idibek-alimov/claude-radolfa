@@ -94,6 +94,13 @@ public class ProductHierarchyAdapter
                 .map(mapper::toListingVariant);
     }
 
+    @Override
+    public List<ListingVariant> findAllByProductBaseId(Long productBaseId) {
+        return variantRepo.findByProductBaseId(productBaseId).stream()
+                .map(mapper::toListingVariant)
+                .toList();
+    }
+
     // ---- SaveListingVariantPort ----
 
     @Override
@@ -131,6 +138,13 @@ public class ProductHierarchyAdapter
     @Override
     public Optional<Sku> findSkuById(Long id) {
         return skuRepo.findById(id).map(mapper::toSku);
+    }
+
+    @Override
+    public List<Sku> findSkusByVariantId(Long variantId) {
+        return skuRepo.findByListingVariantId(variantId).stream()
+                .map(mapper::toSku)
+                .toList();
     }
 
     // ---- SaveProductHierarchyPort ----

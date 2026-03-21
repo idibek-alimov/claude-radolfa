@@ -212,7 +212,17 @@
     "searchToolsTitle": "Асбобҳои ҷустуҷӯ",
     "reindexButton": "Индекси ҷустуҷӯро аз нав созӣ кардан",
     "reindexing": "Индексатсия...",
-    "reindexResult": "{count} мол индексатсия шуд ({errors} хатогӣ)"
+    "reindexResult": "{count} мол индексатсия шуд ({errors} хатогӣ)",
+    "generalInfo": "Маълумоти умумӣ",
+    "productNameUpdated": "Номи мол навсозӣ шуд",
+    "productCategoryUpdated": "Категория навсозӣ шуд",
+    "colorPermanentHint": "Доимӣ",
+    "backToProducts": "Бозгашт ба молҳо",
+    "priceStockAdminOnly": "Нарх ва захира: танҳо администратор",
+    "sizeLabelUpdated": "Андоза навсозӣ шуд",
+    "loading": "Боргирӣ...",
+    "failedToLoad": "Боргирии мол нокомёб шуд",
+    "maxImagesReached": "Ҳадди аксари 20 тасвир расида шуд"
   },
   "profile": {
     "yourProfile": "Профили шумо",

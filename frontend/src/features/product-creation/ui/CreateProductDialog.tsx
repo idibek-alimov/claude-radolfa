@@ -24,6 +24,7 @@ import { getErrorMessage } from "@/shared/lib";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: (slug: string) => void;
 }
 
 interface SkuRow extends SkuDefinition {
@@ -36,7 +37,7 @@ function makeRow(): SkuRow {
   return { _key: rowCounter++, sizeLabel: "", price: 0, stockQuantity: 0 };
 }
 
-export function CreateProductDialog({ open, onOpenChange }: Props) {
+export function CreateProductDialog({ open, onOpenChange, onCreated }: Props) {
   const t = useTranslations("manage");
   const queryClient = useQueryClient();
 
@@ -73,6 +74,7 @@ export function CreateProductDialog({ open, onOpenChange }: Props) {
       queryClient.invalidateQueries({ queryKey: ["listings"] });
       toast.success(t("productCreated", { slug: data.slug }));
       handleClose();
+      onCreated?.(data.slug);
     },
     onError: (err: unknown) => {
       toast.error(getErrorMessage(err));
