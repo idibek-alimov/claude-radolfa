@@ -1,7 +1,8 @@
 ---
 phase: 1
 slug: product-create-edit-overhaul
-status: draft
+status: approved
+reviewed_at: 2026-03-21
 shadcn_initialized: true
 preset: new-york / neutral / css-variables
 created: 2026-03-21
