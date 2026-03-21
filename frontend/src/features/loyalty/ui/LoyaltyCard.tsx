@@ -3,6 +3,7 @@
 import { Star, Percent, BadgeDollarSign } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { LoyaltyProfile } from "@/entities/loyalty";
+import { formatPrice } from "@/shared/lib";
 
 interface LoyaltyCardProps {
   loyalty: LoyaltyProfile;
@@ -72,7 +73,16 @@ export default function LoyaltyCard({ loyalty }: LoyaltyCardProps) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-white/70 mt-4">{t("earnPoints")}</p>
+          <div className="mt-4">
+            <p className="text-sm font-semibold text-white/90">{t("startEarning")}</p>
+            {loyalty.spendToNextTier != null ? (
+              <p className="text-sm text-white/70 mt-1">
+                {t("spendToNextTier", { amount: formatPrice(loyalty.spendToNextTier) })}
+              </p>
+            ) : (
+              <p className="text-sm text-white/70 mt-1">{t("earnPoints")}</p>
+            )}
+          </div>
         )}
       </div>
     </div>
