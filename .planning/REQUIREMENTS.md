@@ -18,8 +18,8 @@
 
 ### Product Edit
 
-- [ ] **EDIT-01**: Edit page container matches admin dashboard width (`max-w-[1600px]`)
-- [ ] **EDIT-02**: Description field on edit page is a rich text editor (not plain textarea)
+- [x] **EDIT-01**: Edit page container matches admin dashboard width (`max-w-[1600px]`)
+- [x] **EDIT-02**: Description field on edit page is a rich text editor (not plain textarea)
 
 ## Out of Scope
 
@@ -39,8 +39,8 @@
 | CREATE-02 | Phase 1 | Pending |
 | CREATE-03 | Phase 1 | Pending |
 | CREATE-04 | Phase 1 | Pending |
-| EDIT-01 | Phase 1 | Pending |
-| EDIT-02 | Phase 1 | Pending |
+| EDIT-01 | Phase 1 | Complete |
+| EDIT-02 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 7 total
