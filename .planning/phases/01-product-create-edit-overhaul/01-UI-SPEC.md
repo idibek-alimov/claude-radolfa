@@ -44,19 +44,23 @@ Exceptions:
 - Touch targets (interactive icon buttons): minimum 28px hit area via `h-7 w-7` (consistent with existing SKU table rows in `CreateProductDialog`)
 - Card container outer padding: `px-4 sm:px-6 lg:px-8` (matches `ProductEditPage.tsx` pattern)
 - Section dividers inside cards: `border-t pt-4` (existing pattern from `CreateProductDialog`)
+- Toolbar micro-spacing: `py-1.5`, `px-1.5`, `mr-1.5` (6px) used only on TipTap toolbar container, toolbar buttons, and submit button spinner — these are sub-component micro-spacing values for tight inline controls, not layout spacing. Not promoted to the main scale.
 
 ---
 
 ## Typography
 
+Two declared weights only: 400 (regular) and 600 (semibold/bold emphasis).
+
 | Role | Size | Weight | Line Height | Tailwind Classes | Usage in This Phase |
 |------|------|--------|-------------|-----------------|---------------------|
 | Body | 14px | 400 (regular) | 1.5 | `text-sm` | Form labels, input text, table cells, helper text |
-| Label | 14px | 500 (medium) | 1.4 | `text-sm font-medium` | Field labels above inputs |
+| Label | 14px | 600 (semibold) | 1.4 | `text-sm font-semibold` | Field labels above inputs |
 | Section heading | 12px | 600 (semibold) | 1.3 | `text-xs font-semibold uppercase tracking-wider text-muted-foreground` | Card section labels (matches existing pattern: "BASIC INFO", "SKUs") |
-| Page heading | 24px | 700 (bold) | 1.2 | `text-2xl font-bold text-foreground` | Page title "Create Product" (matches `ProductEditPage` `text-2xl font-bold`) |
+| Page heading | 24px | 600 (semibold) | 1.2 | `text-2xl font-semibold text-foreground` | Page title "Create Product" |
 
-Note: Only 2 weights used in implementation — regular (400) and semibold/bold (600/700). The `font-medium` (500) on labels is a minor exception inherited from the existing dialog pattern.
+Named exception — page heading bold:
+If the executor finds that `font-semibold` visually deviates from the existing `ProductEditPage` heading (which uses `text-2xl font-bold`), use `font-bold` on the page heading only and document the override inline. Justification: matches the established `text-2xl font-bold` pattern on `ProductEditPage.tsx`. This is the sole permitted use of weight 700 in this phase.
 
 Character counter: `text-xs text-muted-foreground text-right` — matches existing `EnrichmentCard` pattern.
 
@@ -112,7 +116,7 @@ Two-column grid inside the card area:
 
 Page structure top-to-bottom:
 1. Breadcrumb: `<ChevronLeft> Back to Products` link — `text-sm text-muted-foreground` (matches `ProductEditPage`)
-2. Page heading: "Create Product" — `text-2xl font-bold text-foreground`
+2. Page heading: "Create Product" — `text-2xl font-semibold text-foreground` (see typography named exception if bold alignment needed)
 3. Subheading (optional): "Fill in the details below to add a new product to the catalog." — `text-sm text-muted-foreground mt-1`
 4. Two-column form area (one card wrapping both columns OR two separate cards — left card + right card)
 5. Form action bar: Cancel + Create Product buttons — `flex justify-end gap-3 pt-4`
@@ -184,7 +188,8 @@ Upload is optional (source: CREATE-04). No validation error is shown when no ima
 | Submit during upload step | "Uploading images..." | New i18n key `uploadingImages` — source: D-09 |
 | Page heading | "Create Product" | Inferred from phase goal |
 | Page subheading | "Fill in the details below to add a new product to the catalog." | Default (admin context, no upstream spec) |
-| Breadcrumb | "Back to Products" | Matches `ProductEditPage` i18n key `backToProducts` |
+| Breadcrumb / Cancel navigation | "Back to Products" | Matches `ProductEditPage` i18n key `backToProducts` |
+| Cancel button label | "Back to Products" | Secondary action in form action bar — matches breadcrumb copy; navigates to `/manage` without confirmation (no data loss risk on cancel before submission) |
 | Image zone empty state | "Add Images (optional)" | D-07 says images are optional — make that explicit |
 | Image zone helper text | "Click to browse — multiple files accepted" | Default (no drag-drop, D-07) |
 | SKU section label | "SKUs" | Existing i18n key `createStepSkus` |
@@ -202,6 +207,23 @@ Upload is optional (source: CREATE-04). No validation error is shown when no ima
 | Edit page loading state | "Loading..." | Existing i18n key `loading` |
 
 Destructive actions in this phase: **none on the create page.** On the edit page (existing), destructive image delete is already handled by `ImageCard` — no changes to that flow in this phase.
+
+---
+
+## Accessibility Notes
+
+Icon-only interactive elements must carry an `aria-label`. Declared values:
+
+| Element | Icon | aria-label value |
+|---------|------|-----------------|
+| Thumbnail remove button | `X` (lucide `X`) | `"Remove image"` |
+| SKU row remove button | trash/X icon (lucide) | `"Remove SKU"` |
+| TipTap Bold button | **B** (text) | `"Bold"` |
+| TipTap Italic button | *I* (text) | `"Italic"` |
+| TipTap Bullet list button | list icon | `"Bullet list"` |
+| TipTap Ordered list button | ordered list icon | `"Ordered list"` |
+
+All icon-only buttons must also set `type="button"` to prevent accidental form submission.
 
 ---
 
@@ -226,6 +248,7 @@ No third-party shadcn registries declared. Registry safety gate: not applicable.
 | Image thumbnail | default, hover (show X remove overlay) |
 | "Add Images" button | variant="outline" — default and hover states from shadcn |
 | Breadcrumb back link | `hover:text-foreground transition-colors` (existing pattern) |
+| Cancel button | variant="outline" — navigates to `/manage` |
 | SKU remove icon | `text-muted-foreground hover:text-destructive transition-colors` (existing pattern) |
 | Page loading (edit) | centered `Loader2 animate-spin` with "Loading..." text |
 | Page error (edit) | centered `AlertCircle` with "Failed to load product." in `text-destructive` |
@@ -246,4 +269,5 @@ No third-party shadcn registries declared. Registry safety gate: not applicable.
 ---
 
 *UI-SPEC created: 2026-03-21*
+*UI-SPEC revised: 2026-03-21 — checker revision: collapsed typography to 2 weights, added 1.5-unit spacing exception, added Cancel button copy, added accessibility notes for icon-only elements*
 *Phase: 01-product-create-edit-overhaul*
