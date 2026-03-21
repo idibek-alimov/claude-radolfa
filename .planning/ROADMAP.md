@@ -9,10 +9,16 @@
 
 **Goal:** Replace the product creation popup with a full-page form and fix the edit page layout and description field.
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Backend webDescription + response fix, TipTap RichTextEditor, edit page width + rich text
+- [ ] 01-02-PLAN.md — Create product page with two-column form, image upload, SKU table, navigation wiring
+
 **Delivers:**
 - Backend: `webDescription` field added to create product endpoint
 - Frontend: New `/manage/products/new` page with all fields (name, category, color, rich text description, image upload, SKUs)
-- Frontend: Transparent create→upload→redirect flow
+- Frontend: Transparent create->upload->redirect flow
 - Frontend: Edit page widened to full admin layout width
 - Frontend: Rich text editor replaces plain textarea on edit page
 
