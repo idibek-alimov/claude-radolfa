@@ -9,9 +9,10 @@
 
 **Goal:** Replace the product creation popup with a full-page form and fix the edit page layout and description field.
 
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
+- [ ] 01-00-PLAN.md — Wave 0: test stubs for CreateProductService and ProductManagementController (BE-01 Nyquist)
 - [ ] 01-01-PLAN.md — Backend webDescription + response fix, TipTap RichTextEditor, edit page width + rich text
 - [ ] 01-02-PLAN.md — Create product page with two-column form, image upload, SKU table, navigation wiring
 
