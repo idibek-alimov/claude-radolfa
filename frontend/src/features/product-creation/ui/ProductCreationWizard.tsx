@@ -7,6 +7,7 @@ import { validateStep1 } from "../model/types";
 import { WizardStepper } from "./WizardStepper";
 import { WizardFooter } from "./WizardFooter";
 import { Step1Classification } from "./steps/Step1Classification";
+import { Step2Media } from "./steps/Step2Media";
 
 const TOTAL_STEPS = 5;
 
@@ -89,8 +90,12 @@ export function ProductCreationWizard() {
               />
             )}
 
-            {/* Steps 2–5 will be added in subsequent iterations */}
-            {currentStep > 1 && (
+            {currentStep === 2 && (
+              <Step2Media state={state} update={update} />
+            )}
+
+            {/* Steps 3–5 will be added in subsequent iterations */}
+            {currentStep > 2 && (
               <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground">
                 Step {currentStep} — coming soon
               </div>
