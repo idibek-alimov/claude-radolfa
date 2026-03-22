@@ -12,8 +12,10 @@ import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
@@ -124,6 +126,18 @@ public class ProductHierarchyAdapter
             entity.getImages().add(img);
         }
 
+        // Sync attributes: replace with domain's current list
+        entity.getAttributes().clear();
+        List<ProductAttribute> domainAttrs = variant.getAttributes();
+        for (ProductAttribute attr : domainAttrs) {
+            ListingVariantAttributeEntity attrEntity = new ListingVariantAttributeEntity();
+            attrEntity.setListingVariant(entity);
+            attrEntity.setAttrKey(attr.key());
+            attrEntity.setAttrValue(attr.value());
+            attrEntity.setSortOrder(attr.sortOrder());
+            entity.getAttributes().add(attrEntity);
+        }
+
         variantRepo.save(entity);
     }
 
@@ -197,6 +211,19 @@ public class ProductHierarchyAdapter
             ProductBaseEntity baseRef = baseRepo.getReferenceById(productBaseId);
             entity.setProductBase(baseRef);
             entity.setProductCode(codeGenerator.generate());
+
+            // Sync attributes on creation
+            List<ProductAttribute> domainAttrs = variant.getAttributes();
+            if (domainAttrs != null) {
+                for (ProductAttribute attr : domainAttrs) {
+                    ListingVariantAttributeEntity attrEntity = new ListingVariantAttributeEntity();
+                    attrEntity.setListingVariant(entity);
+                    attrEntity.setAttrKey(attr.key());
+                    attrEntity.setAttrValue(attr.value());
+                    attrEntity.setSortOrder(attr.sortOrder());
+                    entity.getAttributes().add(attrEntity);
+                }
+            }
         }
 
         // Resolve colorKey String -> ColorEntity (auto-create if missing)

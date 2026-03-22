@@ -99,7 +99,12 @@ public interface ProductHierarchyMapper {
                 entity.getSkuCode(),
                 entity.getSizeLabel(),
                 entity.getStockQuantity(),
-                Money.of(entity.getOriginalPrice())
+                Money.of(entity.getOriginalPrice()),
+                entity.getBarcode(),
+                entity.getWeightKg(),
+                entity.getWidthCm(),
+                entity.getHeightCm(),
+                entity.getDepthCm()
         );
     }
 
