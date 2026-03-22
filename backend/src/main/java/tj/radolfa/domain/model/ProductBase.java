@@ -20,13 +20,17 @@ public class ProductBase {
     private String name;
     private String category;
 
+    // Radolfa-managed fields (never touched by ERP sync)
+    private Long brandId;
+
     /**
      * @param id           database PK ({@code null} for unsaved instances)
      * @param externalRef  required — external template identity, must not be blank
      * @param name         nullable — populated by import sync
      * @param category     nullable — populated by import sync
+     * @param brandId      nullable — Radolfa-managed, never overwritten by ERP sync
      */
-    public ProductBase(Long id, String externalRef, String name, String category) {
+    public ProductBase(Long id, String externalRef, String name, String category, Long brandId) {
         if (externalRef == null || externalRef.isBlank()) {
             throw new IllegalArgumentException("externalRef must not be blank");
         }
@@ -34,6 +38,7 @@ public class ProductBase {
         this.externalRef = externalRef;
         this.name        = name;
         this.category    = category;
+        this.brandId     = brandId;
     }
 
     /**
@@ -54,9 +59,17 @@ public class ProductBase {
         this.category = category;
     }
 
+    /**
+     * Assigns a brand to this product. Radolfa-managed — never called from the ERP sync path.
+     */
+    public void assignBrand(Long brandId) {
+        this.brandId = brandId;
+    }
+
     // ---- Getters (no setters — mutation is controlled) ----
     public Long   getId()          { return id; }
     public String getExternalRef() { return externalRef; }
     public String getName()        { return name; }
     public String getCategory()    { return category; }
+    public Long   getBrandId()     { return brandId; }
 }

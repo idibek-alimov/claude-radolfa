@@ -105,6 +105,7 @@ public class ProductManagementController {
         var command = new CreateProductUseCase.Command(
                 request.name(),
                 request.categoryId(),
+                request.brandId(),
                 request.variants().stream()
                         .map(v -> new CreateProductUseCase.Command.VariantDefinition(
                                 v.colorId(),

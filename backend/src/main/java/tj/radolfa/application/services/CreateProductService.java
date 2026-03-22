@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.out.ListingIndexPort;
+import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
@@ -33,15 +34,18 @@ public class CreateProductService implements CreateProductUseCase {
 
     private final LoadCategoryPort         loadCategoryPort;
     private final LoadColorPort            loadColorPort;
+    private final LoadBrandPort            loadBrandPort;
     private final SaveProductHierarchyPort savePort;
     private final ListingIndexPort         listingIndexPort;
 
     public CreateProductService(LoadCategoryPort loadCategoryPort,
                                 LoadColorPort loadColorPort,
+                                LoadBrandPort loadBrandPort,
                                 SaveProductHierarchyPort savePort,
                                 ListingIndexPort listingIndexPort) {
         this.loadCategoryPort = loadCategoryPort;
         this.loadColorPort    = loadColorPort;
+        this.loadBrandPort    = loadBrandPort;
         this.savePort         = savePort;
         this.listingIndexPort = listingIndexPort;
     }
@@ -54,15 +58,24 @@ public class CreateProductService implements CreateProductUseCase {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Category not found: id=" + command.categoryId()));
 
-        // 2. Create ProductBase with auto-generated externalRef
+        // 2. Resolve brand (optional — throws if an ID was supplied but not found)
+        Long brandId = null;
+        if (command.brandId() != null) {
+            loadBrandPort.findById(command.brandId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Brand not found: id=" + command.brandId()));
+            brandId = command.brandId();
+        }
+
+        // 3. Create ProductBase with auto-generated externalRef
         String externalRef = "INTERNAL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name());
+        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(), brandId);
         ProductBase savedBase = savePort.saveBase(base);
 
         LOG.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",
                 savedBase.getId(), command.name(), externalRef);
 
-        // 3. Create one ListingVariant + SKUs per variant definition
+        // 4. Create one ListingVariant + SKUs per variant definition
         for (Command.VariantDefinition variantDef : command.variants()) {
             LoadColorPort.ColorView color = loadColorPort.findById(variantDef.colorId())
                     .orElseThrow(() -> new IllegalArgumentException(

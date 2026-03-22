@@ -13,6 +13,7 @@ import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.ProductAttribute;
+import tj.radolfa.infrastructure.persistence.entity.BrandEntity;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
@@ -21,6 +22,7 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductHierarchyMapper;
+import tj.radolfa.infrastructure.persistence.repository.BrandRepository;
 import tj.radolfa.infrastructure.persistence.repository.CategoryRepository;
 import tj.radolfa.infrastructure.persistence.repository.ColorRepository;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
@@ -45,6 +47,7 @@ public class ProductHierarchyAdapter
     private final SkuRepository            skuRepo;
     private final CategoryRepository       categoryRepo;
     private final ColorRepository          colorRepo;
+    private final BrandRepository          brandRepo;
     private final ProductHierarchyMapper   mapper;
     private final ProductCodeGenerator     codeGenerator;
 
@@ -53,6 +56,7 @@ public class ProductHierarchyAdapter
                                    SkuRepository skuRepo,
                                    CategoryRepository categoryRepo,
                                    ColorRepository colorRepo,
+                                   BrandRepository brandRepo,
                                    ProductHierarchyMapper mapper,
                                    ProductCodeGenerator codeGenerator) {
         this.baseRepo      = baseRepo;
@@ -60,6 +64,7 @@ public class ProductHierarchyAdapter
         this.skuRepo       = skuRepo;
         this.categoryRepo  = categoryRepo;
         this.colorRepo     = colorRepo;
+        this.brandRepo     = brandRepo;
         this.mapper        = mapper;
         this.codeGenerator = codeGenerator;
     }
@@ -178,7 +183,7 @@ public class ProductHierarchyAdapter
             entity = mapper.toBaseEntity(base);
         }
 
-        // Resolve category String -> CategoryEntity (find-or-create placeholder)
+        // Resolve category String -> CategoryEntity
         if (base.getCategory() != null && !base.getCategory().isBlank()) {
             CategoryEntity categoryEntity = categoryRepo.findByName(base.getCategory())
                     .orElseThrow(() -> new IllegalStateException(
@@ -188,6 +193,16 @@ public class ProductHierarchyAdapter
         } else {
             entity.setCategory(null);
             entity.setCategoryName(null);
+        }
+
+        // Resolve brand id -> BrandEntity (Radolfa-managed, never set from ERP sync path)
+        if (base.getBrandId() != null) {
+            BrandEntity brandEntity = brandRepo.findById(base.getBrandId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Brand not found: id=" + base.getBrandId()));
+            entity.setBrand(brandEntity);
+        } else {
+            entity.setBrand(null);
         }
 
         return mapper.toProductBase(baseRepo.save(entity));

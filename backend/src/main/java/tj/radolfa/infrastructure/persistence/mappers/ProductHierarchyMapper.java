@@ -26,6 +26,7 @@ public interface ProductHierarchyMapper {
     @Mapping(target = "variants", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "categoryName", ignore = true)
+    @Mapping(target = "brand", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -37,7 +38,8 @@ public interface ProductHierarchyMapper {
                 entity.getId(),
                 entity.getExternalRef(),
                 entity.getName(),
-                entity.getCategoryName()
+                entity.getCategoryName(),
+                entity.getBrand() != null ? entity.getBrand().getId() : null
         );
     }
 

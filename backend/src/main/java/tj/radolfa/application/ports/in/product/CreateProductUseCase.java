@@ -22,6 +22,7 @@ public interface CreateProductUseCase {
     record Command(
             String name,
             Long   categoryId,
+            Long   brandId,
             List<VariantDefinition> variants
     ) {
         public record VariantDefinition(

@@ -17,6 +17,8 @@ public record CreateProductRequestDto(
         @NotNull(message = "categoryId is required")
         Long categoryId,
 
+        Long brandId,
+
         @NotEmpty(message = "At least one variant is required")
         @Valid
         List<ListingVariantCreationDto> variants

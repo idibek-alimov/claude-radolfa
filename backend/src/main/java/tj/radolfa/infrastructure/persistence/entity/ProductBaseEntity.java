@@ -36,6 +36,10 @@ public class ProductBaseEntity extends BaseAuditEntity {
     @Column(name = "category_name", length = 255)
     private String categoryName;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private BrandEntity brand;
+
     @OneToMany(mappedBy = "productBase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingVariantEntity> variants = new ArrayList<>();
 }

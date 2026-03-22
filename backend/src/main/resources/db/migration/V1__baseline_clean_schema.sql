@@ -103,6 +103,18 @@ CREATE TABLE colors (
 );
 
 -- ----------------------------------------------------------------
+-- Brands
+-- ----------------------------------------------------------------
+CREATE TABLE brands (
+    id         BIGSERIAL    PRIMARY KEY,
+    name       VARCHAR(128) NOT NULL UNIQUE,
+    logo_url   VARCHAR(512),
+    version    BIGINT       NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- ----------------------------------------------------------------
 -- Product bases  (previously: erp_template_code → external_ref)
 -- ----------------------------------------------------------------
 CREATE TABLE product_bases (
@@ -111,6 +123,7 @@ CREATE TABLE product_bases (
     name          VARCHAR(255),
     category_id   BIGINT       REFERENCES categories(id),
     category_name VARCHAR(255),
+    brand_id      BIGINT       REFERENCES brands(id),
     version       BIGINT       NOT NULL DEFAULT 0,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
@@ -182,6 +195,11 @@ CREATE TABLE skus (
     size_label         VARCHAR(32),
     stock_quantity     INTEGER        NOT NULL DEFAULT 0,
     original_price     NUMERIC(12,2),
+    barcode            VARCHAR(128)   UNIQUE,
+    weight_kg          DOUBLE PRECISION,
+    width_cm           INTEGER,
+    height_cm          INTEGER,
+    depth_cm           INTEGER,
     version            BIGINT         NOT NULL DEFAULT 0,
     created_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW()
