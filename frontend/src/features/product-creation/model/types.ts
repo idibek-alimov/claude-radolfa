@@ -84,3 +84,17 @@ export function validateStep3(state: WizardState): Step3Errors {
 export function isStep3Valid(errors: Step3Errors): boolean {
   return errors.emptySize.size === 0 && errors.emptyBarcode.size === 0;
 }
+
+// Returns set of attribute keys that are required by the blueprint but have empty values
+export function validateStep4(
+  state: WizardState,
+  blueprint: BlueprintEntryDto[]
+): Set<string> {
+  const failing = new Set<string>();
+  for (const entry of blueprint) {
+    if (!entry.required) continue;
+    const attr = state.attributes.find((a) => a.key === entry.key);
+    if (!attr || !attr.value.trim()) failing.add(entry.key);
+  }
+  return failing;
+}

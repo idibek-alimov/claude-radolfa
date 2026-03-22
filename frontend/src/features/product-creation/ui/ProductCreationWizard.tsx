@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useWizardState } from "../model/useWizardState";
-import { validateStep1, validateStep3, isStep3Valid } from "../model/types";
+import { validateStep1, validateStep3, isStep3Valid, validateStep4 } from "../model/types";
 import { WizardStepper } from "./WizardStepper";
 import { WizardFooter } from "./WizardFooter";
 import { Step1Classification } from "./steps/Step1Classification";
 import { Step2Media } from "./steps/Step2Media";
 import { Step3VariantMatrix } from "./steps/Step3VariantMatrix";
+import { Step4Attributes } from "./steps/Step4Attributes";
+import { fetchBlueprint } from "../api/blueprint";
+import { useQuery } from "@tanstack/react-query";
 
 const TOTAL_STEPS = 5;
 
@@ -33,6 +36,14 @@ export function ProductCreationWizard() {
   // Per-step "submitted" flags so each step shows its own errors
   const [step1Submitted, setStep1Submitted] = useState(false);
   const [step3Submitted, setStep3Submitted] = useState(false);
+  const [step4Submitted, setStep4Submitted] = useState(false);
+
+  // Blueprint pre-fetched here so validateStep4 can run in goNext
+  const { data: blueprint = [] } = useQuery({
+    queryKey: ["blueprint", state.categoryId],
+    queryFn: () => fetchBlueprint(state.categoryId!),
+    enabled: state.categoryId !== null,
+  });
 
   function goNext() {
     if (currentStep === 1) {
@@ -44,6 +55,11 @@ export function ProductCreationWizard() {
     if (currentStep === 3) {
       setStep3Submitted(true);
       if (!isStep3Valid(validateStep3(state))) return;
+    }
+
+    if (currentStep === 4) {
+      setStep4Submitted(true);
+      if (validateStep4(state, blueprint).size > 0) return;
     }
 
     setCompletedSteps((prev) => new Set(prev).add(currentStep));
@@ -110,8 +126,17 @@ export function ProductCreationWizard() {
               />
             )}
 
-            {/* Steps 4–5 will be added in subsequent iterations */}
-            {currentStep > 3 && (
+            {currentStep === 4 && (
+              <Step4Attributes
+                state={state}
+                update={update}
+                submitted={step4Submitted}
+                failingKeys={validateStep4(state, blueprint)}
+              />
+            )}
+
+            {/* Step 5 will be added in subsequent iteration */}
+            {currentStep > 4 && (
               <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground">
                 Step {currentStep} — coming soon
               </div>
