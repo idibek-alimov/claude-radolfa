@@ -6,6 +6,9 @@ package tj.radolfa.domain.model;
  * <p>All pricing and stock fields are authoritative-source-locked and
  * <b>always</b> overwritten on every sync via {@link #updatePriceAndStock}.
  *
+ * <p>Logistics fields (barcode, weight, dimensions) are Radolfa-managed only
+ * and are never overwritten by ERP sync.
+ *
  * <p>Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
  */
 public class Sku {
@@ -16,27 +19,56 @@ public class Sku {
 
     private String  sizeLabel;
 
-    // Authoritative-source-locked fields — always overwritten
+    // Authoritative-source-locked fields — always overwritten on sync
     private Integer stockQuantity;
-    private Money   price;              // Original / list price
+    private Money   price;
 
+    // Radolfa-managed logistics fields — never touched by ERP sync
+    private String  barcode;
+    private Double  weightKg;
+    private Integer widthCm;
+    private Integer heightCm;
+    private Integer depthCm;
+
+    /** Full constructor — used when loading from persistence. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
                String sizeLabel,
                Integer stockQuantity,
-               Money price) {
+               Money price,
+               String barcode,
+               Double weightKg,
+               Integer widthCm,
+               Integer heightCm,
+               Integer depthCm) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
         this.skuCode          = skuCode;
         this.sizeLabel        = sizeLabel;
         this.stockQuantity    = stockQuantity;
         this.price            = price;
+        this.barcode          = barcode;
+        this.weightKg         = weightKg;
+        this.widthCm          = widthCm;
+        this.heightCm         = heightCm;
+        this.depthCm          = depthCm;
+    }
+
+    /** Legacy constructor — used by ERP sync path (no logistics fields). */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price,
+             null, null, null, null, null);
     }
 
     /**
      * Authoritative-source merge — overwrites ALL pricing and stock fields.
-     * This is the single authorised write path.
+     * This is the single authorised write path for ERP sync.
      */
     public void updatePriceAndStock(Money price, Integer stockQuantity) {
         this.price         = price;
@@ -51,10 +83,15 @@ public class Sku {
     }
 
     // ---- Getters ----
-    public Long    getId()              { return id; }
+    public Long    getId()               { return id; }
     public Long    getListingVariantId() { return listingVariantId; }
-    public String  getSkuCode()         { return skuCode; }
-    public String  getSizeLabel()       { return sizeLabel; }
-    public Integer getStockQuantity()   { return stockQuantity; }
-    public Money   getPrice()           { return price; }
+    public String  getSkuCode()          { return skuCode; }
+    public String  getSizeLabel()        { return sizeLabel; }
+    public Integer getStockQuantity()    { return stockQuantity; }
+    public Money   getPrice()            { return price; }
+    public String  getBarcode()          { return barcode; }
+    public Double  getWeightKg()         { return weightKg; }
+    public Integer getWidthCm()          { return widthCm; }
+    public Integer getHeightCm()         { return heightCm; }
+    public Integer getDepthCm()          { return depthCm; }
 }

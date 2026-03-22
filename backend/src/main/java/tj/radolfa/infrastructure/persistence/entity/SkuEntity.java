@@ -35,4 +35,19 @@ public class SkuEntity extends BaseAuditEntity {
 
     @Column(name = "original_price", precision = 12, scale = 2)
     private BigDecimal originalPrice;
+
+    @Column(name = "barcode", length = 128, unique = true)
+    private String barcode;
+
+    @Column(name = "weight_kg")
+    private Double weightKg;
+
+    @Column(name = "width_cm")
+    private Integer widthCm;
+
+    @Column(name = "height_cm")
+    private Integer heightCm;
+
+    @Column(name = "depth_cm")
+    private Integer depthCm;
 }

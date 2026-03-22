@@ -19,10 +19,10 @@ The new structure follows the **Base -> Color Variants -> Sizes** model:
 
 | Phase | Status | Summary of Implementation |
 |---|---|---|
-| **Phase 0:** Media Infrastructure | ⏳ PENDING | |
-| **Phase 1:** Update Presentation DTOs + Schema | ⏳ PENDING | |
-| **Phase 2:** Refactor Domain & Constraints | ⏳ PENDING | |
-| **Phase 3:** Multi-Variant Creation | ⏳ PENDING | |
+| **Phase 0:** Media Infrastructure | ✅ COMPLETE | Added `GenericUploadImageUseCase` + `GenericUploadImageService` and `POST /api/v1/admin/images/upload` endpoint — uploads to `uploads/media/{uuid}.ext` with no product context required. |
+| **Phase 1:** Update Presentation DTOs + Schema | ✅ COMPLETE | Restructured `CreateProductRequestDto` to accept `List<ListingVariantCreationDto>` (with nested `ProductAttributeDto` + expanded `SkuDefinitionDto`); added barcode/weight/dimensions to `SkuEntity` and `V7` Flyway migration. |
+| **Phase 2:** Refactor Domain & Constraints | ✅ COMPLETE | Replaced `Command.colorId+skus` with `List<VariantDefinition>` (holding colorId, webDescription, attributes, images, skus); expanded `SkuDefinition` with 5 logistics fields; added matching fields + full constructor to `Sku` domain model (legacy 6-arg constructor preserved for ERP sync path). |
+| **Phase 3:** Multi-Variant Creation | ✅ COMPLETE | Refactored `CreateProductService` to iterate `command.variants()` within one transaction — resolves color, applies webDescription/attributes/images, creates SKUs with logistics fields per variant; fixed controller mapping from new DTO shape to new Command shape. Build compiles clean. |
 | **Phase 4:** Post-Creation Attribute Editing | ⏳ PENDING | |
 | **Phase 5:** Mapper & Persistence Verification | ⏳ PENDING | |
 | **Phase 6:** Brand Integration | ⏳ PENDING | |

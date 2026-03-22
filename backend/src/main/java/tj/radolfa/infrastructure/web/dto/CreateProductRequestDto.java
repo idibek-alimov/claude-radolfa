@@ -17,14 +17,34 @@ public record CreateProductRequestDto(
         @NotNull(message = "categoryId is required")
         Long categoryId,
 
-        @NotNull(message = "colorId is required")
-        Long colorId,
-
-        @NotEmpty(message = "At least one SKU definition is required")
+        @NotEmpty(message = "At least one variant is required")
         @Valid
-        List<SkuDefinitionDto> skus
+        List<ListingVariantCreationDto> variants
 
 ) {
+    public record ListingVariantCreationDto(
+
+            @NotNull(message = "colorId is required")
+            Long colorId,
+
+            String webDescription,
+
+            List<ProductAttributeDto> attributes,
+
+            List<String> images,
+
+            @NotEmpty(message = "At least one SKU definition is required")
+            @Valid
+            List<SkuDefinitionDto> skus
+
+    ) {}
+
+    public record ProductAttributeDto(
+            String key,
+            String value,
+            int sortOrder
+    ) {}
+
     public record SkuDefinitionDto(
 
             @NotBlank(message = "sizeLabel is required")
@@ -35,6 +55,17 @@ public record CreateProductRequestDto(
             BigDecimal price,
 
             @PositiveOrZero(message = "stockQuantity must be ≥ 0")
-            int stockQuantity
+            int stockQuantity,
+
+            String barcode,
+
+            Double weightKg,
+
+            Integer widthCm,
+
+            Integer heightCm,
+
+            Integer depthCm
+
     ) {}
 }

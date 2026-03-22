@@ -20,8 +20,11 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Creates a full native product hierarchy (ProductBase → ListingVariant → SKUs)
+ * Creates a full native product hierarchy (ProductBase → ListingVariants → SKUs)
  * without any external system involvement.
+ *
+ * <p>All variants are persisted within a single transaction. ES indexing is
+ * fire-and-forget outside the transaction boundary.</p>
  */
 @Service
 public class CreateProductService implements CreateProductUseCase {
@@ -37,10 +40,10 @@ public class CreateProductService implements CreateProductUseCase {
                                 LoadColorPort loadColorPort,
                                 SaveProductHierarchyPort savePort,
                                 ListingIndexPort listingIndexPort) {
-        this.loadCategoryPort  = loadCategoryPort;
-        this.loadColorPort     = loadColorPort;
-        this.savePort          = savePort;
-        this.listingIndexPort  = listingIndexPort;
+        this.loadCategoryPort = loadCategoryPort;
+        this.loadColorPort    = loadColorPort;
+        this.savePort         = savePort;
+        this.listingIndexPort = listingIndexPort;
     }
 
     @Override
@@ -51,12 +54,7 @@ public class CreateProductService implements CreateProductUseCase {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Category not found: id=" + command.categoryId()));
 
-        // 2. Resolve color
-        LoadColorPort.ColorView color = loadColorPort.findById(command.colorId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Color not found: id=" + command.colorId()));
-
-        // 3. Create ProductBase with auto-generated externalRef
+        // 2. Create ProductBase with auto-generated externalRef
         String externalRef = "INTERNAL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         ProductBase base = new ProductBase(null, externalRef, command.name(), category.name());
         ProductBase savedBase = savePort.saveBase(base);
@@ -64,43 +62,72 @@ public class CreateProductService implements CreateProductUseCase {
         LOG.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",
                 savedBase.getId(), command.name(), externalRef);
 
-        // 4. Create ListingVariant
-        ListingVariant variant = new ListingVariant(
-                null,
-                savedBase.getId(),
-                color.colorKey(),
-                null,                    // slug — generated below
-                null,
-                Collections.emptyList(),
-                Collections.emptyList(),
-                false,
-                false,
-                null,
-                null                     // productCode — assigned by persistence layer on first save
-        );
-        variant.generateSlug(command.name());   // slug = slugify(name + "-" + colorKey)
-        ListingVariant savedVariant = savePort.saveVariant(variant, savedBase.getId());
+        // 3. Create one ListingVariant + SKUs per variant definition
+        for (Command.VariantDefinition variantDef : command.variants()) {
+            LoadColorPort.ColorView color = loadColorPort.findById(variantDef.colorId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Color not found: id=" + variantDef.colorId()));
 
-        // 5. Create SKUs
-        List<Sku> savedSkus = new ArrayList<>();
-        for (Command.SkuDefinition def : command.skus()) {
-            Sku sku = new Sku(
+            ListingVariant variant = new ListingVariant(
                     null,
-                    savedVariant.getId(),
-                    "SKU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
-                    def.sizeLabel(),
-                    def.stockQuantity(),
-                    def.price()
+                    savedBase.getId(),
+                    color.colorKey(),
+                    null,                    // slug — generated below
+                    null,
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    false,
+                    false,
+                    null,
+                    null                     // productCode — assigned by persistence layer on first save
             );
-            savedSkus.add(savePort.saveSku(sku, savedVariant.getId()));
-        }
 
-        // 6. Index into Elasticsearch (fire-and-forget)
-        try {
-            indexVariant(savedVariant, command.name(), category.name(), color.hexCode(), savedSkus);
-        } catch (Exception ex) {
-            LOG.error("[CREATE-PRODUCT] ES indexing failed for variant={}: {}",
-                    savedVariant.getSlug(), ex.getMessage());
+            variant.generateSlug(command.name());
+
+            if (variantDef.webDescription() != null) {
+                variant.updateWebDescription(variantDef.webDescription());
+            }
+
+            if (variantDef.attributes() != null && !variantDef.attributes().isEmpty()) {
+                variant.setAttributes(variantDef.attributes());
+            }
+
+            if (variantDef.images() != null) {
+                for (String url : variantDef.images()) {
+                    variant.addImage(url);
+                }
+            }
+
+            ListingVariant savedVariant = savePort.saveVariant(variant, savedBase.getId());
+
+            List<Sku> savedSkus = new ArrayList<>();
+            for (Command.SkuDefinition def : variantDef.skus()) {
+                Sku sku = new Sku(
+                        null,
+                        savedVariant.getId(),
+                        "SKU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+                        def.sizeLabel(),
+                        def.stockQuantity(),
+                        def.price(),
+                        def.barcode(),
+                        def.weightKg(),
+                        def.widthCm(),
+                        def.heightCm(),
+                        def.depthCm()
+                );
+                savedSkus.add(savePort.saveSku(sku, savedVariant.getId()));
+            }
+
+            LOG.info("[CREATE-PRODUCT] Created variant slug='{}' with {} SKU(s)",
+                    savedVariant.getSlug(), savedSkus.size());
+
+            // ES indexing — fire-and-forget, outside transaction boundary by design
+            try {
+                indexVariant(savedVariant, command.name(), category.name(), color.hexCode(), savedSkus);
+            } catch (Exception ex) {
+                LOG.error("[CREATE-PRODUCT] ES indexing failed for variant={}: {}",
+                        savedVariant.getSlug(), ex.getMessage());
+            }
         }
 
         return savedBase.getId();

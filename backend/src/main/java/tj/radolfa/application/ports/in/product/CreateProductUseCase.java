@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.in.product;
 
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.domain.model.ProductAttribute;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public interface CreateProductUseCase {
 
     /**
-     * Creates a ProductBase → ListingVariant → SKUs hierarchy.
+     * Creates a ProductBase → one or more ListingVariants → SKUs hierarchy.
      *
      * @return the ID of the newly created ProductBase
      */
@@ -21,13 +22,25 @@ public interface CreateProductUseCase {
     record Command(
             String name,
             Long   categoryId,
-            Long   colorId,
-            List<SkuDefinition> skus
+            List<VariantDefinition> variants
     ) {
+        public record VariantDefinition(
+                Long colorId,
+                String webDescription,
+                List<ProductAttribute> attributes,
+                List<String> images,
+                List<SkuDefinition> skus
+        ) {}
+
         public record SkuDefinition(
-                String sizeLabel,
-                Money  price,
-                int    stockQuantity
+                String  sizeLabel,
+                Money   price,
+                int     stockQuantity,
+                String  barcode,
+                Double  weightKg,
+                Integer widthCm,
+                Integer heightCm,
+                Integer depthCm
         ) {}
     }
 }

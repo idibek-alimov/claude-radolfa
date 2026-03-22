@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
+import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
@@ -103,12 +104,26 @@ public class ProductManagementController {
         var command = new CreateProductUseCase.Command(
                 request.name(),
                 request.categoryId(),
-                request.colorId(),
-                request.skus().stream()
-                        .map(s -> new CreateProductUseCase.Command.SkuDefinition(
-                                s.sizeLabel(),
-                                new Money(s.price()),
-                                s.stockQuantity()))
+                request.variants().stream()
+                        .map(v -> new CreateProductUseCase.Command.VariantDefinition(
+                                v.colorId(),
+                                v.webDescription(),
+                                v.attributes() == null ? List.of() : v.attributes().stream()
+                                        .map(a -> new ProductAttribute(a.key(), a.value(), a.sortOrder()))
+                                        .toList(),
+                                v.images() == null ? List.of() : v.images(),
+                                v.skus().stream()
+                                        .map(s -> new CreateProductUseCase.Command.SkuDefinition(
+                                                s.sizeLabel(),
+                                                new Money(s.price()),
+                                                s.stockQuantity(),
+                                                s.barcode(),
+                                                s.weightKg(),
+                                                s.widthCm(),
+                                                s.heightCm(),
+                                                s.depthCm()))
+                                        .toList()
+                        ))
                         .toList()
         );
 
