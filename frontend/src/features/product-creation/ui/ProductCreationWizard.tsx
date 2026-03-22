@@ -1,17 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useWizardState } from "../model/useWizardState";
-import { validateStep1, validateStep3, isStep3Valid, validateStep4 } from "../model/types";
+import {
+  validateStep1,
+  validateStep3,
+  isStep3Valid,
+  validateStep4,
+  WIZARD_DRAFT_KEY,
+} from "../model/types";
+import { fetchBlueprint } from "../api/blueprint";
+import { createProduct } from "../api/createProduct";
+import { getErrorMessage } from "@/shared/lib/utils";
 import { WizardStepper } from "./WizardStepper";
 import { WizardFooter } from "./WizardFooter";
 import { Step1Classification } from "./steps/Step1Classification";
 import { Step2Media } from "./steps/Step2Media";
 import { Step3VariantMatrix } from "./steps/Step3VariantMatrix";
 import { Step4Attributes } from "./steps/Step4Attributes";
-import { fetchBlueprint } from "../api/blueprint";
-import { useQuery } from "@tanstack/react-query";
+import { Step5Review } from "./steps/Step5Review";
 
 const TOTAL_STEPS = 5;
 
@@ -28,6 +39,7 @@ const slideVariants = {
 };
 
 export function ProductCreationWizard() {
+  const router = useRouter();
   const { state, update, hydrated } = useWizardState();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -45,6 +57,18 @@ export function ProductCreationWizard() {
     enabled: state.categoryId !== null,
   });
 
+  const submitMutation = useMutation({
+    mutationFn: () => createProduct(state),
+    onSuccess: () => {
+      localStorage.removeItem(WIZARD_DRAFT_KEY);
+      toast.success("Product created successfully!");
+      router.push("/manage");
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err, "Failed to create product"));
+    },
+  });
+
   function goNext() {
     if (currentStep === 1) {
       setStep1Submitted(true);
@@ -60,6 +84,13 @@ export function ProductCreationWizard() {
     if (currentStep === 4) {
       setStep4Submitted(true);
       if (validateStep4(state, blueprint).size > 0) return;
+    }
+
+    if (currentStep === 5) {
+      // Final step — submit
+      if (!isStep3Valid(validateStep3(state))) return; // guard against back-nav edits
+      submitMutation.mutate();
+      return;
     }
 
     setCompletedSteps((prev) => new Set(prev).add(currentStep));
@@ -135,12 +166,7 @@ export function ProductCreationWizard() {
               />
             )}
 
-            {/* Step 5 will be added in subsequent iteration */}
-            {currentStep > 4 && (
-              <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground">
-                Step {currentStep} — coming soon
-              </div>
-            )}
+            {currentStep === 5 && <Step5Review state={state} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -151,6 +177,10 @@ export function ProductCreationWizard() {
         totalSteps={TOTAL_STEPS}
         onPrev={goPrev}
         onNext={goNext}
+        isNextDisabled={
+          currentStep === 5 && !isStep3Valid(validateStep3(state))
+        }
+        isSubmitting={submitMutation.isPending}
       />
     </div>
   );
