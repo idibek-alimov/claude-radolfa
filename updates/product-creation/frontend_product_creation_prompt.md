@@ -22,7 +22,7 @@ Build a full-page, 5-step wizard at `app/(admin)/manage/products/create/page.tsx
 | **Step 5:** Step 4 — Dynamic Attributes | ✅ COMPLETE | Built `Step4Attributes.tsx` with blueprint-driven labeled inputs (sorted, required asterisk, error on submit), free-form `+ Add Attribute` rows with key/value/delete, empty-blueprint fallback message, and `validateStep4` wired into orchestrator's `goNext()` using the shared blueprint query. |
 | **Step 6:** Step 5 — Review & Submit | ✅ COMPLETE | Built `Step5Review.tsx` with read-only product/color/SKU summary, blocking error alert for missing barcodes/size labels per color, `createProduct.ts` API with exact payload transformation, `useMutation` in orchestrator with success toast + localStorage clear + redirect to `/manage`, and `isNextDisabled` wired to block submit when step 3 data is invalid. |
 | **Step 7:** Wizard Shell & Stepper | ✅ COMPLETE | Added `onStepClick` prop to `WizardStepper` so completed steps render as clickable buttons, and wired `goToStep(n)` in the orchestrator to navigate back with correct slide direction. |
-| **Step 8:** Final Cleanup | ⏳ PENDING | |
+| **Step 8:** Final Cleanup | ✅ COMPLETE | Deleted `CreateProductDialog.tsx` (no remaining callers); confirmed `index.ts` only exports `ProductCreationWizard` and all three API files (`blueprint.ts`, `imageUpload.ts`, `createProduct.ts`) use `apiClient` from `@/shared/api`. |
 
 ---
 
