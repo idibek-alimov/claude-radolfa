@@ -65,3 +65,22 @@ export function validateStep1(state: WizardState): Step1Errors {
   if (state.colorIds.length === 0) errors.colorIds = "Select at least one color";
   return errors;
 }
+
+export interface Step3Errors {
+  emptySize: Set<string>;   // _key values with blank sizeLabel
+  emptyBarcode: Set<string>; // _key values with blank barcode
+}
+
+export function validateStep3(state: WizardState): Step3Errors {
+  const emptySize = new Set<string>();
+  const emptyBarcode = new Set<string>();
+  for (const row of state.skuRows) {
+    if (!row.sizeLabel.trim()) emptySize.add(row._key);
+    if (!row.barcode.trim()) emptyBarcode.add(row._key);
+  }
+  return { emptySize, emptyBarcode };
+}
+
+export function isStep3Valid(errors: Step3Errors): boolean {
+  return errors.emptySize.size === 0 && errors.emptyBarcode.size === 0;
+}

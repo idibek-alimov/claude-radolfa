@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useWizardState } from "../model/useWizardState";
-import { validateStep1 } from "../model/types";
+import { validateStep1, validateStep3, isStep3Valid } from "../model/types";
 import { WizardStepper } from "./WizardStepper";
 import { WizardFooter } from "./WizardFooter";
 import { Step1Classification } from "./steps/Step1Classification";
 import { Step2Media } from "./steps/Step2Media";
+import { Step3VariantMatrix } from "./steps/Step3VariantMatrix";
 
 const TOTAL_STEPS = 5;
 
@@ -31,12 +32,18 @@ export function ProductCreationWizard() {
 
   // Per-step "submitted" flags so each step shows its own errors
   const [step1Submitted, setStep1Submitted] = useState(false);
+  const [step3Submitted, setStep3Submitted] = useState(false);
 
   function goNext() {
     if (currentStep === 1) {
       setStep1Submitted(true);
       const errs = validateStep1(state);
       if (Object.keys(errs).length > 0) return;
+    }
+
+    if (currentStep === 3) {
+      setStep3Submitted(true);
+      if (!isStep3Valid(validateStep3(state))) return;
     }
 
     setCompletedSteps((prev) => new Set(prev).add(currentStep));
@@ -94,8 +101,17 @@ export function ProductCreationWizard() {
               <Step2Media state={state} update={update} />
             )}
 
-            {/* Steps 3–5 will be added in subsequent iterations */}
-            {currentStep > 2 && (
+            {currentStep === 3 && (
+              <Step3VariantMatrix
+                state={state}
+                update={update}
+                submitted={step3Submitted}
+                errors={validateStep3(state)}
+              />
+            )}
+
+            {/* Steps 4–5 will be added in subsequent iterations */}
+            {currentStep > 3 && (
               <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground">
                 Step {currentStep} — coming soon
               </div>
