@@ -1,7 +1,7 @@
 # Frontend Implementation Plan: Product Creation Wizard
 
 **Stack:** Next.js 15 · React 19 · TanStack Query · Tailwind CSS · Radix UI · Framer Motion  
-**Route:** `/admin/products/create` (full page — NOT a dialog)  
+**Route:** `app/(admin)/manage/products/create/page.tsx` (full page — NOT a dialog)  
 **API Base:** `/api/v1`
 
 > All 4 architecture decisions are resolved:
@@ -54,7 +54,7 @@ interface WizardState {
 | `GET` | `/api/v1/categories` | Load category tree for Step 1 |
 | `GET` | `/api/v1/categories/{id}/blueprint` | Load dynamic attributes after category selected |
 | `GET` | `/api/v1/colors` | Load colors for Step 1 multi-select |
-| `GET` | `/api/v1/brands` | Load brands for Step 1 dropdown (optional) |
+| `GET` | `/api/v1/brands` | Load brands for Step 1 dropdown (Note: `BrandController` does not exist yet; either build it or omit brand fetching for now) |
 | `POST` | `/api/v1/admin/images/upload` | Upload image file, returns `{ url }` |
 | `POST` | `/api/v1/admin/products` | Submit final creation payload |
 
@@ -73,6 +73,7 @@ interface WizardState {
 **Behavior:**
 - As soon as `categoryId` is set, fire `useQuery(['blueprint', categoryId], ...)` to prefetch the Step 4 attribute form.
 - Colors are displayed as colored chips with `displayName`. User can select multiple.
+- If a user deselects a color that already has uploaded images in `imagesByColorId`, warn them: "Removing this color will discard X uploaded images" and clear `imagesByColorId[colorId]` on confirmation.
 - Validation: name required, categoryId required, at least 1 color required.
 
 ---
@@ -84,7 +85,7 @@ interface WizardState {
 **Behavior:**
 - The UI shows one upload zone **per selected color** (tabs or columns, one per color chip from Step 1).
 - Each zone accepts drag-and-drop or click-to-browse file inputs.
-- On file selection, immediately call `POST /api/v1/admin/images/upload` with the file.
+- On file selection, immediately call `POST /api/v1/admin/images/upload` with the file. **Crucially, use `formData.append('image', file)` as the backend specifically expects the singular field name `image`.**
 - Show a loading spinner per image while uploading. On success, display the image thumbnail and store the returned `url` in `imagesByColorId[colorId]`.
 - Users can delete uploaded images (remove URL from state; file is already on S3 — no delete call needed).
 - Images are **grouped by color** from the start — no reassignment needed.
@@ -97,7 +98,7 @@ interface WizardState {
 **Component:** `VariantTable`
 
 **Behavior:**
-- On entering this step, auto-generate one default `skuRow` per selected color (from Step 1) with an empty `sizeLabel`.
+- On entering this step, auto-generate one default `skuRow` per selected color (from Step 1) with `sizeLabel` set to "ONE_SIZE" (to avoid forcing users to type a size for single-size products).
 - The user can add more rows per color (e.g., S, M, L for each color).
 - The table is flat — each row is `colorId + size + logistics`.
 - Color column is read-only (derived from `colorIds`). All other columns are editable.
@@ -116,7 +117,7 @@ interface WizardState {
 
 **Power Feature — "Apply to All":**
 - Price and Stock columns have an `⬇ Apply to all` button on the header.
-- Clicking it copies the value from the first row of that column to all other rows in the table.
+- Clicking it copies the value from the first row of that column to all other rows **within the same color group** by default (with an optional "all colors" action if needed).
 
 ---
 
@@ -139,7 +140,7 @@ interface WizardState {
 
 **Behavior:**
 - Show a read-only summary: product name, category, brand, number of variants, number of SKUs.
-- Show a list of any validation warnings (e.g., "3 SKUs have no barcode").
+- Ensure blocking validation: The "Create Product" button must be disabled if any SKU has an empty `sizeLabel` or an empty `barcode` (`@NotBlank` on backend). These are hard runtime errors, not soft warnings.
 - "Create Product" button triggers payload transformation and the API call.
 
 **Payload Transformation:**
@@ -166,7 +167,7 @@ const payload = {
 };
 ```
 
-- On success: show a `sonner` toast, redirect to the product management list page.
+- On success: The backend returns `{ productBaseId }`. Show a `sonner` toast, and redirect to the product management list page. Do not attempt to redirect to the new product's edit page using a slug, as the response does not contain the slug.
 - On error: show field-level backend error messages if available, or a generic toast.
 
 ---
@@ -175,7 +176,7 @@ const payload = {
 
 - **Stepper header:** Horizontal stepper at the top of the page showing Step 1–5 with status (complete ✓, current, pending).
 - **Sticky footer:** Previous / Next buttons stick to the bottom of the viewport as the user scrolls.
-- **Draft persistence:** Save wizard state to `localStorage` on every step change. Restore on page load. Clear on successful submission.
+- **Draft persistence:** Save wizard state to `localStorage` on every step change using a specific key (e.g., `radolfa:product-creation-draft`) to avoid collisions. Restore on page load. Clear on successful submission.
 - **Transitions:** Subtle Framer Motion slide animation between steps (slide left/right based on direction).
 - **Validation:** Each step validates its own fields before allowing "Next". Show errors inline.
 
@@ -183,8 +184,9 @@ const payload = {
 
 ## FSD Layer Placement
 
-- **Page:** `views/admin/products/create/`
+- **Page:** `app/(admin)/manage/products/create/page.tsx`
 - **Wizard orchestrator:** `features/product-creation/ui/ProductCreationWizard.tsx`
 - **Step components:** `features/product-creation/ui/steps/` (one file per step)
 - **API calls:** `features/product-creation/api/` (upload, create)
 - **State/types:** `features/product-creation/model/`
+- **Retire old code:** Delete `features/product-creation/ui/CreateProductDialog.tsx` as this full-page wizard replaces it. Update any files calling it to link to the new route instead.

@@ -1,1 +1,1 @@
-export { CreateProductDialog } from "./ui/CreateProductDialog";
+export { ProductCreationWizard } from "./ui/ProductCreationWizard";
