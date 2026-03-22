@@ -103,6 +103,11 @@ export function ProductCreationWizard() {
     setCurrentStep((s) => Math.max(s - 1, 1));
   }
 
+  function goToStep(n: number) {
+    setDirection(n < currentStep ? -1 : 1);
+    setCurrentStep(n);
+  }
+
   if (!hydrated) {
     // Avoid localStorage hydration mismatch flash
     return (
@@ -120,6 +125,7 @@ export function ProductCreationWizard() {
           <WizardStepper
             currentStep={currentStep}
             completedSteps={completedSteps}
+            onStepClick={goToStep}
           />
         </div>
       </div>
