@@ -73,12 +73,26 @@ frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
+frontend-new/node_modules/
+frontend-new/.next/
+frontend-new/out/
+frontend-new/.pnp
+frontend-new/.pnp.js
+frontend-new/.yarn/install-state.gz
+frontend-new/npm-debug.log*
+frontend-new/yarn-debug.log*
+frontend-new/yarn-error.log*
+
 # -----------------------------------------------------------------------------
 # Next.js
 # -----------------------------------------------------------------------------
 frontend/.vercel
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
+
+frontend-new/.vercel
+frontend-new/*.tsbuildinfo
+frontend-new/next-env.d.ts
 
 # -----------------------------------------------------------------------------
 # Docker
@@ -101,6 +115,9 @@ backend/test-results/
 frontend/coverage/
 frontend/.nyc_output/
 
+frontend-new/coverage/
+frontend-new/.nyc_output/
+
 # -----------------------------------------------------------------------------
 # Build artifacts
 # -----------------------------------------------------------------------------
@@ -121,3 +138,13 @@ temp/
 *.temp
 *.bak
 *.backup
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
