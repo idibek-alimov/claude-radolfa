@@ -1,6 +1,8 @@
 package tj.radolfa.infrastructure.web;
 
-import org.springframework.data.domain.PageRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/categories")
+@Tag(name = "Categories", description = "Category tree, product listings per category, and attribute blueprints")
 public class CategoryController {
 
     private final LoadCategoryPort loadCategoryPort;
@@ -36,6 +39,7 @@ public class CategoryController {
         this.getBlueprintUseCase = getBlueprintUseCase;
     }
 
+    @Operation(summary = "Category tree", description = "Returns the full category hierarchy as a nested tree (roots with children).")
     @GetMapping
     public ResponseEntity<List<CategoryTreeDto>> getCategoryTree() {
         List<CategoryView> all = loadCategoryPort.findAll();
@@ -43,11 +47,12 @@ public class CategoryController {
         return ResponseEntity.ok(tree);
     }
 
+    @Operation(summary = "Products by category", description = "Paginated listing grid filtered by category slug (includes all descendant categories).")
     @GetMapping("/{slug}/products")
     public ResponseEntity<PageResponse<ListingVariantDto>> getProductsByCategory(
-            @PathVariable String slug,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int limit) {
+            @Parameter(description = "Category slug") @PathVariable String slug,
+            @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
         CategoryView category = loadCategoryPort.findBySlug(slug).orElse(null);
         if (category == null) {
@@ -64,8 +69,13 @@ public class CategoryController {
      * Returns the attribute blueprint for a category (ordered by sort_order).
      * Empty list if no blueprint is configured. 404 if category does not exist.
      */
+    @Operation(summary = "Category attribute blueprint",
+               description = "Returns the ordered list of expected attributes for a category. " +
+                             "Use this to drive the attribute form on the frontend during product creation. " +
+                             "Returns an empty list if no blueprint is configured for the category.")
     @GetMapping("/{id}/blueprint")
-    public ResponseEntity<List<BlueprintEntryDto>> getCategoryBlueprint(@PathVariable Long id) {
+    public ResponseEntity<List<BlueprintEntryDto>> getCategoryBlueprint(
+            @Parameter(description = "Category ID") @PathVariable Long id) {
         try {
             return ResponseEntity.ok(getBlueprintUseCase.getBlueprint(id));
         } catch (IllegalArgumentException e) {

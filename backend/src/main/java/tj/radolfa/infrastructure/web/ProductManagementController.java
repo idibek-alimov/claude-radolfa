@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,6 +39,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v1/admin")
+@Tag(name = "Admin — Product Management", description = "Admin/Manager endpoints for native product creation and mutation")
 public class ProductManagementController {
 
     private final CreateProductUseCase         createProductUseCase;
@@ -97,6 +99,15 @@ public class ProductManagementController {
      * POST /api/v1/admin/products
      * Create a new product with variants and SKUs. MANAGER + ADMIN.
      */
+    @Operation(summary = "Create product",
+               description = "Creates a full product hierarchy (ProductBase → ListingVariants → SKUs) in a single request. " +
+                             "Upload images first via POST /admin/images/upload, then pass the URLs in the variants[].images array.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Product created; body contains {productBaseId}"),
+        @ApiResponse(responseCode = "400", description = "Validation failed or referenced entity not found (category, brand, color)"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "409", description = "Duplicate barcode or other unique constraint violation")
+    })
     @PostMapping("/products")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<Map<String, Long>> createProduct(
@@ -138,6 +149,13 @@ public class ProductManagementController {
      * PUT /api/v1/admin/skus/{skuId}/price
      * Set the price of a specific SKU. ADMIN only.
      */
+    @Operation(summary = "Set SKU price", description = "Overwrites the price of a specific SKU. ADMIN only.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Price updated"),
+        @ApiResponse(responseCode = "400", description = "Invalid price value"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "404", description = "SKU not found")
+    })
     @PutMapping("/skus/{skuId}/price")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updatePrice(
@@ -154,6 +172,14 @@ public class ProductManagementController {
      * Body: { "quantity": 50 }  — sets absolute value
      * Body: { "delta": -5 }     — adjusts by delta
      */
+    @Operation(summary = "Set or adjust SKU stock",
+               description = "Pass {\"quantity\": N} to set an absolute stock value, or {\"delta\": N} to adjust by N (positive or negative). ADMIN only.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Stock updated"),
+        @ApiResponse(responseCode = "400", description = "Neither quantity nor delta provided"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "404", description = "SKU not found")
+    })
     @PutMapping("/skus/{skuId}/stock")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updateStock(
@@ -172,6 +198,13 @@ public class ProductManagementController {
      * PATCH /api/v1/admin/products/{productBaseId}/name
      * Rename a product. MANAGER + ADMIN.
      */
+    @Operation(summary = "Rename product", description = "Updates the display name of a product base. MANAGER + ADMIN.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Name updated"),
+        @ApiResponse(responseCode = "400", description = "Validation failed"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @PatchMapping("/products/{productBaseId}/name")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<MessageResponseDto> updateProductName(
@@ -186,6 +219,13 @@ public class ProductManagementController {
      * PATCH /api/v1/admin/skus/{skuId}/size-label
      * Update the size label of a specific SKU. MANAGER + ADMIN.
      */
+    @Operation(summary = "Update SKU size label", description = "Changes the human-readable size label of a SKU (e.g. \"XL\", \"42\"). MANAGER + ADMIN.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Size label updated"),
+        @ApiResponse(responseCode = "400", description = "Validation failed"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "404", description = "SKU not found")
+    })
     @PatchMapping("/skus/{skuId}/size-label")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<MessageResponseDto> updateSkuSizeLabel(
@@ -200,6 +240,13 @@ public class ProductManagementController {
      * PATCH /api/v1/admin/products/{productBaseId}/category
      * Reassign the category of a product. MANAGER + ADMIN.
      */
+    @Operation(summary = "Reassign product category", description = "Moves a product to a different category. MANAGER + ADMIN.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Category updated"),
+        @ApiResponse(responseCode = "400", description = "Category not found"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @PatchMapping("/products/{productBaseId}/category")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<MessageResponseDto> updateProductCategory(
