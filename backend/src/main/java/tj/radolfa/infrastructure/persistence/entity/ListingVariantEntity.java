@@ -48,6 +48,9 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "featured", nullable = false)
     private boolean featured = false;
 
+    @Column(name = "active", nullable = false)
+    private boolean active = false;
+
     @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     @BatchSize(size = 50)

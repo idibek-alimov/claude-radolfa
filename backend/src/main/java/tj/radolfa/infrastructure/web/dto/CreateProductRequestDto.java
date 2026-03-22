@@ -24,7 +24,10 @@ public record CreateProductRequestDto(
 
         @NotEmpty(message = "At least one SKU definition is required")
         @Valid
-        List<SkuDefinitionDto> skus
+        List<SkuDefinitionDto> skus,
+
+        @Valid
+        List<AttributeDto> attributes
 
 ) {
     public record SkuDefinitionDto(
@@ -38,5 +41,14 @@ public record CreateProductRequestDto(
 
             @PositiveOrZero(message = "stockQuantity must be ≥ 0")
             int stockQuantity
+    ) {}
+
+    public record AttributeDto(
+
+            @NotBlank(message = "attribute key is required")
+            String key,
+
+            @NotBlank(message = "attribute value is required")
+            String value
     ) {}
 }

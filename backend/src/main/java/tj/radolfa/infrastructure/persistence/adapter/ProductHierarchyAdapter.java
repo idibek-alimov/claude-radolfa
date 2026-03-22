@@ -14,6 +14,7 @@ import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
@@ -112,6 +113,7 @@ public class ProductHierarchyAdapter
         entity.setWebDescription(variant.getWebDescription());
         entity.setTopSelling(variant.isTopSelling());
         entity.setFeatured(variant.isFeatured());
+        entity.setActive(variant.isActive());
 
         // Sync images: replace with domain's current list
         entity.getImages().clear();
@@ -122,6 +124,19 @@ public class ProductHierarchyAdapter
             img.setImageUrl(domainImages.get(i));
             img.setSortOrder(i + 1);
             entity.getImages().add(img);
+        }
+
+        // Sync attributes: replace with domain's current list
+        entity.getAttributes().clear();
+        List<tj.radolfa.domain.model.ProductAttribute> domainAttributes = variant.getAttributes();
+        for (int i = 0; i < domainAttributes.size(); i++) {
+            tj.radolfa.domain.model.ProductAttribute attr = domainAttributes.get(i);
+            ListingVariantAttributeEntity ae = new ListingVariantAttributeEntity();
+            ae.setListingVariant(entity);
+            ae.setAttrKey(attr.key());
+            ae.setAttrValue(attr.value());
+            ae.setSortOrder(i);
+            entity.getAttributes().add(ae);
         }
 
         variantRepo.save(entity);
@@ -197,6 +212,18 @@ public class ProductHierarchyAdapter
             ProductBaseEntity baseRef = baseRepo.getReferenceById(productBaseId);
             entity.setProductBase(baseRef);
             entity.setProductCode(codeGenerator.generate());
+
+            // Set attributes for new variant
+            List<tj.radolfa.domain.model.ProductAttribute> domainAttributes = variant.getAttributes();
+            for (int i = 0; i < domainAttributes.size(); i++) {
+                tj.radolfa.domain.model.ProductAttribute attr = domainAttributes.get(i);
+                ListingVariantAttributeEntity ae = new ListingVariantAttributeEntity();
+                ae.setListingVariant(entity);
+                ae.setAttrKey(attr.key());
+                ae.setAttrValue(attr.value());
+                ae.setSortOrder(i);
+                entity.getAttributes().add(ae);
+            }
         }
 
         // Resolve colorKey String -> ColorEntity (auto-create if missing)

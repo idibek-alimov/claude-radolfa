@@ -28,6 +28,7 @@ public class ListingVariant {
     private List<ProductAttribute> attributes;
     private boolean                topSelling;
     private boolean                featured;
+    private boolean                active;
 
     // Audit
     private Instant lastSyncAt;
@@ -46,6 +47,7 @@ public class ListingVariant {
                           List<ProductAttribute> attributes,
                           boolean topSelling,
                           boolean featured,
+                          boolean active,
                           Instant lastSyncAt,
                           String productCode) {
         this.id             = id;
@@ -57,6 +59,7 @@ public class ListingVariant {
         this.attributes     = new ArrayList<>(attributes != null ? attributes : List.of());
         this.topSelling     = topSelling;
         this.featured       = featured;
+        this.active         = active;
         this.lastSyncAt     = lastSyncAt;
         this.productCode    = productCode;
     }
@@ -116,6 +119,10 @@ public class ListingVariant {
         this.featured = featured;
     }
 
+    public void updateActive(boolean active) {
+        this.active = active;
+    }
+
     // ---- Queries ----
 
     public boolean hasEnrichment() {
@@ -133,6 +140,7 @@ public class ListingVariant {
     public List<ProductAttribute>  getAttributes()     { return Collections.unmodifiableList(attributes); }
     public boolean                 isTopSelling()      { return topSelling; }
     public boolean                 isFeatured()        { return featured; }
+    public boolean                 isActive()          { return active; }
     public Instant                 getLastSyncAt()     { return lastSyncAt; }
     public String                  getProductCode()    { return productCode; }
 }

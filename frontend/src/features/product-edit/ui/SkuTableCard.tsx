@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lock, Check, Loader2 } from "lucide-react";
+import { Lock, Check, Loader2, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -11,6 +11,7 @@ import {
   updateSkuSizeLabel,
   updateSkuPrice,
   updateSkuStock,
+  addSku,
 } from "@/entities/product/api/admin";
 import { getErrorMessage } from "@/shared/lib";
 import type { Sku } from "@/entities/product/model/types";
@@ -19,9 +20,10 @@ interface Props {
   slug: string;
   skus: Sku[];
   isAdmin: boolean;
+  variantId: number;
 }
 
-export function SkuTableCard({ slug, skus, isAdmin }: Props) {
+export function SkuTableCard({ slug, skus, isAdmin, variantId }: Props) {
   const t = useTranslations("manage");
   const queryClient = useQueryClient();
 
@@ -87,6 +89,34 @@ export function SkuTableCard({ slug, skus, isAdmin }: Props) {
     const quantity = parseInt(raw, 10);
     if (isNaN(quantity) || quantity < 0) return;
     stockMutation.mutate({ skuId, quantity });
+  };
+
+  // ── Add new SKU ──────────────────────────────────────────────────
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newSize, setNewSize] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newStock, setNewStock] = useState("");
+
+  const addSkuMutation = useMutation({
+    mutationFn: () =>
+      addSku(variantId, newSize.trim(), parseFloat(newPrice), parseInt(newStock, 10)),
+    onSuccess: () => {
+      invalidate();
+      toast.success(t("sizeAdded") || "Size added");
+      setNewSize("");
+      setNewPrice("");
+      setNewStock("");
+      setShowAddForm(false);
+    },
+    onError: (err: unknown) => toast.error(getErrorMessage(err)),
+  });
+
+  const handleAddSku = () => {
+    if (!newSize.trim()) return;
+    const price = parseFloat(newPrice);
+    const stock = parseInt(newStock, 10);
+    if (isNaN(price) || price < 0 || isNaN(stock) || stock < 0) return;
+    addSkuMutation.mutate();
   };
 
   return (
@@ -203,6 +233,73 @@ export function SkuTableCard({ slug, skus, isAdmin }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* Add new SKU — ADMIN only */}
+      {isAdmin && !showAddForm && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAddForm(true)}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          {t("addSize") || "Add Size"}
+        </Button>
+      )}
+
+      {isAdmin && showAddForm && (
+        <div className="rounded-md border p-3 space-y-3 bg-muted/30">
+          <p className="text-xs font-medium text-muted-foreground">{t("newSize") || "New Size"}</p>
+          <div className="grid grid-cols-3 gap-2">
+            <Input
+              value={newSize}
+              onChange={(e) => setNewSize(e.target.value)}
+              placeholder={t("size") || "Size label"}
+              className="h-8 text-sm"
+            />
+            <Input
+              type="number"
+              min={0}
+              step={0.01}
+              value={newPrice}
+              onChange={(e) => setNewPrice(e.target.value)}
+              placeholder={t("price") || "Price"}
+              className="h-8 text-sm"
+            />
+            <Input
+              type="number"
+              min={0}
+              value={newStock}
+              onChange={(e) => setNewStock(e.target.value)}
+              placeholder={t("stock") || "Stock"}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAddForm(false)}
+            >
+              {t("cancel") || "Cancel"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAddSku}
+              disabled={addSkuMutation.isPending || !newSize.trim()}
+            >
+              {addSkuMutation.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+              ) : (
+                <Plus className="h-3.5 w-3.5 mr-1" />
+              )}
+              {t("add") || "Add"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

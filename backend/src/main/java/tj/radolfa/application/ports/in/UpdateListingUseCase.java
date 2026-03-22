@@ -9,10 +9,16 @@ public interface UpdateListingUseCase {
 
     void removeImage(String slug, String imageUrl);
 
+    void reorderImages(String slug, List<String> orderedUrls);
+
     record UpdateListingCommand(
             String webDescription,
             Boolean topSelling,
             Boolean featured,
-            List<String> images) {
+            Boolean active,
+            List<String> images,
+            List<AttributeEntry> attributes) {
     }
+
+    record AttributeEntry(String key, String value) {}
 }

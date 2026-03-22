@@ -60,7 +60,7 @@ class CreateProductServiceTest {
     void execute_returnsResultWithIds() {
         var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, "A <b>bold</b> description", List.of(
                 new CreateProductUseCase.Command.SkuDefinition("M", new Money(new BigDecimal("29.99")), 5)
-        ));
+        ), null);
         CreateProductUseCase.Result result = service.execute(command);
         assertNotNull(result.productBaseId());
         assertNotNull(result.variantId());
@@ -73,7 +73,7 @@ class CreateProductServiceTest {
     void execute_propagatesWebDescription() {
         var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, "<p>Rich desc</p>", List.of(
                 new CreateProductUseCase.Command.SkuDefinition("M", new Money(new BigDecimal("29.99")), 5)
-        ));
+        ), null);
         service.execute(command);
         ListingVariant saved = fakeSavePort.getLastSavedVariant();
         assertEquals("<p>Rich desc</p>", saved.getWebDescription());
@@ -84,7 +84,7 @@ class CreateProductServiceTest {
     void execute_nullWebDescription_succeeds() {
         var command = new CreateProductUseCase.Command("Test Shirt", 1L, 1L, null, List.of(
                 new CreateProductUseCase.Command.SkuDefinition("M", new Money(new BigDecimal("29.99")), 5)
-        ));
+        ), null);
         CreateProductUseCase.Result result = service.execute(command);
         assertNotNull(result.productBaseId());
     }
@@ -173,6 +173,7 @@ class CreateProductServiceTest {
                     variant.getAttributes(),
                     variant.isTopSelling(),
                     variant.isFeatured(),
+                    variant.isActive(),
                     variant.getLastSyncAt(),
                     null
             );

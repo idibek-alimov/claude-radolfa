@@ -12,6 +12,7 @@ export interface CreateProductRequest {
   colorId: number;
   webDescription?: string;
   skus: SkuDefinition[];
+  attributes?: { key: string; value: string }[];
 }
 
 export interface CreateProductResponse {
@@ -92,4 +93,18 @@ export async function updateProductCategory(
   categoryId: number
 ): Promise<void> {
   await apiClient.patch(`/api/v1/admin/products/${productBaseId}/category`, { categoryId });
+}
+
+/** Add a new SKU (size variant) to an existing listing variant (ADMIN only). */
+export async function addSku(
+  variantId: number,
+  sizeLabel: string,
+  price: number,
+  stockQuantity: number
+): Promise<{ skuId: number; skuCode: string }> {
+  const { data } = await apiClient.post<{ skuId: number; skuCode: string }>(
+    "/api/v1/admin/skus",
+    { variantId, sizeLabel, price, stockQuantity }
+  );
+  return data;
 }

@@ -12,8 +12,8 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-03-21T14:43:21+0500",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.10 (Ubuntu)"
+    date = "2026-03-22T10:35:52+0500",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260128-0750, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
 public class UserMapperImpl implements UserMapper {
@@ -63,12 +63,12 @@ public class UserMapperImpl implements UserMapper {
         userEntity.setLoyaltyPermanent( userLoyaltyPermanent( user ) );
         userEntity.setLowestTierEver( tierDomainToEntity( userLoyaltyLowestTierEver( user ) ) );
         userEntity.setVersion( user.version() );
-        userEntity.setId( user.id() );
-        userEntity.setPhone( phoneNumberToString( user.phone() ) );
-        userEntity.setRole( user.role() );
-        userEntity.setName( user.name() );
         userEntity.setEmail( user.email() );
         userEntity.setEnabled( user.enabled() );
+        userEntity.setId( user.id() );
+        userEntity.setName( user.name() );
+        userEntity.setPhone( phoneNumberToString( user.phone() ) );
+        userEntity.setRole( user.role() );
 
         return userEntity;
     }

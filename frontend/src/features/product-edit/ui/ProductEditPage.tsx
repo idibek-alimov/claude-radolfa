@@ -72,7 +72,7 @@ export function ProductEditPage({ slug }: Props) {
 
         {/* Cards */}
         <GeneralInfoCard detail={detail} />
-        <SkuTableCard slug={slug} skus={detail.skus} isAdmin={isAdmin} />
+        <SkuTableCard slug={slug} skus={detail.skus} isAdmin={isAdmin} variantId={detail.variantId} />
         <EnrichmentCard detail={detail} />
         <ImageCard slug={slug} images={detail.images} />
       </div>

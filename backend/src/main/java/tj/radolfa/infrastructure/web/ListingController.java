@@ -99,7 +99,13 @@ public class ListingController {
                 request.webDescription,
                 request.topSelling,
                 request.featured,
-                null // images updated separately
+                request.active,
+                null, // images updated separately
+                request.attributes != null
+                        ? request.attributes.stream()
+                            .map(a -> new tj.radolfa.application.ports.in.UpdateListingUseCase.AttributeEntry(a.key, a.value))
+                            .toList()
+                        : null
         ));
         return ResponseEntity.ok().build();
     }
@@ -133,11 +139,31 @@ public class ListingController {
         return ResponseEntity.ok().build();
     }
 
+    @org.springframework.web.bind.annotation.PutMapping("/{slug}/images/reorder")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Reorder images", description = "Sets the image order. First URL becomes primary/thumbnail.")
+    public ResponseEntity<Void> reorderImages(
+            @PathVariable String slug,
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody ReorderImagesRequest request) {
+
+        updateListingUseCase.reorderImages(slug, request.urls);
+        return ResponseEntity.ok().build();
+    }
+
     public record UpdateListingRequest(
             @jakarta.validation.constraints.Size(max = 5000, message = "Description must not exceed 5000 characters")
             String webDescription,
             Boolean topSelling,
-            Boolean featured) {
+            Boolean featured,
+            Boolean active,
+            List<AttributeEntryRequest> attributes) {
+    }
+
+    public record AttributeEntryRequest(
+            @jakarta.validation.constraints.NotBlank(message = "attribute key is required")
+            String key,
+            @jakarta.validation.constraints.NotBlank(message = "attribute value is required")
+            String value) {
     }
 
     public record ImageUrlRequest(
@@ -147,5 +173,10 @@ public class ListingController {
                     regexp = "^https://.+",
                     message = "Image URL must use HTTPS")
             String url) {
+    }
+
+    public record ReorderImagesRequest(
+            @jakarta.validation.constraints.NotEmpty(message = "Image URL list must not be empty")
+            List<String> urls) {
     }
 }

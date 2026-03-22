@@ -25,12 +25,19 @@ public interface CreateProductUseCase {
             Long   categoryId,
             Long   colorId,
             String webDescription,
-            List<SkuDefinition> skus
+            List<SkuDefinition> skus,
+            List<AttributeDefinition> attributes
     ) {
         public record SkuDefinition(
                 String sizeLabel,
                 Money  price,
                 int    stockQuantity
+        ) {}
+
+        public record AttributeDefinition(
+                String key,
+                String value,
+                int    sortOrder
         ) {}
     }
 }

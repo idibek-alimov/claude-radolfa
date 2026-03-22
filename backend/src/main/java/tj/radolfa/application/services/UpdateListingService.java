@@ -34,6 +34,14 @@ public class UpdateListingService implements UpdateListingUseCase {
         if (command.featured() != null) {
             variant.updateFeatured(command.featured());
         }
+        if (command.active() != null) {
+            variant.updateActive(command.active());
+        }
+        if (command.attributes() != null) {
+            variant.setAttributes(command.attributes().stream()
+                    .map(a -> new tj.radolfa.domain.model.ProductAttribute(a.key(), a.value(), 0))
+                    .toList());
+        }
 
         saveListingVariantPort.save(variant);
     }
@@ -53,6 +61,29 @@ public class UpdateListingService implements UpdateListingUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
 
         variant.removeImage(imageUrl);
+        saveListingVariantPort.save(variant);
+    }
+
+    @Override
+    public void reorderImages(String slug, java.util.List<String> orderedUrls) {
+        ListingVariant variant = loadListingVariantPort.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+
+        // Validate: orderedUrls must contain exactly the same URLs as current images
+        java.util.List<String> current = variant.getImages();
+        if (orderedUrls.size() != current.size() || !new java.util.HashSet<>(orderedUrls).equals(new java.util.HashSet<>(current))) {
+            throw new IllegalArgumentException("Provided image list must contain exactly the same URLs as current images");
+        }
+
+        // Clear and re-add in new order — domain model stores as List<String>
+        // The persistence adapter rebuilds sortOrder from list index
+        for (String url : current) {
+            variant.removeImage(url);
+        }
+        for (String url : orderedUrls) {
+            variant.addImage(url);
+        }
+
         saveListingVariantPort.save(variant);
     }
 }

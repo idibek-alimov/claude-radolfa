@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.product.AddSkuUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
@@ -13,6 +14,8 @@ import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
+
+import java.util.Map;
 import tj.radolfa.infrastructure.web.dto.CreateProductResponseDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.UpdatePriceRequestDto;
@@ -29,6 +32,7 @@ import tj.radolfa.infrastructure.web.dto.UpdateStockRequestDto;
 @RequestMapping("/api/v1/admin")
 public class ProductManagementController {
 
+    private final AddSkuUseCase                addSkuUseCase;
     private final CreateProductUseCase         createProductUseCase;
     private final UpdateProductPriceUseCase    updateProductPriceUseCase;
     private final UpdateProductStockUseCase    updateProductStockUseCase;
@@ -36,12 +40,14 @@ public class ProductManagementController {
     private final UpdateSkuSizeLabelUseCase    updateSkuSizeLabelUseCase;
     private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
 
-    public ProductManagementController(CreateProductUseCase createProductUseCase,
+    public ProductManagementController(AddSkuUseCase addSkuUseCase,
+                                       CreateProductUseCase createProductUseCase,
                                        UpdateProductPriceUseCase updateProductPriceUseCase,
                                        UpdateProductStockUseCase updateProductStockUseCase,
                                        UpdateProductNameUseCase updateProductNameUseCase,
                                        UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
                                        UpdateProductCategoryUseCase updateProductCategoryUseCase) {
+        this.addSkuUseCase            = addSkuUseCase;
         this.createProductUseCase         = createProductUseCase;
         this.updateProductPriceUseCase    = updateProductPriceUseCase;
         this.updateProductStockUseCase    = updateProductStockUseCase;
@@ -69,7 +75,13 @@ public class ProductManagementController {
                                 s.sizeLabel(),
                                 new Money(s.price()),
                                 s.stockQuantity()))
-                        .toList()
+                        .toList(),
+                request.attributes() != null
+                        ? request.attributes().stream()
+                            .map((a) -> new CreateProductUseCase.Command.AttributeDefinition(
+                                    a.key(), a.value(), 0))
+                            .toList()
+                        : null
         );
 
         CreateProductUseCase.Result result = createProductUseCase.execute(command);
@@ -152,4 +164,36 @@ public class ProductManagementController {
         updateProductCategoryUseCase.execute(productBaseId, request.categoryId());
         return ResponseEntity.ok(MessageResponseDto.success("Product category updated successfully."));
     }
+
+    /**
+     * POST /api/v1/admin/skus
+     * Add a new SKU to an existing variant. ADMIN only (controls price + stock).
+     */
+    @PostMapping("/skus")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> addSku(
+            @Valid @RequestBody AddSkuRequestDto request) {
+
+        var command = new AddSkuUseCase.Command(
+                request.variantId(),
+                request.sizeLabel(),
+                new Money(request.price()),
+                request.stockQuantity()
+        );
+        AddSkuUseCase.Result result = addSkuUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("skuId", result.skuId(), "skuCode", result.skuCode()));
+    }
+
+    public record AddSkuRequestDto(
+            @jakarta.validation.constraints.NotNull(message = "variantId is required")
+            Long variantId,
+            @jakarta.validation.constraints.NotBlank(message = "sizeLabel is required")
+            String sizeLabel,
+            @jakarta.validation.constraints.NotNull(message = "price is required")
+            @jakarta.validation.constraints.PositiveOrZero(message = "price must be ≥ 0")
+            java.math.BigDecimal price,
+            @jakarta.validation.constraints.PositiveOrZero(message = "stockQuantity must be ≥ 0")
+            int stockQuantity
+    ) {}
 }

@@ -26,6 +26,7 @@ tj/radolfa/application/ports/out/SaveDiscountPort.class
 tj/radolfa/application/services/GetRecentEarningsService$EarningEntry.class
 tj/radolfa/infrastructure/web/dto/AuthResponseDto.class
 tj/radolfa/application/ports/out/LoadProductBasePort.class
+tj/radolfa/application/services/AddSkuService.class
 tj/radolfa/application/services/UpdateCartItemQuantityService.class
 tj/radolfa/domain/service/LoyaltyCalculator.class
 tj/radolfa/domain/model/UserRole.class
@@ -48,6 +49,7 @@ tj/radolfa/infrastructure/web/dto/UpdateCartItemRequestDto.class
 tj/radolfa/application/ports/in/payment/ConfirmPaymentUseCase.class
 tj/radolfa/infrastructure/web/dto/CreateCategoryRequestDto.class
 tj/radolfa/infrastructure/persistence/adapter/HomeCollectionsAdapter.class
+tj/radolfa/application/ports/in/product/AddSkuUseCase$Result.class
 tj/radolfa/application/ports/in/order/CreateOrderUseCase$Command.class
 tj/radolfa/infrastructure/web/dto/UserDto$RecentEarningDto.class
 tj/radolfa/application/services/OtpAuthService.class
@@ -130,6 +132,7 @@ tj/radolfa/domain/model/ProductAttribute.class
 tj/radolfa/infrastructure/web/SearchController.class
 tj/radolfa/infrastructure/web/SearchController$ReindexResult.class
 tj/radolfa/application/services/InitiatePaymentService.class
+tj/radolfa/application/ports/in/UpdateListingUseCase$AttributeEntry.class
 tj/radolfa/infrastructure/persistence/entity/CategoryEntity.class
 tj/radolfa/application/ports/in/cart/AddToCartUseCase.class
 tj/radolfa/application/ports/in/ToggleUserStatusUseCase.class
@@ -139,6 +142,7 @@ tj/radolfa/infrastructure/security/RateLimitProperties.class
 tj/radolfa/application/ports/in/UpdateUserProfileUseCase.class
 tj/radolfa/application/ports/in/UpdateListingUseCase$UpdateListingCommand.class
 tj/radolfa/infrastructure/persistence/mappers/UserMapper.class
+tj/radolfa/application/ports/in/product/AddSkuUseCase$Command.class
 tj/radolfa/application/readmodel/CartView.class
 tj/radolfa/infrastructure/web/dto/UpdateStockRequestDto.class
 tj/radolfa/application/ports/out/OtpPort.class
@@ -214,6 +218,7 @@ tj/radolfa/infrastructure/web/dto/UpdateUserProfileRequestDto.class
 tj/radolfa/application/services/GetMyOrdersService.class
 tj/radolfa/application/ports/in/order/CheckoutUseCase.class
 tj/radolfa/infrastructure/persistence/repository/ProductBaseRepository.class
+tj/radolfa/application/ports/in/product/CreateProductUseCase$Command$AttributeDefinition.class
 tj/radolfa/infrastructure/persistence/entity/ColorEntity.class
 tj/radolfa/infrastructure/web/dto/CartItemDto.class
 tj/radolfa/application/readmodel/HomeSectionDto.class
@@ -226,8 +231,10 @@ tj/radolfa/application/readmodel/ListingVariantDetailDto.class
 tj/radolfa/infrastructure/web/dto/AddToCartRequestDto.class
 tj/radolfa/infrastructure/web/LoyaltyController$UpdateColorRequest.class
 tj/radolfa/application/ports/in/loyalty/AwardLoyaltyPointsUseCase.class
+tj/radolfa/infrastructure/web/ListingController$ReorderImagesRequest.class
 tj/radolfa/application/ports/out/ProcessedImage.class
 tj/radolfa/application/services/ChangeUserRoleService.class
+tj/radolfa/application/ports/in/product/AddSkuUseCase.class
 tj/radolfa/application/ports/in/product/CreateProductUseCase$Command.class
 tj/radolfa/application/readmodel/ListingVariantDetailDto$AttributeDto.class
 tj/radolfa/application/ports/in/ResolveUserDiscountUseCase.class
@@ -242,6 +249,7 @@ tj/radolfa/application/ports/in/GetHomeCollectionsUseCase.class
 tj/radolfa/application/ports/out/LoadCategoryPort.class
 tj/radolfa/application/readmodel/CollectionPageDto.class
 tj/radolfa/application/services/UpdateUserProfileService.class
+tj/radolfa/infrastructure/web/ListingController$AttributeEntryRequest.class
 tj/radolfa/infrastructure/persistence/repository/CartRepository.class
 tj/radolfa/infrastructure/security/OtpStore$OtpEntry.class
 tj/radolfa/application/ports/in/order/CreateOrderUseCase.class
@@ -281,6 +289,8 @@ tj/radolfa/infrastructure/web/PageResponse.class
 tj/radolfa/infrastructure/persistence/mappers/LoyaltyTierMapper.class
 tj/radolfa/infrastructure/persistence/mappers/ProductHierarchyMapperImpl.class
 tj/radolfa/domain/model/Cart.class
+tj/radolfa/infrastructure/web/dto/CreateProductRequestDto$AttributeDto.class
+tj/radolfa/infrastructure/web/ProductManagementController$AddSkuRequestDto.class
 tj/radolfa/domain/model/OrderItem.class
 tj/radolfa/infrastructure/notification/NotificationPortStub.class
 tj/radolfa/infrastructure/persistence/adapter/UserRepositoryAdapter.class

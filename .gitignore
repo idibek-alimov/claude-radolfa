@@ -32,6 +32,8 @@ secrets.yaml
 .project
 .classpath
 .settings/
+.claude/
+.gsd/
 
 # -----------------------------------------------------------------------------
 # OS Generated Files

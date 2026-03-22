@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tj.radolfa.application.ports.in.product.AddSkuUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
@@ -33,6 +34,7 @@ class ProductManagementControllerTest {
 
     @BeforeEach
     void setUp() {
+        FakeAddSkuUseCase fakeAddSku = new FakeAddSkuUseCase();
         FakeCreateProductUseCase fakeCreate = new FakeCreateProductUseCase();
         FakeUpdateProductPriceUseCase fakePrice = new FakeUpdateProductPriceUseCase();
         FakeUpdateProductStockUseCase fakeStock = new FakeUpdateProductStockUseCase();
@@ -41,7 +43,7 @@ class ProductManagementControllerTest {
         FakeUpdateProductCategoryUseCase fakeCategory = new FakeUpdateProductCategoryUseCase();
 
         ProductManagementController controller = new ProductManagementController(
-                fakeCreate, fakePrice, fakeStock, fakeName, fakeSizeLabel, fakeCategory
+                fakeAddSku, fakeCreate, fakePrice, fakeStock, fakeName, fakeSizeLabel, fakeCategory
         );
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
@@ -72,6 +74,13 @@ class ProductManagementControllerTest {
     }
 
     // ==== In-Memory Fakes ====
+
+    static class FakeAddSkuUseCase implements AddSkuUseCase {
+        @Override
+        public Result execute(Command command) {
+            return new Result(99L, "SKU-TEST1234");
+        }
+    }
 
     static class FakeCreateProductUseCase implements CreateProductUseCase {
         @Override

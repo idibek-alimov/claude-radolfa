@@ -197,6 +197,10 @@ public class ListingReadAdapter implements LoadListingPort {
 
                 return new ListingVariantDetailDto(
                                 entity.getId(),
+                                entity.getProductBase().getId(),
+                                entity.getProductBase().getCategory() != null
+                                        ? entity.getProductBase().getCategory().getId()
+                                        : null,
                                 entity.getSlug(),
                                 entity.getProductBase().getName(),
                                 categoryName,
@@ -215,6 +219,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 isPartialDiscount,
                                 entity.isTopSelling(),
                                 entity.isFeatured(),
+                                entity.isActive(),
                                 skus,
                                 siblings,
                                 entity.getProductCode());

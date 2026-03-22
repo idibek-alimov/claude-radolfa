@@ -14,6 +14,8 @@ import java.util.List;
  */
 public record ListingVariantDetailDto(
         Long variantId,
+        Long productBaseId,
+        Long categoryId,
         String slug,
         String colorDisplayName,
         String categoryName,
@@ -32,6 +34,7 @@ public record ListingVariantDetailDto(
         boolean isPartialDiscount,
         boolean topSelling,
         boolean featured,
+        boolean active,
         List<SkuDto> skus,
         List<SiblingVariant> siblingVariants,
         String productCode
@@ -88,10 +91,10 @@ public record ListingVariantDetailDto(
                 })
                 .toList();
 
-        return new ListingVariantDetailDto(variantId, slug, colorDisplayName, categoryName,
+        return new ListingVariantDetailDto(variantId, productBaseId, categoryId, slug, colorDisplayName, categoryName,
                 colorKey, colorHex, webDescription, images, attributes,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
-                topSelling, featured, loyaltySkus, siblingVariants, productCode);
+                topSelling, featured, active, loyaltySkus, siblingVariants, productCode);
     }
 }

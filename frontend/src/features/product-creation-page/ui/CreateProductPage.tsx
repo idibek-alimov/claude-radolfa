@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, X, Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { RichTextEditor } from "@/shared/ui/RichTextEditor";
 import { createProduct } from "@/entities/product/api/admin";
 import { uploadListingImage, fetchCategoryTree } from "@/entities/product/api";
 import { fetchColors } from "@/entities/color";
@@ -37,6 +36,9 @@ export function CreateProductPage() {
   const [skus, setSkus] = useState<
     Array<{ sizeLabel: string; price: string; stockQuantity: string }>
   >([{ sizeLabel: "", price: "", stockQuantity: "" }]);
+  const [attributes, setAttributes] = useState<
+    Array<{ key: string; value: string }>
+  >([]);
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitPhase, setSubmitPhase] = useState<
@@ -44,6 +46,8 @@ export function CreateProductPage() {
   >("idle");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
 
   // ── Data fetching ────────────────────────────────────────────────
   const { data: categories } = useQuery({
@@ -73,6 +77,25 @@ export function CreateProductPage() {
     value: string
   ) {
     setSkus((prev) =>
+      prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
+    );
+  }
+
+  // ── Attribute helpers ────────────────────────────────────────────
+  function addAttributeRow() {
+    setAttributes((prev) => [...prev, { key: "", value: "" }]);
+  }
+
+  function removeAttributeRow(index: number) {
+    setAttributes((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateAttribute(
+    index: number,
+    field: "key" | "value",
+    value: string
+  ) {
+    setAttributes((prev) =>
       prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
     );
   }
@@ -111,6 +134,11 @@ export function CreateProductPage() {
           price: parseFloat(s.price),
           stockQuantity: parseInt(s.stockQuantity, 10),
         })),
+        attributes: attributes.filter((a) => a.key.trim() && a.value.trim()).length > 0
+          ? attributes
+              .filter((a) => a.key.trim() && a.value.trim())
+              .map((a) => ({ key: a.key.trim(), value: a.value.trim() }))
+          : undefined,
       });
       slug = result.slug;
     } catch (err) {
@@ -226,11 +254,59 @@ export function CreateProductPage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Description
               </p>
-              <RichTextEditor
-                initialContent=""
-                onChange={(html) => setWebDescription(html)}
+              <textarea
+                value={webDescription}
+                onChange={(e) => setWebDescription(e.target.value)}
                 maxLength={5000}
+                placeholder="Product description..."
+                rows={5}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-y min-h-[120px]"
               />
+              <p className={`text-xs text-right ${webDescription.length >= 4500 ? "text-destructive" : "text-muted-foreground"}`}>
+                {webDescription.length} / 5000
+              </p>
+            </div>
+
+            {/* Attributes */}
+            <div className="border-t pt-4 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Attributes
+              </p>
+
+              {attributes.map((attr, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <Input
+                    value={attr.key}
+                    onChange={(e) => updateAttribute(i, "key", e.target.value)}
+                    placeholder="e.g. Material"
+                    className="h-8 text-sm flex-1"
+                  />
+                  <Input
+                    value={attr.value}
+                    onChange={(e) => updateAttribute(i, "value", e.target.value)}
+                    placeholder="e.g. Cotton"
+                    className="h-8 text-sm flex-1"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remove attribute"
+                    onClick={() => removeAttributeRow(i)}
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addAttributeRow}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Attribute
+              </Button>
             </div>
           </div>
 
@@ -266,18 +342,41 @@ export function CreateProductPage() {
                     Add Images (optional)
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Click to browse — multiple files accepted
+                    Click to browse — drag to reorder, first = primary
                   </p>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {files.map((file, idx) => (
-                    <div key={idx} className="relative h-16 w-16">
+                    <div
+                      key={idx}
+                      className="relative h-16 w-16 cursor-grab active:cursor-grabbing"
+                      draggable
+                      onDragStart={() => { dragItem.current = idx; }}
+                      onDragOver={(e) => { e.preventDefault(); dragOverItem.current = idx; }}
+                      onDragEnd={() => {
+                        if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+                          setFiles((prev) => {
+                            const updated = [...prev];
+                            const [dragged] = updated.splice(dragItem.current!, 1);
+                            updated.splice(dragOverItem.current!, 0, dragged);
+                            return updated;
+                          });
+                        }
+                        dragItem.current = null;
+                        dragOverItem.current = null;
+                      }}
+                    >
                       <img
                         src={URL.createObjectURL(file)}
                         alt={file.name}
                         className="h-16 w-16 rounded-md object-cover"
                       />
+                      {idx === 0 && (
+                        <span className="absolute bottom-0.5 left-0.5 z-10 rounded bg-black/60 px-1 py-0.5 text-[9px] font-medium text-white">
+                          Primary
+                        </span>
+                      )}
                       <button
                         type="button"
                         aria-label="Remove image"

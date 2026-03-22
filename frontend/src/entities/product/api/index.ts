@@ -13,6 +13,7 @@ export interface UpdateListingRequest {
   webDescription?: string;
   topSelling?: boolean;
   featured?: boolean;
+  active?: boolean;
 }
 
 export interface ImageUploadResponse {
@@ -103,7 +104,7 @@ export async function uploadListingImage(
     throw new Error("File must be an image");
   }
   const form = new FormData();
-  form.append("files", file);
+  form.append("image", file);
   await apiClient.post(`/api/v1/listings/${slug}/images`, form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
@@ -134,6 +135,14 @@ export async function removeListingImage(
   imageUrl: string
 ): Promise<void> {
   await apiClient.delete(`/api/v1/listings/${slug}/images`, {
-    data: { imageUrl },
+    data: { url: imageUrl },
   });
+}
+
+/** Reorder images for a listing (manager only). First URL becomes primary/thumbnail. */
+export async function reorderListingImages(
+  slug: string,
+  urls: string[]
+): Promise<void> {
+  await apiClient.put(`/api/v1/listings/${slug}/images/reorder`, { urls });
 }

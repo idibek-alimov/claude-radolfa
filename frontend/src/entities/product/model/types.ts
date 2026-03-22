@@ -81,6 +81,7 @@ export interface ListingVariantDetail extends ListingVariant {
   webDescription: string | null;
   attributes: Attribute[];
   siblingVariants: SiblingVariant[];
+  active: boolean;
 }
 
 /** Paginated response for listings — alias of the shared generic. */

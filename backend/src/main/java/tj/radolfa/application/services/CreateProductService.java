@@ -72,9 +72,14 @@ public class CreateProductService implements CreateProductUseCase {
                 null,                           // slug — generated below
                 command.webDescription(),       // optional web description from create request
                 Collections.emptyList(),
-                Collections.emptyList(),
+                command.attributes() != null
+                        ? command.attributes().stream()
+                            .map(a -> new tj.radolfa.domain.model.ProductAttribute(a.key(), a.value(), a.sortOrder()))
+                            .toList()
+                        : Collections.emptyList(),
                 false,
                 false,
+                false,                          // active — new products start inactive
                 null,
                 null                            // productCode — assigned by persistence layer on first save
         );

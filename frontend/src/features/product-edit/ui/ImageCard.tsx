@@ -7,7 +7,7 @@ import { Upload, Loader2, X, Package } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
-import { uploadListingImage, removeListingImage } from "@/entities/product/api";
+import { uploadListingImage, removeListingImage, reorderListingImages } from "@/entities/product/api";
 import { getErrorMessage } from "@/shared/lib";
 
 interface Props {
@@ -21,6 +21,8 @@ export function ImageCard({ slug, images: initialImages }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState(initialImages);
   const [uploading, setUploading] = useState(false);
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["listing", slug] });
@@ -94,7 +96,27 @@ export function ImageCard({ slug, images: initialImages }: Props) {
           images.map((url, idx) => (
             <div
               key={url}
-              className="group relative aspect-square rounded-md border overflow-hidden bg-muted"
+              className="group relative aspect-square rounded-md border overflow-hidden bg-muted cursor-grab active:cursor-grabbing"
+              draggable
+              onDragStart={() => { dragItem.current = idx; }}
+              onDragOver={(e) => { e.preventDefault(); dragOverItem.current = idx; }}
+              onDragEnd={async () => {
+                if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+                  const updated = [...images];
+                  const [dragged] = updated.splice(dragItem.current, 1);
+                  updated.splice(dragOverItem.current, 0, dragged);
+                  setImages(updated);
+                  try {
+                    await reorderListingImages(slug, updated);
+                    invalidate();
+                  } catch (err: unknown) {
+                    toast.error(getErrorMessage(err));
+                    setImages(images); // revert
+                  }
+                }
+                dragItem.current = null;
+                dragOverItem.current = null;
+              }}
             >
               <Image
                 src={url}

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Save, Loader2, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
-import { RichTextEditor } from "@/shared/ui/RichTextEditor";
 import { updateListing } from "@/entities/product/api";
 import { getErrorMessage } from "@/shared/lib";
 import type { ListingVariantDetail } from "@/entities/product/model/types";
@@ -22,10 +21,11 @@ export function EnrichmentCard({ detail }: Props) {
   const [webDescription, setWebDescription] = useState(detail.webDescription ?? "");
   const [topSelling, setTopSelling] = useState(detail.topSelling);
   const [featured, setFeatured] = useState(detail.featured);
+  const [active, setActive] = useState(detail.active ?? false);
 
   const mutation = useMutation({
     mutationFn: () =>
-      updateListing(detail.slug, { webDescription, topSelling, featured }),
+      updateListing(detail.slug, { webDescription, topSelling, featured, active }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listing", detail.slug] });
       queryClient.invalidateQueries({ queryKey: ["listings"] });
@@ -37,7 +37,8 @@ export function EnrichmentCard({ detail }: Props) {
   const isDirty =
     webDescription !== (detail.webDescription ?? "") ||
     topSelling !== detail.topSelling ||
-    featured !== detail.featured;
+    featured !== detail.featured ||
+    active !== (detail.active ?? false);
 
   return (
     <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
@@ -47,14 +48,32 @@ export function EnrichmentCard({ detail }: Props) {
 
       <div className="space-y-1.5">
         <label className="text-sm font-medium">{t("webDescription")}</label>
-        <RichTextEditor
-          initialContent={webDescription}
-          onChange={(html) => setWebDescription(html)}
+        <textarea
+          value={webDescription}
+          onChange={(e) => setWebDescription(e.target.value)}
           maxLength={5000}
+          placeholder={t("webDescription")}
+          rows={5}
+          className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-y min-h-[120px]"
         />
+        <p className={`text-xs text-right ${webDescription.length >= 4500 ? "text-destructive" : "text-muted-foreground"}`}>
+          {webDescription.length} / 5000
+        </p>
       </div>
 
       <div className="flex items-center gap-6">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={active}
+            onChange={(e) => setActive(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          <span className={`text-sm font-medium ${active ? "text-green-600" : "text-muted-foreground"}`}>
+            {active ? t("active") || "Active" : t("inactive") || "Inactive"}
+          </span>
+        </label>
+
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
