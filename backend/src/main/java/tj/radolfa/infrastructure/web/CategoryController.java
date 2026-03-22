@@ -4,6 +4,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import tj.radolfa.application.ports.in.GetCategoryBlueprintUseCase;
+import tj.radolfa.application.ports.in.GetCategoryBlueprintUseCase.BlueprintEntryDto;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
 import tj.radolfa.application.ports.out.LoadListingPort;
@@ -22,13 +24,16 @@ public class CategoryController {
     private final LoadCategoryPort loadCategoryPort;
     private final LoadListingPort loadListingPort;
     private final TierPricingEnricher tierPricing;
+    private final GetCategoryBlueprintUseCase getBlueprintUseCase;
 
     public CategoryController(LoadCategoryPort loadCategoryPort,
                                LoadListingPort loadListingPort,
-                               TierPricingEnricher tierPricing) {
+                               TierPricingEnricher tierPricing,
+                               GetCategoryBlueprintUseCase getBlueprintUseCase) {
         this.loadCategoryPort = loadCategoryPort;
         this.loadListingPort = loadListingPort;
         this.tierPricing = tierPricing;
+        this.getBlueprintUseCase = getBlueprintUseCase;
     }
 
     @GetMapping
@@ -52,6 +57,20 @@ public class CategoryController {
         List<Long> categoryIds = loadCategoryPort.getAllDescendantIds(category.id());
         tj.radolfa.domain.model.PageResult<ListingVariantDto> result = loadListingPort.loadByCategoryIds(categoryIds, page, limit);
         return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(result)));
+    }
+
+    /**
+     * GET /api/v1/categories/{id}/blueprint
+     * Returns the attribute blueprint for a category (ordered by sort_order).
+     * Empty list if no blueprint is configured. 404 if category does not exist.
+     */
+    @GetMapping("/{id}/blueprint")
+    public ResponseEntity<List<BlueprintEntryDto>> getCategoryBlueprint(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(getBlueprintUseCase.getBlueprint(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     private List<CategoryTreeDto> buildTree(List<CategoryView> all) {

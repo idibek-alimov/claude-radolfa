@@ -26,7 +26,7 @@ The new structure follows the **Base -> Color Variants -> Sizes** model:
 | **Phase 4:** Post-Creation Attribute Editing | ✅ COMPLETE | Added `List<ProductAttribute> attributes` to `UpdateListingCommand`; service applies `setAttributes()` when present; controller exposes `ProductAttributeDto` on `UpdateListingRequest` and maps to domain type. Build compiles clean. |
 | **Phase 5:** Mapper & Persistence Verification | ✅ COMPLETE | Fixed `toSku()` to use 11-arg constructor (logistics fields were silently dropped); fixed `saveVariant()` and `save()` in adapter to sync attributes via clear-and-rebuild (attributes were never persisted on create or update); also fixed missing `List` import in controller. |
 | **Phase 6:** Brand Integration | ✅ COMPLETE | Added `BrandEntity` + `brands` table (inlined into V1 alongside V7 logistics fields); added optional `brandId` to `ProductBase` domain, `CreateProductUseCase.Command`, DTO, and adapter — brand is never touched by `applyExternalUpdate()`. |
-| **Phase 7:** Category-Attribute Blueprints | ⏳ PENDING | |
+| **Phase 7:** Category-Attribute Blueprints | ✅ COMPLETE | Added `CategoryAttributeBlueprintEntity` + `category_attribute_blueprints` table (inlined into V1); wired `LoadCategoryBlueprintPort` → `CategoryBlueprintAdapter`; added `GetCategoryBlueprintUseCase` + `GetCategoryBlueprintService`; exposed `GET /api/v1/categories/{id}/blueprint`; `CreateProductService` validates required keys per variant before creation. |
 | **Phase 8:** Final Cleanup | ⏳ PENDING | |
 
 ---

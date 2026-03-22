@@ -186,6 +186,22 @@ CREATE TABLE listing_variant_attributes (
 CREATE INDEX idx_lva_variant_id ON listing_variant_attributes (listing_variant_id);
 
 -- ----------------------------------------------------------------
+-- Category attribute blueprints (Wildberries-style attribute hints)
+-- ----------------------------------------------------------------
+CREATE TABLE category_attribute_blueprints (
+    id            BIGSERIAL    PRIMARY KEY,
+    category_id   BIGINT       NOT NULL REFERENCES categories(id),
+    attribute_key VARCHAR(128) NOT NULL,
+    is_required   BOOLEAN      NOT NULL DEFAULT FALSE,
+    sort_order    INTEGER      NOT NULL DEFAULT 0,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_blueprint_category_key UNIQUE (category_id, attribute_key)
+);
+
+CREATE INDEX idx_blueprint_category_id ON category_attribute_blueprints (category_id);
+
+-- ----------------------------------------------------------------
 -- SKUs  (previously: erp_item_code → sku_code)
 -- ----------------------------------------------------------------
 CREATE TABLE skus (

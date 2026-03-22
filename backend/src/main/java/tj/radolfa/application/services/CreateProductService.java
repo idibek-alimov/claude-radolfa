@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadBrandPort;
+import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
@@ -18,7 +19,9 @@ import tj.radolfa.domain.model.Sku;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Creates a full native product hierarchy (ProductBase → ListingVariants → SKUs)
@@ -32,22 +35,25 @@ public class CreateProductService implements CreateProductUseCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreateProductService.class);
 
-    private final LoadCategoryPort         loadCategoryPort;
-    private final LoadColorPort            loadColorPort;
-    private final LoadBrandPort            loadBrandPort;
-    private final SaveProductHierarchyPort savePort;
-    private final ListingIndexPort         listingIndexPort;
+    private final LoadCategoryPort          loadCategoryPort;
+    private final LoadColorPort             loadColorPort;
+    private final LoadBrandPort             loadBrandPort;
+    private final LoadCategoryBlueprintPort loadBlueprintPort;
+    private final SaveProductHierarchyPort  savePort;
+    private final ListingIndexPort          listingIndexPort;
 
     public CreateProductService(LoadCategoryPort loadCategoryPort,
                                 LoadColorPort loadColorPort,
                                 LoadBrandPort loadBrandPort,
+                                LoadCategoryBlueprintPort loadBlueprintPort,
                                 SaveProductHierarchyPort savePort,
                                 ListingIndexPort listingIndexPort) {
-        this.loadCategoryPort = loadCategoryPort;
-        this.loadColorPort    = loadColorPort;
-        this.loadBrandPort    = loadBrandPort;
-        this.savePort         = savePort;
-        this.listingIndexPort = listingIndexPort;
+        this.loadCategoryPort  = loadCategoryPort;
+        this.loadColorPort     = loadColorPort;
+        this.loadBrandPort     = loadBrandPort;
+        this.loadBlueprintPort = loadBlueprintPort;
+        this.savePort          = savePort;
+        this.listingIndexPort  = listingIndexPort;
     }
 
     @Override
@@ -67,7 +73,34 @@ public class CreateProductService implements CreateProductUseCase {
             brandId = command.brandId();
         }
 
-        // 3. Create ProductBase with auto-generated externalRef
+        // 3. Validate required attributes against category blueprint (if any)
+        List<String> requiredKeys = loadBlueprintPort.findByCategoryId(command.categoryId())
+                .stream()
+                .filter(LoadCategoryBlueprintPort.BlueprintEntry::required)
+                .map(LoadCategoryBlueprintPort.BlueprintEntry::attributeKey)
+                .toList();
+
+        if (!requiredKeys.isEmpty()) {
+            for (Command.VariantDefinition variantDef : command.variants()) {
+                Set<String> providedKeys = variantDef.attributes() == null
+                        ? Set.of()
+                        : variantDef.attributes().stream()
+                                .map(a -> a.key())
+                                .collect(Collectors.toSet());
+
+                List<String> missing = requiredKeys.stream()
+                        .filter(k -> !providedKeys.contains(k))
+                        .toList();
+
+                if (!missing.isEmpty()) {
+                    throw new IllegalArgumentException(
+                            "Missing required attributes for category '" + category.name()
+                            + "': " + missing);
+                }
+            }
+        }
+
+        // 4. Create ProductBase with auto-generated externalRef
         String externalRef = "INTERNAL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(), brandId);
         ProductBase savedBase = savePort.saveBase(base);
