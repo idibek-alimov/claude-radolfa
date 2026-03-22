@@ -16,7 +16,7 @@ Build a full-page, 5-step wizard at `app/(admin)/manage/products/create/page.tsx
 | Step | Status | Summary of Implementation |
 |---|---|---|
 | **Step 1:** State Model & Scaffold | ✅ COMPLETE | Created `WizardState` types, `useWizardState` hook with localStorage persistence, `fetchBlueprint` API call, `WizardStepper`, `WizardFooter`, `ProductCreationWizard` orchestrator with Framer Motion slide transitions, and the page route at `app/(admin)/manage/products/create/page.tsx`; "New Product" button on manage page now navigates to the new route instead of opening the old dialog. |
-| **Step 2:** Step 1 — Classification & Setup | ⏳ PENDING | |
+| **Step 2:** Step 1 — Classification & Setup | ✅ COMPLETE | Built `Step1Classification.tsx` with name input, category select (depth-indented tree), color multi-select chips with hex swatches, shared description textarea, blueprint prefetch on category change, and a color-deselect guard (AlertDialog warns when uploaded images exist for that color); wired into orchestrator with `submitted` prop and `validateStep1` gating. |
 | **Step 3:** Step 2 — Media Upload | ⏳ PENDING | |
 | **Step 4:** Step 3 — Variant Matrix | ⏳ PENDING | |
 | **Step 5:** Step 4 — Dynamic Attributes | ⏳ PENDING | |
