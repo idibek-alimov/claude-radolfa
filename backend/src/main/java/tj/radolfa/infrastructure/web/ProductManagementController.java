@@ -1,16 +1,23 @@
 package tj.radolfa.infrastructure.web;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
+import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -20,6 +27,7 @@ import tj.radolfa.infrastructure.web.dto.UpdateProductNameRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateSkuSizeLabelRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateStockRequestDto;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -36,19 +44,51 @@ public class ProductManagementController {
     private final UpdateProductNameUseCase     updateProductNameUseCase;
     private final UpdateSkuSizeLabelUseCase    updateSkuSizeLabelUseCase;
     private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
+    private final GenericUploadImageUseCase    genericUploadImageUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
                                        UpdateProductPriceUseCase updateProductPriceUseCase,
                                        UpdateProductStockUseCase updateProductStockUseCase,
                                        UpdateProductNameUseCase updateProductNameUseCase,
                                        UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
-                                       UpdateProductCategoryUseCase updateProductCategoryUseCase) {
+                                       UpdateProductCategoryUseCase updateProductCategoryUseCase,
+                                       GenericUploadImageUseCase genericUploadImageUseCase) {
         this.createProductUseCase         = createProductUseCase;
         this.updateProductPriceUseCase    = updateProductPriceUseCase;
         this.updateProductStockUseCase    = updateProductStockUseCase;
         this.updateProductNameUseCase     = updateProductNameUseCase;
         this.updateSkuSizeLabelUseCase    = updateSkuSizeLabelUseCase;
         this.updateProductCategoryUseCase = updateProductCategoryUseCase;
+        this.genericUploadImageUseCase    = genericUploadImageUseCase;
+    }
+
+    /**
+     * POST /api/v1/admin/images/upload
+     * Upload a media image without product context. Returns a permanent S3 URL.
+     * Frontend calls this first; URLs are then passed into product creation requests.
+     * MANAGER + ADMIN.
+     */
+    @Operation(summary = "Upload a media image (staged upload)",
+               description = "Processes and uploads an image to S3 at uploads/media/{uuid}.webp. " +
+                             "No product context required. Use the returned URL in product creation requests.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Image uploaded successfully; body contains {url}"),
+        @ApiResponse(responseCode = "400", description = "Image processing failed (corrupt file or unsupported format)"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role")
+    })
+    @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> uploadMediaImage(
+            @RequestParam("image") MultipartFile image) {
+
+        try {
+            String url = genericUploadImageUseCase.upload(
+                    image.getInputStream(),
+                    image.getOriginalFilename());
+            return ResponseEntity.ok(Map.of("url", url));
+        } catch (IOException e) {
+            throw new ImageProcessingException("Failed to read uploaded file: " + image.getOriginalFilename(), e);
+        }
     }
 
     /**
