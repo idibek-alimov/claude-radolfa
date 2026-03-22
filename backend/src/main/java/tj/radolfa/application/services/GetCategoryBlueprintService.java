@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import tj.radolfa.application.ports.in.GetCategoryBlueprintUseCase;
 import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class GetCategoryBlueprintService implements GetCategoryBlueprintUseCase 
     @Override
     public List<BlueprintEntryDto> getBlueprint(Long categoryId) {
         loadCategoryPort.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Category not found: id=" + categoryId));
 
         return loadBlueprintPort.findByCategoryId(categoryId).stream()

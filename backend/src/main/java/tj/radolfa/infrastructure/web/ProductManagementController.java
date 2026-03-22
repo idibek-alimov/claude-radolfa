@@ -85,6 +85,9 @@ public class ProductManagementController {
     public ResponseEntity<Map<String, String>> uploadMediaImage(
             @RequestParam("image") MultipartFile image) {
 
+        if (image.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             String url = genericUploadImageUseCase.upload(
                     image.getInputStream(),

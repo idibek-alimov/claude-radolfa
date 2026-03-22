@@ -8,11 +8,12 @@ import org.springframework.web.bind.annotation.*;
 
 import tj.radolfa.application.ports.in.GetCategoryBlueprintUseCase;
 import tj.radolfa.application.ports.in.GetCategoryBlueprintUseCase.BlueprintEntryDto;
-import tj.radolfa.application.ports.out.LoadCategoryPort;
-import tj.radolfa.application.ports.out.LoadCategoryPort.CategoryView;
-import tj.radolfa.application.ports.out.LoadListingPort;
-import tj.radolfa.infrastructure.web.dto.CategoryTreeDto;
+import tj.radolfa.application.ports.in.GetCategoryUseCase;
+import tj.radolfa.application.ports.in.GetListingUseCase;
+import tj.radolfa.application.readmodel.CategoryView;
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.infrastructure.web.dto.CategoryTreeDto;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,17 +25,17 @@ import java.util.Map;
 @Tag(name = "Categories", description = "Category tree, product listings per category, and attribute blueprints")
 public class CategoryController {
 
-    private final LoadCategoryPort loadCategoryPort;
-    private final LoadListingPort loadListingPort;
+    private final GetCategoryUseCase getCategoryUseCase;
+    private final GetListingUseCase getListingUseCase;
     private final TierPricingEnricher tierPricing;
     private final GetCategoryBlueprintUseCase getBlueprintUseCase;
 
-    public CategoryController(LoadCategoryPort loadCategoryPort,
-                               LoadListingPort loadListingPort,
-                               TierPricingEnricher tierPricing,
-                               GetCategoryBlueprintUseCase getBlueprintUseCase) {
-        this.loadCategoryPort = loadCategoryPort;
-        this.loadListingPort = loadListingPort;
+    public CategoryController(GetCategoryUseCase getCategoryUseCase,
+                              GetListingUseCase getListingUseCase,
+                              TierPricingEnricher tierPricing,
+                              GetCategoryBlueprintUseCase getBlueprintUseCase) {
+        this.getCategoryUseCase = getCategoryUseCase;
+        this.getListingUseCase = getListingUseCase;
         this.tierPricing = tierPricing;
         this.getBlueprintUseCase = getBlueprintUseCase;
     }
@@ -42,7 +43,7 @@ public class CategoryController {
     @Operation(summary = "Category tree", description = "Returns the full category hierarchy as a nested tree (roots with children).")
     @GetMapping
     public ResponseEntity<List<CategoryTreeDto>> getCategoryTree() {
-        List<CategoryView> all = loadCategoryPort.findAll();
+        List<CategoryView> all = getCategoryUseCase.findAll();
         List<CategoryTreeDto> tree = buildTree(all);
         return ResponseEntity.ok(tree);
     }
@@ -54,13 +55,13 @@ public class CategoryController {
             @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
-        CategoryView category = loadCategoryPort.findBySlug(slug).orElse(null);
+        CategoryView category = getCategoryUseCase.findBySlug(slug).orElse(null);
         if (category == null) {
             return ResponseEntity.notFound().build();
         }
 
-        List<Long> categoryIds = loadCategoryPort.getAllDescendantIds(category.id());
-        tj.radolfa.domain.model.PageResult<ListingVariantDto> result = loadListingPort.loadByCategoryIds(categoryIds, page, limit);
+        List<Long> categoryIds = getCategoryUseCase.getDescendantIds(category.id());
+        PageResult<ListingVariantDto> result = getListingUseCase.getByCategoryIds(categoryIds, page, limit);
         return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(result)));
     }
 
@@ -76,11 +77,7 @@ public class CategoryController {
     @GetMapping("/{id}/blueprint")
     public ResponseEntity<List<BlueprintEntryDto>> getCategoryBlueprint(
             @Parameter(description = "Category ID") @PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(getBlueprintUseCase.getBlueprint(id));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(getBlueprintUseCase.getBlueprint(id));
     }
 
     private List<CategoryTreeDto> buildTree(List<CategoryView> all) {

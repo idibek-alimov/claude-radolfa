@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.CreateCategoryUseCase;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.SaveCategoryPort;
+import tj.radolfa.application.readmodel.CategoryView;
 
 /**
  * Creates a product category natively.
@@ -43,7 +44,7 @@ public class CreateCategoryService implements CreateCategoryUseCase {
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", "");
 
-        LoadCategoryPort.CategoryView saved = saveCategoryPort.save(name.trim(), slug, parentId);
+        CategoryView saved = saveCategoryPort.save(name.trim(), slug, parentId);
         return saved.id();
     }
 }

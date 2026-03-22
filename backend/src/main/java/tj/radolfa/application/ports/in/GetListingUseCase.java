@@ -7,6 +7,7 @@ import tj.radolfa.application.readmodel.ListingVariantDto;
 import java.util.List;
 import java.util.Optional;
 
+
 /**
  * In-Port: storefront read operations for listing variants.
  */
@@ -31,4 +32,9 @@ public interface GetListingUseCase {
      * Autocomplete suggestions for the search box.
      */
     List<String> autocomplete(String prefix, int limit);
+
+    /**
+     * Paginated grid filtered by a set of category IDs (category + descendants).
+     */
+    PageResult<ListingVariantDto> getByCategoryIds(List<Long> categoryIds, int page, int limit);
 }

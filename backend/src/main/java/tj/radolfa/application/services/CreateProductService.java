@@ -1,14 +1,15 @@
 package tj.radolfa.application.services;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
+import tj.radolfa.application.readmodel.CategoryView;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
@@ -30,10 +31,9 @@ import java.util.stream.Collectors;
  * <p>All variants are persisted within a single transaction. ES indexing is
  * fire-and-forget outside the transaction boundary.</p>
  */
+@Slf4j
 @Service
 public class CreateProductService implements CreateProductUseCase {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CreateProductService.class);
 
     private final LoadCategoryPort          loadCategoryPort;
     private final LoadColorPort             loadColorPort;
@@ -60,15 +60,15 @@ public class CreateProductService implements CreateProductUseCase {
     @Transactional
     public Long execute(Command command) {
         // 1. Resolve category
-        LoadCategoryPort.CategoryView category = loadCategoryPort.findById(command.categoryId())
-                .orElseThrow(() -> new IllegalArgumentException(
+        CategoryView category = loadCategoryPort.findById(command.categoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Category not found: id=" + command.categoryId()));
 
         // 2. Resolve brand (optional — throws if an ID was supplied but not found)
         Long brandId = null;
         if (command.brandId() != null) {
             loadBrandPort.findById(command.brandId())
-                    .orElseThrow(() -> new IllegalArgumentException(
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Brand not found: id=" + command.brandId()));
             brandId = command.brandId();
         }
@@ -101,17 +101,18 @@ public class CreateProductService implements CreateProductUseCase {
         }
 
         // 4. Create ProductBase with auto-generated externalRef
-        String externalRef = "INTERNAL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(), brandId);
+        // Use 12 hex chars (48 bits of entropy) to avoid birthday collisions at scale.
+        String externalRef = "INTERNAL-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(), category.id(), brandId);
         ProductBase savedBase = savePort.saveBase(base);
 
-        LOG.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",
+        log.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",
                 savedBase.getId(), command.name(), externalRef);
 
-        // 4. Create one ListingVariant + SKUs per variant definition
+        // 5. Create one ListingVariant + SKUs per variant definition
         for (Command.VariantDefinition variantDef : command.variants()) {
             LoadColorPort.ColorView color = loadColorPort.findById(variantDef.colorId())
-                    .orElseThrow(() -> new IllegalArgumentException(
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Color not found: id=" + variantDef.colorId()));
 
             ListingVariant variant = new ListingVariant(
@@ -128,7 +129,7 @@ public class CreateProductService implements CreateProductUseCase {
                     null                     // productCode — assigned by persistence layer on first save
             );
 
-            variant.generateSlug(command.name());
+            variant.generateSlug(savedBase.getExternalRef());
 
             if (variantDef.webDescription() != null) {
                 variant.updateWebDescription(variantDef.webDescription());
@@ -151,7 +152,7 @@ public class CreateProductService implements CreateProductUseCase {
                 Sku sku = new Sku(
                         null,
                         savedVariant.getId(),
-                        "SKU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+                        "SKU-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase(),
                         def.sizeLabel(),
                         def.stockQuantity(),
                         def.price(),
@@ -164,14 +165,14 @@ public class CreateProductService implements CreateProductUseCase {
                 savedSkus.add(savePort.saveSku(sku, savedVariant.getId()));
             }
 
-            LOG.info("[CREATE-PRODUCT] Created variant slug='{}' with {} SKU(s)",
+            log.info("[CREATE-PRODUCT] Created variant slug='{}' with {} SKU(s)",
                     savedVariant.getSlug(), savedSkus.size());
 
             // ES indexing — fire-and-forget, outside transaction boundary by design
             try {
                 indexVariant(savedVariant, command.name(), category.name(), color.hexCode(), savedSkus);
             } catch (Exception ex) {
-                LOG.error("[CREATE-PRODUCT] ES indexing failed for variant={}: {}",
+                log.error("[CREATE-PRODUCT] ES indexing failed for variant={}: {}",
                         savedVariant.getSlug(), ex.getMessage());
             }
         }

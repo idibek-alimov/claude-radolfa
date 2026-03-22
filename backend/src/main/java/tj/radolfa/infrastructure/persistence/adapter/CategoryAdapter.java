@@ -4,6 +4,8 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.DeleteCategoryPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.SaveCategoryPort;
+import tj.radolfa.application.readmodel.CategoryView;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.repository.CategoryRepository;
 
@@ -81,7 +83,6 @@ public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort, Dele
                 entity.getId(),
                 entity.getName(),
                 entity.getSlug(),
-                entity.getParent() != null ? entity.getParent().getId() : null
-        );
+                entity.getParent() != null ? entity.getParent().getId() : null);
     }
 }

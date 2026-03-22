@@ -21,16 +21,19 @@ public class ProductBase {
     private String category;
 
     // Radolfa-managed fields (never touched by ERP sync)
+    private Long categoryId;
     private Long brandId;
 
     /**
      * @param id           database PK ({@code null} for unsaved instances)
      * @param externalRef  required — external template identity, must not be blank
      * @param name         nullable — populated by import sync
-     * @param category     nullable — populated by import sync
+     * @param category     nullable — populated by import sync (denormalized name)
+     * @param categoryId   nullable — DB FK for the category; preferred over name for persistence
      * @param brandId      nullable — Radolfa-managed, never overwritten by ERP sync
      */
-    public ProductBase(Long id, String externalRef, String name, String category, Long brandId) {
+    public ProductBase(Long id, String externalRef, String name, String category,
+                       Long categoryId, Long brandId) {
         if (externalRef == null || externalRef.isBlank()) {
             throw new IllegalArgumentException("externalRef must not be blank");
         }
@@ -38,6 +41,7 @@ public class ProductBase {
         this.externalRef = externalRef;
         this.name        = name;
         this.category    = category;
+        this.categoryId  = categoryId;
         this.brandId     = brandId;
     }
 
@@ -51,12 +55,18 @@ public class ProductBase {
 
     /**
      * Updates the product category (MANAGER / ADMIN action).
+     * Both name and ID must be provided so the adapter can update the FK without
+     * an extra round-trip.
      */
-    public void updateCategory(String category) {
+    public void updateCategory(String category, Long categoryId) {
         if (category == null || category.isBlank()) {
             throw new IllegalArgumentException("category must not be blank");
         }
-        this.category = category;
+        if (categoryId == null) {
+            throw new IllegalArgumentException("categoryId must not be null");
+        }
+        this.category   = category;
+        this.categoryId = categoryId;
     }
 
     /**
@@ -71,5 +81,6 @@ public class ProductBase {
     public String getExternalRef() { return externalRef; }
     public String getName()        { return name; }
     public String getCategory()    { return category; }
+    public Long   getCategoryId()  { return categoryId; }
     public Long   getBrandId()     { return brandId; }
 }

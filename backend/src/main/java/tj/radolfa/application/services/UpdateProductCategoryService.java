@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
+import tj.radolfa.application.readmodel.CategoryView;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
@@ -59,7 +60,7 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
     @Transactional
     public void execute(Long productBaseId, Long categoryId) {
         // 1. Resolve category
-        LoadCategoryPort.CategoryView category = loadCategoryPort.findById(categoryId)
+        CategoryView category = loadCategoryPort.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Category not found: id=" + categoryId));
 
@@ -68,7 +69,7 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                 .orElseThrow(() -> new IllegalArgumentException(
                         "ProductBase not found: id=" + productBaseId));
 
-        base.updateCategory(category.name());
+        base.updateCategory(category.name(), category.id());
         savePort.saveBase(base);
 
         LOG.info("[UPDATE-CATEGORY] ProductBase id={} category updated to '{}'",

@@ -20,7 +20,7 @@ public class CategoryBlueprintAdapter implements LoadCategoryBlueprintPort {
         return repo.findByCategoryIdOrderBySortOrderAsc(categoryId).stream()
                 .map(e -> new BlueprintEntry(
                         e.getId(),
-                        e.getCategory().getId(),
+                        categoryId,
                         e.getAttributeKey(),
                         e.isRequired(),
                         e.getSortOrder()))

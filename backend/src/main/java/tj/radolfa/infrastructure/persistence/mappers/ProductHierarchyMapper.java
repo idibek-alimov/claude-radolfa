@@ -39,8 +39,8 @@ public interface ProductHierarchyMapper {
                 entity.getExternalRef(),
                 entity.getName(),
                 entity.getCategoryName(),
-                entity.getBrand() != null ? entity.getBrand().getId() : null
-        );
+                entity.getCategory() != null ? entity.getCategory().getId() : null,
+                entity.getBrand() != null ? entity.getBrand().getId() : null);
     }
 
     // ---- ListingVariant ----

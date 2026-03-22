@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,20 +33,17 @@ public record CreateProductRequestDto(
 
             String webDescription,
 
-            List<ProductAttributeDto> attributes,
+            @Valid List<ProductAttributeDto> attributes,
 
-            List<String> images,
+            List<@NotBlank(message = "Image URL must not be blank")
+                 @Pattern(regexp = "^https://\\S+$", message = "Image URL must use HTTPS and contain no spaces")
+                 @Size(max = 2048, message = "Image URL must not exceed 2048 characters")
+                 String> images,
 
             @NotEmpty(message = "At least one SKU definition is required")
             @Valid
             List<SkuDefinitionDto> skus
 
-    ) {}
-
-    public record ProductAttributeDto(
-            String key,
-            String value,
-            int sortOrder
     ) {}
 
     public record SkuDefinitionDto(
@@ -59,6 +58,7 @@ public record CreateProductRequestDto(
             @PositiveOrZero(message = "stockQuantity must be ≥ 0")
             int stockQuantity,
 
+            @NotBlank(message = "barcode is required")
             String barcode,
 
             Double weightKg,

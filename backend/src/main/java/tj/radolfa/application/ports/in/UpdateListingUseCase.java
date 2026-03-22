@@ -15,7 +15,6 @@ public interface UpdateListingUseCase {
             String webDescription,
             Boolean topSelling,
             Boolean featured,
-            List<String> images,
             List<ProductAttribute> attributes) {
     }
 }

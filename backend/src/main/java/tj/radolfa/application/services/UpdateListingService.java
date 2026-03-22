@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.UpdateListingUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.SaveListingVariantPort;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.ListingVariant;
 
 @Service
@@ -23,7 +24,7 @@ public class UpdateListingService implements UpdateListingUseCase {
     @Override
     public void update(String slug, UpdateListingCommand command) {
         ListingVariant variant = loadListingVariantPort.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + slug));
 
         if (command.webDescription() != null) {
             variant.updateWebDescription(command.webDescription());
@@ -34,7 +35,7 @@ public class UpdateListingService implements UpdateListingUseCase {
         if (command.featured() != null) {
             variant.updateFeatured(command.featured());
         }
-        if (command.attributes() != null && !command.attributes().isEmpty()) {
+        if (command.attributes() != null) {
             variant.setAttributes(command.attributes());
         }
 
@@ -44,7 +45,7 @@ public class UpdateListingService implements UpdateListingUseCase {
     @Override
     public void addImage(String slug, String imageUrl) {
         ListingVariant variant = loadListingVariantPort.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + slug));
 
         variant.addImage(imageUrl);
         saveListingVariantPort.save(variant);
@@ -53,7 +54,7 @@ public class UpdateListingService implements UpdateListingUseCase {
     @Override
     public void removeImage(String slug, String imageUrl) {
         ListingVariant variant = loadListingVariantPort.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Listing not found: " + slug));
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + slug));
 
         variant.removeImage(imageUrl);
         saveListingVariantPort.save(variant);

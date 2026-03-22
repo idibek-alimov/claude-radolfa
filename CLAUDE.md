@@ -48,4 +48,4 @@
 
 ## Critical Constraints
 - **Images:** NO processing on Frontend. Java resizes -> S3 -> Frontend reads S3 URL.
-- **Security:** `MANAGER` role cannot change Price or Stock. `ADMIN` role handles catalog management and all privileged operations. No external sync roles exist.
+- **Security:** `MANAGER` role can change Price and Stock. `ADMIN` role handles catalog management and all privileged operations. No external sync roles exist.
