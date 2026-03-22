@@ -23,7 +23,7 @@ The new structure follows the **Base -> Color Variants -> Sizes** model:
 | **Phase 1:** Update Presentation DTOs + Schema | ✅ COMPLETE | Restructured `CreateProductRequestDto` to accept `List<ListingVariantCreationDto>` (with nested `ProductAttributeDto` + expanded `SkuDefinitionDto`); added barcode/weight/dimensions to `SkuEntity` and `V7` Flyway migration. |
 | **Phase 2:** Refactor Domain & Constraints | ✅ COMPLETE | Replaced `Command.colorId+skus` with `List<VariantDefinition>` (holding colorId, webDescription, attributes, images, skus); expanded `SkuDefinition` with 5 logistics fields; added matching fields + full constructor to `Sku` domain model (legacy 6-arg constructor preserved for ERP sync path). |
 | **Phase 3:** Multi-Variant Creation | ✅ COMPLETE | Refactored `CreateProductService` to iterate `command.variants()` within one transaction — resolves color, applies webDescription/attributes/images, creates SKUs with logistics fields per variant; fixed controller mapping from new DTO shape to new Command shape. Build compiles clean. |
-| **Phase 4:** Post-Creation Attribute Editing | ⏳ PENDING | |
+| **Phase 4:** Post-Creation Attribute Editing | ✅ COMPLETE | Added `List<ProductAttribute> attributes` to `UpdateListingCommand`; service applies `setAttributes()` when present; controller exposes `ProductAttributeDto` on `UpdateListingRequest` and maps to domain type. Build compiles clean. |
 | **Phase 5:** Mapper & Persistence Verification | ⏳ PENDING | |
 | **Phase 6:** Brand Integration | ⏳ PENDING | |
 | **Phase 7:** Category-Attribute Blueprints | ⏳ PENDING | |

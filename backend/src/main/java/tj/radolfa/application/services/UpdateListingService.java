@@ -34,6 +34,9 @@ public class UpdateListingService implements UpdateListingUseCase {
         if (command.featured() != null) {
             variant.updateFeatured(command.featured());
         }
+        if (command.attributes() != null && !command.attributes().isEmpty()) {
+            variant.setAttributes(command.attributes());
+        }
 
         saveListingVariantPort.save(variant);
     }

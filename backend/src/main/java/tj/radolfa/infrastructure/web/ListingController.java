@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.in.UploadImageUseCase;
 import tj.radolfa.domain.exception.ImageProcessingException;
+import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -96,10 +97,13 @@ public class ListingController {
             @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody UpdateListingRequest request) {
 
         updateListingUseCase.update(slug, new tj.radolfa.application.ports.in.UpdateListingUseCase.UpdateListingCommand(
-                request.webDescription,
-                request.topSelling,
-                request.featured,
-                null // images updated separately
+                request.webDescription(),
+                request.topSelling(),
+                request.featured(),
+                null, // images updated separately
+                request.attributes() == null ? null : request.attributes().stream()
+                        .map(a -> new ProductAttribute(a.key(), a.value(), a.sortOrder()))
+                        .toList()
         ));
         return ResponseEntity.ok().build();
     }
@@ -137,8 +141,11 @@ public class ListingController {
             @jakarta.validation.constraints.Size(max = 5000, message = "Description must not exceed 5000 characters")
             String webDescription,
             Boolean topSelling,
-            Boolean featured) {
+            Boolean featured,
+            List<ProductAttributeDto> attributes) {
     }
+
+    public record ProductAttributeDto(String key, String value, int sortOrder) {}
 
     public record ImageUrlRequest(
             @jakarta.validation.constraints.NotBlank(message = "Image URL is required")
