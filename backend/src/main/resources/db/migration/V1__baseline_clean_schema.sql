@@ -144,6 +144,8 @@ CREATE TABLE listing_variants (
     web_description TEXT,
     top_selling     BOOLEAN      NOT NULL DEFAULT FALSE,
     featured        BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_published    BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
     last_sync_at    TIMESTAMPTZ,
     product_code    VARCHAR(10)  DEFAULT NULL,
     version         BIGINT       NOT NULL DEFAULT 0,

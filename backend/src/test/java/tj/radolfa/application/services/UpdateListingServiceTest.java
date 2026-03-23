@@ -41,7 +41,7 @@ class UpdateListingServiceTest {
     private ListingVariant storedVariant(String slug) {
         ListingVariant v = new ListingVariant(1L, 1L, "red", slug, null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null);
+                false, false, null, null, false, true);
         fakeLoad.store(slug, v);
         return v;
     }
@@ -73,7 +73,7 @@ class UpdateListingServiceTest {
     void update_nullWebDescription_doesNotOverwrite() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 "Original description", Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null);
+                false, false, null, null, false, true);
         fakeLoad.store("red-shirt", existing);
 
         service.update("red-shirt", new UpdateListingCommand(null, null, null, null));
@@ -102,7 +102,7 @@ class UpdateListingServiceTest {
     void update_nullFlags_doesNotChangeExistingFlags() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(), Collections.emptyList(),
-                true, true, null, null);
+                true, true, null, null, false, true);
         fakeLoad.store("red-shirt", existing);
 
         service.update("red-shirt", new UpdateListingCommand(null, null, null, null));
@@ -117,7 +117,7 @@ class UpdateListingServiceTest {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(),
                 List.of(new ProductAttribute("OldKey", "OldVal", 0)),
-                false, false, null, null);
+                false, false, null, null, false, true);
         fakeLoad.store("red-shirt", existing);
 
         List<ProductAttribute> newAttrs = List.of(
@@ -137,7 +137,7 @@ class UpdateListingServiceTest {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(),
                 List.of(new ProductAttribute("Fit", "Regular", 0)),
-                false, false, null, null);
+                false, false, null, null, false, true);
         fakeLoad.store("red-shirt", existing);
 
         service.update("red-shirt", new UpdateListingCommand(null, null, null, null));
@@ -151,7 +151,7 @@ class UpdateListingServiceTest {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(),
                 List.of(new ProductAttribute("Fit", "Regular", 0)),
-                false, false, null, null);
+                false, false, null, null, false, true);
         fakeLoad.store("red-shirt", existing);
 
         service.update("red-shirt", new UpdateListingCommand(null, null, null, List.of()));
@@ -215,7 +215,7 @@ class UpdateListingServiceTest {
     void removeImage_removesUrlAndSaves() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, new ArrayList<>(List.of("https://cdn.example.com/a.jpg")),
-                Collections.emptyList(), false, false, null, null);
+                Collections.emptyList(), false, false, null, null, false, true);
         fakeLoad.store("red-shirt", existing);
 
         service.removeImage("red-shirt", "https://cdn.example.com/a.jpg");

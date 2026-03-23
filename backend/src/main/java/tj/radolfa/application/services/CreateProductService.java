@@ -126,7 +126,9 @@ public class CreateProductService implements CreateProductUseCase {
                     false,
                     false,
                     null,
-                    null                     // productCode — assigned by persistence layer on first save
+                    null,                    // productCode — assigned by persistence layer on first save
+                    variantDef.isPublished(),
+                    variantDef.isActive()
             );
 
             variant.generateSlug(savedBase.getExternalRef());

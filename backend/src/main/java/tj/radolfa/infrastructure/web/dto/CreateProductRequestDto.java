@@ -42,7 +42,11 @@ public record CreateProductRequestDto(
 
             @NotEmpty(message = "At least one SKU definition is required")
             @Valid
-            List<SkuDefinitionDto> skus
+            List<SkuDefinitionDto> skus,
+
+            Boolean isPublished,
+
+            Boolean isActive
 
     ) {}
 

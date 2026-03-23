@@ -14,7 +14,7 @@ class ListingVariantTest {
     private ListingVariant freshVariant() {
         return new ListingVariant(null, 1L, "red", null, null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null);
+                false, false, null, null, false, true);
     }
 
     // ---- slug generation ----
@@ -33,7 +33,7 @@ class ListingVariantTest {
     void generateSlug_sanitisesSpecialChars() {
         ListingVariant v = new ListingVariant(null, 1L, "dark blue", null, null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null);
+                false, false, null, null, false, true);
         v.generateSlug("TPL 001");
 
         // spaces become hyphens; consecutive hyphens collapsed
@@ -46,7 +46,7 @@ class ListingVariantTest {
     void generateSlug_idempotent() {
         ListingVariant v = new ListingVariant(1L, 1L, "red", "existing-slug", null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null);
+                false, false, null, null, false, true);
         v.generateSlug("INTERNAL-NEW");
 
         assertEquals("existing-slug", v.getSlug(), "generateSlug must not overwrite an existing slug");
@@ -217,7 +217,7 @@ class ListingVariantTest {
         List<String> images = new ArrayList<>();
         images.add("https://cdn.example.com/a.jpg");
         ListingVariant v = new ListingVariant(null, 1L, "blue", null, null,
-                images, Collections.emptyList(), false, false, null, null);
+                images, Collections.emptyList(), false, false, null, null, false, true);
 
         images.add("https://cdn.example.com/b.jpg"); // mutate original
 

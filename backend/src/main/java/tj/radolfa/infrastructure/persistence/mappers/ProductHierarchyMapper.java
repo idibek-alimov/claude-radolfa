@@ -80,7 +80,9 @@ public interface ProductHierarchyMapper {
                 entity.isTopSelling(),
                 entity.isFeatured(),
                 entity.getLastSyncAt(),
-                entity.getProductCode()
+                entity.getProductCode(),
+                entity.isPublished(),
+                entity.isActive()
         );
     }
 

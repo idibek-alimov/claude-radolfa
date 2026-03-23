@@ -30,7 +30,9 @@ public interface CreateProductUseCase {
                 String webDescription,
                 List<ProductAttribute> attributes,
                 List<String> images,
-                List<SkuDefinition> skus
+                List<SkuDefinition> skus,
+                boolean isPublished,
+                boolean isActive
         ) {}
 
         public record SkuDefinition(

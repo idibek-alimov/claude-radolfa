@@ -147,7 +147,7 @@ class CreateProductServiceTest {
     void execute_webDescription_isSetOnVariant() {
         VariantDefinition varDef = new VariantDefinition(
                 10L, "Beautiful red dress", List.of(), List.of(),
-                List.of(skuDef("S", "59.99", 5, "BC-D")));
+                List.of(skuDef("S", "59.99", 5, "BC-D")), false, true);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -161,7 +161,7 @@ class CreateProductServiceTest {
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(),
                 List.of("https://cdn.example.com/a.jpg", "https://cdn.example.com/b.jpg"),
-                List.of(skuDef("S", "29.99", 10, "BC-I")));
+                List.of(skuDef("S", "29.99", 10, "BC-I")), false, true);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -177,7 +177,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, attrs, List.of(),
-                List.of(skuDef("S", "19.99", 8, "BC-A")));
+                List.of(skuDef("S", "19.99", 8, "BC-A")), false, true);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -330,7 +330,7 @@ class CreateProductServiceTest {
                 new ProductAttribute("Fit", "Slim", 2));
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, attrs, List.of(),
-                List.of(skuDef("S", "29.99", 5, "BC-RA")));
+                List.of(skuDef("S", "29.99", 5, "BC-RA")), false, true);
 
         assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
@@ -343,7 +343,7 @@ class CreateProductServiceTest {
         // Variant provides no attributes at all
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(), List.of(),
-                List.of(skuDef("S", "29.99", 5, "BC-MR")));
+                List.of(skuDef("S", "29.99", 5, "BC-MR")), false, true);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(varDef))));
@@ -359,11 +359,11 @@ class CreateProductServiceTest {
         List<ProductAttribute> attrsOk = List.of(new ProductAttribute("Fit", "Regular", 1));
         VariantDefinition variantOk   = new VariantDefinition(
                 10L, null, attrsOk, List.of(),
-                List.of(skuDef("S", "19.99", 5, "BC-V1")));
+                List.of(skuDef("S", "19.99", 5, "BC-V1")), false, true);
 
         VariantDefinition variantBad  = new VariantDefinition(
                 20L, null, List.of(), List.of(),  // missing "Fit"
-                List.of(skuDef("M", "19.99", 5, "BC-V2")));
+                List.of(skuDef("M", "19.99", 5, "BC-V2")), false, true);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(variantOk, variantBad))));
@@ -376,7 +376,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(), List.of(),   // "Care" not provided
-                List.of(skuDef("S", "19.99", 5, "BC-OPT")));
+                List.of(skuDef("S", "19.99", 5, "BC-OPT")), false, true);
 
         assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
@@ -388,7 +388,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, null, List.of(),   // null attributes
-                List.of(skuDef("S", "29.99", 5, "BC-NULL")));
+                List.of(skuDef("S", "29.99", 5, "BC-NULL")), false, true);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(varDef))));
@@ -403,7 +403,7 @@ class CreateProductServiceTest {
     }
 
     private VariantDefinition variantDef(Long colorId, List<SkuDefinition> skus) {
-        return new VariantDefinition(colorId, null, List.of(), List.of(), skus);
+        return new VariantDefinition(colorId, null, List.of(), List.of(), skus, false, true);
     }
 
     private SkuDefinition skuDef(String size, String price, int stock, String barcode) {
@@ -491,7 +491,8 @@ class CreateProductServiceTest {
                     variant.getSlug(), variant.getWebDescription(),
                     variant.getImages(), variant.getAttributes(),
                     variant.isTopSelling(), variant.isFeatured(),
-                    variant.getLastSyncAt(), "RD-" + idGen.get());
+                    variant.getLastSyncAt(), "RD-" + idGen.get(),
+                    variant.isPublished(), variant.isActive());
             return lastSavedVariant;
         }
 
