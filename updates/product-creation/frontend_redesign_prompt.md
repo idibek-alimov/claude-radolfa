@@ -24,7 +24,7 @@ We are redesigning the frontend product creation wizard to match Wildberries sel
 |---|---|---|
 | **Step 1:** Add `isPublished` + `isActive` to Backend | ✅ COMPLETE | Added 2 SQL columns, JPA entity fields, domain constructor params (13 total), getters & mutation methods, DTO fields, UseCase `VariantDefinition` fields, mapper + service wiring, controller null-safe defaults. All 117 tests pass. |
 | **Step 2:** Refactor `WizardState` | ✅ COMPLETE | Replaced `colorIds[]` + `imagesByColorId{}` + `skuRows[]` with `variants: VariantDraft[]`. Removed `colorId` from `SkuRow`. Added `VariantDraft` interface with `isPublished`/`isActive` flags. Updated `validateStep1` (no more colorIds check), renamed SKU validation to `validateStep2`/`Step2Errors`, kept backward-compat aliases so old step files keep compiling. Updated `buildPayload` in `createProduct.ts`. Zero TS errors in edited files. |
-| **Step 3:** Step 1 — Base Info & Characteristics | ⏳ PENDING | |
+| **Step 3:** Step 1 — Base Info & Characteristics | ✅ COMPLETE | Created `Step1BaseInfo.tsx` merging Classification + Attributes. Category select triggers inline blueprint fetch; attributes appear immediately below description. Removed color chip section. Deleted `Step1Classification.tsx` and `Step4Attributes.tsx`. Wizard shell has 2 expected broken imports (fixed in Step 6). |
 | **Step 4:** Step 2 — Variants & Media (Tabs) | ⏳ PENDING | |
 | **Step 5:** Step 3 — Review & Submit | ⏳ PENDING | |
 | **Step 6:** Shell Expansion & Cleanup | ⏳ PENDING | |
