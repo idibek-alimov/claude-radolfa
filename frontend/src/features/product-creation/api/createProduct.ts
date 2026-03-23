@@ -10,23 +10,23 @@ export function buildPayload(state: WizardState) {
     name: state.name,
     categoryId: state.categoryId,
     brandId: state.brandId ?? undefined,
-    variants: state.colorIds.map((colorId) => ({
-      colorId,
+    variants: state.variants.map((v) => ({
+      colorId: v.colorId,
       webDescription: state.webDescription || undefined,
       attributes: state.attributes,
-      images: state.imagesByColorId[colorId] ?? [],
-      skus: state.skuRows
-        .filter((row) => row.colorId === colorId)
-        .map(({ sizeLabel, price, stockQuantity, barcode, weightKg, widthCm, heightCm, depthCm }) => ({
-          sizeLabel,
-          price,
-          stockQuantity,
-          barcode,
-          weightKg: weightKg ?? undefined,
-          widthCm: widthCm ?? undefined,
-          heightCm: heightCm ?? undefined,
-          depthCm: depthCm ?? undefined,
-        })),
+      images: v.images,
+      isPublished: v.isPublished,
+      isActive: v.isActive,
+      skus: v.skus.map(({ sizeLabel, price, stockQuantity, barcode, weightKg, widthCm, heightCm, depthCm }) => ({
+        sizeLabel,
+        price,
+        stockQuantity,
+        barcode,
+        weightKg: weightKg ?? undefined,
+        widthCm: widthCm ?? undefined,
+        heightCm: heightCm ?? undefined,
+        depthCm: depthCm ?? undefined,
+      })),
     })),
   };
 }

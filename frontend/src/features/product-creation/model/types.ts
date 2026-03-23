@@ -6,7 +6,6 @@ export interface WizardAttribute {
 
 export interface SkuRow {
   _key: string; // uuid for list diffing
-  colorId: number;
   sizeLabel: string;
   price: number;
   stockQuantity: number;
@@ -17,20 +16,24 @@ export interface SkuRow {
   depthCm?: number;
 }
 
+export interface VariantDraft {
+  colorId: number;
+  isPublished: boolean; // default false — manager sign-off: variant is complete and intentional
+  isActive: boolean;    // default true  — ops runtime toggle: show/hide without removing
+  images: string[];
+  skus: SkuRow[];
+}
+
 export interface WizardState {
   // Step 1
   name: string;
   categoryId: number | null;
   brandId: number | null;
-  colorIds: number[];
   webDescription: string;
   attributes: WizardAttribute[];
 
-  // Step 2 (per-color images)
-  imagesByColorId: Record<number, string[]>;
-
-  // Step 3 (per-color+size SKU table)
-  skuRows: SkuRow[];
+  // Step 2 (one entry per color, owns images + SKUs)
+  variants: VariantDraft[];
 }
 
 export const WIZARD_DRAFT_KEY = "radolfa:product-creation-draft";
@@ -39,11 +42,9 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   name: "",
   categoryId: null,
   brandId: null,
-  colorIds: [],
   webDescription: "",
   attributes: [],
-  imagesByColorId: {},
-  skuRows: [],
+  variants: [],
 };
 
 export interface BlueprintEntryDto {
@@ -55,35 +56,40 @@ export interface BlueprintEntryDto {
 export interface Step1Errors {
   name?: string;
   categoryId?: string;
-  colorIds?: string;
 }
 
 export function validateStep1(state: WizardState): Step1Errors {
   const errors: Step1Errors = {};
   if (!state.name.trim()) errors.name = "Product name is required";
   if (state.categoryId === null) errors.categoryId = "Category is required";
-  if (state.colorIds.length === 0) errors.colorIds = "Select at least one color";
   return errors;
 }
 
-export interface Step3Errors {
-  emptySize: Set<string>;   // _key values with blank sizeLabel
+export interface Step2Errors {
+  emptySize: Set<string>;    // _key values with blank sizeLabel
   emptyBarcode: Set<string>; // _key values with blank barcode
 }
 
-export function validateStep3(state: WizardState): Step3Errors {
+export function validateStep2(state: WizardState): Step2Errors {
   const emptySize = new Set<string>();
   const emptyBarcode = new Set<string>();
-  for (const row of state.skuRows) {
-    if (!row.sizeLabel.trim()) emptySize.add(row._key);
-    if (!row.barcode.trim()) emptyBarcode.add(row._key);
+  for (const variant of state.variants) {
+    for (const row of variant.skus) {
+      if (!row.sizeLabel.trim()) emptySize.add(row._key);
+      if (!row.barcode.trim()) emptyBarcode.add(row._key);
+    }
   }
   return { emptySize, emptyBarcode };
 }
 
-export function isStep3Valid(errors: Step3Errors): boolean {
+export function isStep2Valid(errors: Step2Errors): boolean {
   return errors.emptySize.size === 0 && errors.emptyBarcode.size === 0;
 }
+
+// Aliases — removed when ProductCreationWizard is replaced in Step 6
+export const validateStep3 = validateStep2;
+export const isStep3Valid = isStep2Valid;
+export type Step3Errors = Step2Errors;
 
 // Returns set of attribute keys that are required by the blueprint but have empty values
 export function validateStep4(
