@@ -4,10 +4,8 @@ import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 const STEPS = [
-  { label: "Classification" },
-  { label: "Media" },
-  { label: "Variants" },
-  { label: "Attributes" },
+  { label: "Base Info" },
+  { label: "Variants & Media" },
   { label: "Review" },
 ];
 

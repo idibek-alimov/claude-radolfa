@@ -27,7 +27,7 @@ We are redesigning the frontend product creation wizard to match Wildberries sel
 | **Step 3:** Step 1 — Base Info & Characteristics | ✅ COMPLETE | Created `Step1BaseInfo.tsx` merging Classification + Attributes. Category select triggers inline blueprint fetch; attributes appear immediately below description. Removed color chip section. Deleted `Step1Classification.tsx` and `Step4Attributes.tsx`. Wizard shell has 2 expected broken imports (fixed in Step 6). |
 | **Step 4:** Step 2 — Variants & Media (Tabs) | ✅ COMPLETE | Created `Step2Variants.tsx` with tab-per-color UI. "Add Color Variant" button opens color picker Dialog. Each tab has isPublished/isActive pill toggles, drag-drop media zone, and per-tab SKU matrix with apply-down. AlertDialog guards removal when images exist. Deleted `Step2Media.tsx` and `Step3VariantMatrix.tsx`. Wizard shell now has 4 expected broken imports (fixed in Step 6). |
 | **Step 5:** Step 3 — Review & Submit | ✅ COMPLETE | Created `Step3Review.tsx` using `state.variants` for all data. Added Draft/Hidden/Live status badges per variant card. Blocking error list built from `validateStep2`. Deleted `Step5Review.tsx`. Wizard shell has all 5 expected broken imports — fixed next in Step 6. |
-| **Step 6:** Shell Expansion & Cleanup | ⏳ PENDING | |
+| **Step 6:** Shell Expansion & Cleanup | ✅ COMPLETE | Rewrote `ProductCreationWizard.tsx`: TOTAL_STEPS=3, new step imports, combined step-1 validation (base + blueprint attrs), `max-w-7xl px-8` container. Updated `WizardStepper.tsx` to 3-label steps. Removed backward-compat aliases from `types.ts`. Zero TS errors, clean production build. |
 
 ---
 

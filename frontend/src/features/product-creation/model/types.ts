@@ -86,11 +86,6 @@ export function isStep2Valid(errors: Step2Errors): boolean {
   return errors.emptySize.size === 0 && errors.emptyBarcode.size === 0;
 }
 
-// Aliases — removed when ProductCreationWizard is replaced in Step 6
-export const validateStep3 = validateStep2;
-export const isStep3Valid = isStep2Valid;
-export type Step3Errors = Step2Errors;
-
 // Returns set of attribute keys that are required by the blueprint but have empty values
 export function validateStep4(
   state: WizardState,
