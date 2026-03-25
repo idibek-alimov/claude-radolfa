@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useWizardState } from "../model/useWizardState";
 import {
@@ -46,7 +48,6 @@ export function ProductCreationWizard() {
   const [step1Submitted, setStep1Submitted] = useState(false);
   const [step2Submitted, setStep2Submitted] = useState(false);
 
-  // Blueprint fetched here so validateStep4 can run in goNext
   const { data: blueprint = [] } = useQuery({
     queryKey: ["blueprint", state.categoryId],
     queryFn: () => fetchBlueprint(state.categoryId!),
@@ -101,61 +102,74 @@ export function ProductCreationWizard() {
 
   if (!hydrated) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50/80">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-24">
-      {/* Sticky stepper header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gray-50/80 flex flex-col">
+      {/* Top breadcrumb bar */}
+      <header className="sticky top-0 z-40 h-14 bg-white border-b flex items-center px-6 gap-2 shrink-0">
+        <Link
+          href="/manage"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Products
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="text-sm font-medium text-foreground">New Product</span>
+      </header>
+
+      {/* Body: sidebar + content */}
+      <div className="flex flex-1">
+        {/* Left sidebar */}
+        <aside className="sticky top-14 h-[calc(100vh-3.5rem)] w-[220px] shrink-0 bg-white border-r overflow-y-auto">
           <WizardStepper
             currentStep={currentStep}
             completedSteps={completedSteps}
             onStepClick={goToStep}
           />
-        </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 min-w-0 px-8 py-6 pb-28">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.18, ease: "easeInOut" }}
+            >
+              {currentStep === 1 && (
+                <Step1BaseInfo
+                  state={state}
+                  update={update}
+                  submitted={step1Submitted}
+                  failingKeys={validateStep4(state, blueprint)}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <Step2Variants
+                  state={state}
+                  update={update}
+                  submitted={step2Submitted}
+                  errors={validateStep2(state)}
+                />
+              )}
+
+              {currentStep === 3 && <Step3Review state={state} />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
 
-      {/* Step content */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.18, ease: "easeInOut" }}
-          >
-            {currentStep === 1 && (
-              <Step1BaseInfo
-                state={state}
-                update={update}
-                submitted={step1Submitted}
-                failingKeys={validateStep4(state, blueprint)}
-              />
-            )}
-
-            {currentStep === 2 && (
-              <Step2Variants
-                state={state}
-                update={update}
-                submitted={step2Submitted}
-                errors={validateStep2(state)}
-              />
-            )}
-
-            {currentStep === 3 && <Step3Review state={state} />}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Sticky footer nav */}
+      {/* Sticky footer */}
       <WizardFooter
         step={currentStep}
         totalSteps={TOTAL_STEPS}
