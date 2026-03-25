@@ -7,7 +7,6 @@ import {
   Plus,
   X,
   Trash2,
-  ChevronDown,
   ImagePlus,
   Loader2,
   AlertCircle,
@@ -58,8 +57,6 @@ function makeSkuRow(sizeLabel = ""): SkuRow {
 function makeVariant(colorId: number): VariantDraft {
   return {
     colorId,
-    isPublished: false,
-    isActive: true,
     images: [],
     skus: [makeSkuRow("ONE_SIZE")],
   };
@@ -399,52 +396,7 @@ function VariantTabContent({
 }: VariantTabContentProps) {
   return (
     <div className="space-y-8 pt-4">
-      {/* 1. Visibility flags */}
-      <div className="space-y-4">
-        <p className="text-sm font-semibold">Visibility</p>
-
-        <div className="flex items-start gap-3">
-          <Toggle
-            checked={variant.isPublished}
-            onChange={(v) => onUpdateVariant({ isPublished: v })}
-          />
-          <div>
-            <p className="text-sm font-medium leading-none">Publish Variant</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {variant.isPublished
-                ? "Published — variant is ready for launch."
-                : "Draft — variant will never appear to customers until published."}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Toggle
-            checked={variant.isActive}
-            onChange={(v) => onUpdateVariant({ isActive: v })}
-            disabled={!variant.isPublished}
-          />
-          <div>
-            <p
-              className={cn(
-                "text-sm font-medium leading-none",
-                !variant.isPublished && "text-muted-foreground"
-              )}
-            >
-              Show to Customers
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {!variant.isPublished
-                ? "Available once the variant is published."
-                : variant.isActive
-                ? "Live on storefront."
-                : "Hidden — published but not shown to customers."}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Media zone */}
+      {/* 1. Media zone */}
       <div className="space-y-3">
         <p className="text-sm font-semibold">Images</p>
         <MediaZone
@@ -540,37 +492,43 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
     .filter(([, s]) => s === "error")
     .map(([id]) => id);
 
+  const hasImages = images.length > 0 || uploadingCount > 0;
+
   return (
     <div className="space-y-4">
-      <div
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragOver(true);
-        }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={handleDrop}
-        className={cn(
-          "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors",
-          isDragOver
-            ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
-        )}
-      >
-        <ImagePlus className="h-8 w-8 text-muted-foreground" />
-        <div className="text-center">
-          <p className="text-sm font-medium">Drop images here or click to browse</p>
-          <p className="text-xs text-muted-foreground mt-0.5">PNG, JPG, WebP</p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFileInput}
+      />
+
+      {/* Large dropzone — shown only when there are no images yet */}
+      {!hasImages && (
+        <div
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={handleDrop}
+          className={cn(
+            "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors",
+            isDragOver
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+          )}
+        >
+          <ImagePlus className="h-8 w-8 text-muted-foreground" />
+          <div className="text-center">
+            <p className="text-sm font-medium">Drop images here or click to browse</p>
+            <p className="text-xs text-muted-foreground mt-0.5">PNG, JPG, WebP</p>
+          </div>
         </div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleFileInput}
-        />
-      </div>
+      )}
 
       {errorIds.length > 0 && (
         <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -596,9 +554,10 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
         </div>
       )}
 
-      {(images.length > 0 || uploadingCount > 0) && (
+      {/* Image grid — shown once at least one image exists */}
+      {hasImages && (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {images.map((url) => (
+          {images.map((url, index) => (
             <div key={url} className="group relative aspect-square">
               <Image
                 src={url}
@@ -607,6 +566,11 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
                 className="rounded-md object-cover border"
                 unoptimized
               />
+              {index === 0 && (
+                <span className="absolute bottom-0 left-0 right-0 bg-amber-500/90 text-white text-[10px] font-semibold text-center py-0.5 rounded-b-md pointer-events-none">
+                  Main
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => onDelete(url)}
@@ -624,6 +588,24 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ))}
+          {/* Compact add-more tile */}
+          <div
+            onClick={() => inputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+            className={cn(
+              "aspect-square rounded-md border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors",
+              isDragOver
+                ? "border-primary bg-primary/5"
+                : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+            )}
+          >
+            <ImagePlus className="h-5 w-5 text-muted-foreground" />
+          </div>
         </div>
       )}
     </div>
@@ -655,19 +637,12 @@ function SkuMatrixTable({
 
   return (
     <div className="space-y-3">
-      <button
-        type="button"
-        onClick={() => setShowLogistics((v) => !v)}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 transition-transform",
-            showLogistics && "rotate-180"
-          )}
-        />
-        {showLogistics ? "Hide" : "Show"} logistics fields (weight, dimensions)
-      </button>
+      <div className="flex items-center gap-2.5">
+        <Toggle checked={showLogistics} onChange={setShowLogistics} />
+        <span className="text-sm text-muted-foreground">
+          Logistics fields (weight, dimensions)
+        </span>
+      </div>
 
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm border-collapse">

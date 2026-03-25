@@ -139,7 +139,7 @@ public class ProductManagementController {
                                                 s.heightCm(),
                                                 s.depthCm()))
                                         .toList(),
-                                v.isPublished() != null && v.isPublished(),
+                                v.isEnabled() != null && v.isEnabled(),
                                 v.isActive() == null || v.isActive()
                         ))
                         .toList()

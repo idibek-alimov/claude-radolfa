@@ -129,6 +129,7 @@ public class ProductHierarchyAdapter
             img.setListingVariant(entity);
             img.setImageUrl(domainImages.get(i));
             img.setSortOrder(i + 1);
+            img.setPrimary(i == 0);
             entity.getImages().add(img);
         }
 
@@ -251,6 +252,7 @@ public class ProductHierarchyAdapter
                     img.setListingVariant(entity);
                     img.setImageUrl(domainImages.get(i));
                     img.setSortOrder(i + 1);
+                    img.setPrimary(i == 0);
                     entity.getImages().add(img);
                 }
             }

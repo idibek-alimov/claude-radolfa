@@ -48,8 +48,8 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "featured", nullable = false)
     private boolean featured = false;
 
-    @Column(name = "is_published", nullable = false)
-    private boolean isPublished = false;
+    @Column(name = "is_enabled", nullable = false)
+    private boolean isEnabled = false;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;

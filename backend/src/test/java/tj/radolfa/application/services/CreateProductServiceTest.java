@@ -492,7 +492,7 @@ class CreateProductServiceTest {
                     variant.getImages(), variant.getAttributes(),
                     variant.isTopSelling(), variant.isFeatured(),
                     variant.getLastSyncAt(), "RD-" + idGen.get(),
-                    variant.isPublished(), variant.isActive());
+                    variant.isEnabled(), variant.isActive());
             return lastSavedVariant;
         }
 

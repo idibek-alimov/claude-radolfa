@@ -28,6 +28,9 @@ public class ListingVariantImageEntity {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    @Column(name = "is_primary", nullable = false)
+    private boolean isPrimary = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Instant createdAt;

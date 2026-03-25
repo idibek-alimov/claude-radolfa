@@ -81,7 +81,7 @@ public interface ProductHierarchyMapper {
                 entity.isFeatured(),
                 entity.getLastSyncAt(),
                 entity.getProductCode(),
-                entity.isPublished(),
+                entity.isEnabled(),
                 entity.isActive()
         );
     }

@@ -32,7 +32,7 @@ public class ListingVariant {
     private boolean featured;
 
     // Visibility lifecycle flags
-    private boolean isPublished;
+    private boolean isEnabled;
     private boolean isActive;
 
     // Audit
@@ -54,7 +54,7 @@ public class ListingVariant {
             boolean featured,
             Instant lastSyncAt,
             String productCode,
-            boolean isPublished,
+            boolean isEnabled,
             boolean isActive) {
         this.id = id;
         this.productBaseId = productBaseId;
@@ -67,7 +67,7 @@ public class ListingVariant {
         this.featured = featured;
         this.lastSyncAt = lastSyncAt;
         this.productCode = productCode;
-        this.isPublished = isPublished;
+        this.isEnabled = isEnabled;
         this.isActive = isActive;
     }
 
@@ -126,8 +126,8 @@ public class ListingVariant {
         this.featured = featured;
     }
 
-    public void updateIsPublished(boolean isPublished) {
-        this.isPublished = isPublished;
+    public void updateIsEnabled(boolean isEnabled) {
+        this.isEnabled = isEnabled;
     }
 
     public void updateIsActive(boolean isActive) {
@@ -186,8 +186,8 @@ public class ListingVariant {
         return productCode;
     }
 
-    public boolean isPublished() {
-        return isPublished;
+    public boolean isEnabled() {
+        return isEnabled;
     }
 
     public boolean isActive() {

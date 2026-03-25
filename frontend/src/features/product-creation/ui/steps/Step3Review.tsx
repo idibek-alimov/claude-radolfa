@@ -156,10 +156,6 @@ export function Step3Review({ state }: Props) {
                         `Color #${variant.colorId}`}
                     </span>
                   </div>
-                  <StatusBadge
-                    isPublished={variant.isPublished}
-                    isActive={variant.isActive}
-                  />
                 </div>
                 <div className="text-sm text-muted-foreground space-y-0.5 ml-6">
                   <p>

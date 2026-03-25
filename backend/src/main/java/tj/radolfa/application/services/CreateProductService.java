@@ -127,7 +127,7 @@ public class CreateProductService implements CreateProductUseCase {
                     false,
                     null,
                     null,                    // productCode — assigned by persistence layer on first save
-                    variantDef.isPublished(),
+                    variantDef.isEnabled(),
                     variantDef.isActive()
             );
 

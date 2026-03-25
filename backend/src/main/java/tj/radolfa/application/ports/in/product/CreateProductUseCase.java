@@ -31,7 +31,7 @@ public interface CreateProductUseCase {
                 List<ProductAttribute> attributes,
                 List<String> images,
                 List<SkuDefinition> skus,
-                boolean isPublished,
+                boolean isEnabled,
                 boolean isActive
         ) {}
 

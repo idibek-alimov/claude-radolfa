@@ -18,8 +18,6 @@ export interface SkuRow {
 
 export interface VariantDraft {
   colorId: number;
-  isPublished: boolean; // default false — manager sign-off: variant is complete and intentional
-  isActive: boolean;    // default true  — ops runtime toggle: show/hide without removing
   images: string[];
   skus: SkuRow[];
 }

@@ -144,7 +144,7 @@ CREATE TABLE listing_variants (
     web_description TEXT,
     top_selling     BOOLEAN      NOT NULL DEFAULT FALSE,
     featured        BOOLEAN      NOT NULL DEFAULT FALSE,
-    is_published    BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_enabled      BOOLEAN      NOT NULL DEFAULT FALSE,
     is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
     last_sync_at    TIMESTAMPTZ,
     product_code    VARCHAR(10)  DEFAULT NULL,
@@ -168,6 +168,7 @@ CREATE TABLE listing_variant_images (
     listing_variant_id BIGINT      NOT NULL REFERENCES listing_variants(id) ON DELETE CASCADE,
     image_url          TEXT        NOT NULL,
     sort_order         INTEGER     NOT NULL DEFAULT 0,
+    is_primary         BOOLEAN     NOT NULL DEFAULT FALSE,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -203,6 +204,30 @@ CREATE TABLE category_attribute_blueprints (
 );
 
 CREATE INDEX idx_blueprint_category_id ON category_attribute_blueprints (category_id);
+
+-- Seed category attribute blueprints
+INSERT INTO categories (name, slug) VALUES
+    ('Clothing',    'clothing'),
+    ('Electronics', 'electronics'),
+    ('Shoes',       'shoes')
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO category_attribute_blueprints (category_id, attribute_key, is_required, sort_order)
+SELECT c.id, b.attribute_key, b.is_required, b.sort_order
+FROM categories c
+JOIN (VALUES
+    ('Clothing',    'size',           TRUE,  1),
+    ('Clothing',    'color',          TRUE,  2),
+    ('Clothing',    'material',       FALSE, 3),
+    ('Electronics', 'brand',          TRUE,  1),
+    ('Electronics', 'voltage',        FALSE, 2),
+    ('Electronics', 'warranty_years', FALSE, 3),
+    ('Shoes',       'size_system',    TRUE,  1),
+    ('Shoes',       'material',       FALSE, 2),
+    ('Shoes',       'sole_type',      FALSE, 3)
+) AS b(category_name, attribute_key, is_required, sort_order)
+  ON c.name = b.category_name
+ON CONFLICT (category_id, attribute_key) DO NOTHING;
 
 -- ----------------------------------------------------------------
 -- SKUs  (previously: erp_item_code → sku_code)

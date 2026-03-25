@@ -44,7 +44,7 @@ public record CreateProductRequestDto(
             @Valid
             List<SkuDefinitionDto> skus,
 
-            Boolean isPublished,
+            Boolean isEnabled,
 
             Boolean isActive
 

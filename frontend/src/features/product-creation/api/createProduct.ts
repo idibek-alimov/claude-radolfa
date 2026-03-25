@@ -15,8 +15,6 @@ export function buildPayload(state: WizardState) {
       webDescription: state.webDescription || undefined,
       attributes: state.attributes,
       images: v.images,
-      isPublished: v.isPublished,
-      isActive: v.isActive,
       skus: v.skus.map(({ sizeLabel, price, stockQuantity, barcode, weightKg, widthCm, heightCm, depthCm }) => ({
         sizeLabel,
         price,
