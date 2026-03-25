@@ -1,5 +1,5 @@
 -- ================================================================
--- V2__dev_seed.sql
+-- V7__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -16,6 +16,7 @@
 --   8. Orders & order items
 --   9. Discounts & discount items
 --  10. Featured flags
+--  11. Category attribute blueprints
 -- ================================================================
 
 
@@ -44,7 +45,7 @@ VALUES
 INSERT INTO users (phone, role, loyalty_points) VALUES
     ('+992901234567', 'USER',    20),
     ('+992902345678', 'MANAGER', 30),
-    ('+992903456789', 'SYNC',    50),
+    ('+992903456789', 'ADMIN',   50),
     ('+992904567890', 'USER',    5200);
 
 -- User 1: Gold tier, close to Platinum
@@ -96,6 +97,13 @@ INSERT INTO categories (name, slug) VALUES
     ('Sleepwear',  'sleepwear'),
     ('Footwear',   'footwear'),
     ('Accessories','accessories');
+
+-- Categories referenced by attribute blueprints (previously seeded in V1)
+INSERT INTO categories (name, slug) VALUES
+    ('Clothing',    'clothing'),
+    ('Electronics', 'electronics'),
+    ('Shoes',       'shoes')
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO colors (color_key, display_name, hex_code) VALUES
     ('midnight-black', 'Midnight Black', '#1A1A1A'),
@@ -651,3 +659,24 @@ WHERE id IN (
         GROUP BY lv2.product_base_id
     )
 );
+
+-- ================================================================
+-- 11. CATEGORY ATTRIBUTE BLUEPRINTS
+-- ================================================================
+
+INSERT INTO category_attribute_blueprints (category_id, attribute_key, is_required, sort_order)
+SELECT c.id, b.attribute_key, b.is_required, b.sort_order
+FROM categories c
+JOIN (VALUES
+    ('Clothing',    'size',           TRUE,  1),
+    ('Clothing',    'color',          TRUE,  2),
+    ('Clothing',    'material',       FALSE, 3),
+    ('Electronics', 'brand',          TRUE,  1),
+    ('Electronics', 'voltage',        FALSE, 2),
+    ('Electronics', 'warranty_years', FALSE, 3),
+    ('Shoes',       'size_system',    TRUE,  1),
+    ('Shoes',       'material',       FALSE, 2),
+    ('Shoes',       'sole_type',      FALSE, 3)
+) AS b(category_name, attribute_key, is_required, sort_order)
+  ON c.name = b.category_name
+ON CONFLICT (category_id, attribute_key) DO NOTHING;
