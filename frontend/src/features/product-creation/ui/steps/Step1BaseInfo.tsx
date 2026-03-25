@@ -95,6 +95,14 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
     });
   }
 
+  function setValueByIndex(index: number, value: string) {
+    update({
+      attributes: state.attributes.map((a, i) =>
+        i === index ? { ...a, value } : a
+      ),
+    });
+  }
+
   function addFreeForm() {
     const nextOrder = state.attributes.length;
     update({
@@ -243,9 +251,9 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
                   })}
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  No required attributes for this category.
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  This category has no required attributes.
+                </p>
               )}
 
               {/* Free-form additions */}
@@ -264,7 +272,7 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
                       />
                       <Input
                         value={attr.value}
-                        onChange={(e) => setValue(attr.key, e.target.value)}
+                        onChange={(e) => setValueByIndex(index, e.target.value)}
                         placeholder="Value"
                         className="flex-1"
                       />
