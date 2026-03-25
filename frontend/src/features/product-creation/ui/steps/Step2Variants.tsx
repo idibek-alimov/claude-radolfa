@@ -11,6 +11,8 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
+  Package,
+  ChevronsDown,
 } from "lucide-react";
 import { fetchColors } from "@/entities/color";
 import { uploadProductImage } from "../../api/imageUpload";
@@ -32,7 +34,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { cn } from "@/shared/lib/utils";
 import type {
   WizardState,
@@ -72,6 +73,7 @@ interface Props {
 }
 
 export function Step2Variants({ state, update, submitted, errors }: Props) {
+  const [activeColorId, setActiveColorId] = useState<number | null>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [variantToRemove, setVariantToRemove] = useState<number | null>(null);
 
@@ -82,6 +84,13 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
 
   const colorMap = Object.fromEntries(colors.map((c) => [c.id, c]));
   const usedColorIds = new Set(state.variants.map((v) => v.colorId));
+
+  const currentColorId =
+    activeColorId !== null && usedColorIds.has(activeColorId)
+      ? activeColorId
+      : state.variants[0]?.colorId ?? null;
+
+  const activeVariant = state.variants.find((v) => v.colorId === currentColorId);
 
   // ── mutation helpers ───────────────────────────────────────────────
 
@@ -95,11 +104,13 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
 
   function addVariant(colorId: number) {
     update({ variants: [...state.variants, makeVariant(colorId)] });
+    setActiveColorId(colorId);
     setColorPickerOpen(false);
   }
 
   function removeVariant(colorId: number) {
     update({ variants: state.variants.filter((v) => v.colorId !== colorId) });
+    if (activeColorId === colorId) setActiveColorId(null);
     setVariantToRemove(null);
   }
 
@@ -143,101 +154,165 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
     });
   }
 
-  // ── removal confirmation data ──────────────────────────────────────
-
-  const removingVariant = variantToRemove !== null
-    ? state.variants.find((v) => v.colorId === variantToRemove)
-    : null;
-  const removingColor = variantToRemove !== null
-    ? colorMap[variantToRemove]
-    : null;
+  const removingVariant =
+    variantToRemove !== null
+      ? state.variants.find((v) => v.colorId === variantToRemove)
+      : null;
+  const removingColor =
+    variantToRemove !== null ? colorMap[variantToRemove] : null;
 
   // ── render ─────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">Variants &amp; Media</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Add a tab for each color variant. Each tab holds images, visibility
-            settings, and the SKU matrix.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setColorPickerOpen(true)}
-          className="shrink-0 gap-1.5"
-        >
-          <Plus className="h-4 w-4" />
-          Add Color Variant
-        </Button>
+    <div className="max-w-4xl space-y-5">
+      {/* Step header */}
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-foreground">Variants &amp; Media</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Add a color variant for each available color. Each variant has its own
+          photos and size/stock matrix.
+        </p>
       </div>
 
-      {/* Empty state */}
+      {/* ── Variant selector bar ───────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2">
+        {state.variants.map((variant) => {
+          const color = colorMap[variant.colorId];
+          const isActive = variant.colorId === currentColorId;
+          const hasErrors =
+            submitted &&
+            variant.skus.some(
+              (r) =>
+                errors.emptySize.has(r._key) || errors.emptyBarcode.has(r._key)
+            );
+
+          return (
+            <div key={variant.colorId} className="relative group">
+              <button
+                type="button"
+                onClick={() => setActiveColorId(variant.colorId)}
+                className={cn(
+                  "flex items-center gap-2 pl-3 pr-8 py-2 rounded-lg border text-sm font-medium transition-all",
+                  isActive
+                    ? "border-primary bg-primary/5 text-primary shadow-sm"
+                    : "border-border bg-white hover:border-primary/40 text-foreground"
+                )}
+              >
+                <span
+                  className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0"
+                  style={{ backgroundColor: color?.hexCode ?? "#e5e7eb" }}
+                />
+                <span className="max-w-[120px] truncate">
+                  {color?.displayName ?? color?.colorKey ?? `#${variant.colorId}`}
+                </span>
+                <span
+                  className={cn(
+                    "text-xs",
+                    isActive ? "text-primary/70" : "text-muted-foreground"
+                  )}
+                >
+                  {variant.skus.length} SKU{variant.skus.length !== 1 ? "s" : ""}
+                </span>
+                {hasErrors && (
+                  <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
+                )}
+              </button>
+              {/* Remove button — appears on hover */}
+              <button
+                type="button"
+                onClick={() => handleRemoveClick(variant.colorId)}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                aria-label={`Remove ${color?.displayName ?? "color"} variant`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={() => setColorPickerOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-muted-foreground/40 text-sm text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add Color
+        </button>
+      </div>
+
+      {/* ── Empty state ───────────────────────────────────────────── */}
       {state.variants.length === 0 && (
-        <div className="rounded-lg border border-dashed p-12 text-center text-sm text-muted-foreground">
-          No variants yet — click{" "}
-          <span className="font-medium">Add Color Variant</span> to start.
+        <div className="bg-white rounded-xl border shadow-sm flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+            <Package className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">No color variants yet</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Click <span className="font-medium">Add Color</span> to create the first variant
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Tabs — one per variant */}
-      {state.variants.length > 0 && (
-        <Tabs defaultValue={String(state.variants[0].colorId)}>
-          <TabsList className="flex-wrap h-auto gap-1 justify-start">
-            {state.variants.map((variant) => {
-              const color = colorMap[variant.colorId];
-              const skuCount = variant.skus.length;
-              return (
-                <div key={variant.colorId} className="relative flex items-center">
-                  <TabsTrigger
-                    value={String(variant.colorId)}
-                    className="gap-1.5 pr-7"
-                  >
-                    <span
-                      className="h-3 w-3 rounded-full border border-black/10 shrink-0"
-                      style={{ backgroundColor: color?.hexCode ?? "#e5e7eb" }}
-                    />
-                    {color?.displayName ?? color?.colorKey ?? `#${variant.colorId}`}
-                    {skuCount > 0 && (
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        ({skuCount})
-                      </span>
-                    )}
-                  </TabsTrigger>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveClick(variant.colorId)}
-                    className="absolute right-1.5 h-4 w-4 flex items-center justify-center rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    aria-label={`Remove ${color?.displayName ?? "color"} variant`}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              );
-            })}
-          </TabsList>
+      {/* ── Active variant content ────────────────────────────────── */}
+      {activeVariant && (
+        <div className="space-y-5">
+          {/* Photos card */}
+          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b bg-gray-50/60 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Photos</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  First photo will be the main image. PNG, JPG, WebP.
+                </p>
+              </div>
+              {activeVariant.images.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {activeVariant.images.length} / 20
+                </span>
+              )}
+            </div>
+            <div className="p-5">
+              <MediaZone
+                images={activeVariant.images}
+                onUploaded={(url) =>
+                  updateVariant(activeVariant.colorId, {
+                    images: [...activeVariant.images, url],
+                  })
+                }
+                onDelete={(url) =>
+                  updateVariant(activeVariant.colorId, {
+                    images: activeVariant.images.filter((u) => u !== url),
+                  })
+                }
+              />
+            </div>
+          </div>
 
-          {state.variants.map((variant) => (
-            <TabsContent key={variant.colorId} value={String(variant.colorId)}>
-              <VariantTabContent
-                variant={variant}
-                color={colorMap[variant.colorId]}
+          {/* SKU matrix card */}
+          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b bg-gray-50/60">
+              <h2 className="text-sm font-semibold text-foreground">Sizes &amp; Stock</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Each row is one purchasable SKU. Size label and barcode are required.
+              </p>
+            </div>
+            <div className="p-5">
+              <SkuMatrixTable
+                skus={activeVariant.skus}
                 submitted={submitted}
                 errors={errors}
-                onUpdateVariant={(patch) => updateVariant(variant.colorId, patch)}
-                onUpdateSku={(key, patch) => updateSku(variant.colorId, key, patch)}
-                onAddSku={() => addSku(variant.colorId)}
-                onDeleteSku={(key) => deleteSku(variant.colorId, key)}
-                onApplyDown={(field) => applyDown(variant.colorId, field)}
+                onUpdateSku={(key, patch) =>
+                  updateSku(activeVariant.colorId, key, patch)
+                }
+                onAddSku={() => addSku(activeVariant.colorId)}
+                onDeleteSku={(key) => deleteSku(activeVariant.colorId, key)}
+                onApplyDown={(field) => applyDown(activeVariant.colorId, field)}
               />
-            </TabsContent>
-          ))}
-        </Tabs>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Color picker dialog */}
@@ -260,7 +335,9 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
             <AlertDialogDescription>
               Removing{" "}
               <strong>
-                {removingColor?.displayName ?? removingColor?.colorKey ?? "this color"}
+                {removingColor?.displayName ??
+                  removingColor?.colorKey ??
+                  "this color"}
               </strong>{" "}
               will discard {removingVariant?.images.length ?? 0} uploaded{" "}
               {(removingVariant?.images.length ?? 0) === 1 ? "image" : "images"}.
@@ -320,13 +397,13 @@ function ColorPickerDialog({
                 key={color.id}
                 type="button"
                 onClick={() => onSelect(color.id)}
-                className="flex items-center gap-2.5 rounded-md border px-3 py-2.5 text-sm hover:border-primary hover:bg-primary/5 transition-colors text-left"
+                className="flex items-center gap-2.5 rounded-lg border px-3 py-3 text-sm hover:border-primary hover:bg-primary/5 transition-colors text-left"
               >
                 <span
-                  className="h-4 w-4 rounded-full border border-black/10 shrink-0"
+                  className="h-5 w-5 rounded-full border border-black/10 shrink-0 shadow-sm"
                   style={{ backgroundColor: color.hexCode ?? "#e5e7eb" }}
                 />
-                <span className="truncate">
+                <span className="truncate font-medium">
                   {color.displayName ?? color.colorKey}
                 </span>
               </button>
@@ -343,21 +420,18 @@ function ColorPickerDialog({
 interface ToggleProps {
   checked: boolean;
   onChange: (value: boolean) => void;
-  disabled?: boolean;
 }
 
-function Toggle({ checked, onChange, disabled }: ToggleProps) {
+function Toggle({ checked, onChange }: ToggleProps) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
-      onClick={() => !disabled && onChange(!checked)}
-      disabled={disabled}
+      onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        checked ? "bg-primary" : "bg-muted-foreground/30",
-        disabled && "opacity-40 cursor-not-allowed"
+        checked ? "bg-primary" : "bg-muted-foreground/30"
       )}
     >
       <span
@@ -367,63 +441,6 @@ function Toggle({ checked, onChange, disabled }: ToggleProps) {
         )}
       />
     </button>
-  );
-}
-
-// ── VariantTabContent ─────────────────────────────────────────────────
-
-interface VariantTabContentProps {
-  variant: VariantDraft;
-  color: Color | undefined;
-  submitted: boolean;
-  errors: Step2Errors;
-  onUpdateVariant: (patch: Partial<VariantDraft>) => void;
-  onUpdateSku: (key: string, patch: Partial<SkuRow>) => void;
-  onAddSku: () => void;
-  onDeleteSku: (key: string) => void;
-  onApplyDown: (field: "price" | "stockQuantity") => void;
-}
-
-function VariantTabContent({
-  variant,
-  submitted,
-  errors,
-  onUpdateVariant,
-  onUpdateSku,
-  onAddSku,
-  onDeleteSku,
-  onApplyDown,
-}: VariantTabContentProps) {
-  return (
-    <div className="space-y-8 pt-4">
-      {/* 1. Media zone */}
-      <div className="space-y-3">
-        <p className="text-sm font-semibold">Images</p>
-        <MediaZone
-          images={variant.images}
-          onUploaded={(url) =>
-            onUpdateVariant({ images: [...variant.images, url] })
-          }
-          onDelete={(url) =>
-            onUpdateVariant({ images: variant.images.filter((u) => u !== url) })
-          }
-        />
-      </div>
-
-      {/* 3. SKU matrix */}
-      <div className="space-y-3">
-        <p className="text-sm font-semibold">SKU Matrix</p>
-        <SkuMatrixTable
-          skus={variant.skus}
-          submitted={submitted}
-          errors={errors}
-          onUpdateSku={onUpdateSku}
-          onAddSku={onAddSku}
-          onDeleteSku={onDeleteSku}
-          onApplyDown={onApplyDown}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -494,8 +511,17 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
 
   const hasImages = images.length > 0 || uploadingCount > 0;
 
+  const dragHandlers = {
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(true);
+    },
+    onDragLeave: () => setIsDragOver(false),
+    onDrop: handleDrop,
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <input
         ref={inputRef}
         type="file"
@@ -505,37 +531,13 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
         onChange={handleFileInput}
       />
 
-      {/* Large dropzone — shown only when there are no images yet */}
-      {!hasImages && (
-        <div
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={() => setIsDragOver(false)}
-          onDrop={handleDrop}
-          className={cn(
-            "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors",
-            isDragOver
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
-          )}
-        >
-          <ImagePlus className="h-8 w-8 text-muted-foreground" />
-          <div className="text-center">
-            <p className="text-sm font-medium">Drop images here or click to browse</p>
-            <p className="text-xs text-muted-foreground mt-0.5">PNG, JPG, WebP</p>
-          </div>
-        </div>
-      )}
-
+      {/* Upload error banner */}
       {errorIds.length > 0 && (
-        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-2.5 text-sm text-destructive">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>
             {errorIds.length}{" "}
-            {errorIds.length === 1 ? "image" : "images"} failed to upload.
+            {errorIds.length === 1 ? "image" : "images"} failed to upload
           </span>
           <button
             type="button"
@@ -546,7 +548,7 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
                 return next;
               })
             }
-            className="ml-auto flex items-center gap-1 underline underline-offset-2 hover:opacity-70"
+            className="ml-auto flex items-center gap-1 text-xs underline underline-offset-2 hover:opacity-70"
           >
             <RefreshCw className="h-3 w-3" />
             Dismiss
@@ -554,57 +556,123 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
         </div>
       )}
 
-      {/* Image grid — shown once at least one image exists */}
-      {hasImages && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {images.map((url, index) => (
-            <div key={url} className="group relative aspect-square">
-              <Image
-                src={url}
-                alt="Product image"
-                fill
-                className="rounded-md object-cover border"
-                unoptimized
-              />
-              {index === 0 && (
-                <span className="absolute bottom-0 left-0 right-0 bg-amber-500/90 text-white text-[10px] font-semibold text-center py-0.5 rounded-b-md pointer-events-none">
-                  Main
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => onDelete(url)}
-                className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-          {Array.from({ length: uploadingCount }).map((_, i) => (
-            <div
-              key={`uploading-${i}`}
-              className="aspect-square rounded-md border bg-muted flex items-center justify-center"
-            >
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ))}
-          {/* Compact add-more tile */}
+      {/* Empty drop zone */}
+      {!hasImages && (
+        <div
+          onClick={() => inputRef.current?.click()}
+          {...dragHandlers}
+          className={cn(
+            "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 cursor-pointer transition-all",
+            isDragOver
+              ? "border-primary bg-primary/5 scale-[0.99]"
+              : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50"
+          )}
+        >
           <div
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragOver(true);
-            }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={handleDrop}
             className={cn(
-              "aspect-square rounded-md border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors",
-              isDragOver
-                ? "border-primary bg-primary/5"
-                : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+              "h-12 w-12 rounded-full flex items-center justify-center transition-colors",
+              isDragOver ? "bg-primary/10" : "bg-muted"
             )}
           >
-            <ImagePlus className="h-5 w-5 text-muted-foreground" />
+            <ImagePlus
+              className={cn(
+                "h-6 w-6 transition-colors",
+                isDragOver ? "text-primary" : "text-muted-foreground"
+              )}
+            />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">
+              Drop photos here or click to browse
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              PNG, JPG, WebP — up to 20 photos
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Focal image layout — main large + smaller grid */}
+      {hasImages && (
+        <div className="flex gap-2.5" style={{ minHeight: "200px" }}>
+          {/* Main image — large */}
+          <div className="w-48 h-48 relative rounded-xl overflow-hidden border bg-gray-50 shrink-0 group">
+            {images[0] && (
+              <>
+                <Image
+                  src={images[0]}
+                  alt="Main product image"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                <span className="absolute bottom-0 inset-x-0 bg-amber-500/90 text-white text-[10px] font-bold text-center py-1 pointer-events-none uppercase tracking-wide">
+                  Main
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onDelete(images[0])}
+                  className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </>
+            )}
+            {!images[0] && uploadingCount > 0 && (
+              <div className="h-full flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
+
+          {/* Secondary images grid */}
+          <div className="flex-1 grid grid-cols-4 gap-2 content-start">
+            {images.slice(1).map((url) => (
+              <div
+                key={url}
+                className="aspect-square relative rounded-lg overflow-hidden border bg-gray-50 group"
+              >
+                <Image
+                  src={url}
+                  alt="Product image"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  onClick={() => onDelete(url)}
+                  className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+
+            {/* Uploading placeholders */}
+            {Array.from({ length: uploadingCount }).map((_, i) => (
+              <div
+                key={`uploading-${i}`}
+                className="aspect-square rounded-lg border bg-muted flex items-center justify-center"
+              >
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ))}
+
+            {/* Add more tile */}
+            <div
+              onClick={() => inputRef.current?.click()}
+              {...dragHandlers}
+              className={cn(
+                "aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors gap-1",
+                isDragOver
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50"
+              )}
+            >
+              <ImagePlus className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">Add</span>
+            </div>
           </div>
         </div>
       )}
@@ -636,103 +704,110 @@ function SkuMatrixTable({
   const [showLogistics, setShowLogistics] = useState(false);
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2.5">
-        <Toggle checked={showLogistics} onChange={setShowLogistics} />
-        <span className="text-sm text-muted-foreground">
-          Logistics fields (weight, dimensions)
-        </span>
+    <div className="space-y-4">
+      {/* Controls row */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        {/* Apply-down shortcuts */}
+        {skus.length > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Apply first row to all:</span>
+            <button
+              type="button"
+              onClick={() => onApplyDown("price")}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-muted-foreground/30 text-xs text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+            >
+              <ChevronsDown className="h-3 w-3" />
+              Price
+            </button>
+            <button
+              type="button"
+              onClick={() => onApplyDown("stockQuantity")}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-muted-foreground/30 text-xs text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+            >
+              <ChevronsDown className="h-3 w-3" />
+              Stock
+            </button>
+          </div>
+        )}
+
+        {/* Logistics toggle */}
+        <label className="flex items-center gap-2 cursor-pointer select-none ml-auto">
+          <Toggle checked={showLogistics} onChange={setShowLogistics} />
+          <span className="text-xs text-muted-foreground">Show logistics fields</span>
+        </label>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">
-                Size Label <span className="text-destructive">*</span>
+            <tr className="border-b bg-gray-50/80">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                Size <span className="text-destructive">*</span>
               </th>
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                 Barcode <span className="text-destructive">*</span>
               </th>
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap min-w-[120px]">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap min-w-[110px]">
                 Price (TJS)
               </th>
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap min-w-[100px]">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap min-w-[90px]">
                 Stock
               </th>
               {showLogistics && (
                 <>
-                  <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">
-                    Weight (kg)
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    Weight kg
                   </th>
-                  <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">
-                    W (cm)
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    W cm
                   </th>
-                  <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">
-                    H (cm)
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    H cm
                   </th>
-                  <th className="px-3 py-2.5 text-left font-medium text-muted-foreground whitespace-nowrap">
-                    D (cm)
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    D cm
                   </th>
                 </>
               )}
               <th className="px-3 py-2.5 w-10" />
             </tr>
           </thead>
-          <tbody>
-            {/* Apply-down bar */}
-            {skus.length > 1 && (
-              <tr className="border-b bg-muted/20">
-                <td colSpan={showLogistics ? 9 : 5} className="px-3 py-1">
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>Apply first row value to all rows:</span>
-                    <button
-                      type="button"
-                      onClick={() => onApplyDown("price")}
-                      className="underline underline-offset-2 hover:text-foreground"
-                    >
-                      ⬇ Price
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onApplyDown("stockQuantity")}
-                      className="underline underline-offset-2 hover:text-foreground"
-                    >
-                      ⬇ Stock
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )}
-
+          <tbody className="divide-y">
             {skus.map((row) => {
               const sizeErr = submitted && errors.emptySize.has(row._key);
               const barcodeErr = submitted && errors.emptyBarcode.has(row._key);
+              const rowHasError = sizeErr || barcodeErr;
 
               return (
                 <tr
                   key={row._key}
-                  className="border-b last:border-b-0 hover:bg-muted/30 transition-colors bg-background"
+                  className={cn(
+                    "transition-colors",
+                    rowHasError
+                      ? "bg-destructive/5"
+                      : "hover:bg-gray-50/80 bg-white"
+                  )}
                 >
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2.5">
                     <Input
                       value={row.sizeLabel}
                       onChange={(e) =>
                         onUpdateSku(row._key, { sizeLabel: e.target.value })
                       }
-                      placeholder="S, M, L, 42, ONE_SIZE…"
+                      placeholder="S, M, L, 42…"
                       className={cn(
-                        "h-8 w-32",
+                        "h-8 w-28",
                         sizeErr &&
                           "border-destructive focus-visible:ring-destructive"
                       )}
                     />
                     {sizeErr && (
-                      <p className="text-xs text-destructive mt-0.5">Required</p>
+                      <p className="text-[10px] text-destructive mt-0.5">Required</p>
                     )}
                   </td>
 
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2.5">
                     <Input
                       value={row.barcode}
                       onChange={(e) =>
@@ -746,11 +821,11 @@ function SkuMatrixTable({
                       )}
                     />
                     {barcodeErr && (
-                      <p className="text-xs text-destructive mt-0.5">Required</p>
+                      <p className="text-[10px] text-destructive mt-0.5">Required</p>
                     )}
                   </td>
 
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2.5">
                     <Input
                       type="number"
                       min={0}
@@ -765,7 +840,7 @@ function SkuMatrixTable({
                     />
                   </td>
 
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2.5">
                     <Input
                       type="number"
                       min={0}
@@ -782,7 +857,7 @@ function SkuMatrixTable({
 
                   {showLogistics && (
                     <>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2.5">
                         <Input
                           type="number"
                           min={0}
@@ -799,7 +874,7 @@ function SkuMatrixTable({
                           className="h-8 w-20"
                         />
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2.5">
                         <Input
                           type="number"
                           min={0}
@@ -815,7 +890,7 @@ function SkuMatrixTable({
                           className="h-8 w-20"
                         />
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2.5">
                         <Input
                           type="number"
                           min={0}
@@ -831,7 +906,7 @@ function SkuMatrixTable({
                           className="h-8 w-20"
                         />
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2.5">
                         <Input
                           type="number"
                           min={0}
@@ -850,12 +925,12 @@ function SkuMatrixTable({
                     </>
                   )}
 
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2.5">
                     <button
                       type="button"
                       onClick={() => onDeleteSku(row._key)}
                       disabled={skus.length === 1}
-                      className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                      className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-25 disabled:pointer-events-none"
                       aria-label="Delete row"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -868,20 +943,22 @@ function SkuMatrixTable({
         </table>
       </div>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={onAddSku}
-        className="gap-1.5 text-muted-foreground hover:text-foreground"
-      >
-        <Plus className="h-3.5 w-3.5" />
-        Add size row
-      </Button>
-
-      <p className="text-xs text-muted-foreground">
-        {skus.length} SKU{skus.length !== 1 ? "s" : ""} in this variant
-      </p>
+      {/* Footer row */}
+      <div className="flex items-center justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onAddSku}
+          className="gap-1.5 text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add size row
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          {skus.length} SKU{skus.length !== 1 ? "s" : ""}
+        </span>
+      </div>
     </div>
   );
 }
