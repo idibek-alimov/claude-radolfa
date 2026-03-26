@@ -151,14 +151,16 @@ public class CreateProductService implements CreateProductUseCase {
 
             List<Sku> savedSkus = new ArrayList<>();
             for (Command.SkuDefinition def : variantDef.skus()) {
+                String skuCode  = "SKU-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+                String barcode  = "BC-"  + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
                 Sku sku = new Sku(
                         null,
                         savedVariant.getId(),
-                        "SKU-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase(),
+                        skuCode,
                         def.sizeLabel(),
                         def.stockQuantity(),
                         def.price(),
-                        def.barcode(),
+                        barcode,
                         def.weightKg(),
                         def.widthCm(),
                         def.heightCm(),

@@ -62,9 +62,6 @@ public record CreateProductRequestDto(
             @PositiveOrZero(message = "stockQuantity must be ≥ 0")
             int stockQuantity,
 
-            @NotBlank(message = "barcode is required")
-            String barcode,
-
             Double weightKg,
 
             Integer widthCm,

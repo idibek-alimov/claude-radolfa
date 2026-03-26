@@ -15,11 +15,10 @@ export function buildPayload(state: WizardState) {
       webDescription: state.webDescription || undefined,
       attributes: state.attributes,
       images: v.images,
-      skus: v.skus.map(({ sizeLabel, price, stockQuantity, barcode, weightKg, widthCm, heightCm, depthCm }) => ({
+      skus: v.skus.map(({ sizeLabel, price, stockQuantity, weightKg, widthCm, heightCm, depthCm }) => ({
         sizeLabel,
         price,
         stockQuantity,
-        barcode,
         weightKg: weightKg ?? undefined,
         widthCm: widthCm ?? undefined,
         heightCm: heightCm ?? undefined,

@@ -133,7 +133,6 @@ public class ProductManagementController {
                                                 s.sizeLabel(),
                                                 new Money(s.price()),
                                                 s.stockQuantity(),
-                                                s.barcode(),
                                                 s.weightKg(),
                                                 s.widthCm(),
                                                 s.heightCm(),

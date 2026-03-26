@@ -70,7 +70,6 @@ function makeSkuRow(sizeLabel = ""): SkuRow {
     sizeLabel,
     price: 0,
     stockQuantity: 0,
-    barcode: "",
   };
 }
 
@@ -200,10 +199,7 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
           const isActive = variant.colorId === currentColorId;
           const hasErrors =
             submitted &&
-            variant.skus.some(
-              (r) =>
-                errors.emptySize.has(r._key) || errors.emptyBarcode.has(r._key)
-            );
+            variant.skus.some((r) => errors.emptySize.has(r._key));
 
           return (
             <div key={variant.colorId} className="relative group">
@@ -317,7 +313,7 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
             <div className="px-6 py-4 border-b bg-gray-50/60">
               <h2 className="text-sm font-semibold text-foreground">Sizes &amp; Stock</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Each row is one purchasable SKU. Size label and barcode are required.
+                Each row is one purchasable SKU. Size label is required.
               </p>
             </div>
             <div className="p-5">
@@ -869,9 +865,6 @@ function SkuMatrixTable({
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                 Size <span className="text-destructive">*</span>
               </th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-                Barcode <span className="text-destructive">*</span>
-              </th>
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap min-w-[110px]">
                 Price (TJS)
               </th>
@@ -900,8 +893,7 @@ function SkuMatrixTable({
           <tbody className="divide-y">
             {skus.map((row) => {
               const sizeErr = submitted && errors.emptySize.has(row._key);
-              const barcodeErr = submitted && errors.emptyBarcode.has(row._key);
-              const rowHasError = sizeErr || barcodeErr;
+              const rowHasError = sizeErr;
 
               return (
                 <tr
@@ -927,24 +919,6 @@ function SkuMatrixTable({
                       )}
                     />
                     {sizeErr && (
-                      <p className="text-[10px] text-destructive mt-0.5">Required</p>
-                    )}
-                  </td>
-
-                  <td className="px-3 py-2.5">
-                    <Input
-                      value={row.barcode}
-                      onChange={(e) =>
-                        onUpdateSku(row._key, { barcode: e.target.value })
-                      }
-                      placeholder="EAN / UPC"
-                      className={cn(
-                        "h-8 w-36",
-                        barcodeErr &&
-                          "border-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                    {barcodeErr && (
                       <p className="text-[10px] text-destructive mt-0.5">Required</p>
                     )}
                   </td>

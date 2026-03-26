@@ -39,7 +39,6 @@ public interface CreateProductUseCase {
                 String  sizeLabel,
                 Money   price,
                 int     stockQuantity,
-                String  barcode,
                 Double  weightKg,
                 Integer widthCm,
                 Integer heightCm,

@@ -9,7 +9,6 @@ export interface SkuRow {
   sizeLabel: string;
   price: number;
   stockQuantity: number;
-  barcode: string;
   weightKg?: number;
   widthCm?: number;
   heightCm?: number;
@@ -64,24 +63,21 @@ export function validateStep1(state: WizardState): Step1Errors {
 }
 
 export interface Step2Errors {
-  emptySize: Set<string>;    // _key values with blank sizeLabel
-  emptyBarcode: Set<string>; // _key values with blank barcode
+  emptySize: Set<string>; // _key values with blank sizeLabel
 }
 
 export function validateStep2(state: WizardState): Step2Errors {
   const emptySize = new Set<string>();
-  const emptyBarcode = new Set<string>();
   for (const variant of state.variants) {
     for (const row of variant.skus) {
       if (!row.sizeLabel.trim()) emptySize.add(row._key);
-      if (!row.barcode.trim()) emptyBarcode.add(row._key);
     }
   }
-  return { emptySize, emptyBarcode };
+  return { emptySize };
 }
 
 export function isStep2Valid(errors: Step2Errors): boolean {
-  return errors.emptySize.size === 0 && errors.emptyBarcode.size === 0;
+  return errors.emptySize.size === 0;
 }
 
 // Returns set of attribute keys that are required by the blueprint but have empty values

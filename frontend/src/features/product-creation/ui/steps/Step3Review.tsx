@@ -42,8 +42,7 @@ export function Step3Review({ state }: Props) {
       : undefined;
 
   const step2Errors = validateStep2(state);
-  const hasBlockingErrors =
-    step2Errors.emptySize.size > 0 || step2Errors.emptyBarcode.size > 0;
+  const hasBlockingErrors = step2Errors.emptySize.size > 0;
 
   const blockingMessages: string[] = [];
   if (hasBlockingErrors) {
@@ -52,17 +51,10 @@ export function Step3Review({ state }: Props) {
       const colorName =
         color?.displayName ?? color?.colorKey ?? `Color #${variant.colorId}`;
 
-      const noBarcode = variant.skus.filter((r) =>
-        step2Errors.emptyBarcode.has(r._key)
-      ).length;
       const noSize = variant.skus.filter((r) =>
         step2Errors.emptySize.has(r._key)
       ).length;
 
-      if (noBarcode > 0)
-        blockingMessages.push(
-          `${colorName}: ${noBarcode} SKU${noBarcode > 1 ? "s" : ""} missing barcode`
-        );
       if (noSize > 0)
         blockingMessages.push(
           `${colorName}: ${noSize} SKU${noSize > 1 ? "s" : ""} missing size label`
@@ -175,10 +167,8 @@ export function Step3Review({ state }: Props) {
               color?.colorKey ??
               `Color #${variant.colorId}`;
             const sizes = variant.skus.map((r) => r.sizeLabel || "—").join(", ");
-            const hasVariantErrors = variant.skus.some(
-              (r) =>
-                step2Errors.emptySize.has(r._key) ||
-                step2Errors.emptyBarcode.has(r._key)
+            const hasVariantErrors = variant.skus.some((r) =>
+              step2Errors.emptySize.has(r._key)
             );
 
             return (

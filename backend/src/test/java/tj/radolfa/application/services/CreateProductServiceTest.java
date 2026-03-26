@@ -79,7 +79,7 @@ class CreateProductServiceTest {
     @Test
     @DisplayName("Creates ProductBase and returns its ID — single variant, single SKU")
     void execute_singleVariant_createsHierarchyAndReturnsBaseId() {
-        Command cmd = commandWith(List.of(variantDef(10L, List.of(skuDef("S", "29.99", 50, "BC-001")))));
+        Command cmd = commandWith(List.of(variantDef(10L, List.of(skuDef("S", "29.99", 50)))));
 
         Long id = service.execute(cmd);
 
@@ -95,10 +95,10 @@ class CreateProductServiceTest {
         fakeColor.store(new ColorView(20L, "blue", "Blue", "#0000FF"));
 
         Command cmd = commandWith(List.of(
-                variantDef(10L, List.of(skuDef("S", "29.99", 50, "BC-001"))),
+                variantDef(10L, List.of(skuDef("S", "29.99", 50))),
                 variantDef(20L, List.of(
-                        skuDef("M", "34.99", 20, "BC-002"),
-                        skuDef("L", "34.99", 15, "BC-003")))
+                        skuDef("M", "34.99", 20),
+                        skuDef("L", "34.99", 15)))
         ));
 
         service.execute(cmd);
@@ -109,16 +109,17 @@ class CreateProductServiceTest {
     }
 
     @Test
-    @DisplayName("SKU stores barcode and logistics fields correctly")
+    @DisplayName("SKU barcode is auto-generated with 'BC-' prefix and logistics fields are persisted correctly")
     void execute_skuLogisticsFields_persistedCorrectly() {
         SkuDefinition sku = new SkuDefinition("XL", new Money(new BigDecimal("49.99")),
-                30, "BARCODE-XL", 0.8, 30, 20, 10);
+                30, 0.8, 30, 20, 10);
 
         service.execute(commandWith(List.of(variantDef(10L, List.of(sku)))));
 
         Sku saved = fakeSave.lastSavedSku;
         assertNotNull(saved);
-        assertEquals("BARCODE-XL", saved.getBarcode());
+        assertNotNull(saved.getBarcode());
+        assertTrue(saved.getBarcode().startsWith("BC-"), "Barcode must be auto-generated with 'BC-' prefix");
         assertEquals(0.8, saved.getWeightKg());
         assertEquals(30, saved.getWidthCm());
         assertEquals(20, saved.getHeightCm());
@@ -131,7 +132,7 @@ class CreateProductServiceTest {
     @DisplayName("SKU logistics fields are null when not provided")
     void execute_skuLogisticsFields_nullWhenOmitted() {
         SkuDefinition sku = new SkuDefinition("M", new Money(new BigDecimal("19.99")),
-                10, "BC-M", null, null, null, null);
+                10, null, null, null, null);
 
         service.execute(commandWith(List.of(variantDef(10L, List.of(sku)))));
 
@@ -147,7 +148,7 @@ class CreateProductServiceTest {
     void execute_webDescription_isSetOnVariant() {
         VariantDefinition varDef = new VariantDefinition(
                 10L, "Beautiful red dress", List.of(), List.of(),
-                List.of(skuDef("S", "59.99", 5, "BC-D")), false, true);
+                List.of(skuDef("S", "59.99", 5)), false, true);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -161,7 +162,7 @@ class CreateProductServiceTest {
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(),
                 List.of("https://cdn.example.com/a.jpg", "https://cdn.example.com/b.jpg"),
-                List.of(skuDef("S", "29.99", 10, "BC-I")), false, true);
+                List.of(skuDef("S", "29.99", 10)), false, true);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -177,7 +178,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, attrs, List.of(),
-                List.of(skuDef("S", "19.99", 8, "BC-A")), false, true);
+                List.of(skuDef("S", "19.99", 8)), false, true);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -188,7 +189,7 @@ class CreateProductServiceTest {
     @DisplayName("Product is created without a brand when brandId is null")
     void execute_noBrand_productBaseHasNullBrandId() {
         Command cmd = new Command("T-Shirt", 1L, null,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5, "BC-NB")))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
 
         service.execute(cmd);
 
@@ -200,7 +201,7 @@ class CreateProductServiceTest {
     void execute_withBrand_productBaseHasBrandId() {
         fakeBrand.store(new BrandView(7L, "Nike"));
         Command cmd = new Command("T-Shirt", 1L, 7L,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5, "BC-BR")))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
 
         service.execute(cmd);
 
@@ -210,7 +211,7 @@ class CreateProductServiceTest {
     @Test
     @DisplayName("Variant slug is generated and is non-blank")
     void execute_variantSlug_isGeneratedAndNotBlank() {
-        service.execute(commandWith(List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5, "BC-SL"))))));
+        service.execute(commandWith(List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5))))));
 
         String slug = fakeSave.lastSavedVariant.getSlug();
         assertNotNull(slug);
@@ -221,7 +222,7 @@ class CreateProductServiceTest {
     @Test
     @DisplayName("SKU code starts with 'SKU-' prefix")
     void execute_skuCode_hasPrefixSkuDash() {
-        service.execute(commandWith(List.of(variantDef(10L, List.of(skuDef("M", "39.99", 3, "BC-SC"))))));
+        service.execute(commandWith(List.of(variantDef(10L, List.of(skuDef("M", "39.99", 3))))));
 
         assertTrue(fakeSave.lastSavedSku.getSkuCode().startsWith("SKU-"));
     }
@@ -231,8 +232,8 @@ class CreateProductServiceTest {
     void execute_esIndex_calledOncePerVariant() {
         fakeColor.store(new ColorView(20L, "blue", "Blue", "#0000FF"));
         service.execute(commandWith(List.of(
-                variantDef(10L, List.of(skuDef("S", "19.99", 5, "BC-E1"))),
-                variantDef(20L, List.of(skuDef("M", "19.99", 5, "BC-E2"))))));
+                variantDef(10L, List.of(skuDef("S", "19.99", 5))),
+                variantDef(20L, List.of(skuDef("M", "19.99", 5))))));
 
         assertEquals(2, fakeIndex.indexCallCount);
     }
@@ -243,7 +244,7 @@ class CreateProductServiceTest {
         fakeIndex.throwOnIndex = true;
 
         Long id = service.execute(commandWith(List.of(
-                variantDef(10L, List.of(skuDef("S", "19.99", 5, "BC-EF"))))));
+                variantDef(10L, List.of(skuDef("S", "19.99", 5))))));
 
         assertNotNull(id, "ProductBase ID must be returned even when ES indexing throws");
         assertEquals(1, fakeSave.baseSaveCount);
@@ -258,7 +259,7 @@ class CreateProductServiceTest {
     @DisplayName("Throws ResourceNotFoundException when category does not exist")
     void execute_categoryNotFound_throws() {
         Command cmd = new Command("T-Shirt", 999L, null,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5, "BC-CF")))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
 
         assertThrows(ResourceNotFoundException.class, () -> service.execute(cmd));
         assertEquals(0, fakeSave.baseSaveCount, "No product should be saved");
@@ -272,7 +273,7 @@ class CreateProductServiceTest {
     @DisplayName("Throws ResourceNotFoundException when brandId is provided but brand does not exist")
     void execute_brandNotFound_throws() {
         Command cmd = new Command("T-Shirt", 1L, 999L,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5, "BC-BF")))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
 
         assertThrows(ResourceNotFoundException.class, () -> service.execute(cmd));
         assertEquals(0, fakeSave.baseSaveCount);
@@ -286,7 +287,7 @@ class CreateProductServiceTest {
     @DisplayName("Throws ResourceNotFoundException when color does not exist")
     void execute_colorNotFound_throws() {
         Command cmd = commandWith(List.of(
-                variantDef(999L, List.of(skuDef("S", "29.99", 5, "BC-CLF")))));
+                variantDef(999L, List.of(skuDef("S", "29.99", 5)))));
 
         assertThrows(ResourceNotFoundException.class, () -> service.execute(cmd));
     }
@@ -298,8 +299,8 @@ class CreateProductServiceTest {
         fakeColor.store(new ColorView(10L, "red", "Red", "#FF0000"));
 
         Command cmd = commandWith(List.of(
-                variantDef(10L, List.of(skuDef("S", "29.99", 5, "BC-C1"))),
-                variantDef(888L, List.of(skuDef("M", "29.99", 5, "BC-C2")))  // missing color
+                variantDef(10L, List.of(skuDef("S", "29.99", 5))),
+                variantDef(888L, List.of(skuDef("M", "29.99", 5)))  // missing color
         ));
 
         // The service is @Transactional — in a real context the whole TX rolls back.
@@ -316,7 +317,7 @@ class CreateProductServiceTest {
     void execute_noBlueprintRequirements_noError() {
         // fakeBlueprint returns empty list by default
         assertDoesNotThrow(() -> service.execute(
-                commandWith(List.of(variantDef(10L, List.of(skuDef("S", "19.99", 5, "BC-NR")))))));
+                commandWith(List.of(variantDef(10L, List.of(skuDef("S", "19.99", 5)))))));
     }
 
     @Test
@@ -330,7 +331,7 @@ class CreateProductServiceTest {
                 new ProductAttribute("Fit", "Slim", 2));
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, attrs, List.of(),
-                List.of(skuDef("S", "29.99", 5, "BC-RA")), false, true);
+                List.of(skuDef("S", "29.99", 5)), false, true);
 
         assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
@@ -343,7 +344,7 @@ class CreateProductServiceTest {
         // Variant provides no attributes at all
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(), List.of(),
-                List.of(skuDef("S", "29.99", 5, "BC-MR")), false, true);
+                List.of(skuDef("S", "29.99", 5)), false, true);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(varDef))));
@@ -359,11 +360,11 @@ class CreateProductServiceTest {
         List<ProductAttribute> attrsOk = List.of(new ProductAttribute("Fit", "Regular", 1));
         VariantDefinition variantOk   = new VariantDefinition(
                 10L, null, attrsOk, List.of(),
-                List.of(skuDef("S", "19.99", 5, "BC-V1")), false, true);
+                List.of(skuDef("S", "19.99", 5)), false, true);
 
         VariantDefinition variantBad  = new VariantDefinition(
                 20L, null, List.of(), List.of(),  // missing "Fit"
-                List.of(skuDef("M", "19.99", 5, "BC-V2")), false, true);
+                List.of(skuDef("M", "19.99", 5)), false, true);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(variantOk, variantBad))));
@@ -376,7 +377,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(), List.of(),   // "Care" not provided
-                List.of(skuDef("S", "19.99", 5, "BC-OPT")), false, true);
+                List.of(skuDef("S", "19.99", 5)), false, true);
 
         assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
@@ -388,7 +389,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, null, List.of(),   // null attributes
-                List.of(skuDef("S", "29.99", 5, "BC-NULL")), false, true);
+                List.of(skuDef("S", "29.99", 5)), false, true);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(varDef))));
@@ -406,8 +407,8 @@ class CreateProductServiceTest {
         return new VariantDefinition(colorId, null, List.of(), List.of(), skus, false, true);
     }
 
-    private SkuDefinition skuDef(String size, String price, int stock, String barcode) {
-        return new SkuDefinition(size, new Money(new BigDecimal(price)), stock, barcode,
+    private SkuDefinition skuDef(String size, String price, int stock) {
+        return new SkuDefinition(size, new Money(new BigDecimal(price)), stock,
                 null, null, null, null);
     }
 
