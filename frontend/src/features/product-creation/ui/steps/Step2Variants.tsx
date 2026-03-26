@@ -14,7 +14,25 @@ import {
   Package,
   ChevronsDown,
   Palette,
+  Star,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { fetchColors } from "@/entities/color";
 import { uploadProductImage } from "../../api/imageUpload";
 import { Button } from "@/shared/ui/button";
@@ -287,6 +305,9 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
                     images: activeVariant.images.filter((u) => u !== url),
                   })
                 }
+                onReorder={(newImages) =>
+                  updateVariant(activeVariant.colorId, { images: newImages })
+                }
               />
             </div>
           </div>
@@ -501,6 +522,73 @@ function Toggle({ checked, onChange }: ToggleProps) {
   );
 }
 
+// ── SortableImageCard ─────────────────────────────────────────────────
+
+interface SortableImageCardProps {
+  url: string;
+  index: number;
+  onDelete: (url: string) => void;
+}
+
+function SortableImageCard({ url, index, onDelete }: SortableImageCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: url });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        "aspect-square relative rounded-xl overflow-hidden border bg-gray-50 group select-none",
+        isDragging
+          ? "opacity-40 ring-2 ring-primary/50 shadow-2xl z-10"
+          : "shadow-sm hover:shadow-md transition-shadow duration-150"
+      )}
+    >
+      <Image
+        src={url}
+        alt={index === 0 ? "Main product image" : "Product image"}
+        fill
+        className="object-cover"
+        unoptimized
+        draggable={false}
+      />
+
+      {/* Drag surface — covers the image */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: "none" }}
+      />
+
+      {/* Main badge */}
+      {index === 0 && (
+        <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-0.5 bg-white/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-sm pointer-events-none">
+          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+          <span className="text-[10px] font-semibold text-amber-600">Main</span>
+        </div>
+      )}
+
+      {/* Delete button — above drag surface via z-10 */}
+      <button
+        type="button"
+        onClick={() => onDelete(url)}
+        className="absolute top-1.5 right-1.5 z-10 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+        aria-label="Remove image"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 // ── MediaZone ─────────────────────────────────────────────────────────
 
 type UploadStatus = "uploading" | "error";
@@ -509,14 +597,23 @@ interface MediaZoneProps {
   images: string[];
   onUploaded: (url: string) => void;
   onDelete: (url: string) => void;
+  onReorder: (images: string[]) => void;
 }
 
-function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
+function MediaZone({ images, onUploaded, onDelete, onReorder }: MediaZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploadStatuses, setUploadStatuses] = useState<
-    Record<string, UploadStatus>
-  >({});
+  const [uploadStatuses, setUploadStatuses] = useState<Record<string, UploadStatus>>({});
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Always point to the latest onUploaded so the async loop sees fresh state
+  // after each upload triggers a re-render.
+  const onUploadedRef = useRef(onUploaded);
+  onUploadedRef.current = onUploaded;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   function setStatus(id: string, status: UploadStatus | null) {
     setUploadStatuses((prev) => {
@@ -534,14 +631,14 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
         setStatus(tempId, "uploading");
         try {
           const { url } = await uploadProductImage(file);
-          onUploaded(url);
+          onUploadedRef.current(url);
           setStatus(tempId, null);
         } catch {
           setStatus(tempId, "error");
         }
       }
     },
-    [onUploaded]
+    [] // ref is stable — no deps needed
   );
 
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
@@ -550,13 +647,24 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
     e.target.value = "";
   }
 
-  function handleDrop(e: React.DragEvent) {
+  function handleFileDrop(e: React.DragEvent) {
     e.preventDefault();
     setIsDragOver(false);
     const files = Array.from(e.dataTransfer.files).filter((f) =>
       f.type.startsWith("image/")
     );
     if (files.length) processFiles(files);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = images.indexOf(active.id as string);
+      const newIndex = images.indexOf(over.id as string);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onReorder(arrayMove(images, oldIndex, newIndex));
+      }
+    }
   }
 
   const uploadingCount = Object.values(uploadStatuses).filter(
@@ -568,13 +676,10 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
 
   const hasImages = images.length > 0 || uploadingCount > 0;
 
-  const dragHandlers = {
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragOver(true);
-    },
+  const fileDragHandlers = {
+    onDragOver: (e: React.DragEvent) => { e.preventDefault(); setIsDragOver(true); },
     onDragLeave: () => setIsDragOver(false),
-    onDrop: handleDrop,
+    onDrop: handleFileDrop,
   };
 
   return (
@@ -617,23 +722,23 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
       {!hasImages && (
         <div
           onClick={() => inputRef.current?.click()}
-          {...dragHandlers}
+          {...fileDragHandlers}
           className={cn(
-            "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 cursor-pointer transition-all",
+            "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 cursor-pointer transition-all duration-200",
             isDragOver
               ? "border-primary bg-primary/5 scale-[0.99]"
-              : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50"
+              : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50/80"
           )}
         >
           <div
             className={cn(
-              "h-12 w-12 rounded-full flex items-center justify-center transition-colors",
-              isDragOver ? "bg-primary/10" : "bg-muted"
+              "h-11 w-11 rounded-xl flex items-center justify-center transition-all duration-200",
+              isDragOver ? "bg-primary/10 scale-110" : "bg-muted"
             )}
           >
             <ImagePlus
               className={cn(
-                "h-6 w-6 transition-colors",
+                "h-5 w-5 transition-colors",
                 isDragOver ? "text-primary" : "text-muted-foreground"
               )}
             />
@@ -649,89 +754,51 @@ function MediaZone({ images, onUploaded, onDelete }: MediaZoneProps) {
         </div>
       )}
 
-      {/* Focal image layout — main large + smaller grid */}
+      {/* Uniform sortable grid */}
       {hasImages && (
-        <div className="flex gap-2.5" style={{ minHeight: "200px" }}>
-          {/* Main image — large */}
-          <div className="w-48 h-48 relative rounded-xl overflow-hidden border bg-gray-50 shrink-0 group">
-            {images[0] && (
-              <>
-                <Image
-                  src={images[0]}
-                  alt="Main product image"
-                  fill
-                  className="object-cover"
-                  unoptimized
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={images} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-4 gap-2">
+              {images.map((url, index) => (
+                <SortableImageCard
+                  key={url}
+                  url={url}
+                  index={index}
+                  onDelete={onDelete}
                 />
-                <span className="absolute bottom-0 inset-x-0 bg-amber-500/90 text-white text-[10px] font-bold text-center py-1 pointer-events-none uppercase tracking-wide">
-                  Main
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onDelete(images[0])}
-                  className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+              ))}
+
+              {/* Uploading skeleton tiles */}
+              {Array.from({ length: uploadingCount }).map((_, i) => (
+                <div
+                  key={`uploading-${i}`}
+                  className="aspect-square rounded-xl border bg-muted/60 flex items-center justify-center animate-pulse"
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </>
-            )}
-            {!images[0] && uploadingCount > 0 && (
-              <div className="h-full flex items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            )}
-          </div>
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
+                </div>
+              ))}
 
-          {/* Secondary images grid */}
-          <div className="flex-1 grid grid-cols-4 gap-2 content-start">
-            {images.slice(1).map((url) => (
+              {/* Add more tile */}
               <div
-                key={url}
-                className="aspect-square relative rounded-lg overflow-hidden border bg-gray-50 group"
+                onClick={() => inputRef.current?.click()}
+                {...fileDragHandlers}
+                className={cn(
+                  "aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-150 gap-1.5",
+                  isDragOver
+                    ? "border-primary bg-primary/5 scale-[0.97]"
+                    : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50"
+                )}
               >
-                <Image
-                  src={url}
-                  alt="Product image"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-                <button
-                  type="button"
-                  onClick={() => onDelete(url)}
-                  className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
-                >
-                  <X className="h-3 w-3" />
-                </button>
+                <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground font-medium">Add</span>
               </div>
-            ))}
-
-            {/* Uploading placeholders */}
-            {Array.from({ length: uploadingCount }).map((_, i) => (
-              <div
-                key={`uploading-${i}`}
-                className="aspect-square rounded-lg border bg-muted flex items-center justify-center"
-              >
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            ))}
-
-            {/* Add more tile */}
-            <div
-              onClick={() => inputRef.current?.click()}
-              {...dragHandlers}
-              className={cn(
-                "aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors gap-1",
-                isDragOver
-                  ? "border-primary bg-primary/5"
-                  : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50"
-              )}
-            >
-              <ImagePlus className="h-4 w-4 text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground">Add</span>
             </div>
-          </div>
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
