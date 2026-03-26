@@ -1,26 +1,347 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, Loader2, X, Package } from "lucide-react";
+import {
+  X,
+  ImagePlus,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  Star,
+} from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
-import { Button } from "@/shared/ui/button";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { uploadListingImage, removeListingImage } from "@/entities/product/api";
 import { getErrorMessage } from "@/shared/lib";
+import { cn } from "@/shared/lib/utils";
 
 interface Props {
   slug: string;
   images: string[];
 }
 
-export function ImageCard({ slug, images: initialImages }: Props) {
-  const t = useTranslations("manage");
+// ── SortableImageCard ──────────────────────────────────────────────────
+
+interface SortableImageCardProps {
+  url: string;
+  index: number;
+  onDelete: (url: string) => void;
+  isDeleting: boolean;
+}
+
+function SortableImageCard({ url, index, onDelete, isDeleting }: SortableImageCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: url });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        "aspect-square relative rounded-xl overflow-hidden border bg-gray-50 group select-none",
+        isDragging
+          ? "opacity-40 ring-2 ring-primary/50 shadow-2xl z-10"
+          : "shadow-sm hover:shadow-md transition-shadow duration-150"
+      )}
+    >
+      <Image
+        src={url}
+        alt={index === 0 ? "Main product image" : "Product image"}
+        fill
+        className="object-cover"
+        unoptimized
+        draggable={false}
+      />
+
+      {/* Drag surface */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: "none" }}
+      />
+
+      {/* Main badge */}
+      {index === 0 && (
+        <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-0.5 bg-white/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-sm pointer-events-none">
+          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+          <span className="text-[10px] font-semibold text-amber-600">Main</span>
+        </div>
+      )}
+
+      {/* Delete button */}
+      <button
+        type="button"
+        onClick={() => onDelete(url)}
+        disabled={isDeleting}
+        className="absolute top-1.5 right-1.5 z-10 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 disabled:cursor-not-allowed"
+        aria-label="Remove image"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
+// ── MediaZone ──────────────────────────────────────────────────────────
+
+type UploadStatus = "uploading" | "error";
+
+interface MediaZoneProps {
+  images: string[];
+  onUploaded: (url: string) => void;
+  onDelete: (url: string) => void;
+  onReorder: (images: string[]) => void;
+  slug: string;
+  isDeletingUrl: string | null;
+}
+
+function MediaZone({ images, onUploaded, onDelete, onReorder, slug, isDeletingUrl }: MediaZoneProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploadStatuses, setUploadStatuses] = useState<Record<string, UploadStatus>>({});
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const onUploadedRef = useRef(onUploaded);
+  onUploadedRef.current = onUploaded;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function setStatus(id: string, status: UploadStatus | null) {
+    setUploadStatuses((prev) => {
+      const next = { ...prev };
+      if (status === null) delete next[id];
+      else next[id] = status;
+      return next;
+    });
+  }
+
+  const processFiles = useCallback(
+    async (files: File[]) => {
+      for (const file of files) {
+        const tempId = crypto.randomUUID();
+        setStatus(tempId, "uploading");
+        try {
+          const result = await uploadListingImage(slug, file);
+          // Backend returns updated images array; take the last one as the new URL
+          const newUrl = result.images[result.images.length - 1];
+          if (newUrl) {
+            onUploadedRef.current(newUrl);
+          }
+          setStatus(tempId, null);
+        } catch {
+          setStatus(tempId, "error");
+        }
+      }
+    },
+    [slug]
+  );
+
+  function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length) processFiles(files);
+    e.target.value = "";
+  }
+
+  function handleFileDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/")
+    );
+    if (files.length) processFiles(files);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = images.indexOf(active.id as string);
+      const newIndex = images.indexOf(over.id as string);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onReorder(arrayMove(images, oldIndex, newIndex));
+      }
+    }
+  }
+
+  const uploadingCount = Object.values(uploadStatuses).filter(
+    (s) => s === "uploading"
+  ).length;
+  const errorIds = Object.entries(uploadStatuses)
+    .filter(([, s]) => s === "error")
+    .map(([id]) => id);
+
+  const hasImages = images.length > 0 || uploadingCount > 0;
+
+  const fileDragHandlers = {
+    onDragOver: (e: React.DragEvent) => { e.preventDefault(); setIsDragOver(true); },
+    onDragLeave: () => setIsDragOver(false),
+    onDrop: handleFileDrop,
+  };
+
+  return (
+    <div className="space-y-3">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFileInput}
+      />
+
+      {/* Upload error banner */}
+      {errorIds.length > 0 && (
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-2.5 text-sm text-destructive">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>
+            {errorIds.length}{" "}
+            {errorIds.length === 1 ? "image" : "images"} failed to upload
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setUploadStatuses((prev) => {
+                const next = { ...prev };
+                errorIds.forEach((id) => delete next[id]);
+                return next;
+              })
+            }
+            className="ml-auto flex items-center gap-1 text-xs underline underline-offset-2 hover:opacity-70"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Empty drop zone */}
+      {!hasImages && (
+        <div
+          onClick={() => inputRef.current?.click()}
+          {...fileDragHandlers}
+          className={cn(
+            "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 cursor-pointer transition-all duration-200",
+            isDragOver
+              ? "border-primary bg-primary/5 scale-[0.99]"
+              : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50/80"
+          )}
+        >
+          <div
+            className={cn(
+              "h-11 w-11 rounded-xl flex items-center justify-center transition-all duration-200",
+              isDragOver ? "bg-primary/10 scale-110" : "bg-muted"
+            )}
+          >
+            <ImagePlus
+              className={cn(
+                "h-5 w-5 transition-colors",
+                isDragOver ? "text-primary" : "text-muted-foreground"
+              )}
+            />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">
+              Drop photos here or click to browse
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              PNG, JPG, WebP — up to 20 photos
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Sortable grid */}
+      {hasImages && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={images} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-4 gap-2">
+              {images.map((url, index) => (
+                <SortableImageCard
+                  key={url}
+                  url={url}
+                  index={index}
+                  onDelete={onDelete}
+                  isDeleting={isDeletingUrl === url}
+                />
+              ))}
+
+              {/* Uploading skeleton tiles */}
+              {Array.from({ length: uploadingCount }).map((_, i) => (
+                <div
+                  key={`uploading-${i}`}
+                  className="aspect-square rounded-xl border bg-muted/60 flex items-center justify-center animate-pulse"
+                >
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/60" />
+                </div>
+              ))}
+
+              {/* Add more tile */}
+              {images.length + uploadingCount < 20 && (
+                <div
+                  onClick={() => inputRef.current?.click()}
+                  {...fileDragHandlers}
+                  className={cn(
+                    "aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-150 gap-1.5",
+                    isDragOver
+                      ? "border-primary bg-primary/5 scale-[0.97]"
+                      : "border-muted-foreground/20 hover:border-primary/40 hover:bg-gray-50"
+                  )}
+                >
+                  <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground font-medium">Add</span>
+                </div>
+              )}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
+  );
+}
+
+// ── ImageCard ──────────────────────────────────────────────────────────
+
+export function ImageCard({ slug, images: serverImages }: Props) {
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [images, setImages] = useState(initialImages);
-  const [uploading, setUploading] = useState(false);
+  const [localImages, setLocalImages] = useState(serverImages);
+  const [deletingUrl, setDeletingUrl] = useState<string | null>(null);
+
+  // Sync server images into local state when they change (e.g. after page load
+  // or background refetch), but only if no images are currently tracked locally
+  // that aren't on the server yet (i.e. keep uploads in sync).
+  useEffect(() => {
+    setLocalImages(serverImages);
+  }, [serverImages]);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["listing", slug] });
@@ -29,107 +350,57 @@ export function ImageCard({ slug, images: initialImages }: Props) {
 
   const deleteMutation = useMutation({
     mutationFn: (url: string) => removeListingImage(slug, url),
+    onMutate: (url) => setDeletingUrl(url),
     onSuccess: (_, url) => {
-      setImages((prev) => prev.filter((u) => u !== url));
+      setLocalImages((prev) => prev.filter((u) => u !== url));
+      setDeletingUrl(null);
       invalidate();
-      toast.success(t("imageRemoved"));
+      toast.success("Image removed");
     },
-    onError: (err: unknown) => toast.error(getErrorMessage(err, t("failedToRemoveImage"))),
+    onError: (err: unknown, _url) => {
+      setDeletingUrl(null);
+      toast.error(getErrorMessage(err, "Failed to remove image"));
+    },
   });
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
+  function handleUploaded(url: string) {
+    setLocalImages((prev) => [...prev, url]);
+    invalidate();
+  }
 
-    setUploading(true);
-    try {
-      await uploadListingImage(slug, file);
-      invalidate();
-      toast.success(t("imageUploaded"));
-    } catch (err: unknown) {
-      toast.error(getErrorMessage(err, t("uploadFailed")));
-    } finally {
-      setUploading(false);
-    }
-  };
+  function handleDelete(url: string) {
+    deleteMutation.mutate(url);
+  }
+
+  function handleReorder(newImages: string[]) {
+    setLocalImages(newImages);
+  }
 
   return (
-    <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          {t("productImages")}
-        </h2>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          disabled={uploading || images.length >= 20}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {uploading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Upload className="h-3.5 w-3.5" />
-          )}
-          {uploading ? t("uploading") : t("addImage")}
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleUpload}
+    <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b bg-gray-50/60 flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Photos</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            First photo will be the main image. Drag to reorder. PNG, JPG, WebP.
+          </p>
+        </div>
+        {localImages.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {localImages.length} / 20
+          </span>
+        )}
+      </div>
+      <div className="p-5">
+        <MediaZone
+          images={localImages}
+          onUploaded={handleUploaded}
+          onDelete={handleDelete}
+          onReorder={handleReorder}
+          slug={slug}
+          isDeletingUrl={deletingUrl}
         />
       </div>
-
-      <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 relative">
-        {uploading && (
-          <div className="absolute inset-0 bg-background/60 z-10 flex items-center justify-center rounded-md">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        )}
-        {images.length > 0 ? (
-          images.map((url, idx) => (
-            <div
-              key={url}
-              className="group relative aspect-square rounded-md border overflow-hidden bg-muted"
-            >
-              <Image
-                src={url}
-                alt="Product"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              {idx === 0 && (
-                <span className="absolute bottom-1 left-1 z-10 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                  {t("primary")}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => deleteMutation.mutate(url)}
-                aria-label="Remove image"
-                disabled={deleteMutation.isPending}
-                className="absolute top-1 right-1 z-10 rounded-full bg-destructive p-1 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))
-        ) : (
-          <div className="col-span-4 sm:col-span-6 flex flex-col items-center justify-center rounded-md border border-dashed py-8 text-muted-foreground">
-            <Package className="h-8 w-8 mb-2" />
-            <p className="text-sm">{t("noImagesYet")}</p>
-          </div>
-        )}
-      </div>
-
-      {images.length >= 20 && (
-        <p className="text-xs text-muted-foreground">{t("maxImagesReached")}</p>
-      )}
     </div>
   );
 }

@@ -98,15 +98,18 @@ export async function updateListing(
 export async function uploadListingImage(
   slug: string,
   file: File
-): Promise<void> {
+): Promise<ImageUploadResponse> {
   if (!file.type.startsWith("image/")) {
     throw new Error("File must be an image");
   }
   const form = new FormData();
   form.append("files", file);
-  await apiClient.post(`/api/v1/listings/${slug}/images`, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const { data } = await apiClient.post<ImageUploadResponse>(
+    `/api/v1/listings/${slug}/images`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data;
 }
 
 /** Products filtered by category slug (includes descendants). */
