@@ -59,8 +59,8 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
 
     const existingKeys = new Set(state.attributes.map((a) => a.key));
     const toAdd: WizardAttribute[] = blueprint
-      .filter((entry) => !existingKeys.has(entry.key))
-      .map((entry, i) => ({ key: entry.key, value: "", sortOrder: i }));
+      .filter((entry) => !existingKeys.has(entry.attributeKey))
+      .map((entry, i) => ({ key: entry.attributeKey, value: "", sortOrder: i }));
 
     if (toAdd.length > 0) {
       update({ attributes: [...state.attributes, ...toAdd] });
@@ -70,14 +70,14 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
   const flatCategories = categories ? flattenTree(categories) : [];
   const errors = submitted ? validateStep1(state) : {};
 
-  const blueprintKeys = new Set(blueprint.map((e) => e.key));
+  const blueprintKeys = new Set(blueprint.map((e) => e.attributeKey));
 
   const blueprintAttrs = blueprint
     .slice()
-    .sort((a, b) => (a.key > b.key ? 1 : -1))
+    .sort((a, b) => (a.attributeKey > b.attributeKey ? 1 : -1))
     .map((entry) => ({
       entry,
-      attr: state.attributes.find((a) => a.key === entry.key),
+      attr: state.attributes.find((a) => a.key === entry.attributeKey),
     }));
 
   const freeFormAttrs = state.attributes
@@ -245,16 +245,16 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
                   <div className="divide-y -mx-6 px-6">
                     {blueprintAttrs.map(({ entry, attr }) => {
                       const hasError =
-                        submitted && entry.required && failingKeys.has(entry.key);
+                        submitted && entry.required && failingKeys.has(entry.attributeKey);
                       return (
                         <div
-                          key={entry.key}
+                          key={entry.attributeKey}
                           className="grid grid-cols-[1fr_2fr] gap-6 py-4 items-start first:pt-0 last:pb-0"
                         >
                           {/* Left: label + hint */}
                           <div className="pt-1">
                             <span className="text-sm font-medium text-foreground">
-                              {entry.key}
+                              {entry.attributeKey}
                               {entry.required && (
                                 <span className="text-destructive ml-0.5">*</span>
                               )}
@@ -271,7 +271,7 @@ export function Step1BaseInfo({ state, update, submitted, failingKeys }: Props) 
                           <div>
                             <Input
                               value={attr?.value ?? ""}
-                              onChange={(e) => setValue(entry.key, e.target.value)}
+                              onChange={(e) => setValue(entry.attributeKey, e.target.value)}
                               className={cn(
                                 hasError &&
                                   "border-destructive focus-visible:ring-destructive"

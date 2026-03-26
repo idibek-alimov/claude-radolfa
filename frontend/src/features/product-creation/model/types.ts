@@ -46,7 +46,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
 };
 
 export interface BlueprintEntryDto {
-  key: string;
+  attributeKey: string;
   required: boolean;
   suggestedValues?: string[];
 }
@@ -92,8 +92,8 @@ export function validateStep4(
   const failing = new Set<string>();
   for (const entry of blueprint) {
     if (!entry.required) continue;
-    const attr = state.attributes.find((a) => a.key === entry.key);
-    if (!attr || !attr.value.trim()) failing.add(entry.key);
+    const attr = state.attributes.find((a) => a.key === entry.attributeKey);
+    if (!attr || !attr.value.trim()) failing.add(entry.attributeKey);
   }
   return failing;
 }
