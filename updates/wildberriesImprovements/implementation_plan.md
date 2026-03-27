@@ -21,7 +21,7 @@ This plan implements four structural improvements to the product catalog inspire
 
 | Phase | Status | Summary of Implementation |
 |---|---|---|
-| **Phase 1:** Blueprint Type System | ⬜ PENDING | |
+| **Phase 1:** Blueprint Type System | ✅ COMPLETE | Added `AttributeType` enum (TEXT/NUMBER/ENUM/MULTI), `type`/`unitName` columns + `category_attribute_blueprint_values` table, updated all ports/services/adapter, and added ADMIN-only `POST`/`DELETE` blueprint management endpoints. |
 | **Phase 2:** Multi-Value Attribute Storage | ⬜ PENDING | |
 | **Phase 3:** Tags System | ⬜ PENDING | |
 | **Phase 4:** Dimensions to Variant Level | ⬜ PENDING | |
@@ -43,10 +43,9 @@ This plan implements four structural improvements to the product catalog inspire
     - `MULTI` — multiple selections from a fixed list (e.g., "Material: Cotton, Acrylic")
   - Place in the `domain` package — it is pure Java with zero external dependencies.
 
-### 1b — Schema Migration
+### 1b — Schema Changes
 
-- Create a new Flyway migration file (next available version number).
-- **Alter `category_attribute_blueprints`:**
+- **Edit `V2__product_catalog.sql`** — alter the `category_attribute_blueprints` block:
   - Add column `type VARCHAR(16) NOT NULL DEFAULT 'TEXT'` — stores the `AttributeType` enum name.
   - Add column `unit_name VARCHAR(64)` — nullable, display label appended to values (e.g., "cm", "kg").
 - **Create new table `category_attribute_blueprint_values`:**
@@ -113,10 +112,9 @@ This plan implements four structural improvements to the product catalog inspire
 
 **Goal: Change `ProductAttribute.value: String` → `values: List<String>` across the entire stack — domain, persistence, DTOs, and mappers.**
 
-### 2a — Schema Migration
+### 2a — Schema Changes
 
-- Create a new Flyway migration file.
-- **Drop and recreate `listing_variant_attributes`:**
+- **Edit `V2__product_catalog.sql`** — replace the `listing_variant_attributes` block entirely:
   ```sql
   DROP TABLE IF EXISTS listing_variant_attributes;
 
@@ -186,9 +184,9 @@ This plan implements four structural improvements to the product catalog inspire
 
 **Goal: Replace the hardcoded `topSelling: boolean` and `featured: boolean` on `ListingVariant` with a flexible `ProductTag` entity that can be created and assigned without schema changes.**
 
-### 3a — Schema Migration
+### 3a — Schema Changes
 
-- Create a new Flyway migration file.
+- **Edit `V2__product_catalog.sql`** — remove `top_selling` and `featured` from the `listing_variants` block, and append the two new tables at the end of the file:
 - **Create `product_tags` table:**
   ```sql
   CREATE TABLE product_tags (
@@ -281,25 +279,19 @@ This plan implements four structural improvements to the product catalog inspire
 
 **Goal: Move the four logistics fields (`weightKg`, `widthCm`, `heightCm`, `depthCm`) from `Sku` / `skus` table up to `ListingVariant` / `listing_variants` table. One logistics profile per color variant.**
 
-### 4a — Schema Migration
+### 4a — Schema Changes
 
-- Create a new Flyway migration file.
-- **Alter `listing_variants`:** Add columns:
+- **Edit `V2__product_catalog.sql`:**
+  - In the `listing_variants` block, add the four dimension columns.
+  - In the `skus` block, remove `weight_kg`, `width_cm`, `height_cm`, `depth_cm`.
+- **Result for `listing_variants`:** Add these four columns to the `CREATE TABLE listing_variants` block:
   ```sql
-  ALTER TABLE listing_variants
-      ADD COLUMN weight_kg  DOUBLE PRECISION,
-      ADD COLUMN width_cm   INT,
-      ADD COLUMN height_cm  INT,
-      ADD COLUMN depth_cm   INT;
+  weight_kg   DOUBLE PRECISION,
+  width_cm    INTEGER,
+  height_cm   INTEGER,
+  depth_cm    INTEGER,
   ```
-- **Alter `skus`:** Drop the four dimension columns:
-  ```sql
-  ALTER TABLE skus
-      DROP COLUMN weight_kg,
-      DROP COLUMN width_cm,
-      DROP COLUMN height_cm,
-      DROP COLUMN depth_cm;
-  ```
+- **Result for `skus`:** Remove `weight_kg`, `width_cm`, `height_cm`, `depth_cm` from the `CREATE TABLE skus` block.
 
 ### 4b — Domain Models
 
@@ -401,6 +393,26 @@ This plan implements four structural improvements to the product catalog inspire
 
 ## Schema & Persistence Instructions for Claude Code
 
-**This is an early development phase with no production data and no risk of data loss.** Do not pause or ask for permission regarding schema changes. If you need to drop/recreate tables, alter columns, or replace Flyway migrations — do it. Treat all schema operations as zero-risk.
+**This is an early development phase with no production data and no risk of data loss.** Do not pause or ask for permission regarding schema changes.
 
-Every schema change in this plan must be implemented as a new Flyway migration file (`V{N}__description.sql`). Do not edit existing migration files. Use the next available version number by checking the existing migrations in `src/main/resources/db/migration/`.
+**Edit existing migration files directly — do not create new ones** unless a brand-new table has no logical home in any existing file. The migration files are:
+
+| File | Owns |
+|------|------|
+| `V1__core_schema.sql` | Users, roles, categories, colors, brands |
+| `V2__product_catalog.sql` | product_bases, listing_variants, attributes, blueprints, SKUs |
+| `V3__commerce.sql` | Orders, order items |
+| `V4__cart_tables.sql` | Cart, cart items |
+| `V5__payments_table.sql` | Payments |
+| `V6__drop_sync_infrastructure.sql` | Cleanup of old sync tables |
+
+For each phase, edit the appropriate existing file in-place. After editing, **wipe and recreate the database** so Flyway re-runs cleanly from scratch:
+
+```bash
+# Drop and recreate the database (Docker Compose dev setup)
+docker-compose down -v && docker-compose up -d postgres
+# Then restart the backend — Flyway will re-run all migrations
+./mvnw spring-boot:run
+```
+
+Only create a new `V7__...sql` file if a new table is added that does not belong in any existing file (e.g., `product_tags` in Phase 3 could go into `V2__product_catalog.sql` or a new file — choose the existing file for cohesion).

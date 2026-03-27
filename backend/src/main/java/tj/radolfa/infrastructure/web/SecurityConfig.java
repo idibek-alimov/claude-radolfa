@@ -127,6 +127,12 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/admin/discount-types/**").hasRole("ADMIN")
 
                                                 // ============================================================
+                                                // ADMIN only: blueprint management
+                                                // ============================================================
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/categories/*/blueprint").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/*/blueprint/*").hasRole("ADMIN")
+
+                                                // ============================================================
                                                 // MANAGER + ADMIN: product creation, content enrichment, discounts
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")

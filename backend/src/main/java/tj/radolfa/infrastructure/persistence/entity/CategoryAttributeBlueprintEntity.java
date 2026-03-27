@@ -5,6 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+import tj.radolfa.domain.model.AttributeType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -28,9 +33,21 @@ public class CategoryAttributeBlueprintEntity extends BaseAuditEntity {
     @Column(name = "attribute_key", nullable = false, length = 128)
     private String attributeKey;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private AttributeType type;
+
+    @Column(name = "unit_name", length = 64)
+    private String unitName;
+
     @Column(name = "is_required", nullable = false)
     private boolean required;
 
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
+
+    @OneToMany(mappedBy = "blueprint", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
+    @BatchSize(size = 50)
+    private List<CategoryAttributeBlueprintValueEntity> allowedValues = new ArrayList<>();
 }

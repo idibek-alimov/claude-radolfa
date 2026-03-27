@@ -5,13 +5,12 @@ import tj.radolfa.domain.model.AttributeType;
 import java.util.List;
 
 /**
- * In-Port: returns the attribute blueprint for a given category.
- * The blueprint tells the frontend which attributes to surface and which are required.
+ * In-Port: creates a new attribute blueprint entry for a category.
  */
-public interface GetCategoryBlueprintUseCase {
+public interface CreateCategoryBlueprintUseCase {
 
-    record BlueprintEntryDto(
-            Long id,
+    record Command(
+            Long categoryId,
             String attributeKey,
             AttributeType type,
             String unitName,
@@ -21,9 +20,8 @@ public interface GetCategoryBlueprintUseCase {
     ) {}
 
     /**
-     * @param categoryId the category ID
-     * @return ordered list of blueprint entries; empty if no blueprint is configured
+     * @return the ID of the newly created blueprint entry
      * @throws tj.radolfa.domain.exception.ResourceNotFoundException if the category does not exist
      */
-    List<BlueprintEntryDto> getBlueprint(Long categoryId);
+    Long execute(Command command);
 }

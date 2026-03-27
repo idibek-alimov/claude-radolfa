@@ -27,7 +27,14 @@ public class GetCategoryBlueprintService implements GetCategoryBlueprintUseCase 
                         "Category not found: id=" + categoryId));
 
         return loadBlueprintPort.findByCategoryId(categoryId).stream()
-                .map(e -> new BlueprintEntryDto(e.attributeKey(), e.required(), e.sortOrder()))
+                .map(e -> new BlueprintEntryDto(
+                        e.id(),
+                        e.attributeKey(),
+                        e.type(),
+                        e.unitName(),
+                        e.allowedValues(),
+                        e.required(),
+                        e.sortOrder()))
                 .toList();
     }
 }

@@ -97,6 +97,8 @@ CREATE TABLE category_attribute_blueprints (
     id            BIGSERIAL    PRIMARY KEY,
     category_id   BIGINT       NOT NULL REFERENCES categories(id),
     attribute_key VARCHAR(128) NOT NULL,
+    type          VARCHAR(16)  NOT NULL DEFAULT 'TEXT',
+    unit_name     VARCHAR(64),
     is_required   BOOLEAN      NOT NULL DEFAULT FALSE,
     sort_order    INTEGER      NOT NULL DEFAULT 0,
     version       BIGINT       NOT NULL DEFAULT 0,
@@ -106,6 +108,15 @@ CREATE TABLE category_attribute_blueprints (
 );
 
 CREATE INDEX idx_blueprint_category_id ON category_attribute_blueprints (category_id);
+
+CREATE TABLE category_attribute_blueprint_values (
+    id           BIGSERIAL    PRIMARY KEY,
+    blueprint_id BIGINT       NOT NULL REFERENCES category_attribute_blueprints(id) ON DELETE CASCADE,
+    allowed_value VARCHAR(256) NOT NULL,
+    sort_order   INT          NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_cabv_blueprint_id ON category_attribute_blueprint_values (blueprint_id);
 
 -- ----------------------------------------------------------------
 -- SKUs  (previously: erp_item_code → sku_code)
