@@ -110,7 +110,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .toList();
 
                 List<AttributeDto> attributes = entity.getAttributes().stream()
-                                .map(a -> new AttributeDto(a.getAttrKey(), a.getAttrValue()))
+                                .map(a -> new AttributeDto(
+                                        a.getAttrKey(),
+                                        a.getValues().stream()
+                                                .map(tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeValueEntity::getValue)
+                                                .toList()))
                                 .toList();
 
                 List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());

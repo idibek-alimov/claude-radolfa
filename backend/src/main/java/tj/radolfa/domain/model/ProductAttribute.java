@@ -1,18 +1,27 @@
 package tj.radolfa.domain.model;
 
+import java.util.List;
+
 /**
- * An enrichment key-value attribute for a {@link ListingVariant}.
+ * An enrichment attribute for a {@link ListingVariant}, carrying one or more values.
  *
- * <p>Examples: {@code ("Material", "Organic Wool")}, {@code ("Fit", "Oversized")},
- * {@code ("Care", "Machine wash cold")}, {@code ("Origin", "Tajikistan")}.
+ * <p>Examples:
+ * <ul>
+ *   <li>{@code ("Fit", ["Oversized"], 0)} — ENUM: single selection</li>
+ *   <li>{@code ("Material", ["Cotton", "Acrylic"], 1)} — MULTI: multiple selections</li>
+ *   <li>{@code ("Weight", ["200"], 2)} — NUMBER: numeric value</li>
+ * </ul>
  *
  * <p>Owned entirely by the Radolfa content team — never overwritten by ERP sync.
  * Pure Java — zero Spring / JPA / Jackson dependencies.
  */
-public record ProductAttribute(String key, String value, int sortOrder) {
+public record ProductAttribute(String key, List<String> values, int sortOrder) {
 
     public ProductAttribute {
         if (key == null || key.isBlank()) throw new IllegalArgumentException("Attribute key must not be blank");
-        if (value == null || value.isBlank()) throw new IllegalArgumentException("Attribute value must not be blank");
+        if (values == null || values.isEmpty()) throw new IllegalArgumentException("Attribute values must not be empty");
+        for (String v : values) {
+            if (v == null || v.isBlank()) throw new IllegalArgumentException("Attribute value must not be blank");
+        }
     }
 }

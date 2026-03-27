@@ -128,7 +128,7 @@ public class ProductManagementController {
                                 v.webDescription(),
                                 v.attributes() == null ? List.of()
                                         : v.attributes().stream()
-                                                .map(a -> new ProductAttribute(a.key(), a.value(), a.sortOrder()))
+                                                .map(a -> new ProductAttribute(a.key(), a.values(), a.sortOrder()))
                                                 .toList(),
                                 v.images() == null ? List.of() : v.images(),
                                 v.skus().stream()

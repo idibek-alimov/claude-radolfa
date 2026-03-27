@@ -22,7 +22,7 @@ This plan implements four structural improvements to the product catalog inspire
 | Phase | Status | Summary of Implementation |
 |---|---|---|
 | **Phase 1:** Blueprint Type System | ✅ COMPLETE | Added `AttributeType` enum (TEXT/NUMBER/ENUM/MULTI), `type`/`unitName` columns + `category_attribute_blueprint_values` table, updated all ports/services/adapter, and added ADMIN-only `POST`/`DELETE` blueprint management endpoints. |
-| **Phase 2:** Multi-Value Attribute Storage | ⬜ PENDING | |
+| **Phase 2:** Multi-Value Attribute Storage | ✅ COMPLETE | `ProductAttribute.value` → `values: List<String>` across domain, JPA entities (new `listing_variant_attribute_values` child table), DTO, mapper, adapter, read model, and both controllers. |
 | **Phase 3:** Tags System | ⬜ PENDING | |
 | **Phase 4:** Dimensions to Variant Level | ⬜ PENDING | |
 | **Phase 5:** Blueprint Validation + Final Cleanup | ⬜ PENDING | |

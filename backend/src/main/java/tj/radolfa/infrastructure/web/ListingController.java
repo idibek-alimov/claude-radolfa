@@ -107,7 +107,7 @@ public class ListingController {
                 request.topSelling(),
                 request.featured(),
                 request.attributes() == null ? null : request.attributes().stream()
-                        .map(a -> new ProductAttribute(a.key(), a.value(), a.sortOrder()))
+                        .map(a -> new ProductAttribute(a.key(), a.values(), a.sortOrder()))
                         .toList()
         ));
         return ResponseEntity.ok().build();

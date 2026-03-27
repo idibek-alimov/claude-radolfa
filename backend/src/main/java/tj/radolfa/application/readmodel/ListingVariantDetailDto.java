@@ -38,9 +38,9 @@ public record ListingVariantDetailDto(
 ) {
     /**
      * A single product attribute shown on the detail page.
-     * Examples: key="Material" value="Organic Wool", key="Fit" value="Oversized".
+     * Examples: key="Material" values=["Organic Wool"], key="Material" values=["Cotton","Acrylic"].
      */
-    public record AttributeDto(String key, String value) {}
+    public record AttributeDto(String key, List<String> values) {}
 
     /**
      * Lightweight reference to another colour variant of the same product.

@@ -9,6 +9,7 @@ import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeValueEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
@@ -65,7 +66,12 @@ public interface ProductHierarchyMapper {
 
         List<ProductAttribute> attributes = entity.getAttributes() != null
                 ? entity.getAttributes().stream()
-                    .map(a -> new ProductAttribute(a.getAttrKey(), a.getAttrValue(), a.getSortOrder()))
+                    .map(a -> new ProductAttribute(
+                            a.getAttrKey(),
+                            a.getValues().stream()
+                                    .map(ListingVariantAttributeValueEntity::getValue)
+                                    .toList(),
+                            a.getSortOrder()))
                     .toList()
                 : Collections.emptyList();
 

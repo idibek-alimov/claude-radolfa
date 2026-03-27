@@ -18,6 +18,7 @@ import tj.radolfa.infrastructure.persistence.entity.BrandEntity;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
 import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeValueEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
@@ -140,8 +141,14 @@ public class ProductHierarchyAdapter
             ListingVariantAttributeEntity attrEntity = new ListingVariantAttributeEntity();
             attrEntity.setListingVariant(entity);
             attrEntity.setAttrKey(attr.key());
-            attrEntity.setAttrValue(attr.value());
             attrEntity.setSortOrder(attr.sortOrder());
+            for (int i = 0; i < attr.values().size(); i++) {
+                ListingVariantAttributeValueEntity valueEntity = new ListingVariantAttributeValueEntity();
+                valueEntity.setAttribute(attrEntity);
+                valueEntity.setValue(attr.values().get(i));
+                valueEntity.setSortOrder(i);
+                attrEntity.getValues().add(valueEntity);
+            }
             entity.getAttributes().add(attrEntity);
         }
 
@@ -240,8 +247,14 @@ public class ProductHierarchyAdapter
                     ListingVariantAttributeEntity attrEntity = new ListingVariantAttributeEntity();
                     attrEntity.setListingVariant(entity);
                     attrEntity.setAttrKey(attr.key());
-                    attrEntity.setAttrValue(attr.value());
                     attrEntity.setSortOrder(attr.sortOrder());
+                    for (int i = 0; i < attr.values().size(); i++) {
+                        ListingVariantAttributeValueEntity valueEntity = new ListingVariantAttributeValueEntity();
+                        valueEntity.setAttribute(attrEntity);
+                        valueEntity.setValue(attr.values().get(i));
+                        valueEntity.setSortOrder(i);
+                        attrEntity.getValues().add(valueEntity);
+                    }
                     entity.getAttributes().add(attrEntity);
                 }
             }
