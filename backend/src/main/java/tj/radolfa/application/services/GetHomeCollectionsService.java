@@ -6,9 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.GetHomeCollectionsUseCase;
 import tj.radolfa.application.ports.out.LoadHomeCollectionsPort;
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.infrastructure.web.dto.CollectionPageDto;
-import tj.radolfa.infrastructure.web.dto.HomeSectionDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.CollectionPageDto;
+import tj.radolfa.application.readmodel.HomeSectionDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,14 +69,14 @@ public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
             default -> throw new IllegalStateException("Unknown key: " + key);
         };
 
-        return Optional.of(new CollectionPageDto(key, title, result));
+        return Optional.of(new CollectionPageDto(key, title, result.content()));
     }
 
     private void addIfNotEmpty(List<HomeSectionDto> sections,
                                String key, String title,
                                List<ListingVariantDto> items) {
         if (!items.isEmpty()) {
-            sections.add(new HomeSectionDto(key, title, items));
+            sections.add(new HomeSectionDto(key, title, items)); // listings = items
         }
     }
 }

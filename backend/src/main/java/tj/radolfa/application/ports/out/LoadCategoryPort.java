@@ -1,5 +1,7 @@
 package tj.radolfa.application.ports.out;
 
+import tj.radolfa.application.readmodel.CategoryView;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -8,7 +10,7 @@ import java.util.Optional;
  */
 public interface LoadCategoryPort {
 
-    record CategoryView(Long id, String name, String slug, Long parentId) {}
+    Optional<CategoryView> findById(Long id);
 
     Optional<CategoryView> findByName(String name);
 

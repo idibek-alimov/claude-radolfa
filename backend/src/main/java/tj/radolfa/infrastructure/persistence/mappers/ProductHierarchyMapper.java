@@ -5,8 +5,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
@@ -24,6 +26,7 @@ public interface ProductHierarchyMapper {
     @Mapping(target = "variants", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "categoryName", ignore = true)
+    @Mapping(target = "brand", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -33,10 +36,11 @@ public interface ProductHierarchyMapper {
         if (entity == null) return null;
         return new ProductBase(
                 entity.getId(),
-                entity.getErpTemplateCode(),
+                entity.getExternalRef(),
                 entity.getName(),
-                entity.getCategoryName()
-        );
+                entity.getCategoryName(),
+                entity.getCategory() != null ? entity.getCategory().getId() : null,
+                entity.getBrand() != null ? entity.getBrand().getId() : null);
     }
 
     // ---- ListingVariant ----
@@ -44,6 +48,7 @@ public interface ProductHierarchyMapper {
     @Mapping(target = "productBase", ignore = true)
     @Mapping(target = "color", ignore = true)
     @Mapping(target = "images", ignore = true)
+    @Mapping(target = "attributes", ignore = true)
     @Mapping(target = "skus", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -58,6 +63,12 @@ public interface ProductHierarchyMapper {
                     .toList()
                 : Collections.emptyList();
 
+        List<ProductAttribute> attributes = entity.getAttributes() != null
+                ? entity.getAttributes().stream()
+                    .map(a -> new ProductAttribute(a.getAttrKey(), a.getAttrValue(), a.getSortOrder()))
+                    .toList()
+                : Collections.emptyList();
+
         return new ListingVariant(
                 entity.getId(),
                 entity.getProductBase() != null ? entity.getProductBase().getId() : null,
@@ -65,17 +76,20 @@ public interface ProductHierarchyMapper {
                 entity.getSlug(),
                 entity.getWebDescription(),
                 imageUrls,
+                attributes,
                 entity.isTopSelling(),
                 entity.isFeatured(),
-                entity.getLastSyncAt()
+                entity.getLastSyncAt(),
+                entity.getProductCode(),
+                entity.isEnabled(),
+                entity.isActive()
         );
     }
 
     // ---- Sku ----
 
     @Mapping(target = "listingVariant", ignore = true)
-    @Mapping(target = "price", source = "price", qualifiedByName = "moneyToBigDecimal")
-    @Mapping(target = "salePrice", source = "salePrice", qualifiedByName = "moneyToBigDecimal")
+    @Mapping(target = "originalPrice", source = "price", qualifiedByName = "moneyToBigDecimal")
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -86,12 +100,15 @@ public interface ProductHierarchyMapper {
         return new Sku(
                 entity.getId(),
                 entity.getListingVariant() != null ? entity.getListingVariant().getId() : null,
-                entity.getErpItemCode(),
+                entity.getSkuCode(),
                 entity.getSizeLabel(),
                 entity.getStockQuantity(),
-                Money.of(entity.getPrice()),
-                Money.of(entity.getSalePrice()),
-                entity.getSaleEndsAt()
+                Money.of(entity.getOriginalPrice()),
+                entity.getBarcode(),
+                entity.getWeightKg(),
+                entity.getWidthCm(),
+                entity.getHeightCm(),
+                entity.getDepthCm()
         );
     }
 

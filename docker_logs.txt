@@ -1,0 +1,328 @@
+ Image claude-radolfa-frontend Building 
+ Image claude-radolfa-backend Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.17kB done
+#1 DONE 0.0s
+
+#2 [backend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.93kB done
+#2 DONE 0.0s
+
+#3 [backend internal] load metadata for docker.io/library/eclipse-temurin:17-jre-alpine
+#3 ...
+
+#4 [frontend internal] load build definition from Dockerfile
+#4 transferring dockerfile: 2.80kB done
+#4 DONE 0.0s
+
+#5 [auth] library/eclipse-temurin:pull token for registry-1.docker.io
+#5 DONE 0.0s
+
+#6 [auth] library/node:pull token for registry-1.docker.io
+#6 DONE 0.0s
+
+#7 [frontend internal] load metadata for docker.io/library/node:20-alpine
+#7 DONE 1.1s
+
+#8 [backend internal] load metadata for docker.io/library/eclipse-temurin:17-jdk
+#8 ...
+
+#9 [frontend internal] load .dockerignore
+#9 transferring context: 2B done
+#9 DONE 0.0s
+
+#10 [frontend deps 1/4] FROM docker.io/library/node:20-alpine@sha256:b88333c42c23fbd91596ebd7fd10de239cedab9617de04142dde7315e3bc0afa
+#10 DONE 0.0s
+
+#11 [frontend internal] load build context
+#11 ...
+
+#8 [backend internal] load metadata for docker.io/library/eclipse-temurin:17-jdk
+#8 DONE 1.6s
+
+#11 [frontend internal] load build context
+#11 ...
+
+#3 [backend internal] load metadata for docker.io/library/eclipse-temurin:17-jre-alpine
+#3 DONE 1.6s
+
+#12 [backend internal] load .dockerignore
+#12 transferring context: 2B done
+#12 DONE 0.0s
+
+#13 [backend runtime 1/5] FROM docker.io/library/eclipse-temurin:17-jre-alpine@sha256:7aa804a1824d18d06c68598fe1c2953b5b203823731be7b9298bb3e0f1920b0d
+#13 DONE 0.0s
+
+#14 [backend builder 1/7] FROM docker.io/library/eclipse-temurin:17-jdk@sha256:d838da85ec7aa8fd72b613e30b5f7629d8f5ac70a4264d45735a8a2ed9af447c
+#14 resolve docker.io/library/eclipse-temurin:17-jdk@sha256:d838da85ec7aa8fd72b613e30b5f7629d8f5ac70a4264d45735a8a2ed9af447c 0.0s done
+#14 DONE 0.0s
+
+#15 [backend internal] load build context
+#15 transferring context: 21.11kB done
+#15 DONE 0.0s
+
+#16 [backend builder 2/7] WORKDIR /app
+#16 CACHED
+
+#17 [backend builder 3/7] COPY .mvn/ .mvn/
+#17 CACHED
+
+#18 [backend builder 4/7] COPY mvnw pom.xml ./
+#18 CACHED
+
+#19 [backend builder 5/7] RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+#19 CACHED
+
+#20 [backend builder 6/7] COPY src/ src/
+#20 CACHED
+
+#11 [frontend internal] load build context
+#11 transferring context: 2.35MB 0.6s done
+#11 DONE 0.7s
+
+#21 [frontend deps 3/4] COPY package.json package-lock.json* ./
+#21 CACHED
+
+#22 [frontend deps 4/4] RUN npm ci
+#22 CACHED
+
+#23 [frontend deps 2/4] WORKDIR /app
+#23 CACHED
+
+#24 [frontend builder 3/5] COPY --from=deps /app/node_modules ./node_modules
+#24 CACHED
+
+#25 [frontend builder 4/5] COPY . .
+#25 ...
+
+#26 [backend builder 7/7] RUN ./mvnw clean package -DskipTests -B
+#26 0.699 [INFO] Scanning for projects...
+#26 0.793 [INFO] 
+#26 0.793 [INFO] ---------------------< tj.radolfa:radolfa-backend >---------------------
+#26 0.793 [INFO] Building radolfa-backend 0.1.0-SNAPSHOT
+#26 0.793 [INFO]   from pom.xml
+#26 0.793 [INFO] --------------------------------[ jar ]---------------------------------
+#26 0.975 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.pom
+#26 1.345 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.pom (19 kB at 50 kB/s)
+#26 1.350 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/logging-parent/1.0.1.Final/logging-parent-1.0.1.Final.pom
+#26 1.377 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/logging-parent/1.0.1.Final/logging-parent-1.0.1.Final.pom (6.0 kB at 220 kB/s)
+#26 1.387 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/classmate/1.6.0/classmate-1.6.0.pom
+#26 1.450 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/classmate/1.6.0/classmate-1.6.0.pom (6.6 kB at 104 kB/s)
+#26 1.451 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/oss-parent/55/oss-parent-55.pom
+#26 1.495 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/oss-parent/55/oss-parent-55.pom (24 kB at 536 kB/s)
+#26 1.501 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy/1.14.12/byte-buddy-1.14.12.pom
+#26 1.557 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy/1.14.12/byte-buddy-1.14.12.pom (16 kB at 278 kB/s)
+#26 1.558 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy-parent/1.14.12/byte-buddy-parent-1.14.12.pom
+#26 1.612 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy-parent/1.14.12/byte-buddy-parent-1.14.12.pom (63 kB at 1.2 MB/s)
+#26 1.624 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-runtime/4.0.4/jaxb-runtime-4.0.4.pom
+#26 1.680 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-runtime/4.0.4/jaxb-runtime-4.0.4.pom (11 kB at 197 kB/s)
+#26 1.683 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/mvn/jaxb-runtime-parent/4.0.4/jaxb-runtime-parent-4.0.4.pom
+#26 1.764 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/mvn/jaxb-runtime-parent/4.0.4/jaxb-runtime-parent-4.0.4.pom (1.2 kB at 15 kB/s)
+#26 1.767 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/mvn/jaxb-parent/4.0.4/jaxb-parent-4.0.4.pom
+#26 1.808 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/mvn/jaxb-parent/4.0.4/jaxb-parent-4.0.4.pom (35 kB at 854 kB/s)
+#26 1.811 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/jaxb-bom-ext/4.0.4/jaxb-bom-ext-4.0.4.pom
+#26 1.846 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/jaxb-bom-ext/4.0.4/jaxb-bom-ext-4.0.4.pom (3.5 kB at 99 kB/s)
+#26 1.852 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-core/4.0.4/jaxb-core-4.0.4.pom
+#26 1.893 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-core/4.0.4/jaxb-core-4.0.4.pom (3.7 kB at 91 kB/s)
+#26 1.896 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/angus/angus-activation/2.0.1/angus-activation-2.0.1.pom
+#26 1.946 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/angus/angus-activation/2.0.1/angus-activation-2.0.1.pom (4.0 kB at 81 kB/s)
+#26 1.948 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/angus/angus-activation-project/2.0.1/angus-activation-project-2.0.1.pom
+#26 1.993 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/angus/angus-activation-project/2.0.1/angus-activation-project-2.0.1.pom (20 kB at 453 kB/s)
+#26 1.998 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/txw2/4.0.4/txw2-4.0.4.pom
+#26 2.036 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/txw2/4.0.4/txw2-4.0.4.pom (1.8 kB at 48 kB/s)
+#26 2.038 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/mvn/jaxb-txw-parent/4.0.4/jaxb-txw-parent-4.0.4.pom
+#26 2.075 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/xml/bind/mvn/jaxb-txw-parent/4.0.4/jaxb-txw-parent-4.0.4.pom (1.2 kB at 32 kB/s)
+#26 2.080 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.pom
+#26 2.128 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.pom (1.6 kB at 33 kB/s)
+#26 2.131 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/istack/istack-commons/4.1.2/istack-commons-4.1.2.pom
+#26 2.169 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/istack/istack-commons/4.1.2/istack-commons-4.1.2.pom (26 kB at 692 kB/s)
+#26 2.210 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/co/elastic/clients/elasticsearch-java/8.10.4/elasticsearch-java-8.10.4.pom
+#26 2.267 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/co/elastic/clients/elasticsearch-java/8.10.4/elasticsearch-java-8.10.4.pom (2.5 kB at 44 kB/s)
+#26 2.271 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/elasticsearch/client/elasticsearch-rest-client/8.10.4/elasticsearch-rest-client-8.10.4.pom
+#26 2.316 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/elasticsearch/client/elasticsearch-rest-client/8.10.4/elasticsearch-rest-client-8.10.4.pom (3.4 kB at 76 kB/s)
+#26 2.329 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcore-nio/4.4.16/httpcore-nio-4.4.16.pom
+#26 2.383 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcore-nio/4.4.16/httpcore-nio-4.4.16.pom (5.5 kB at 104 kB/s)
+#26 2.389 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.pom
+#26 2.431 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.pom (16 kB at 373 kB/s)
+#26 2.434 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/66/commons-parent-66.pom
+#26 2.492 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/66/commons-parent-66.pom (77 kB at 1.3 MB/s)
+#26 2.496 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/31/apache-31.pom
+#26 2.537 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/31/apache-31.pom (24 kB at 574 kB/s)
+#26 2.543 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.1.3/jakarta.json-api-2.1.3.pom
+#26 2.591 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.1.3/jakarta.json-api-2.1.3.pom (19 kB at 389 kB/s)
+#26 2.597 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-api/1.31.0/opentelemetry-api-1.31.0.pom
+#26 2.649 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-api/1.31.0/opentelemetry-api-1.31.0.pom (1.8 kB at 34 kB/s)
+#26 2.652 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-context/1.31.0/opentelemetry-context-1.31.0.pom
+#26 2.695 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-context/1.31.0/opentelemetry-context-1.31.0.pom (1.6 kB at 37 kB/s)
+#26 2.706 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.4/jackson-dataformat-toml-2.15.4.pom
+#26 2.758 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.4/jackson-dataformat-toml-2.15.4.pom (3.5 kB at 68 kB/s)
+#26 2.759 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformats-text/2.15.4/jackson-dataformats-text-2.15.4.pom
+#26 2.801 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformats-text/2.15.4/jackson-dataformats-text-2.15.4.pom (3.5 kB at 83 kB/s)
+#26 2.844 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.107.Final/netty-codec-http-4.1.107.Final.pom
+#26 2.881 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.107.Final/netty-codec-http-4.1.107.Final.pom (4.4 kB at 118 kB/s)
+#26 2.882 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.1.107.Final/netty-parent-4.1.107.Final.pom
+#26 2.928 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.1.107.Final/netty-parent-4.1.107.Final.pom (85 kB at 1.9 MB/s)
+#26 2.931 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-common/4.1.107.Final/netty-common-4.1.107.Final.pom
+#26 2.968 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-common/4.1.107.Final/netty-common-4.1.107.Final.pom (12 kB at 328 kB/s)
+#26 2.970 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.107.Final/netty-buffer-4.1.107.Final.pom
+#26 3.003 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.107.Final/netty-buffer-4.1.107.Final.pom (1.6 kB at 46 kB/s)
+#26 3.007 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.107.Final/netty-transport-4.1.107.Final.pom
+#26 3.037 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.107.Final/netty-transport-4.1.107.Final.pom (2.2 kB at 70 kB/s)
+#26 3.039 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.1.107.Final/netty-resolver-4.1.107.Final.pom
+#26 3.073 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.1.107.Final/netty-resolver-4.1.107.Final.pom (1.6 kB at 47 kB/s)
+#26 3.075 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.107.Final/netty-codec-4.1.107.Final.pom
+#26 3.111 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.107.Final/netty-codec-4.1.107.Final.pom (5.5 kB at 152 kB/s)
+#26 3.113 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.107.Final/netty-handler-4.1.107.Final.pom
+#26 3.147 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.107.Final/netty-handler-4.1.107.Final.pom (4.6 kB at 132 kB/s)
+#26 3.149 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.107.Final/netty-transport-native-unix-common-4.1.107.Final.pom
+#26 3.184 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.107.Final/netty-transport-native-unix-common-4.1.107.Final.pom (33 kB at 946 kB/s)
+#26 3.187 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.1.107.Final/netty-codec-http2-4.1.107.Final.pom
+#26 3.218 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.1.107.Final/netty-codec-http2-4.1.107.Final.pom (5.2 kB at 172 kB/s)
+#26 3.220 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.1.107.Final/netty-transport-classes-epoll-4.1.107.Final.pom
+#26 3.250 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.1.107.Final/netty-transport-classes-epoll-4.1.107.Final.pom (2.1 kB at 74 kB/s)
+#26 3.286 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.pom
+#26 3.321 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.pom (2.6 kB at 75 kB/s)
+#26 3.336 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy-agent/1.14.12/byte-buddy-agent-1.14.12.pom
+#26 3.376 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy-agent/1.14.12/byte-buddy-agent-1.14.12.pom (10 kB at 268 kB/s)
+#26 3.382 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.pom
+#26 3.420 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.pom (1.4 kB at 35 kB/s)
+#26 3.446 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/classmate/1.6.0/classmate-1.6.0.jar
+#26 3.446 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.jar
+#26 3.446 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy/1.14.12/byte-buddy-1.14.12.jar
+#26 3.447 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-runtime/4.0.4/jaxb-runtime-4.0.4.jar
+#26 3.447 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-core/4.0.4/jaxb-core-4.0.4.jar
+#26 3.533 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/classmate/1.6.0/classmate-1.6.0.jar (69 kB at 802 kB/s)
+#26 3.533 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/angus/angus-activation/2.0.1/angus-activation-2.0.1.jar
+#26 3.533 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.jar (59 kB at 688 kB/s)
+#26 3.533 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/txw2/4.0.4/txw2-4.0.4.jar
+#26 3.563 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/angus/angus-activation/2.0.1/angus-activation-2.0.1.jar (27 kB at 236 kB/s)
+#26 3.563 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar
+#26 3.564 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-core/4.0.4/jaxb-core-4.0.4.jar (139 kB at 1.2 MB/s)
+#26 3.564 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.12/slf4j-api-2.0.12.jar
+#26 3.604 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar (26 kB at 165 kB/s)
+#26 3.604 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/co/elastic/clients/elasticsearch-java/8.10.4/elasticsearch-java-8.10.4.jar
+#26 3.606 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/txw2/4.0.4/txw2-4.0.4.jar (73 kB at 458 kB/s)
+#26 3.606 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.1.3/jakarta.json-api-2.1.3.jar
+#26 3.624 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.12/slf4j-api-2.0.12.jar (68 kB at 385 kB/s)
+#26 3.624 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-api/1.31.0/opentelemetry-api-1.31.0.jar
+#26 3.691 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-api/1.31.0/opentelemetry-api-1.31.0.jar (138 kB at 565 kB/s)
+#26 3.691 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-context/1.31.0/opentelemetry-context-1.31.0.jar
+#26 3.697 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.1.3/jakarta.json-api-2.1.3.jar (49 kB at 195 kB/s)
+#26 3.697 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/elasticsearch/client/elasticsearch-rest-client/8.10.4/elasticsearch-rest-client-8.10.4.jar
+#26 3.740 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-context/1.31.0/opentelemetry-context-1.31.0.jar (47 kB at 161 kB/s)
+#26 3.740 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcore-nio/4.4.16/httpcore-nio-4.4.16.jar
+#26 3.747 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/elasticsearch/client/elasticsearch-rest-client/8.10.4/elasticsearch-rest-client-8.10.4.jar (73 kB at 243 kB/s)
+#26 3.747 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.4/jackson-dataformat-toml-2.15.4.jar
+#26 3.816 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-toml/2.15.4/jackson-dataformat-toml-2.15.4.jar (56 kB at 151 kB/s)
+#26 3.816 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.jar
+#26 3.849 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/glassfish/jaxb/jaxb-runtime/4.0.4/jaxb-runtime-4.0.4.jar (920 kB at 2.3 MB/s)
+#26 3.849 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.107.Final/netty-codec-http-4.1.107.Final.jar
+#26 3.885 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcore-nio/4.4.16/httpcore-nio-4.4.16.jar (369 kB at 842 kB/s)
+#26 3.885 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.1.107.Final/netty-codec-http2-4.1.107.Final.jar
+#26 3.909 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.jar (365 kB at 793 kB/s)
+#26 3.909 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.107.Final/netty-codec-4.1.107.Final.jar
+#26 4.005 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.107.Final/netty-codec-4.1.107.Final.jar (346 kB at 622 kB/s)
+#26 4.005 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.107.Final/netty-transport-4.1.107.Final.jar
+#26 4.116 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.1.107.Final/netty-codec-http2-4.1.107.Final.jar (489 kB at 732 kB/s)
+#26 4.116 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-common/4.1.107.Final/netty-common-4.1.107.Final.jar
+#26 4.182 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.107.Final/netty-transport-4.1.107.Final.jar (497 kB at 677 kB/s)
+#26 4.182 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.107.Final/netty-buffer-4.1.107.Final.jar
+#26 4.311 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.107.Final/netty-buffer-4.1.107.Final.jar (308 kB at 357 kB/s)
+#26 4.311 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.107.Final/netty-handler-4.1.107.Final.jar
+#26 4.343 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.107.Final/netty-codec-http-4.1.107.Final.jar (666 kB at 743 kB/s)
+#26 4.343 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.107.Final/netty-transport-native-unix-common-4.1.107.Final.jar
+#26 4.404 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-common/4.1.107.Final/netty-common-4.1.107.Final.jar (661 kB at 690 kB/s)
+#26 4.404 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.1.107.Final/netty-transport-classes-epoll-4.1.107.Final.jar
+#26 4.437 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.1.107.Final/netty-transport-native-unix-common-4.1.107.Final.jar (44 kB at 45 kB/s)
+#26 4.437 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.1.107.Final/netty-resolver-4.1.107.Final.jar
+#26 4.457 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.107.Final/netty-handler-4.1.107.Final.jar (563 kB at 558 kB/s)
+#26 4.457 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.jar
+#26 4.515 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.jar (55 kB at 51 kB/s)
+#26 4.515 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy-agent/1.14.12/byte-buddy-agent-1.14.12.jar
+#26 4.515 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.1.107.Final/netty-resolver-4.1.107.Final.jar (38 kB at 35 kB/s)
+#26 4.515 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar
+#26 4.520 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.1.107.Final/netty-transport-classes-epoll-4.1.107.Final.jar (147 kB at 137 kB/s)
+#26 4.570 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar (1.5 kB at 1.3 kB/s)
+#26 4.612 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy-agent/1.14.12/byte-buddy-agent-1.14.12.jar (257 kB at 220 kB/s)
+#26 4.936 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/net/bytebuddy/byte-buddy/1.14.12/byte-buddy-1.14.12.jar (4.2 MB at 2.8 MB/s)
+#26 5.276 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/co/elastic/clients/elasticsearch-java/8.10.4/elasticsearch-java-8.10.4.jar (11 MB at 6.3 MB/s)
+#26 5.294 [INFO] 
+#26 5.294 [INFO] --- clean:3.3.2:clean (default-clean) @ radolfa-backend ---
+#26 5.313 [INFO] 
+#26 5.313 [INFO] --- resources:3.3.1:resources (default-resources) @ radolfa-backend ---
+#26 5.346 [INFO] Copying 4 resources from src/main/resources to target/classes
+#26 5.353 [INFO] Copying 21 resources from src/main/resources to target/classes
+#26 5.355 [INFO] 
+#26 5.355 [INFO] --- compiler:3.11.0:compile (default-compile) @ radolfa-backend ---
+#26 5.385 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.pom
+#26 5.417 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.pom (1.4 kB at 45 kB/s)
+#26 5.418 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.pom
+#26 5.448 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.pom (3.3 kB at 105 kB/s)
+#26 5.450 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.jar
+#26 5.450 [INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar
+#26 5.487 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok-mapstruct-binding/0.2.0/lombok-mapstruct-binding-0.2.0.jar (2.4 kB at 65 kB/s)
+#26 5.612 [INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar (1.9 MB at 12 MB/s)
+#26 5.632 [INFO] Changes detected - recompiling the module! :source
+#26 5.634 [INFO] Compiling 179 source files with javac [debug release 17] to target/classes
+#26 7.448 [INFO] -------------------------------------------------------------
+#26 7.448 [ERROR] COMPILATION ERROR : 
+#26 7.448 [INFO] -------------------------------------------------------------
+#26 7.448 [ERROR] /app/src/main/java/tj/radolfa/infrastructure/persistence/mappers/UserMapper.java:[66,16] constructor LoyaltyTier in record tj.radolfa.domain.model.LoyaltyTier cannot be applied to given types;
+#26 7.448   required: java.lang.Long,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,int,java.lang.String,java.lang.Long
+#26 7.448   found:    java.lang.Long,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,int,java.lang.Long
+#26 7.448   reason: actual and formal argument lists differ in length
+#26 7.448 [INFO] 1 error
+#26 7.448 [INFO] -------------------------------------------------------------
+#26 7.448 [INFO] ------------------------------------------------------------------------
+#26 7.448 [INFO] BUILD FAILURE
+#26 7.448 [INFO] ------------------------------------------------------------------------
+#26 7.449 [INFO] Total time:  6.757 s
+#26 7.449 [INFO] Finished at: 2026-03-14T19:32:25Z
+#26 7.449 [INFO] ------------------------------------------------------------------------
+#26 7.450 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project radolfa-backend: Compilation failure
+#26 7.450 [ERROR] /app/src/main/java/tj/radolfa/infrastructure/persistence/mappers/UserMapper.java:[66,16] constructor LoyaltyTier in record tj.radolfa.domain.model.LoyaltyTier cannot be applied to given types;
+#26 7.450 [ERROR]   required: java.lang.Long,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,int,java.lang.String,java.lang.Long
+#26 7.450 [ERROR]   found:    java.lang.Long,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,int,java.lang.Long
+#26 7.450 [ERROR]   reason: actual and formal argument lists differ in length
+#26 7.450 [ERROR] -> [Help 1]
+#26 7.450 [ERROR] 
+#26 7.450 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+#26 7.450 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+#26 7.450 [ERROR] 
+#26 7.450 [ERROR] For more information about the errors and possible solutions, please read the following articles:
+#26 7.450 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+#26 ERROR: process "/bin/sh -c ./mvnw clean package -DskipTests -B" did not complete successfully: exit code: 1
+
+#25 [frontend builder 4/5] COPY . .
+#25 CANCELED
+------
+ > [backend builder 7/7] RUN ./mvnw clean package -DskipTests -B:
+7.450 [ERROR]   required: java.lang.Long,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,int,java.lang.String,java.lang.Long
+7.450 [ERROR]   found:    java.lang.Long,java.lang.String,java.math.BigDecimal,java.math.BigDecimal,java.math.BigDecimal,int,java.lang.Long
+7.450 [ERROR]   reason: actual and formal argument lists differ in length
+7.450 [ERROR] -> [Help 1]
+7.450 [ERROR] 
+7.450 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+7.450 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+7.450 [ERROR] 
+7.450 [ERROR] For more information about the errors and possible solutions, please read the following articles:
+7.450 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+------
+Dockerfile:25
+
+--------------------
+
+  23 |     
+
+  24 |     # Build the application (skip tests for faster builds; tests should run in CI)
+
+  25 | >>> RUN ./mvnw clean package -DskipTests -B
+
+  26 |     
+
+  27 |     # -----------------------------------------------------------------------------
+
+--------------------
+
+target backend: failed to solve: process "/bin/sh -c ./mvnw clean package -DskipTests -B" did not complete successfully: exit code: 1
+

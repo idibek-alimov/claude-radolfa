@@ -115,8 +115,8 @@ backend/test-results/
 frontend/coverage/
 frontend/.nyc_output/
 
-frontend-new/coverage/
-frontend-new/.nyc_output/
+reports/
+prompts/
 
 # -----------------------------------------------------------------------------
 # Build artifacts

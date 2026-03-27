@@ -42,6 +42,7 @@ import {
   AlertDialogCancel,
 } from "@/shared/ui/alert-dialog";
 import { MegaMenu, MegaMenuMobile } from "@/widgets/MegaMenu";
+import { CartIconButton, CartDrawer } from "@/widgets/CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -68,7 +69,7 @@ function UserAvatar({
     : phone.slice(-2);
 
   const ringColor =
-    role === "MANAGER" || role === "SYSTEM"
+    role === "MANAGER" || role === "ADMIN"
       ? "ring-purple-400"
       : "ring-primary/30";
 
@@ -190,12 +191,12 @@ function DesktopAuth() {
                 {user.role}
               </span>
             </div>
-            {/* Loyalty points preview */}
-            {user.loyaltyPoints > 0 && (
+            {/* Loyalty preview */}
+            {(user.loyalty?.tier || (user.loyalty?.points ?? 0) > 0) && (
               <div className="flex items-center gap-1.5 mt-1.5">
                 <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                 <span className="text-xs text-muted-foreground">
-                  {tp("points", { count: user.loyaltyPoints })}
+                  {tp("points", { count: user.loyalty?.points ?? 0 })}
                 </span>
               </div>
             )}
@@ -220,13 +221,24 @@ function DesktopAuth() {
           )}
 
           <DropdownMenuSeparator />
+          {user.loyalty?.tier && (
+            <DropdownMenuItem asChild className="py-2 cursor-pointer">
+              <Link href="/profile?tab=loyalty" className="flex items-center gap-2">
+                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />
+                <span className="text-xs">
+                  <span className="font-medium text-foreground">{user.loyalty.tier.name}</span>
+                  <span className="text-muted-foreground"> · {user.loyalty.tier.discountPercentage}% {tp("discount")}</span>
+                </span>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild className="py-3 cursor-pointer">
             <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
               {t("myProfile")}
             </Link>
           </DropdownMenuItem>
-          {(user.role === "MANAGER" || user.role === "SYSTEM") && (
+          {(user.role === "MANAGER" || user.role === "ADMIN") && (
             <DropdownMenuItem asChild className="py-3 cursor-pointer">
               <Link href="/manage">
                 <Settings className="mr-2 h-4 w-4" />
@@ -306,10 +318,10 @@ function MobileMenu() {
                       <span className="text-xs text-muted-foreground">
                         {tp("viewProfile")}
                       </span>
-                      {user.loyaltyPoints > 0 && (
+                      {(user.loyalty?.points ?? 0) > 0 && (
                         <span className="flex items-center gap-0.5 text-xs text-amber-600">
                           <Star className="h-2.5 w-2.5 fill-amber-500" />
-                          {user.loyaltyPoints}
+                          {tp("points", { count: user.loyalty?.points ?? 0 })}
                         </span>
                       )}
                     </div>
@@ -342,7 +354,7 @@ function MobileMenu() {
             {/* Categories accordion */}
             <MegaMenuMobile />
 
-            {(user?.role === "MANAGER" || user?.role === "SYSTEM") && (
+            {(user?.role === "MANAGER" || user?.role === "ADMIN") && (
               <SheetClose asChild>
                 <Link
                   href="/manage"
@@ -410,6 +422,7 @@ export default function Navbar() {
           {/* Right — Utilities */}
           <div className="flex items-center gap-2 shrink-0">
             <LanguageSwitcher />
+            <CartIconButton />
             <DesktopAuth />
           </div>
         </div>
@@ -429,6 +442,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-1">
               <LanguageSwitcher />
+              <CartIconButton />
               <MobileMenu />
             </div>
           </div>
@@ -442,6 +456,9 @@ export default function Navbar() {
 
       {/* Desktop: MegaMenu category bar */}
       <MegaMenu />
+
+      {/* Cart drawer — single instance, opened via "cart:open" custom event */}
+      <CartDrawer />
     </nav>
   );
 }

@@ -1,0 +1,9 @@
+package tj.radolfa.infrastructure.web.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
+public record CreateDiscountTypeRequest(
+        @NotBlank String name,
+        @Positive int rank
+) {}

@@ -22,16 +22,8 @@ public class ChangeUserRoleService implements ChangeUserRoleUseCase {
     @Override
     @Transactional
     public User execute(Long userId, UserRole newRole) {
-        if (newRole == UserRole.SYSTEM) {
-            throw new IllegalArgumentException("Cannot promote to SYSTEM role");
-        }
-
         User user = loadUserPort.loadById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
-
-        if (user.role() == UserRole.SYSTEM) {
-            throw new IllegalArgumentException("Cannot change role of SYSTEM users");
-        }
 
         User updated = new User(
                 user.id(),
@@ -39,7 +31,7 @@ public class ChangeUserRoleService implements ChangeUserRoleUseCase {
                 newRole,
                 user.name(),
                 user.email(),
-                user.loyaltyPoints(),
+                user.loyalty(),
                 user.enabled(),
                 user.version());
 

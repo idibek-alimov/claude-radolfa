@@ -1,9 +1,9 @@
 # Radolfa Project — Technical Constitution
 
 ## Project Context
-- **Type:** Monolithic E-commerce Mirror.
-- **Core Truth:** ERPNext is the SOURCE OF TRUTH for `price`, `name`, `stock`.
-- **Enrichment:** Radolfa App strictly *enriches* data (images, descriptions).
+- **Type:** Standalone E-commerce Platform.
+- **Core Truth:** Radolfa is the authoritative source for all data (products, prices, stock, orders).
+- **Enrichment:** Radolfa manages its own catalog — images, descriptions, pricing, and inventory.
 - **Infrastructure:** Single VPS (Docker Compose), AWS S3 for Assets.
 
 ## Architecture Guidelines (Strict Enforcement)
@@ -19,12 +19,11 @@
 - `tj.radolfa.infrastructure`:
   - `web`: REST Controllers (Adapters).
   - `persistence`: JPA Entities & Repositories (Adapters).
-  - `erp`: Feign/RestClient for ERPNext sync.
 
 **Rules:**
 - **Mapping:** Use MapStruct for `DTO` ↔ `Domain` ↔ `Entity`.
-- **Protection:** Never expose `ProductEntity` (JPA) in the Controller API.
-- **Safety:** The `enrichWithErpData()` method must exist in Domain to safely merge ERP updates.
+- **Protection:** Never expose JPA entities in the Controller API.
+- **Domain mutations:** Use named domain methods (e.g., `applyExternalUpdate()`) — never set fields directly from controllers.
 
 ### 2. Frontend: Feature-Sliced Design (FSD)
 **Structure:**
@@ -42,11 +41,11 @@
 
 ## Project Commands
 - **Backend Start:** `./mvnw spring-boot:run`
-- **Backend Test:** `./mvnw test` (Use `-Dtest=ErpSyncTest` for sync logic)
+- **Backend Test:** `./mvnw test`
 - **Frontend Start:** `npm run dev --prefix frontend`
 - **Frontend Build:** `npm run build --prefix frontend`
 - **Docker Dev:** `docker-compose up -d postgres elasticsearch`
 
 ## Critical Constraints
-- **Images:** NO processing on Frontend. NO processing on Fly. Java resizes -> S3 -> Frontend reads S3 URL.
-- **Security:** `MANAGER` role cannot change Price. `SYSTEM` role handles ERP Sync.
+- **Images:** NO processing on Frontend. Java resizes -> S3 -> Frontend reads S3 URL.
+- **Security:** `MANAGER` role can change Price and Stock. `ADMIN` role handles catalog management and all privileged operations. No external sync roles exist.

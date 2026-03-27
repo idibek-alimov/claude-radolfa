@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /**
  * JPA persistence model for the {@code users} table.
  *
@@ -39,6 +41,26 @@ public class UserEntity extends BaseAuditEntity {
 
     @Column(name = "loyalty_points", nullable = false)
     private int loyaltyPoints;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tier_id")
+    private LoyaltyTierEntity tier;
+
+    @Column(name = "spend_to_next_tier")
+    private BigDecimal spendToNextTier;
+
+    @Column(name = "spend_to_maintain_tier")
+    private BigDecimal spendToMaintainTier;
+
+    @Column(name = "current_month_spending")
+    private BigDecimal currentMonthSpending;
+
+    @Column(name = "loyalty_permanent", nullable = false)
+    private boolean loyaltyPermanent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lowest_tier_ever_id")
+    private LoyaltyTierEntity lowestTierEver;
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;

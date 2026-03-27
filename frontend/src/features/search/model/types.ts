@@ -4,13 +4,8 @@ import type { ListingVariant } from "@/entities/product";
 export interface SearchParams {
   query: string;
   page?: number;
-  limit?: number;
+  size?: number;
 }
 
 /** Paginated response returned by the search API. */
-export interface SearchResult {
-  items: ListingVariant[];
-  totalElements: number;
-  page: number;
-  hasMore: boolean;
-}
+export type SearchResult = import("@/shared/api").PaginatedResponse<ListingVariant>;

@@ -1,7 +1,0 @@
--- ================================================================
--- V11__seed_orders.sql
---
--- Order seed data intentionally omitted for production.
--- Orders are created by real users via the storefront and
--- synced bidirectionally with ERPNext.
--- ================================================================

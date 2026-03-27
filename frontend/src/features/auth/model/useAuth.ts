@@ -15,6 +15,8 @@ interface AuthState {
 interface UseAuthReturn extends AuthState {
   logout: () => void;
   updateUser: (user: User) => void;
+  /** Re-fetch /auth/me to refresh loyalty data (call after purchase, etc.) */
+  refreshUser: () => void;
 }
 
 /**
@@ -37,7 +39,7 @@ export function useAuth(): UseAuthReturn {
 
     async function fetchCurrentUser() {
       try {
-        const { data } = await apiClient.get<User>("/api/v1/auth/me");
+        const { data } = await apiClient.get<User>("/api/v1/users/me");
         if (!cancelled) {
           setAuthState({
             user: data,
@@ -79,9 +81,19 @@ export function useAuth(): UseAuthReturn {
     setAuthState((prev) => ({ ...prev, user: newUser }));
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data } = await apiClient.get<User>("/api/v1/users/me");
+      setAuthState({ user: data, isAuthenticated: true, isLoading: false });
+    } catch {
+      // If refresh fails, keep current state
+    }
+  }, []);
+
   return {
     ...authState,
     logout,
     updateUser,
+    refreshUser,
   };
 }

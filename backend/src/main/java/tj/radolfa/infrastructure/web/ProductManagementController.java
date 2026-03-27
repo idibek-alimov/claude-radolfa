@@ -1,16 +1,25 @@
 package tj.radolfa.infrastructure.web;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
+import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
+import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -20,41 +29,90 @@ import tj.radolfa.infrastructure.web.dto.UpdateProductNameRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateSkuSizeLabelRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateStockRequestDto;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Admin endpoints for native product management.
- * All routes require at minimum MANAGER role; price/stock mutations require ADMIN.
+ * All routes require at minimum MANAGER role; price/stock mutations require
+ * ADMIN.
  */
 @RestController
 @RequestMapping("/api/v1/admin")
+@Tag(name = "Admin — Product Management", description = "Admin/Manager endpoints for native product creation and mutation")
 public class ProductManagementController {
 
-    private final CreateProductUseCase         createProductUseCase;
-    private final UpdateProductPriceUseCase    updateProductPriceUseCase;
-    private final UpdateProductStockUseCase    updateProductStockUseCase;
-    private final UpdateProductNameUseCase     updateProductNameUseCase;
-    private final UpdateSkuSizeLabelUseCase    updateSkuSizeLabelUseCase;
+    private final CreateProductUseCase createProductUseCase;
+    private final UpdateProductPriceUseCase updateProductPriceUseCase;
+    private final UpdateProductStockUseCase updateProductStockUseCase;
+    private final UpdateProductNameUseCase updateProductNameUseCase;
+    private final UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase;
     private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
+    private final GenericUploadImageUseCase genericUploadImageUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
-                                       UpdateProductPriceUseCase updateProductPriceUseCase,
-                                       UpdateProductStockUseCase updateProductStockUseCase,
-                                       UpdateProductNameUseCase updateProductNameUseCase,
-                                       UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
-                                       UpdateProductCategoryUseCase updateProductCategoryUseCase) {
-        this.createProductUseCase         = createProductUseCase;
-        this.updateProductPriceUseCase    = updateProductPriceUseCase;
-        this.updateProductStockUseCase    = updateProductStockUseCase;
-        this.updateProductNameUseCase     = updateProductNameUseCase;
-        this.updateSkuSizeLabelUseCase    = updateSkuSizeLabelUseCase;
+            UpdateProductPriceUseCase updateProductPriceUseCase,
+            UpdateProductStockUseCase updateProductStockUseCase,
+            UpdateProductNameUseCase updateProductNameUseCase,
+            UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
+            UpdateProductCategoryUseCase updateProductCategoryUseCase,
+            GenericUploadImageUseCase genericUploadImageUseCase) {
+        this.createProductUseCase = createProductUseCase;
+        this.updateProductPriceUseCase = updateProductPriceUseCase;
+        this.updateProductStockUseCase = updateProductStockUseCase;
+        this.updateProductNameUseCase = updateProductNameUseCase;
+        this.updateSkuSizeLabelUseCase = updateSkuSizeLabelUseCase;
         this.updateProductCategoryUseCase = updateProductCategoryUseCase;
+        this.genericUploadImageUseCase = genericUploadImageUseCase;
+    }
+
+    /**
+     * POST /api/v1/admin/images/upload
+     * Upload a media image without product context. Returns a permanent S3 URL.
+     * Frontend calls this first; URLs are then passed into product creation
+     * requests.
+     * MANAGER + ADMIN.
+     */
+    @Operation(summary = "Upload a media image (staged upload)", description = "Processes and uploads an image to S3 at uploads/media/{uuid}.webp. "
+            +
+            "No product context required. Use the returned URL in product creation requests.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Image uploaded successfully; body contains {url}"),
+            @ApiResponse(responseCode = "400", description = "Image processing failed (corrupt file or unsupported format)"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role")
+    })
+    @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> uploadMediaImage(
+            @RequestParam("image") MultipartFile image) {
+
+        if (image.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            String url = genericUploadImageUseCase.upload(
+                    image.getInputStream(),
+                    image.getOriginalFilename());
+            return ResponseEntity.ok(Map.of("url", url));
+        } catch (IOException e) {
+            throw new ImageProcessingException("Failed to read uploaded file: " + image.getOriginalFilename(), e);
+        }
     }
 
     /**
      * POST /api/v1/admin/products
      * Create a new product with variants and SKUs. MANAGER + ADMIN.
      */
+    @Operation(summary = "Create product", description = "Creates a full product hierarchy (ProductBase → ListingVariants → SKUs) in a single request. "
+            +
+            "Upload images first via POST /admin/images/upload, then pass the URLs in the variants[].images array.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Product created; body contains {productBaseId}"),
+            @ApiResponse(responseCode = "400", description = "Validation failed or referenced entity not found (category, brand, color)"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "409", description = "Duplicate barcode or other unique constraint violation")
+    })
     @PostMapping("/products")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<Map<String, Long>> createProduct(
@@ -63,14 +121,29 @@ public class ProductManagementController {
         var command = new CreateProductUseCase.Command(
                 request.name(),
                 request.categoryId(),
-                request.colorId(),
-                request.skus().stream()
-                        .map(s -> new CreateProductUseCase.Command.SkuDefinition(
-                                s.sizeLabel(),
-                                new Money(s.price()),
-                                s.stockQuantity()))
-                        .toList()
-        );
+                request.brandId(),
+                request.variants().stream()
+                        .map(v -> new CreateProductUseCase.Command.VariantDefinition(
+                                v.colorId(),
+                                v.webDescription(),
+                                v.attributes() == null ? List.of()
+                                        : v.attributes().stream()
+                                                .map(a -> new ProductAttribute(a.key(), a.value(), a.sortOrder()))
+                                                .toList(),
+                                v.images() == null ? List.of() : v.images(),
+                                v.skus().stream()
+                                        .map(s -> new CreateProductUseCase.Command.SkuDefinition(
+                                                s.sizeLabel(),
+                                                new Money(s.price()),
+                                                s.stockQuantity(),
+                                                s.weightKg(),
+                                                s.widthCm(),
+                                                s.heightCm(),
+                                                s.depthCm()))
+                                        .toList(),
+                                v.isEnabled() != null && v.isEnabled(),
+                                v.isActive() == null || v.isActive()))
+                        .toList());
 
         Long productBaseId = createProductUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -81,6 +154,13 @@ public class ProductManagementController {
      * PUT /api/v1/admin/skus/{skuId}/price
      * Set the price of a specific SKU. ADMIN only.
      */
+    @Operation(summary = "Set SKU price", description = "Overwrites the price of a specific SKU. ADMIN only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Price updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid price value"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "SKU not found")
+    })
     @PutMapping("/skus/{skuId}/price")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updatePrice(
@@ -94,9 +174,16 @@ public class ProductManagementController {
     /**
      * PUT /api/v1/admin/skus/{skuId}/stock
      * Set or adjust the stock of a specific SKU. ADMIN only.
-     * Body: { "quantity": 50 }  — sets absolute value
-     * Body: { "delta": -5 }     — adjusts by delta
+     * Body: { "quantity": 50 } — sets absolute value
+     * Body: { "delta": -5 } — adjusts by delta
      */
+    @Operation(summary = "Set or adjust SKU stock", description = "Pass {\"quantity\": N} to set an absolute stock value, or {\"delta\": N} to adjust by N (positive or negative). ADMIN only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Stock updated"),
+            @ApiResponse(responseCode = "400", description = "Neither quantity nor delta provided"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "SKU not found")
+    })
     @PutMapping("/skus/{skuId}/stock")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updateStock(
@@ -115,6 +202,13 @@ public class ProductManagementController {
      * PATCH /api/v1/admin/products/{productBaseId}/name
      * Rename a product. MANAGER + ADMIN.
      */
+    @Operation(summary = "Rename product", description = "Updates the display name of a product base. MANAGER + ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Name updated"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @PatchMapping("/products/{productBaseId}/name")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<MessageResponseDto> updateProductName(
@@ -129,6 +223,13 @@ public class ProductManagementController {
      * PATCH /api/v1/admin/skus/{skuId}/size-label
      * Update the size label of a specific SKU. MANAGER + ADMIN.
      */
+    @Operation(summary = "Update SKU size label", description = "Changes the human-readable size label of a SKU (e.g. \"XL\", \"42\"). MANAGER + ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Size label updated"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "SKU not found")
+    })
     @PatchMapping("/skus/{skuId}/size-label")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<MessageResponseDto> updateSkuSizeLabel(
@@ -143,6 +244,13 @@ public class ProductManagementController {
      * PATCH /api/v1/admin/products/{productBaseId}/category
      * Reassign the category of a product. MANAGER + ADMIN.
      */
+    @Operation(summary = "Reassign product category", description = "Moves a product to a different category. MANAGER + ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Category updated"),
+            @ApiResponse(responseCode = "400", description = "Category not found"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     @PatchMapping("/products/{productBaseId}/category")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<MessageResponseDto> updateProductCategory(

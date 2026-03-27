@@ -25,7 +25,6 @@ import { createCategory, deleteCategory } from "@/entities/category";
 import { fetchColors, updateColor } from "@/entities/color";
 import { reindexSearch } from "@/features/search/api";
 import type { ReindexResult } from "@/features/search/api";
-import { CreateProductDialog } from "@/features/product-creation";
 import {
   Table,
   TableHeader,
@@ -179,9 +178,6 @@ function ProductManagement() {
   const t = useTranslations("manage");
   const router = useRouter();
 
-  // ── Create dialog state ──────────────────────────────────────────
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-
   // ── Query State ─────────────────────────────────────────────────
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -226,7 +222,7 @@ function ProductManagement() {
             className="pl-9"
           />
         </div>
-        <Button className="gap-1.5" onClick={() => setIsCreateOpen(true)}>
+        <Button className="gap-1.5" onClick={() => router.push("/manage/products/create")}>
           <Plus className="h-4 w-4" />
           {t("newProduct")}
         </Button>
@@ -364,13 +360,6 @@ function ProductManagement() {
         </div>
       )}
 
-      <CreateProductDialog
-        open={isCreateOpen}
-        onOpenChange={(open) => {
-          setIsCreateOpen(open);
-        }}
-        onCreated={(slug) => router.push(`/manage/products/${slug}/edit`)}
-      />
     </>
   );
 }

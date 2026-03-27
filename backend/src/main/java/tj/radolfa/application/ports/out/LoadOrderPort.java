@@ -9,5 +9,8 @@ public interface LoadOrderPort {
 
     Optional<Order> loadById(Long id);
 
-    Optional<Order> loadByErpOrderId(String erpOrderId);
+    Optional<Order> loadByExternalOrderId(String externalOrderId);
+
+    /** Returns the most recent {@code limit} PAID orders for the given user, newest first. */
+    List<Order> loadRecentPaidByUserId(Long userId, int limit);
 }

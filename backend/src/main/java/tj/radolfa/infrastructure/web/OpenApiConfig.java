@@ -30,7 +30,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Radolfa API")
                         .description("""
-                                Radolfa E-commerce API - Product catalog with ERP synchronization.
+                                Radolfa E-commerce API.
 
                                 ## Authentication
                                 This API uses JWT Bearer token authentication.
@@ -41,13 +41,9 @@ public class OpenApiConfig {
                                 4. Use the returned token in the Authorize button above
 
                                 ## Roles
-                                - **USER**: View products, profile, wishlist
+                                - **USER**: View products, profile, cart, order history
                                 - **MANAGER**: Upload images, edit descriptions
-                                - **SYSTEM**: ERP sync operations
-
-                                ## Important
-                                ERPNext is the source of truth for `price`, `name`, and `stock`.
-                                These fields can only be modified via ERP sync (SYSTEM role).
+                                - **ADMIN**: Full platform access — price, stock, orders, user management
                                 """)
                         .version("0.1.0")
                         .contact(new Contact()

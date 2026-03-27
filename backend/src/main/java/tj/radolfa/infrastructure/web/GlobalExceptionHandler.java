@@ -10,8 +10,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import tj.radolfa.domain.exception.ErpLockViolationException;
+import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
 import jakarta.persistence.OptimisticLockException;
@@ -73,6 +74,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles resource not found exceptions (missing entity by id/slug).
+     * Returns 404 Not Found.
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<MessageResponseDto> handleResourceNotFound(ResourceNotFoundException ex) {
+        LOG.warn("[NOT-FOUND] {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
      * Handles illegal argument exceptions.
      * Returns 400 Bad Request.
      */
@@ -95,6 +107,8 @@ public class GlobalExceptionHandler {
         String cause = ex.getMostSpecificCause().getMessage();
         if (cause != null && cause.contains("email")) {
             message = "This email address is already in use.";
+        } else if (cause != null && cause.contains("barcode")) {
+            message = "A SKU with this barcode already exists.";
         }
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -102,12 +116,12 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles ERP lock violations (e.g. manual edit of price/name).
+     * Handles field lock violations (e.g. manual edit of price/name).
      * Returns 403 Forbidden.
      */
-    @ExceptionHandler(ErpLockViolationException.class)
-    public ResponseEntity<MessageResponseDto> handleErpLockViolation(ErpLockViolationException ex) {
-        LOG.warn("[ERP-LOCK] {}", ex.getMessage());
+    @ExceptionHandler(FieldLockException.class)
+    public ResponseEntity<MessageResponseDto> handleFieldLockViolation(FieldLockException ex) {
+        LOG.warn("[FIELD-LOCK] {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
@@ -135,14 +149,15 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles illegal state exceptions (e.g. domain invariant violations).
-     * Returns 422 Unprocessable Entity.
+     * Handles illegal state exceptions (infrastructure invariant violations).
+     * Returns 500 Internal Server Error with a generic message — raw internal
+     * details are logged but never forwarded to the client.
      */
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<MessageResponseDto> handleIllegalState(IllegalStateException ex) {
-        LOG.warn("[STATE] Illegal state: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(MessageResponseDto.error(ex.getMessage()));
+        LOG.error("[STATE] Internal state error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(MessageResponseDto.error("An internal error occurred. Please try again later."));
     }
 
     /**

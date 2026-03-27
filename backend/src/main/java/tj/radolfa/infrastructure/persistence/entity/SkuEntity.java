@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Entity
 @Table(name = "skus")
@@ -25,8 +24,8 @@ public class SkuEntity extends BaseAuditEntity {
     @JoinColumn(name = "listing_variant_id", nullable = false)
     private ListingVariantEntity listingVariant;
 
-    @Column(name = "erp_item_code", nullable = false, unique = true, length = 64)
-    private String erpItemCode;
+    @Column(name = "sku_code", nullable = false, unique = true, length = 64)
+    private String skuCode;
 
     @Column(name = "size_label", length = 32)
     private String sizeLabel;
@@ -34,13 +33,21 @@ public class SkuEntity extends BaseAuditEntity {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
 
-    @Column(name = "price", precision = 12, scale = 2)
-    private BigDecimal price;
+    @Column(name = "original_price", precision = 12, scale = 2)
+    private BigDecimal originalPrice;
 
-    @Column(name = "sale_price", precision = 12, scale = 2)
-    private BigDecimal salePrice;
+    @Column(name = "barcode", length = 128, unique = true)
+    private String barcode;
 
-    @Column(name = "sale_ends_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Instant saleEndsAt;
+    @Column(name = "weight_kg")
+    private Double weightKg;
+
+    @Column(name = "width_cm")
+    private Integer widthCm;
+
+    @Column(name = "height_cm")
+    private Integer heightCm;
+
+    @Column(name = "depth_cm")
+    private Integer depthCm;
 }

@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import tj.radolfa.infrastructure.security.ApiKeyAuthenticationFilter;
+import tj.radolfa.infrastructure.security.ServiceApiKeyFilter;
 import tj.radolfa.infrastructure.security.ApiKeyProperties;
 import tj.radolfa.infrastructure.security.CorsProperties;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
@@ -35,17 +35,9 @@ import java.util.List;
  *
  * <h3>Role Permissions</h3>
  * <ul>
- * <li><b>USER</b>: Can view profile, wishlist, history</li>
- * <li><b>MANAGER</b>: Can upload images, edit descriptions (NOT
- * price/name/stock)</li>
- * <li><b>SYSTEM</b>: Can call ERP sync endpoints</li>
- * </ul>
- *
- * <h3>Critical Constraints (from CLAUDE.md)</h3>
- * <ul>
- * <li>ERPNext is the SOURCE OF TRUTH for price, name, stock</li>
- * <li>MANAGER role cannot change Price</li>
- * <li>SYSTEM role handles ERP Sync</li>
+ * <li><b>USER</b>: Can view profile, cart, order history</li>
+ * <li><b>MANAGER</b>: Can upload images, edit descriptions (NOT price/stock)</li>
+ * <li><b>ADMIN</b>: Full platform access — price, stock, orders, user management</li>
  * </ul>
  */
 @Configuration
@@ -59,14 +51,14 @@ import java.util.List;
 })
 public class SecurityConfig {
 
-        private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
+        private final ServiceApiKeyFilter serviceApiKeyFilter;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final CorsProperties corsProperties;
 
-        public SecurityConfig(ApiKeyAuthenticationFilter apiKeyAuthenticationFilter,
+        public SecurityConfig(ServiceApiKeyFilter serviceApiKeyFilter,
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         CorsProperties corsProperties) {
-                this.apiKeyAuthenticationFilter = apiKeyAuthenticationFilter;
+                this.serviceApiKeyFilter = serviceApiKeyFilter;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.corsProperties = corsProperties;
         }
@@ -91,8 +83,8 @@ public class SecurityConfig {
                                                 .accessDeniedHandler((req, res, e) ->
                                                         res.sendError(403, "Forbidden")))
 
-                                // Add API key filter first (machine-to-machine clients, e.g. ERPNext)
-                                .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                // Add API key filter first (service-to-service clients)
+                                .addFilterBefore(serviceApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
 
                                 // Add JWT filter for browser / mobile clients
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -108,6 +100,8 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers").permitAll()
+                                                .requestMatchers("/api/v1/webhooks/**").permitAll()
 
                                                 // Swagger / OpenAPI endpoints
                                                 .requestMatchers("/swagger-ui/**").permitAll()
@@ -116,34 +110,69 @@ public class SecurityConfig {
                                                 .requestMatchers("/v3/api-docs.yaml").permitAll()
 
                                                 // ============================================================
-                                                // SYSTEM role only: ERP Sync and Search index management
-                                                // Critical: Only SYSTEM can modify price/name/stock
+                                                // ADMIN only: Search index management
                                                 // ============================================================
-                                                .requestMatchers("/api/v1/sync/**").hasRole("SYSTEM")
-                                                .requestMatchers("/api/v1/search/**").hasRole("SYSTEM")
+                                                .requestMatchers("/api/v1/search/**").hasRole("ADMIN")
 
                                                 // ============================================================
-                                                // MANAGER role: Listing enrichment (images, descriptions)
-                                                // Note: MANAGER can enrich listings but NOT modify ERP fields
+                                                // ADMIN role: price, stock, order management, full admin access
                                                 // ============================================================
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/admin/skus/*/price").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/admin/skus/*/stock").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/*").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // ADMIN only: discount type management
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/admin/discount-types/**").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // MANAGER + ADMIN: product creation, content enrichment, discounts
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/listings/*")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/listings/*/images")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/listings/*/images")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/v1/colors/*")
-                                                .hasRole("MANAGER")
+                                                .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
-                                                // USER role: Profile, wishlist, order history
+                                                // Loyalty tier management
                                                 // ============================================================
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/loyalty-permanent")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/tier")
+                                                .hasAnyRole("MANAGER", "ADMIN")
+
+                                                // ============================================================
+                                                // USER role: Cart, profile, wishlist, order history
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/cart/**")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYSTEM")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/wishlist/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYSTEM")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
+
+                                                // ADMIN only: order status transitions
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/*/status")
+                                                .hasRole("ADMIN")
+                                                // USER + ADMIN: checkout, cancel, order history
                                                 .requestMatchers("/api/v1/orders/**")
-                                                .hasAnyRole("USER", "MANAGER", "SYSTEM")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
+
+                                                // ============================================================
+                                                // Payments
+                                                // ============================================================
+                                                // ADMIN only: refunds
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/payments/*/refund")
+                                                .hasRole("ADMIN")
+                                                // USER: initiate payment + check status
+                                                .requestMatchers("/api/v1/payments/**")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
 
                                                 // ============================================================
                                                 // Default: require authentication for all other endpoints
@@ -174,8 +203,7 @@ public class SecurityConfig {
                                 "Accept",
                                 "Origin",
                                 "X-Requested-With",
-                                "X-Api-Key",
-                                "Idempotency-Key"));
+                                "X-Api-Key"));
 
                 // Exposed headers (allow frontend to read these)
                 configuration.setExposedHeaders(List.of(

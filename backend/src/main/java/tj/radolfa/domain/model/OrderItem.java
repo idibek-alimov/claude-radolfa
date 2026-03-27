@@ -3,14 +3,14 @@ package tj.radolfa.domain.model;
 public class OrderItem {
         private final Long id;
         private final Long skuId;
-        private final String erpItemCode;
+        private final String skuCode;
         private final String productName;
         private final int quantity;
         private final Money price;
 
         public OrderItem(Long id,
                         Long skuId,
-                        String erpItemCode,
+                        String skuCode,
                         String productName,
                         int quantity,
                         Money price) {
@@ -19,7 +19,7 @@ public class OrderItem {
                 }
                 this.id = id;
                 this.skuId = skuId;
-                this.erpItemCode = erpItemCode;
+                this.skuCode = skuCode;
                 this.productName = productName;
                 this.quantity = quantity;
                 this.price = price;
@@ -33,8 +33,8 @@ public class OrderItem {
                 return skuId;
         }
 
-        public String getErpItemCode() {
-                return erpItemCode;
+        public String getSkuCode() {
+                return skuCode;
         }
 
         public String getProductName() {

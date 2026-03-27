@@ -14,6 +14,7 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.UserMapper;
 import tj.radolfa.infrastructure.persistence.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,7 +41,7 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
 
     @Override
     public Optional<User> loadById(Long id) {
-        return repository.findById(id)
+        return repository.findByIdWithTier(id)
                 .map(mapper::toUser);
     }
 
@@ -48,7 +49,17 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
     public User save(User user) {
         UserEntity entity = mapper.toEntity(user);
         UserEntity saved = repository.save(entity);
-        return mapper.toUser(saved);
+        // Reload with tier eagerly fetched to avoid LazyInitializationException
+        return repository.findByIdWithTier(saved.getId())
+                .map(mapper::toUser)
+                .orElseThrow();
+    }
+
+    @Override
+    public List<User> findAllNonPermanent() {
+        return repository.findAllNonPermanent().stream()
+                .map(mapper::toUser)
+                .toList();
     }
 
     @Override
@@ -60,6 +71,7 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
                 result.getContent().stream().map(mapper::toUser).toList(),
                 result.getTotalElements(),
                 page,
-                result.hasNext());
+                size,
+                !result.hasNext());
     }
 }

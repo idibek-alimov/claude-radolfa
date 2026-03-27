@@ -1,8 +1,11 @@
 # Radolfa Backend — Hexagonal Guardrails
 - **Pattern:** Strict Hexagonal (Ports & Adapters).
-- **Domain:** `com.radolfa.domain` (Zero dependencies).
-- **Application:** `com.radolfa.application` (Use Cases & Ports).
-- **Infrastructure:** `com.radolfa.infrastructure` (Adapters: JPA, REST, ERP, S3).
-- **Rules:** - All mapping between layers MUST use MapStruct.
+- **Domain:** `tj.radolfa.domain` (Zero dependencies — no Spring, no JPA, no Jackson).
+- **Application:** `tj.radolfa.application` (Use Cases & Ports).
+- **Infrastructure:** `tj.radolfa.infrastructure` (Adapters: JPA, REST, S3).
+- **Rules:**
+  - All mapping between layers MUST use MapStruct (or explicit `default` mapper methods for complex domain types).
   - No JPA `@Entity` annotations in the Domain layer.
-  - Use Java 17 `record` for all DTOs and Domain Models.
+  - Use Java 21 `record` for DTOs. Domain models may be mutable classes when they have business behaviour (e.g. `Cart`, `Sku`).
+  - Constructor injection only — no `@Autowired` on fields.
+  - `@Transactional` belongs on the service layer, not on adapters (except `SaveCartPort`, `SaveProductHierarchyPort` which are called from multiple services).

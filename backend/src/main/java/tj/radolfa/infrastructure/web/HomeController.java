@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import tj.radolfa.application.ports.in.GetHomeCollectionsUseCase;
-import tj.radolfa.infrastructure.web.dto.CollectionPageDto;
-import tj.radolfa.infrastructure.web.dto.HomeSectionDto;
+import tj.radolfa.application.readmodel.CollectionPageDto;
+import tj.radolfa.application.readmodel.HomeSectionDto;
 
 import java.util.List;
 
@@ -25,16 +25,19 @@ import java.util.List;
 public class HomeController {
 
     private final GetHomeCollectionsUseCase getHomeCollectionsUseCase;
+    private final TierPricingEnricher tierPricing;
 
-    public HomeController(GetHomeCollectionsUseCase getHomeCollectionsUseCase) {
+    public HomeController(GetHomeCollectionsUseCase getHomeCollectionsUseCase,
+                          TierPricingEnricher tierPricing) {
         this.getHomeCollectionsUseCase = getHomeCollectionsUseCase;
+        this.tierPricing = tierPricing;
     }
 
     @GetMapping("/collections")
     @Operation(summary = "Homepage collections",
                description = "Returns ordered sections (Featured, New Arrivals, Deals) for the homepage")
     public ResponseEntity<List<HomeSectionDto>> collections() {
-        return ResponseEntity.ok(getHomeCollectionsUseCase.getHomeSections());
+        return ResponseEntity.ok(tierPricing.enrichSections(getHomeCollectionsUseCase.getHomeSections()));
     }
 
     @GetMapping("/collections/{key}")
@@ -46,6 +49,7 @@ public class HomeController {
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
         return getHomeCollectionsUseCase.getSection(key, page, limit)
+                .map(tierPricing::enrich)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

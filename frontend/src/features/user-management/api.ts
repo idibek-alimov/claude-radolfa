@@ -1,12 +1,13 @@
 import apiClient from "@/shared/api/axios";
-import type { UserDto, PageResult, ToggleStatusParams, ChangeRoleParams } from "./types";
+import type { PaginatedResponse } from "@/shared/api/types";
+import type { UserDto, ToggleStatusParams, ChangeRoleParams } from "./types";
 
 export async function fetchUsers(
   search: string,
   page: number,
   size: number = 20
-): Promise<PageResult<UserDto>> {
-  const { data } = await apiClient.get<PageResult<UserDto>>("/api/v1/users", {
+): Promise<PaginatedResponse<UserDto>> {
+  const { data } = await apiClient.get<PaginatedResponse<UserDto>>("/api/v1/users", {
     params: { search, page, size },
   });
   return data;
@@ -18,8 +19,7 @@ export async function toggleUserStatus({
 }: ToggleStatusParams): Promise<UserDto> {
   const { data } = await apiClient.patch<UserDto>(
     `/api/v1/users/${userId}/status`,
-    null,
-    { params: { enabled } }
+    { enabled }
   );
   return data;
 }
@@ -30,8 +30,7 @@ export async function changeUserRole({
 }: ChangeRoleParams): Promise<UserDto> {
   const { data } = await apiClient.patch<UserDto>(
     `/api/v1/users/${userId}/role`,
-    null,
-    { params: { role } }
+    { role }
   );
   return data;
 }

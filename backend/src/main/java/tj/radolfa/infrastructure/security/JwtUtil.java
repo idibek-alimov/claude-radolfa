@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.TokenIssuerPort;
 import tj.radolfa.domain.model.UserRole;
 
 import javax.crypto.SecretKey;
@@ -24,7 +25,7 @@ import java.util.Optional;
  * </ul>
  */
 @Component
-public class JwtUtil {
+public class JwtUtil implements TokenIssuerPort {
 
     private static final Logger LOG = LoggerFactory.getLogger(JwtUtil.class);
 

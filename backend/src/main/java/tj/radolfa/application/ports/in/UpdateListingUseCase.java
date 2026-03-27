@@ -1,5 +1,7 @@
 package tj.radolfa.application.ports.in;
 
+import tj.radolfa.domain.model.ProductAttribute;
+
 import java.util.List;
 
 public interface UpdateListingUseCase {
@@ -13,6 +15,6 @@ public interface UpdateListingUseCase {
             String webDescription,
             Boolean topSelling,
             Boolean featured,
-            List<String> images) {
+            List<ProductAttribute> attributes) {
     }
 }

@@ -1,12 +1,13 @@
 package tj.radolfa.domain.model;
 
-import java.time.Instant;
-
 /**
- * A size/price variant — the actual purchasable unit (one ERPNext Item).
+ * A size/price variant — the actual purchasable unit.
  *
- * <p>All pricing and stock fields are ERP-locked and <b>always</b>
- * overwritten on every sync via {@link #updateFromErp}.
+ * <p>All pricing and stock fields are authoritative-source-locked and
+ * <b>always</b> overwritten on every sync via {@link #updatePriceAndStock}.
+ *
+ * <p>Logistics fields (barcode, weight, dimensions) are Radolfa-managed only
+ * and are never overwritten by ERP sync.
  *
  * <p>Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
  */
@@ -14,70 +15,83 @@ public class Sku {
 
     private final Long   id;
     private final Long   listingVariantId;
-    private final String erpItemCode;
+    private final String skuCode;
 
     private String  sizeLabel;
 
-    // ERP-locked fields — always overwritten
+    // Authoritative-source-locked fields — always overwritten on sync
     private Integer stockQuantity;
-    private Money   price;         // Original / list price
-    private Money   salePrice;     // Effective price (after promotions)
-    private Instant saleEndsAt;
+    private Money   price;
 
+    // Radolfa-managed logistics fields — never touched by ERP sync
+    private String  barcode;
+    private Double  weightKg;
+    private Integer widthCm;
+    private Integer heightCm;
+    private Integer depthCm;
+
+    /** Full constructor — used when loading from persistence. */
     public Sku(Long id,
                Long listingVariantId,
-               String erpItemCode,
+               String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price,
-               Money salePrice,
-               Instant saleEndsAt) {
+               String barcode,
+               Double weightKg,
+               Integer widthCm,
+               Integer heightCm,
+               Integer depthCm) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
-        this.erpItemCode      = erpItemCode;
+        this.skuCode          = skuCode;
         this.sizeLabel        = sizeLabel;
         this.stockQuantity    = stockQuantity;
         this.price            = price;
-        this.salePrice        = salePrice;
-        this.saleEndsAt       = saleEndsAt;
+        this.barcode          = barcode;
+        this.weightKg         = weightKg;
+        this.widthCm          = widthCm;
+        this.heightCm         = heightCm;
+        this.depthCm          = depthCm;
+    }
+
+    /** Legacy constructor — used by ERP sync path (no logistics fields). */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price,
+             null, null, null, null, null);
     }
 
     /**
-     * ERP merge — overwrites ALL pricing and stock fields.
-     * This is the single authorised write path.
+     * Authoritative-source merge — overwrites ALL pricing and stock fields.
+     * This is the single authorised write path for ERP sync.
      */
-    public void updateFromErp(Integer stockQuantity,
-                              Money price,
-                              Money salePrice,
-                              Instant saleEndsAt) {
-        this.stockQuantity = stockQuantity;
+    public void updatePriceAndStock(Money price, Integer stockQuantity) {
         this.price         = price;
-        this.salePrice     = salePrice;
-        this.saleEndsAt    = saleEndsAt;
+        this.stockQuantity = stockQuantity;
     }
 
     /**
-     * Updates the size label. Called when ERP sends a different label.
+     * Updates the size label. Called when the external source sends a different label.
      */
     public void updateSizeLabel(String sizeLabel) {
         this.sizeLabel = sizeLabel;
     }
 
-    // ---- Queries ----
-
-    public boolean isOnSale() {
-        if (salePrice == null || price == null) return false;
-        if (saleEndsAt != null && Instant.now().isAfter(saleEndsAt)) return false;
-        return salePrice.amount().compareTo(price.amount()) < 0;
-    }
-
     // ---- Getters ----
     public Long    getId()               { return id; }
-    public Long    getListingVariantId()  { return listingVariantId; }
-    public String  getErpItemCode()      { return erpItemCode; }
+    public Long    getListingVariantId() { return listingVariantId; }
+    public String  getSkuCode()          { return skuCode; }
     public String  getSizeLabel()        { return sizeLabel; }
     public Integer getStockQuantity()    { return stockQuantity; }
     public Money   getPrice()            { return price; }
-    public Money   getSalePrice()        { return salePrice; }
-    public Instant getSaleEndsAt()       { return saleEndsAt; }
+    public String  getBarcode()          { return barcode; }
+    public Double  getWeightKg()         { return weightKg; }
+    public Integer getWidthCm()          { return widthCm; }
+    public Integer getHeightCm()         { return heightCm; }
+    public Integer getDepthCm()          { return depthCm; }
 }

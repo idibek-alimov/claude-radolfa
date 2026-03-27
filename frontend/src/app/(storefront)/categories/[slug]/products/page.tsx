@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ProductGrid } from "@/widgets/ProductList";
@@ -19,9 +20,9 @@ const PAGE_LIMIT = 12;
 export default function CategoryProductsPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = use(params);
   const t = useTranslations("common");
 
   const {
@@ -36,12 +37,12 @@ export default function CategoryProductsPage({
       fetchCategoryProducts(slug, pageParam, PAGE_LIMIT),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasMore) return undefined;
+      if (lastPage.last) return undefined;
       return allPages.length + 1;
     },
   });
 
-  const listings = data?.pages.flatMap((p) => p.items) ?? [];
+  const listings = data?.pages.flatMap((p) => p.content) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
   const title = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 

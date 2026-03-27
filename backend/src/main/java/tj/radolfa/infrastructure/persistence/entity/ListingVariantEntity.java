@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 @Entity
 @Table(name = "listing_variants", uniqueConstraints = @UniqueConstraint(columnNames = { "product_base_id",
         "color_id" }))
+@BatchSize(size = 50)
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
@@ -34,6 +36,9 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "slug", nullable = false, unique = true, length = 255)
     private String slug;
 
+    @Column(name = "product_code", unique = true, length = 10)
+    private String productCode;
+
     @Column(name = "web_description", columnDefinition = "TEXT")
     private String webDescription;
 
@@ -43,14 +48,27 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "featured", nullable = false)
     private boolean featured = false;
 
+    @Column(name = "is_enabled", nullable = false)
+    private boolean isEnabled = false;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
     @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
+    @BatchSize(size = 50)
     private List<ListingVariantImageEntity> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @BatchSize(size = 50)
+    private List<ListingVariantAttributeEntity> attributes = new ArrayList<>();
 
     @Column(name = "last_sync_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant lastSyncAt;
 
     @OneToMany(mappedBy = "listingVariant", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<SkuEntity> skus = new ArrayList<>();
 }

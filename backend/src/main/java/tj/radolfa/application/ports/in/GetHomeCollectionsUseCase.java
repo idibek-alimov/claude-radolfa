@@ -1,7 +1,7 @@
 package tj.radolfa.application.ports.in;
 
-import tj.radolfa.infrastructure.web.dto.CollectionPageDto;
-import tj.radolfa.infrastructure.web.dto.HomeSectionDto;
+import tj.radolfa.application.readmodel.CollectionPageDto;
+import tj.radolfa.application.readmodel.HomeSectionDto;
 
 import java.util.List;
 import java.util.Optional;
