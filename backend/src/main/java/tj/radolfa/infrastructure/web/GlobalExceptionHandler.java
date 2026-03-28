@@ -11,9 +11,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tj.radolfa.domain.exception.DuplicateResourceException;
+import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.exception.UnauthorizedReviewException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
 import jakarta.persistence.OptimisticLockException;
@@ -125,6 +127,28 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(message));
+    }
+
+    /**
+     * Handles review submission by a user who has not purchased the variant.
+     * Returns 403 Forbidden.
+     */
+    @ExceptionHandler(UnauthorizedReviewException.class)
+    public ResponseEntity<MessageResponseDto> handleUnauthorizedReview(UnauthorizedReviewException ex) {
+        LOG.warn("[REVIEW] Unauthorized review attempt: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles duplicate review submission (same order + variant already reviewed).
+     * Returns 409 Conflict.
+     */
+    @ExceptionHandler(DuplicateReviewException.class)
+    public ResponseEntity<MessageResponseDto> handleDuplicateReview(DuplicateReviewException ex) {
+        LOG.warn("[REVIEW] Duplicate review: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
     }
 
     /**

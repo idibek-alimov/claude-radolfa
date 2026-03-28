@@ -160,8 +160,10 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
-                                                // USER role: Cart, profile, wishlist, order history
+                                                // USER role: Cart, profile, wishlist, order history, reviews
                                                 // ============================================================
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/reviews")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
