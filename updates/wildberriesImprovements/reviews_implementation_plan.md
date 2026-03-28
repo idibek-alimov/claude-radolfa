@@ -38,7 +38,7 @@ docker-compose down -v && docker-compose up -d postgres
 
 | Phase | Status | Summary |
 |---|---|---|
-| **Phase 1:** Schema + Core Domain | ⬜ PENDING | |
+| **Phase 1:** Schema + Core Domain | ✅ COMPLETE | V7 migration created; 3 enums + Review + ProductQuestion domain models implemented. |
 | **Phase 2:** Persistence Layer | ⬜ PENDING | |
 | **Phase 3:** Review Submission (Customer) | ⬜ PENDING | |
 | **Phase 4:** Moderation + Admin Reply | ⬜ PENDING | |
@@ -193,13 +193,13 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 
 ### 2a — JPA Entities
 
-- **File:** Create `ReviewEntity.java` — maps `reviews` table. All fields from Phase 1a. `@Enumerated(EnumType.STRING)` on `status` and `matchingSize`. `@OneToMany(cascade = ALL, orphanRemoval = true)` to `ReviewPhotoEntity`.
+- **File:** Create `ReviewEntity.java` — maps `reviews` table. All fields from Phase 1a. `@Enumerated(EnumType.STRING)` on `status` and `matchingSize`. `@OneToMany(cascade = ALL, orphanRemoval = true)` to `ReviewPhotoEntity`. **Extend `BaseAuditEntity`** — this provides `createdAt`/`updatedAt` via the existing base class pattern; do not redeclare those fields manually.
 
 - **File:** Create `ReviewPhotoEntity.java` — maps `review_photos`. Fields: `id`, `review` (ManyToOne lazy), `url`, `sortOrder`.
 
-- **File:** Create `ProductRatingSummaryEntity.java` — maps `product_rating_summaries`. `@Id` is `listingVariantId` (not generated — it's a 1:1 with the variant). All count fields default 0.
+- **File:** Create `ProductRatingSummaryEntity.java` — maps `product_rating_summaries`. `@Id` is `listingVariantId` (not generated — it's a 1:1 with the variant). All count fields default 0. Does **not** extend `BaseAuditEntity` — it has its own `last_calculated_at` timestamp.
 
-- **File:** Create `ProductQuestionEntity.java` — maps `product_questions`. `@Enumerated(EnumType.STRING)` on `status`.
+- **File:** Create `ProductQuestionEntity.java` — maps `product_questions`. `@Enumerated(EnumType.STRING)` on `status`. **Extend `BaseAuditEntity`** for `createdAt`; do not redeclare it manually.
 
 ### 2b — Spring Data Repositories
 
@@ -224,8 +224,9 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 - **File:** Create `tj/radolfa/application/ports/out/LoadReviewPort.java`
   - `Optional<Review> findById(Long id)`
   - `boolean existsByOrderAndVariant(Long orderId, Long listingVariantId)` — duplicate guard
-  - `Page<Review> findApprovedByVariant(Long listingVariantId, Pageable pageable)` — storefront
-  - `List<Review> findPendingOldestFirst(int limit)` — moderation queue
+  - `List<Review> findAllApprovedByVariant(Long listingVariantId)` — **non-paginated**, used by `RecalculateRatingSummaryService` to aggregate all approved reviews
+  - `Page<Review> findApprovedByVariant(Long listingVariantId, Pageable pageable)` — paginated storefront read
+  - `List<Review> findPendingOldestFirst(int limit)` — moderation queue, returns domain `Review` objects; the service layer is responsible for enriching with variant slug via `LoadListingVariantPort` when building the `ReviewAdminView`
 
 - **File:** Create `tj/radolfa/application/ports/out/SaveRatingSummaryPort.java`
   - `void upsert(Long listingVariantId, BigDecimal averageRating, int reviewCount, Map<Integer,Integer> distribution, int sizeAccurate, int sizeRunsSmall, int sizeRunsLarge)`
@@ -245,15 +246,42 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 - **File:** Create `tj/radolfa/application/ports/out/VerifyPurchasePort.java`
   - `boolean hasPurchasedVariant(Long userId, Long listingVariantId)` — checks that a DELIVERED order exists for this user containing a SKU from this variant. Implementation queries: `orders.user_id = userId AND orders.status = 'DELIVERED' AND order_items.sku_id IN (SELECT id FROM skus WHERE listing_variant_id = listingVariantId)`.
 
-### 2d — Persistence Adapters
+### 2d — MapStruct Mappers
 
-- **File:** Create `ReviewAdapter.java` — implements `LoadReviewPort`, `SaveReviewPort`. Maps `Review` ↔ `ReviewEntity` (including `List<String> photos` ↔ `List<ReviewPhotoEntity>`).
+- **File:** Create `tj/radolfa/infrastructure/persistence/mappers/ReviewMapper.java`
+  - `Review toReview(ReviewEntity entity)` — maps entity to domain model, converting `List<ReviewPhotoEntity>` → `List<String>` (extract `url` field).
+  - `ReviewEntity toEntity(Review review)` — maps domain model to entity (photos reconstructed as `ReviewPhotoEntity` list).
+  - Annotated `@Mapper(componentModel = "spring")` following existing mapper conventions.
 
-- **File:** Create `RatingSummaryAdapter.java` — implements `LoadRatingSummaryPort`, `SaveRatingSummaryPort`. Uses `saveAndFlush` for the upsert (entity exists? update fields. doesn't exist? create new).
+- **File:** Create `tj/radolfa/infrastructure/persistence/mappers/ProductQuestionMapper.java`
+  - `ProductQuestion toProductQuestion(ProductQuestionEntity entity)`
+  - `ProductQuestionEntity toEntity(ProductQuestion question)`
+  - Annotated `@Mapper(componentModel = "spring")`.
 
-- **File:** Create `ProductQuestionAdapter.java` — implements `LoadProductQuestionPort`, `SaveProductQuestionPort`.
+> `ProductRatingSummaryEntity` does not need a mapper — `RatingSummaryAdapter` constructs the `RatingSummaryView` record directly from the entity fields (no nested objects, no complex mapping).
 
-- **File:** Create `VerifyPurchaseAdapter.java` — implements `VerifyPurchasePort`. Uses a `@Query` JPQL or native SQL on `OrderRepository` (or a new query method added to the existing order repository).
+### 2e — Persistence Adapters
+
+- **File:** Create `ReviewAdapter.java` — implements `LoadReviewPort`, `SaveReviewPort`. Delegates mapping to `ReviewMapper`. Implements both `findAllApprovedByVariant` (no `Pageable`, returns full list) and `findApprovedByVariant` (paginated) via `ReviewRepository`.
+
+- **File:** Create `RatingSummaryAdapter.java` — implements `LoadRatingSummaryPort`, `SaveRatingSummaryPort`. Uses `saveAndFlush` for the upsert (entity exists? update fields. doesn't exist? create new). Constructs `RatingSummaryView` directly from entity fields.
+
+- **File:** Create `ProductQuestionAdapter.java` — implements `LoadProductQuestionPort`, `SaveProductQuestionPort`. Delegates mapping to `ProductQuestionMapper`.
+
+- **File:** Create `VerifyPurchaseAdapter.java` — implements `VerifyPurchasePort`. Adds the following native query to `OrderRepository`:
+  ```java
+  @Query(value = """
+      SELECT COUNT(*) > 0
+      FROM orders o
+      JOIN order_items oi ON oi.order_id = o.id
+      JOIN skus s ON s.id = oi.sku_id
+      WHERE o.user_id = :userId
+        AND o.status = 'DELIVERED'
+        AND s.listing_variant_id = :listingVariantId
+      """, nativeQuery = true)
+  boolean hasPurchasedVariant(@Param("userId") Long userId,
+                               @Param("listingVariantId") Long listingVariantId);
+  ```
 
 ---
 
@@ -287,9 +315,10 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 
 - **File:** Create `SubmitReviewService.java`
   - Annotated `@Transactional`.
+  - **Resolve author name:** call `LoadUserPort.findById(authorId)`, extract the user's `name` field. This is the value stored in `authorName` — do not accept it from the client request to prevent spoofing.
   - **Verified purchase check:** call `VerifyPurchasePort.hasPurchasedVariant(authorId, listingVariantId)`. If false, throw `UnauthorizedReviewException` ("You can only review products you have purchased").
   - **Duplicate check:** call `LoadReviewPort.existsByOrderAndVariant(orderId, listingVariantId)`. If true, throw `DuplicateReviewException`.
-  - Construct `Review` domain object, `status = PENDING`.
+  - Construct `Review` domain object with resolved `authorName`, `status = PENDING`.
   - Save via `SaveReviewPort`. Return the new review ID.
   - *Note: Rating summary is NOT updated here — only on approval (Phase 5).*
 
@@ -305,11 +334,12 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
   - `String pros` `@Size(max = 1000)` (nullable)
   - `String cons` `@Size(max = 1000)` (nullable)
   - `MatchingSize matchingSize` (nullable)
-  - `List<String> photoUrls` `@Size(max = 10)` (nullable — use existing `POST /api/v1/admin/images/upload` to upload photos first)
+  - `List<String> photoUrls` `@Size(max = 10)` (nullable — **deferred to a later phase**; the existing image upload endpoint is admin-only and cannot be used by customers. A customer-facing upload endpoint must be created before enabling photo submissions. For now, the field is accepted but the service must silently ignore non-empty lists and store no photos.)
+  - **Do NOT include `authorName`** — it is resolved server-side from `LoadUserPort` to prevent spoofing (see Phase 3b).
 
 - **File:** Create `ReviewController.java`
   - `POST /api/v1/reviews` — secured for any authenticated user (`USER`, `MANAGER`, `ADMIN`).
-  - Extracts `authorId` from the security context (JWT/session principal). `authorName` from the user's profile.
+  - Extracts `authorId` from the security context (JWT/session principal). Does **not** accept `authorName` from the client.
   - Returns `201 Created` with `{ "reviewId": 123 }`.
 
 ---
@@ -341,7 +371,7 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 - **File:** Create `tj/radolfa/application/readmodel/ReviewAdminView.java` (record)
   - All review fields needed for the admin queue: `id`, `listingVariantId`, `variantSlug`, `authorName`, `rating`, `title`, `body`, `pros`, `cons`, `matchingSize`, `photoUrls`, `status`, `sellerReply`, `createdAt`.
 
-- Add `List<ReviewAdminView> findPendingOldestFirst(int limit)` query to `LoadReviewPort` if not already there.
+- `LoadReviewPort.findPendingOldestFirst(int limit)` already returns `List<Review>` (defined in Phase 2c). **Do not add a separate method returning `ReviewAdminView`**. Instead, `ModerateReviewService` (or a dedicated query service) maps each `Review` to `ReviewAdminView` by loading the variant slug via `LoadListingVariantPort.findById(review.listingVariantId())`.
 
 ### 4d — Controller
 
@@ -367,7 +397,7 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 ### 5b — Service
 
 - **File:** Create `RecalculateRatingSummaryService.java`
-  - Query all `APPROVED` reviews for the given `listingVariantId` via `LoadReviewPort`.
+  - Query all `APPROVED` reviews via `LoadReviewPort.findAllApprovedByVariant(listingVariantId)` — the non-paginated method defined in Phase 2c. Never use the paginated variant here.
   - Compute:
     - `reviewCount` — total count
     - `averageRating` — sum of ratings / count, rounded to 2 decimal places
@@ -433,7 +463,7 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
 - **File:** Create `AnswerQuestionRequestDto.java` (record)
   - `String answerText` `@NotBlank @Size(max = 3000)`
 
-- **File:** Create `QuestionView.java` (record — read model for storefront)
+- **File:** Create `tj/radolfa/application/readmodel/QuestionView.java` (record — read model for storefront)
   - `id`, `authorName`, `questionText`, `answerText` (nullable), `answeredAt` (nullable), `createdAt`
 
 ### 6d — Controllers
@@ -484,7 +514,7 @@ CREATE INDEX idx_questions_status         ON product_questions (status);
     ```
   - Only returns `status = APPROVED` reviews. Never exposes `orderId`, `authorId`, or `status` to the public.
 
-- Implement a `LoadReviewPort.findApprovedByVariant(Long listingVariantId, Pageable pageable)` port method and adapter.
+- `LoadReviewPort.findApprovedByVariant(Long listingVariantId, Pageable pageable)` is already defined and implemented in Phase 2c/2e — no additional work needed here.
 
 ### 7b — OpenAPI Annotations
 
