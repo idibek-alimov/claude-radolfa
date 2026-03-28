@@ -20,7 +20,7 @@ CREATE TABLE reviews (
     order_id             BIGINT         NOT NULL REFERENCES orders(id),
     author_id            BIGINT         NOT NULL REFERENCES users(id),
     author_name          VARCHAR(128)   NOT NULL,
-    rating               SMALLINT       NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    rating               INTEGER        NOT NULL CHECK (rating BETWEEN 1 AND 5),
     title                VARCHAR(255),
     body                 TEXT,
     pros                 TEXT,

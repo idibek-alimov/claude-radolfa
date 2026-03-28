@@ -152,7 +152,7 @@ CREATE INDEX idx_skus_sku_code   ON skus (sku_code);
 CREATE TABLE product_tags (
     id        BIGSERIAL   PRIMARY KEY,
     name      VARCHAR(64) NOT NULL UNIQUE,
-    color_hex CHAR(6)     NOT NULL DEFAULT 'CCCCCC'
+    color_hex VARCHAR(6)  NOT NULL DEFAULT 'CCCCCC'
 );
 
 -- ----------------------------------------------------------------
