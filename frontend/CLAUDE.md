@@ -169,6 +169,8 @@ Keep query keys consistent to ensure correct cache invalidation:
 | Loyalty tiers | `["loyalty-tiers"]` |
 | Colors | `["colors"]` |
 | Users (admin) | `["users", page, search]` |
+| Rating summary | `["rating", slug]` |
+| Reviews page | `["reviews", slug, page, sort]` |
 
 ---
 
