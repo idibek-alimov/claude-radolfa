@@ -106,7 +106,10 @@ public class ListingController {
     }
 
     @GetMapping("/{slug}/rating")
-    @Operation(summary = "Rating summary", description = "Aggregated star-rating summary for a listing variant")
+    @Tag(name = "Reviews")
+    @Operation(summary = "Rating summary", description = "Aggregated star-rating and size-fit summary for a listing variant")
+    @ApiResponse(responseCode = "200", description = "Rating summary (zeroed if no approved reviews yet)")
+    @ApiResponse(responseCode = "404", description = "Listing not found")
     public ResponseEntity<RatingSummaryResponseDto> getRating(@PathVariable String slug) {
         return loadListingVariantPort.findBySlug(slug)
                 .map(variant -> loadRatingSummaryPort.findByVariantId(variant.getId())

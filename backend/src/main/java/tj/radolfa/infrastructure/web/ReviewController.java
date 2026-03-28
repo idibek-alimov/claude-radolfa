@@ -1,30 +1,60 @@
 package tj.radolfa.infrastructure.web;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.review.SubmitReviewUseCase;
+import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadReviewPort;
+import tj.radolfa.application.readmodel.ReviewStorefrontView;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.SubmitReviewRequestDto;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/reviews")
+@RequestMapping("/api/v1")
+@Tag(name = "Reviews", description = "Customer reviews — submit, browse, and rate products")
 public class ReviewController {
 
-    private final SubmitReviewUseCase submitReviewUseCase;
+    private static final int MAX_PAGE_SIZE = 50;
 
-    public ReviewController(SubmitReviewUseCase submitReviewUseCase) {
-        this.submitReviewUseCase = submitReviewUseCase;
+    private final SubmitReviewUseCase    submitReviewUseCase;
+    private final LoadReviewPort         loadReviewPort;
+    private final LoadListingVariantPort loadListingVariantPort;
+
+    public ReviewController(SubmitReviewUseCase submitReviewUseCase,
+                            LoadReviewPort loadReviewPort,
+                            LoadListingVariantPort loadListingVariantPort) {
+        this.submitReviewUseCase    = submitReviewUseCase;
+        this.loadReviewPort         = loadReviewPort;
+        this.loadListingVariantPort = loadListingVariantPort;
     }
 
-    @PostMapping
+    @PostMapping("/reviews")
+    @Operation(summary = "Submit a review",
+               description = "Authenticated customers who have a delivered order can submit a review for a purchased variant")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Review submitted and pending moderation"),
+        @ApiResponse(responseCode = "403", description = "Product not purchased or order not delivered"),
+        @ApiResponse(responseCode = "409", description = "Review already submitted for this order+variant")
+    })
     public ResponseEntity<Map<String, Long>> submitReview(
             @Valid @RequestBody SubmitReviewRequestDto request,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
@@ -44,5 +74,49 @@ public class ReviewController {
         ));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("reviewId", reviewId));
+    }
+
+    @GetMapping("/listings/{slug}/reviews")
+    @Operation(summary = "List approved reviews",
+               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Page of reviews"),
+        @ApiResponse(responseCode = "404", description = "Listing not found")
+    })
+    public ResponseEntity<Page<ReviewStorefrontView>> getReviews(
+            @Parameter(description = "Listing variant slug") @PathVariable String slug,
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Items per page (max 50)") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Sort order: newest | highest | lowest") @RequestParam(defaultValue = "newest") String sort) {
+
+        return loadListingVariantPort.findBySlug(slug)
+                .map(variant -> {
+                    int effectiveSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+                    Sort sortOrder = toSort(sort);
+                    Page<ReviewStorefrontView> reviews = loadReviewPort
+                            .findApprovedByVariant(variant.getId(), PageRequest.of(page, effectiveSize, sortOrder))
+                            .map(r -> new ReviewStorefrontView(
+                                    r.getId(),
+                                    r.getAuthorName(),
+                                    r.getRating(),
+                                    r.getTitle(),
+                                    r.getBody(),
+                                    r.getPros(),
+                                    r.getCons(),
+                                    r.getMatchingSize(),
+                                    r.getPhotos(),
+                                    r.getSellerReply(),
+                                    r.getCreatedAt()));
+                    return ResponseEntity.ok(reviews);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    private static Sort toSort(String sort) {
+        return switch (sort) {
+            case "highest" -> Sort.by(Sort.Direction.DESC, "rating");
+            case "lowest"  -> Sort.by(Sort.Direction.ASC,  "rating");
+            default        -> Sort.by(Sort.Direction.DESC, "createdAt");
+        };
     }
 }
