@@ -33,7 +33,11 @@ public record ListingVariantDetailDto(
         List<ListingVariantDto.TagView> tags,
         List<SkuDto> skus,
         List<SiblingVariant> siblingVariants,
-        String productCode
+        String productCode,
+        Double weightKg,
+        Integer widthCm,
+        Integer heightCm,
+        Integer depthCm
 ) {
     /**
      * A single product attribute shown on the detail page.
@@ -91,6 +95,7 @@ public record ListingVariantDetailDto(
                 colorKey, colorHex, webDescription, images, attributes,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
-                tags, loyaltySkus, siblingVariants, productCode);
+                tags, loyaltySkus, siblingVariants, productCode,
+                weightKg, widthCm, heightCm, depthCm);
     }
 }

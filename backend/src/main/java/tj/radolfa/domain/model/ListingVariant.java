@@ -30,6 +30,12 @@ public class ListingVariant {
     private List<ProductAttribute> attributes;
     private List<Long> tagIds;
 
+    // Logistics dimensions — Radolfa-owned, one profile per colour variant
+    private Double  weightKg;
+    private Integer widthCm;
+    private Integer heightCm;
+    private Integer depthCm;
+
     // Visibility lifecycle flags
     private boolean isEnabled;
     private boolean isActive;
@@ -53,7 +59,11 @@ public class ListingVariant {
             Instant lastSyncAt,
             String productCode,
             boolean isEnabled,
-            boolean isActive) {
+            boolean isActive,
+            Double weightKg,
+            Integer widthCm,
+            Integer heightCm,
+            Integer depthCm) {
         this.id = id;
         this.productBaseId = productBaseId;
         this.colorKey = colorKey;
@@ -66,6 +76,10 @@ public class ListingVariant {
         this.productCode = productCode;
         this.isEnabled = isEnabled;
         this.isActive = isActive;
+        this.weightKg = weightKg;
+        this.widthCm = widthCm;
+        this.heightCm = heightCm;
+        this.depthCm = depthCm;
     }
 
     /**
@@ -117,6 +131,13 @@ public class ListingVariant {
 
     public void assignTags(List<Long> tagIds) {
         this.tagIds = new ArrayList<>(tagIds != null ? tagIds : List.of());
+    }
+
+    public void updateDimensions(Double weightKg, Integer widthCm, Integer heightCm, Integer depthCm) {
+        this.weightKg = weightKg;
+        this.widthCm  = widthCm;
+        this.heightCm = heightCm;
+        this.depthCm  = depthCm;
     }
 
     public void updateIsEnabled(boolean isEnabled) {
@@ -182,4 +203,9 @@ public class ListingVariant {
     public boolean isActive() {
         return isActive;
     }
+
+    public Double  getWeightKg() { return weightKg; }
+    public Integer getWidthCm()  { return widthCm; }
+    public Integer getHeightCm() { return heightCm; }
+    public Integer getDepthCm()  { return depthCm; }
 }

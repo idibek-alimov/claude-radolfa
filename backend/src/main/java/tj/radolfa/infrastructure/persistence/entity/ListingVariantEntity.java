@@ -52,6 +52,18 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @BatchSize(size = 50)
     private Set<ProductTagEntity> tags = new HashSet<>();
 
+    @Column(name = "weight_kg")
+    private Double weightKg;
+
+    @Column(name = "width_cm")
+    private Integer widthCm;
+
+    @Column(name = "height_cm")
+    private Integer heightCm;
+
+    @Column(name = "depth_cm")
+    private Integer depthCm;
+
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled = false;
 

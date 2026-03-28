@@ -32,17 +32,17 @@ public interface CreateProductUseCase {
                 List<String> images,
                 List<SkuDefinition> skus,
                 boolean isEnabled,
-                boolean isActive
+                boolean isActive,
+                Double  weightKg,
+                Integer widthCm,
+                Integer heightCm,
+                Integer depthCm
         ) {}
 
         public record SkuDefinition(
                 String  sizeLabel,
                 Money   price,
-                int     stockQuantity,
-                Double  weightKg,
-                Integer widthCm,
-                Integer heightCm,
-                Integer depthCm
+                int     stockQuantity
         ) {}
     }
 }

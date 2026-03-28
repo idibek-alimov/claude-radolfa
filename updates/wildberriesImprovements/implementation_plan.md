@@ -24,7 +24,7 @@ This plan implements four structural improvements to the product catalog inspire
 | **Phase 1:** Blueprint Type System | ✅ COMPLETE | Added `AttributeType` enum (TEXT/NUMBER/ENUM/MULTI), `type`/`unitName` columns + `category_attribute_blueprint_values` table, updated all ports/services/adapter, and added ADMIN-only `POST`/`DELETE` blueprint management endpoints. |
 | **Phase 2:** Multi-Value Attribute Storage | ✅ COMPLETE | `ProductAttribute.value` → `values: List<String>` across domain, JPA entities (new `listing_variant_attribute_values` child table), DTO, mapper, adapter, read model, and both controllers. |
 | **Phase 3:** Tags System | ✅ COMPLETE | Replaced `topSelling`/`featured` booleans with a flexible `ProductTag` entity and `listing_variant_tags` junction table; added `GET /api/v1/tags`, `POST /api/v1/admin/tags`, `PUT /api/v1/admin/variants/{id}/tags` endpoints; updated all grid queries, read models, mapper, and ES index accordingly. |
-| **Phase 4:** Dimensions to Variant Level | ⬜ PENDING | |
+| **Phase 4:** Dimensions to Variant Level | ✅ COMPLETE | Moved `weightKg/widthCm/heightCm/depthCm` from `Sku`/`skus` to `ListingVariant`/`listing_variants`; updated domain, entities, DTOs, use-case commands, service, mapper, read model, and added `PATCH /{slug}/dimensions` endpoint. Also fixed a pre-existing self-reference bug in `HomeCollectionsAdapter`. |
 | **Phase 5:** Blueprint Validation + Final Cleanup | ⬜ PENDING | |
 
 ---

@@ -51,6 +51,7 @@ public interface ProductHierarchyMapper {
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "attributes", ignore = true)
     @Mapping(target = "skus", ignore = true)
+    @Mapping(target = "tags", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -93,7 +94,11 @@ public interface ProductHierarchyMapper {
                 entity.getLastSyncAt(),
                 entity.getProductCode(),
                 entity.isEnabled(),
-                entity.isActive()
+                entity.isActive(),
+                entity.getWeightKg(),
+                entity.getWidthCm(),
+                entity.getHeightCm(),
+                entity.getDepthCm()
         );
     }
 
@@ -115,11 +120,7 @@ public interface ProductHierarchyMapper {
                 entity.getSizeLabel(),
                 entity.getStockQuantity(),
                 Money.of(entity.getOriginalPrice()),
-                entity.getBarcode(),
-                entity.getWeightKg(),
-                entity.getWidthCm(),
-                entity.getHeightCm(),
-                entity.getDepthCm()
+                entity.getBarcode()
         );
     }
 

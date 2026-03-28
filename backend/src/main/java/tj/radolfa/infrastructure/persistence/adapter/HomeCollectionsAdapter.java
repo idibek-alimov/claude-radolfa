@@ -26,7 +26,7 @@ import java.util.Map;
 @Component
 public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
-    private static final String FEATURED_TAG_NAME = FEATURED_TAG_NAME;
+    private static final String FEATURED_TAG_NAME = "featured";
 
     private final ListingVariantRepository variantRepo;
     private final SkuRepository skuRepo;

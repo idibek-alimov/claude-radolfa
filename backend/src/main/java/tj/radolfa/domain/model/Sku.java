@@ -25,23 +25,14 @@ public class Sku {
 
     // Radolfa-managed logistics fields — never touched by ERP sync
     private String  barcode;
-    private Double  weightKg;
-    private Integer widthCm;
-    private Integer heightCm;
-    private Integer depthCm;
 
-    /** Full constructor — used when loading from persistence. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price,
-               String barcode,
-               Double weightKg,
-               Integer widthCm,
-               Integer heightCm,
-               Integer depthCm) {
+               String barcode) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
         this.skuCode          = skuCode;
@@ -49,21 +40,16 @@ public class Sku {
         this.stockQuantity    = stockQuantity;
         this.price            = price;
         this.barcode          = barcode;
-        this.weightKg         = weightKg;
-        this.widthCm          = widthCm;
-        this.heightCm         = heightCm;
-        this.depthCm          = depthCm;
     }
 
-    /** Legacy constructor — used by ERP sync path (no logistics fields). */
+    /** Constructor used by ERP sync path (no barcode). */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price) {
-        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price,
-             null, null, null, null, null);
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, null);
     }
 
     /**
@@ -90,8 +76,4 @@ public class Sku {
     public Integer getStockQuantity()    { return stockQuantity; }
     public Money   getPrice()            { return price; }
     public String  getBarcode()          { return barcode; }
-    public Double  getWeightKg()         { return weightKg; }
-    public Integer getWidthCm()          { return widthCm; }
-    public Integer getHeightCm()         { return heightCm; }
-    public Integer getDepthCm()          { return depthCm; }
 }

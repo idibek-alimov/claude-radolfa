@@ -127,7 +127,11 @@ public class CreateProductService implements CreateProductUseCase {
                     null,
                     null,                    // productCode — assigned by persistence layer on first save
                     variantDef.isEnabled(),
-                    variantDef.isActive()
+                    variantDef.isActive(),
+                    variantDef.weightKg(),
+                    variantDef.widthCm(),
+                    variantDef.heightCm(),
+                    variantDef.depthCm()
             );
 
             variant.generateSlug(savedBase.getExternalRef());
@@ -159,11 +163,7 @@ public class CreateProductService implements CreateProductUseCase {
                         def.sizeLabel(),
                         def.stockQuantity(),
                         def.price(),
-                        barcode,
-                        def.weightKg(),
-                        def.widthCm(),
-                        def.heightCm(),
-                        def.depthCm()
+                        barcode
                 );
                 savedSkus.add(savePort.saveSku(sku, savedVariant.getId()));
             }

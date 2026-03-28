@@ -37,6 +37,15 @@ public class UpdateListingService implements UpdateListingUseCase {
     }
 
     @Override
+    public void updateDimensions(String slug, UpdateDimensionsCommand command) {
+        ListingVariant variant = loadListingVariantPort.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + slug));
+
+        variant.updateDimensions(command.weightKg(), command.widthCm(), command.heightCm(), command.depthCm());
+        saveListingVariantPort.save(variant);
+    }
+
+    @Override
     public void addImage(String slug, String imageUrl) {
         ListingVariant variant = loadListingVariantPort.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + slug));

@@ -135,14 +135,14 @@ public class ProductManagementController {
                                         .map(s -> new CreateProductUseCase.Command.SkuDefinition(
                                                 s.sizeLabel(),
                                                 new Money(s.price()),
-                                                s.stockQuantity(),
-                                                s.weightKg(),
-                                                s.widthCm(),
-                                                s.heightCm(),
-                                                s.depthCm()))
+                                                s.stockQuantity()))
                                         .toList(),
                                 v.isEnabled() != null && v.isEnabled(),
-                                v.isActive() == null || v.isActive()))
+                                v.isActive() == null || v.isActive(),
+                                v.weightKg(),
+                                v.widthCm(),
+                                v.heightCm(),
+                                v.depthCm()))
                         .toList());
 
         Long productBaseId = createProductUseCase.execute(command);

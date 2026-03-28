@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -140,10 +141,30 @@ public class ListingController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/{slug}/dimensions")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Update variant dimensions", description = "Sets the logistics dimensions for a colour variant. All fields are optional — pass only what changed.")
+    public ResponseEntity<Void> updateDimensions(
+            @PathVariable String slug,
+            @RequestBody UpdateDimensionsRequest request) {
+
+        updateListingUseCase.updateDimensions(slug,
+                new UpdateListingUseCase.UpdateDimensionsCommand(
+                        request.weightKg(), request.widthCm(), request.heightCm(), request.depthCm()));
+        return ResponseEntity.ok().build();
+    }
+
     public record UpdateListingRequest(
             @jakarta.validation.constraints.Size(max = 5000, message = "Description must not exceed 5000 characters")
             String webDescription,
             @jakarta.validation.Valid List<ProductAttributeDto> attributes) {
+    }
+
+    public record UpdateDimensionsRequest(
+            Double  weightKg,
+            Integer widthCm,
+            Integer heightCm,
+            Integer depthCm) {
     }
 
     public record ImageUrlRequest(

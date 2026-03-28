@@ -46,7 +46,15 @@ public record CreateProductRequestDto(
 
             Boolean isEnabled,
 
-            Boolean isActive
+            Boolean isActive,
+
+            Double weightKg,
+
+            Integer widthCm,
+
+            Integer heightCm,
+
+            Integer depthCm
 
     ) {}
 
@@ -60,15 +68,7 @@ public record CreateProductRequestDto(
             BigDecimal price,
 
             @PositiveOrZero(message = "stockQuantity must be ≥ 0")
-            int stockQuantity,
-
-            Double weightKg,
-
-            Integer widthCm,
-
-            Integer heightCm,
-
-            Integer depthCm
+            int stockQuantity
 
     ) {}
 }

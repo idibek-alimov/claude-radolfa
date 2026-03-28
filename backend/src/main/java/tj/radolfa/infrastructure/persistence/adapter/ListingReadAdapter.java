@@ -226,7 +226,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 tags,
                                 skus,
                                 siblings,
-                                entity.getProductCode());
+                                entity.getProductCode(),
+                                entity.getWeightKg(),
+                                entity.getWidthCm(),
+                                entity.getHeightCm(),
+                                entity.getDepthCm());
         }
 
         // ---- SKU helpers (detail-page only) ----
