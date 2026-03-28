@@ -56,7 +56,7 @@ export interface ListingVariant {
  */
 export interface Attribute {
   key: string;
-  value: string;
+  values: string[];
 }
 
 /**

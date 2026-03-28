@@ -656,7 +656,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                       {attr.key}
                     </span>
                     <span className="text-foreground font-medium">
-                      {attr.value}
+                      {attr.values.join(", ")}
                     </span>
                   </div>
                 ))}
