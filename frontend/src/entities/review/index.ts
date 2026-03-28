@@ -8,3 +8,5 @@ export type {
 } from "./model/types";
 export { fetchRatingSummary, fetchReviews, submitReview } from "./api";
 export { RatingSummaryCard } from "./ui/RatingSummaryCard";
+export { ReviewCard } from "./ui/ReviewCard";
+export { ReviewList } from "./ui/ReviewList";
