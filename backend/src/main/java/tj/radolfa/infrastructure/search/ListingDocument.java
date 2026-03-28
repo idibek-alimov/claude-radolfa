@@ -57,12 +57,6 @@ public class ListingDocument {
     @Field(type = FieldType.Integer)
     private Integer totalStock;
 
-    @Field(type = FieldType.Boolean)
-    private Boolean topSelling;
-
-    @Field(type = FieldType.Boolean)
-    private Boolean featured;
-
     @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
     private Instant lastSyncAt;
 
@@ -72,7 +66,6 @@ public class ListingDocument {
                            String colorKey, String colorHexCode,
                            String webDescription, List<String> images,
                            Double price, Integer totalStock,
-                           boolean topSelling, boolean featured,
                            Instant lastSyncAt) {
         this.id             = id;
         this.slug           = slug;
@@ -84,8 +77,6 @@ public class ListingDocument {
         this.images         = images;
         this.price          = price;
         this.totalStock     = totalStock;
-        this.topSelling     = topSelling;
-        this.featured       = featured;
         this.lastSyncAt     = lastSyncAt;
     }
 
@@ -99,7 +90,5 @@ public class ListingDocument {
     public List<String> getImages()         { return images; }
     public Double       getPrice()          { return price; }
     public Integer      getTotalStock()     { return totalStock; }
-    public Boolean      getTopSelling()     { return topSelling; }
-    public Boolean      getFeatured()       { return featured; }
     public Instant      getLastSyncAt()     { return lastSyncAt; }
 }

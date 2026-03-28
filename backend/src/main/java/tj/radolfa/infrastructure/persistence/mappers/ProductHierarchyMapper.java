@@ -75,6 +75,12 @@ public interface ProductHierarchyMapper {
                     .toList()
                 : Collections.emptyList();
 
+        List<Long> tagIds = entity.getTags() != null
+                ? entity.getTags().stream()
+                    .map(tj.radolfa.infrastructure.persistence.entity.ProductTagEntity::getId)
+                    .toList()
+                : java.util.Collections.emptyList();
+
         return new ListingVariant(
                 entity.getId(),
                 entity.getProductBase() != null ? entity.getProductBase().getId() : null,
@@ -83,8 +89,7 @@ public interface ProductHierarchyMapper {
                 entity.getWebDescription(),
                 imageUrls,
                 attributes,
-                entity.isTopSelling(),
-                entity.isFeatured(),
+                tagIds,
                 entity.getLastSyncAt(),
                 entity.getProductCode(),
                 entity.isEnabled(),

@@ -13,8 +13,6 @@ public interface UpdateListingUseCase {
 
     record UpdateListingCommand(
             String webDescription,
-            Boolean topSelling,
-            Boolean featured,
             List<ProductAttribute> attributes) {
     }
 }

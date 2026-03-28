@@ -10,6 +10,7 @@ import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.D
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
 
 import java.util.List;
@@ -24,6 +25,8 @@ import java.util.Map;
  */
 @Component
 public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
+
+    private static final String FEATURED_TAG_NAME = FEATURED_TAG_NAME;
 
     private final ListingVariantRepository variantRepo;
     private final SkuRepository skuRepo;
@@ -41,7 +44,7 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
     @Override
     public List<ListingVariantDto> loadFeatured(int limit) {
-        return toGridDtos(variantRepo.findFeaturedGrid(PageRequest.of(0, limit)).getContent());
+        return toGridDtos(variantRepo.findGridByTagName(FEATURED_TAG_NAME, PageRequest.of(0, limit)).getContent());
     }
 
     @Override
@@ -62,7 +65,7 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
 
     @Override
     public PageResult<ListingVariantDto> loadFeaturedPage(int page, int limit) {
-        return toPageResult(variantRepo.findFeaturedGrid(PageRequest.of(page - 1, limit)), page, limit);
+        return toPageResult(variantRepo.findGridByTagName(FEATURED_TAG_NAME, PageRequest.of(page - 1, limit)), page, limit);
     }
 
     @Override
@@ -97,9 +100,10 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
         Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
         Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
         Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
+        Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
 
         return rows.stream()
-                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap))
+                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap))
                 .toList();
     }
 }

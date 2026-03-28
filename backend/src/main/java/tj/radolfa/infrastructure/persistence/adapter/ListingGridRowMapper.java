@@ -1,6 +1,7 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
@@ -18,11 +19,10 @@ import java.util.stream.Collectors;
  * <p>Used by both {@link ListingReadAdapter} and {@link HomeCollectionsAdapter}
  * to eliminate duplicated column-index logic.
  *
- * <p>Column layout (13 columns):
+ * <p>Column layout (11 columns):
  * [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
- * [5]=webDescription, [6]=topSelling, [7]=MIN(originalPrice),
- * [8]=totalStock, [9]=colorHexCode, [10]=featured, [11]=productCode,
- * [12]=MAX(originalPrice)
+ * [5]=webDescription, [6]=MIN(originalPrice), [7]=totalStock,
+ * [8]=colorHexCode, [9]=productCode, [10]=MAX(originalPrice)
  */
 final class ListingGridRowMapper {
 
@@ -30,11 +30,12 @@ final class ListingGridRowMapper {
 
     static ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
                                        Map<Long, DiscountInfo> discountMap,
-                                       Map<Long, List<SkuDto>> skuMap) {
+                                       Map<Long, List<SkuDto>> skuMap,
+                                       Map<Long, List<TagView>> tagMap) {
         Long variantId = (Long) row[0];
         DiscountInfo discount = discountMap.get(variantId);
 
-        BigDecimal originalPrice = discount != null ? discount.originalPrice() : toBigDecimal(row[7]);
+        BigDecimal originalPrice = discount != null ? discount.originalPrice() : toBigDecimal(row[6]);
         BigDecimal discountPrice = discount != null ? discount.discountedPrice() : null;
         Integer discountPercentage = discount != null ? discount.discountPercentage().intValue() : null;
         String discountName = discount != null ? discount.saleTitle() : null;
@@ -47,7 +48,7 @@ final class ListingGridRowMapper {
                 (String) row[2],   // colorDisplayName (product name)
                 (String) row[3],   // categoryName
                 (String) row[4],   // colorKey
-                (String) row[9],   // colorHex (hexCode)
+                (String) row[8],   // colorHex (hexCode)
                 (String) row[5],   // webDescription
                 imageMap.getOrDefault(variantId, List.of()),
                 originalPrice,
@@ -58,9 +59,8 @@ final class ListingGridRowMapper {
                 null,              // loyaltyPrice — stamped by TierPricingEnricher
                 null,              // loyaltyPercentage — stamped by TierPricingEnricher
                 isPartialDiscount,
-                (Boolean) row[6],  // topSelling
-                (Boolean) row[10], // featured
-                (String) row[11],  // productCode
+                tagMap.getOrDefault(variantId, List.of()),
+                (String) row[9],   // productCode
                 skuMap.getOrDefault(variantId, List.of()));
     }
 
@@ -71,6 +71,17 @@ final class ListingGridRowMapper {
                 .collect(Collectors.groupingBy(
                         row -> (Long) row[0],
                         Collectors.mapping(row -> (String) row[1], Collectors.toList())));
+    }
+
+    static Map<Long, List<TagView>> loadTagMap(List<Long> variantIds,
+                                                ListingVariantRepository variantRepo) {
+        if (variantIds.isEmpty()) return Map.of();
+        return variantRepo.findTagsByVariantIds(variantIds).stream()
+                .collect(Collectors.groupingBy(
+                        row -> (Long) row[0],
+                        Collectors.mapping(
+                                row -> new TagView((Long) row[1], (String) row[2], (String) row[3]),
+                                Collectors.toList())));
     }
 
     static Map<Long, List<SkuDto>> loadSkuMap(List<Long> variantIds,

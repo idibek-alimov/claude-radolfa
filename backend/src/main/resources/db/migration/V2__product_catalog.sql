@@ -44,8 +44,6 @@ CREATE TABLE listing_variants (
     color_id        BIGINT       NOT NULL REFERENCES colors(id),
     slug            VARCHAR(255) NOT NULL UNIQUE,
     web_description TEXT,
-    top_selling     BOOLEAN      NOT NULL DEFAULT FALSE,
-    featured        BOOLEAN      NOT NULL DEFAULT FALSE,
     is_enabled      BOOLEAN      NOT NULL DEFAULT FALSE,
     is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
     last_sync_at    TIMESTAMPTZ,
@@ -59,7 +57,6 @@ CREATE TABLE listing_variants (
 
 CREATE INDEX idx_listing_variants_base_id  ON listing_variants (product_base_id);
 CREATE INDEX idx_listing_variants_slug     ON listing_variants (slug);
-CREATE INDEX idx_listing_variants_featured ON listing_variants (featured) WHERE featured = TRUE;
 CREATE UNIQUE INDEX uq_listing_variant_product_code ON listing_variants (product_code);
 
 -- ----------------------------------------------------------------
@@ -148,3 +145,21 @@ CREATE TABLE skus (
 
 CREATE INDEX idx_skus_variant_id ON skus (listing_variant_id);
 CREATE INDEX idx_skus_sku_code   ON skus (sku_code);
+
+-- ----------------------------------------------------------------
+-- Product tags  (replaces hard-coded top_selling / featured flags)
+-- ----------------------------------------------------------------
+CREATE TABLE product_tags (
+    id        BIGSERIAL   PRIMARY KEY,
+    name      VARCHAR(64) NOT NULL UNIQUE,
+    color_hex CHAR(6)     NOT NULL DEFAULT 'CCCCCC'
+);
+
+-- ----------------------------------------------------------------
+-- Listing variant tags  (many-to-many junction)
+-- ----------------------------------------------------------------
+CREATE TABLE listing_variant_tags (
+    variant_id BIGINT NOT NULL REFERENCES listing_variants(id) ON DELETE CASCADE,
+    tag_id     BIGINT NOT NULL REFERENCES product_tags(id) ON DELETE RESTRICT,
+    PRIMARY KEY (variant_id, tag_id)
+);

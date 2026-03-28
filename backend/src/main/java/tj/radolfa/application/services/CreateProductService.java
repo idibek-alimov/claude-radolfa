@@ -123,8 +123,7 @@ public class CreateProductService implements CreateProductUseCase {
                     null,
                     Collections.emptyList(),
                     Collections.emptyList(),
-                    false,
-                    false,
+                    Collections.emptyList(), // tagIds — none on creation
                     null,
                     null,                    // productCode — assigned by persistence layer on first save
                     variantDef.isEnabled(),
@@ -209,8 +208,6 @@ public class CreateProductService implements CreateProductUseCase {
                 List.of(),
                 price,
                 totalStock,
-                false,
-                false,
                 null
         );
     }

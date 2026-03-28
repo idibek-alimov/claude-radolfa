@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
@@ -92,6 +93,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<MessageResponseDto> handleIllegalArgument(IllegalArgumentException ex) {
         LOG.warn("[VALIDATION] Illegal argument: {}", ex.getMessage());
         return ResponseEntity.badRequest()
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles duplicate resource exceptions (e.g. duplicate tag name).
+     * Returns 409 Conflict.
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<MessageResponseDto> handleDuplicateResource(DuplicateResourceException ex) {
+        LOG.warn("[CONFLICT] Duplicate resource: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 

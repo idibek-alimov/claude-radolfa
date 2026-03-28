@@ -17,8 +17,10 @@ import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
+import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
 
 import java.math.BigDecimal;
@@ -47,15 +49,18 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         private final ElasticsearchOperations operations;
         private final DiscountEnrichmentAdapter discountEnrichment;
         private final SkuRepository skuRepo;
+        private final ListingVariantRepository variantRepo;
 
         public ListingSearchAdapter(ListingSearchRepository repository,
                         ElasticsearchOperations operations,
                         DiscountEnrichmentAdapter discountEnrichment,
-                        SkuRepository skuRepo) {
+                        SkuRepository skuRepo,
+                        ListingVariantRepository variantRepo) {
                 this.repository = repository;
                 this.operations = operations;
                 this.discountEnrichment = discountEnrichment;
                 this.skuRepo = skuRepo;
+                this.variantRepo = variantRepo;
         }
 
         // ---- ListingIndexPort (write) ----
@@ -65,13 +70,13 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                         String colorKey, String colorHexCode,
                         String description, List<String> images,
                         Double price, Integer totalStock,
-                        boolean topSelling, boolean featured, Instant lastSyncAt) {
+                        Instant lastSyncAt) {
                 try {
                         ListingDocument doc = new ListingDocument(
                                         variantId, slug, name, category,
                                         colorKey, colorHexCode, description,
                                         images, price, totalStock,
-                                        topSelling, featured, lastSyncAt);
+                                        lastSyncAt);
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
                 } catch (Exception e) {
@@ -128,8 +133,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 .toList();
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
-                // Batch-load SKUs from DB
+                // Batch-load SKUs and tags from DB
                 Map<Long, List<SkuDto>> skuMap = loadSkuMap(variantIds);
+                Map<Long, List<TagView>> tagMap = loadTagMap(variantIds);
 
                 List<ListingVariantDto> enriched = items.stream()
                                 .map(dto -> {
@@ -145,6 +151,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                         String discountColorHex = discount != null ? discount.saleColorHex() : null;
                                         boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
                                         List<SkuDto> skus = skuMap.getOrDefault(dto.variantId(), List.of());
+                                        List<TagView> tags = tagMap.getOrDefault(dto.variantId(), List.of());
                                         return new ListingVariantDto(
                                                         dto.variantId(), dto.slug(), dto.colorDisplayName(),
                                                         dto.categoryName(), dto.colorKey(), dto.colorHex(),
@@ -153,7 +160,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                         discountName, discountColorHex,
                                                         null, null, // loyaltyPrice, loyaltyPercentage — enriched by controller
                                                         isPartialDiscount,
-                                                        dto.topSelling(), dto.featured(), dto.productCode(),
+                                                        tags, dto.productCode(),
                                                         skus);
                                 })
                                 .toList();
@@ -202,11 +209,20 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 null,    // loyaltyPrice — enriched by controller
                                 null,    // loyaltyPercentage
                                 false,   // isPartialDiscount — enriched post-query
-                                doc.getTopSelling() != null && doc.getTopSelling(),
-                                doc.getFeatured() != null && doc.getFeatured(),
+                                List.of(), // tags — not stored in ES index
                                 null,    // productCode — not stored in ES index
                                 List.of() // skus — batch-loaded post-query
                 );
+        }
+
+        private Map<Long, List<TagView>> loadTagMap(List<Long> variantIds) {
+                if (variantIds.isEmpty()) return Map.of();
+                return variantRepo.findTagsByVariantIds(variantIds).stream()
+                                .collect(Collectors.groupingBy(
+                                                row -> (Long) row[0],
+                                                Collectors.mapping(
+                                                                row -> new TagView((Long) row[1], (String) row[2], (String) row[3]),
+                                                                Collectors.toList())));
         }
 
         private Map<Long, List<SkuDto>> loadSkuMap(List<Long> variantIds) {

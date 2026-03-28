@@ -119,8 +119,6 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                                 variant.getImages(),
                                 minPrice,
                                 totalStock,
-                                variant.isTopSelling(),
-                                variant.isFeatured(),
                                 variant.getLastSyncAt());
         }
 }

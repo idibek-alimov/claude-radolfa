@@ -24,15 +24,19 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductHierarchyMapper;
+import tj.radolfa.infrastructure.persistence.entity.ProductTagEntity;
 import tj.radolfa.infrastructure.persistence.repository.BrandRepository;
 import tj.radolfa.infrastructure.persistence.repository.CategoryRepository;
 import tj.radolfa.infrastructure.persistence.repository.ColorRepository;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductTagRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Hexagonal adapter bridging the hierarchy out-ports to Spring Data JPA.
@@ -50,6 +54,7 @@ public class ProductHierarchyAdapter
     private final CategoryRepository categoryRepo;
     private final ColorRepository colorRepo;
     private final BrandRepository brandRepo;
+    private final ProductTagRepository tagRepo;
     private final ProductHierarchyMapper mapper;
     private final ProductCodeGenerator codeGenerator;
 
@@ -59,6 +64,7 @@ public class ProductHierarchyAdapter
             CategoryRepository categoryRepo,
             ColorRepository colorRepo,
             BrandRepository brandRepo,
+            ProductTagRepository tagRepo,
             ProductHierarchyMapper mapper,
             ProductCodeGenerator codeGenerator) {
         this.baseRepo = baseRepo;
@@ -67,6 +73,7 @@ public class ProductHierarchyAdapter
         this.categoryRepo = categoryRepo;
         this.colorRepo = colorRepo;
         this.brandRepo = brandRepo;
+        this.tagRepo = tagRepo;
         this.mapper = mapper;
         this.codeGenerator = codeGenerator;
     }
@@ -119,8 +126,6 @@ public class ProductHierarchyAdapter
                         "ListingVariant not found: id=" + variant.getId()));
 
         entity.setWebDescription(variant.getWebDescription());
-        entity.setTopSelling(variant.isTopSelling());
-        entity.setFeatured(variant.isFeatured());
 
         // Sync images: replace with domain's current list
         entity.getImages().clear();
@@ -150,6 +155,21 @@ public class ProductHierarchyAdapter
                 attrEntity.getValues().add(valueEntity);
             }
             entity.getAttributes().add(attrEntity);
+        }
+
+        variantRepo.save(entity);
+    }
+
+    @Override
+    public void saveTags(Long variantId, List<Long> tagIds) {
+        ListingVariantEntity entity = variantRepo.findById(variantId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "ListingVariant not found: id=" + variantId));
+
+        entity.getTags().clear();
+        if (tagIds != null && !tagIds.isEmpty()) {
+            Set<ProductTagEntity> tagEntities = new HashSet<>(tagRepo.findAllById(tagIds));
+            entity.getTags().addAll(tagEntities);
         }
 
         variantRepo.save(entity);

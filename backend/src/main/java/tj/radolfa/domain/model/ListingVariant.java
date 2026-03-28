@@ -28,8 +28,7 @@ public class ListingVariant {
     private String webDescription;
     private List<String> images;
     private List<ProductAttribute> attributes;
-    private boolean topSelling;
-    private boolean featured;
+    private List<Long> tagIds;
 
     // Visibility lifecycle flags
     private boolean isEnabled;
@@ -50,8 +49,7 @@ public class ListingVariant {
             String webDescription,
             List<String> images,
             List<ProductAttribute> attributes,
-            boolean topSelling,
-            boolean featured,
+            List<Long> tagIds,
             Instant lastSyncAt,
             String productCode,
             boolean isEnabled,
@@ -63,8 +61,7 @@ public class ListingVariant {
         this.webDescription = webDescription;
         this.images = new ArrayList<>(images != null ? images : List.of());
         this.attributes = new ArrayList<>(attributes != null ? attributes : List.of());
-        this.topSelling = topSelling;
-        this.featured = featured;
+        this.tagIds = new ArrayList<>(tagIds != null ? tagIds : List.of());
         this.lastSyncAt = lastSyncAt;
         this.productCode = productCode;
         this.isEnabled = isEnabled;
@@ -118,12 +115,8 @@ public class ListingVariant {
         this.images.remove(url);
     }
 
-    public void updateTopSelling(boolean topSelling) {
-        this.topSelling = topSelling;
-    }
-
-    public void updateFeatured(boolean featured) {
-        this.featured = featured;
+    public void assignTags(List<Long> tagIds) {
+        this.tagIds = new ArrayList<>(tagIds != null ? tagIds : List.of());
     }
 
     public void updateIsEnabled(boolean isEnabled) {
@@ -170,12 +163,8 @@ public class ListingVariant {
         return Collections.unmodifiableList(attributes);
     }
 
-    public boolean isTopSelling() {
-        return topSelling;
-    }
-
-    public boolean isFeatured() {
-        return featured;
+    public List<Long> getTagIds() {
+        return Collections.unmodifiableList(tagIds);
     }
 
     public Instant getLastSyncAt() {

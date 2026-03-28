@@ -30,8 +30,7 @@ public record ListingVariantDetailDto(
         BigDecimal loyaltyPrice,
         Integer loyaltyPercentage,
         boolean isPartialDiscount,
-        boolean topSelling,
-        boolean featured,
+        List<ListingVariantDto.TagView> tags,
         List<SkuDto> skus,
         List<SiblingVariant> siblingVariants,
         String productCode
@@ -92,6 +91,6 @@ public record ListingVariantDetailDto(
                 colorKey, colorHex, webDescription, images, attributes,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
-                topSelling, featured, loyaltySkus, siblingVariants, productCode);
+                tags, loyaltySkus, siblingVariants, productCode);
     }
 }

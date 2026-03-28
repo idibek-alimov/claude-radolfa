@@ -98,8 +98,6 @@ public class SearchController {
                         images,
                         price != null ? price.doubleValue() : null,
                         totalStock,
-                        variant.isTopSelling(),
-                        variant.isFeatured(),
                         variant.getLastSyncAt()
                 );
                 indexed++;

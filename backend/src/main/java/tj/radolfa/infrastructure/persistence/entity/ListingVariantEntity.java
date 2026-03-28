@@ -9,7 +9,9 @@ import org.hibernate.annotations.BatchSize;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "listing_variants", uniqueConstraints = @UniqueConstraint(columnNames = { "product_base_id",
@@ -42,11 +44,13 @@ public class ListingVariantEntity extends BaseAuditEntity {
     @Column(name = "web_description", columnDefinition = "TEXT")
     private String webDescription;
 
-    @Column(name = "top_selling", nullable = false)
-    private boolean topSelling = false;
-
-    @Column(name = "featured", nullable = false)
-    private boolean featured = false;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "listing_variant_tags",
+            joinColumns = @JoinColumn(name = "variant_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @BatchSize(size = 50)
+    private Set<ProductTagEntity> tags = new HashSet<>();
 
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled = false;

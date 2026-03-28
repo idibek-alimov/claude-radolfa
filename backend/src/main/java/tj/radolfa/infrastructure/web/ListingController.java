@@ -104,8 +104,6 @@ public class ListingController {
 
         updateListingUseCase.update(slug, new UpdateListingUseCase.UpdateListingCommand(
                 request.webDescription(),
-                request.topSelling(),
-                request.featured(),
                 request.attributes() == null ? null : request.attributes().stream()
                         .map(a -> new ProductAttribute(a.key(), a.values(), a.sortOrder()))
                         .toList()
@@ -145,8 +143,6 @@ public class ListingController {
     public record UpdateListingRequest(
             @jakarta.validation.constraints.Size(max = 5000, message = "Description must not exceed 5000 characters")
             String webDescription,
-            Boolean topSelling,
-            Boolean featured,
             @jakarta.validation.Valid List<ProductAttributeDto> attributes) {
     }
 

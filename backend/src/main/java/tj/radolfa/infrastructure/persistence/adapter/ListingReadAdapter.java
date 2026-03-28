@@ -16,6 +16,7 @@ import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto.AttributeDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 
@@ -93,9 +94,10 @@ public class ListingReadAdapter implements LoadListingPort {
                 Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
                 Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
+                Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
 
                 List<ListingVariantDto> content = raw.getContent().stream()
-                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap))
+                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap))
                                 .toList();
 
                 return new PageResult<>(content, raw.getTotalElements(), page, limit,
@@ -199,6 +201,10 @@ public class ListingReadAdapter implements LoadListingPort {
                                 ? entity.getColor().getHexCode()
                                 : null;
 
+                List<TagView> tags = entity.getTags().stream()
+                                .map(t -> new TagView(t.getId(), t.getName(), t.getColorHex()))
+                                .toList();
+
                 return new ListingVariantDetailDto(
                                 entity.getId(),
                                 entity.getSlug(),
@@ -217,8 +223,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 null,              // loyaltyPrice — stamped by TierPricingEnricher
                                 null,              // loyaltyPercentage — stamped by TierPricingEnricher
                                 isPartialDiscount,
-                                entity.isTopSelling(),
-                                entity.isFeatured(),
+                                tags,
                                 skus,
                                 siblings,
                                 entity.getProductCode());

@@ -100,6 +100,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/tags").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers").permitAll()
                                                 .requestMatchers("/api/v1/webhooks/**").permitAll()
 
@@ -131,6 +132,11 @@ public class SecurityConfig {
                                                 // ============================================================
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/admin/categories/*/blueprint").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/*/blueprint/*").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // ADMIN only: tag management
+                                                // ============================================================
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/tags").hasRole("ADMIN")
 
                                                 // ============================================================
                                                 // MANAGER + ADMIN: product creation, content enrichment, discounts

@@ -42,10 +42,12 @@ public record ListingVariantDto(
         BigDecimal loyaltyPrice,
         Integer loyaltyPercentage,
         boolean isPartialDiscount,
-        boolean topSelling,
-        boolean featured,
+        List<TagView> tags,
         String productCode,
         List<SkuDto> skus) {
+
+    /** Lightweight tag projection returned in listing responses. */
+    public record TagView(Long id, String name, String colorHex) {}
 
     /**
      * Returns a copy of this DTO with loyalty pricing stamped.
@@ -87,6 +89,6 @@ public record ListingVariantDto(
                 colorKey, colorHex, webDescription, images,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
-                topSelling, featured, productCode, loyaltySkus);
+                tags, productCode, loyaltySkus);
     }
 }

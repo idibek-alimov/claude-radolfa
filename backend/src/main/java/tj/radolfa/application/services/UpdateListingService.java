@@ -29,12 +29,6 @@ public class UpdateListingService implements UpdateListingUseCase {
         if (command.webDescription() != null) {
             variant.updateWebDescription(command.webDescription());
         }
-        if (command.topSelling() != null) {
-            variant.updateTopSelling(command.topSelling());
-        }
-        if (command.featured() != null) {
-            variant.updateFeatured(command.featured());
-        }
         if (command.attributes() != null) {
             variant.setAttributes(command.attributes());
         }
