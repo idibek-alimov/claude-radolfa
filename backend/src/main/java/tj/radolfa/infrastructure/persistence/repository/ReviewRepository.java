@@ -15,5 +15,5 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
     Page<ReviewEntity> findByListingVariantIdAndStatus(Long listingVariantId, String status, Pageable pageable);
 
-    List<ReviewEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
+    Page<ReviewEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
 }

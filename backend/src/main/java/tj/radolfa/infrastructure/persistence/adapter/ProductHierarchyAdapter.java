@@ -33,10 +33,13 @@ import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductTagRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Hexagonal adapter bridging the hierarchy out-ports to Spring Data JPA.
@@ -115,6 +118,14 @@ public class ProductHierarchyAdapter
         return variantRepo.findByProductBaseId(productBaseId).stream()
                 .map(mapper::toListingVariant)
                 .toList();
+    }
+
+    @Override
+    public Map<Long, ListingVariant> findVariantsByIds(Collection<Long> ids) {
+        return variantRepo.findAllById(ids).stream()
+                .collect(Collectors.toMap(
+                        ListingVariantEntity::getId,
+                        mapper::toListingVariant));
     }
 
     // ---- SaveListingVariantPort ----

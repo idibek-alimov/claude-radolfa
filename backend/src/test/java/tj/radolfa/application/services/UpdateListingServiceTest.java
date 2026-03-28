@@ -235,6 +235,11 @@ class UpdateListingServiceTest {
         public List<ListingVariant> findAllByProductBaseId(Long productBaseId) {
             return List.of();
         }
+
+        @Override
+        public java.util.Map<Long, ListingVariant> findVariantsByIds(java.util.Collection<Long> ids) {
+            return java.util.Map.of();
+        }
     }
 
     static class FakeSaveListingVariantPort implements SaveListingVariantPort {

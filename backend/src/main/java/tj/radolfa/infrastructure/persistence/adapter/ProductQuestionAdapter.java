@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.out.LoadProductQuestionPort;
 import tj.radolfa.application.ports.out.SaveProductQuestionPort;
 import tj.radolfa.domain.model.ProductQuestion;
 import tj.radolfa.domain.model.QuestionStatus;
+import tj.radolfa.infrastructure.persistence.entity.ProductQuestionEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductQuestionMapper;
 import tj.radolfa.infrastructure.persistence.repository.ProductQuestionRepository;
 
@@ -43,6 +44,7 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
     public List<ProductQuestion> findPendingOldestFirst(int limit) {
         return repository
                 .findByStatusOrderByCreatedAtAsc(QuestionStatus.PENDING.name(), PageRequest.of(0, limit))
+                .getContent()
                 .stream()
                 .map(mapper::toProductQuestion)
                 .toList();
@@ -52,6 +54,21 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
 
     @Override
     public ProductQuestion save(ProductQuestion question) {
-        return mapper.toProductQuestion(repository.save(mapper.toEntity(question)));
+        ProductQuestionEntity entity;
+
+        if (question.getId() != null) {
+            entity = repository.findById(question.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "ProductQuestion not found: " + question.getId()));
+            // Update only mutable moderation fields — immutable fields (authorName,
+            // questionText, createdAt) are preserved from the loaded entity.
+            entity.setStatus(question.getStatus());
+            entity.setAnswerText(question.getAnswerText());
+            entity.setAnsweredAt(question.getAnsweredAt());
+        } else {
+            entity = mapper.toEntity(question);
+        }
+
+        return mapper.toProductQuestion(repository.save(entity));
     }
 }

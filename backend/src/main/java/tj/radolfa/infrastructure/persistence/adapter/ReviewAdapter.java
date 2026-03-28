@@ -59,6 +59,7 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
     public List<Review> findPendingOldestFirst(int limit) {
         return reviewRepository
                 .findByStatusOrderByCreatedAtAsc(ReviewStatus.PENDING.name(), PageRequest.of(0, limit))
+                .getContent()
                 .stream()
                 .map(mapper::toReview)
                 .toList();

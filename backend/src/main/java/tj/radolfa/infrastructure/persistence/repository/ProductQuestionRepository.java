@@ -11,5 +11,5 @@ public interface ProductQuestionRepository extends JpaRepository<ProductQuestion
 
     Page<ProductQuestionEntity> findByProductBaseIdAndStatus(Long productBaseId, String status, Pageable pageable);
 
-    List<ProductQuestionEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
+    Page<ProductQuestionEntity> findByStatusOrderByCreatedAtAsc(String status, Pageable pageable);
 }

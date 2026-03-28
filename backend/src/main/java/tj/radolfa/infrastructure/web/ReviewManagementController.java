@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,36 +16,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.question.AnswerProductQuestionUseCase;
 import tj.radolfa.application.ports.in.question.ModerateProductQuestionUseCase;
+import tj.radolfa.application.ports.in.review.GetPendingReviewsUseCase;
 import tj.radolfa.application.ports.in.review.ModerateReviewUseCase;
 import tj.radolfa.application.ports.in.review.ReplyToReviewUseCase;
 import tj.radolfa.application.ports.out.LoadProductQuestionPort;
 import tj.radolfa.application.readmodel.QuestionView;
 import tj.radolfa.application.readmodel.ReviewAdminView;
-import tj.radolfa.application.services.GetPendingReviewsService;
 import tj.radolfa.infrastructure.web.dto.AnswerQuestionRequestDto;
 import tj.radolfa.infrastructure.web.dto.ReplyToReviewRequestDto;
 
 import java.util.List;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 public class ReviewManagementController {
 
     private static final int MAX_LIMIT = 200;
 
-    private final GetPendingReviewsService       getPendingReviewsService;
+    private final GetPendingReviewsUseCase       getPendingReviewsUseCase;
     private final ModerateReviewUseCase          moderateReviewUseCase;
     private final ReplyToReviewUseCase           replyToReviewUseCase;
     private final LoadProductQuestionPort        loadProductQuestionPort;
     private final AnswerProductQuestionUseCase   answerProductQuestionUseCase;
     private final ModerateProductQuestionUseCase moderateProductQuestionUseCase;
 
-    public ReviewManagementController(GetPendingReviewsService getPendingReviewsService,
+    public ReviewManagementController(GetPendingReviewsUseCase getPendingReviewsUseCase,
                                       ModerateReviewUseCase moderateReviewUseCase,
                                       ReplyToReviewUseCase replyToReviewUseCase,
                                       LoadProductQuestionPort loadProductQuestionPort,
                                       AnswerProductQuestionUseCase answerProductQuestionUseCase,
                                       ModerateProductQuestionUseCase moderateProductQuestionUseCase) {
-        this.getPendingReviewsService       = getPendingReviewsService;
+        this.getPendingReviewsUseCase       = getPendingReviewsUseCase;
         this.moderateReviewUseCase          = moderateReviewUseCase;
         this.replyToReviewUseCase           = replyToReviewUseCase;
         this.loadProductQuestionPort        = loadProductQuestionPort;
@@ -62,7 +64,7 @@ public class ReviewManagementController {
             @RequestParam(defaultValue = "50") int limit) {
 
         int effectiveLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
-        return ResponseEntity.ok(getPendingReviewsService.getPending(effectiveLimit));
+        return ResponseEntity.ok(getPendingReviewsUseCase.getPending(effectiveLimit));
     }
 
     @PatchMapping("/api/v1/admin/reviews/{reviewId}/approve")
@@ -90,6 +92,7 @@ public class ReviewManagementController {
     }
 
     @PostMapping("/api/v1/admin/reviews/{reviewId}/reply")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Tag(name = "Review Management")
     @Operation(summary = "Post seller reply", description = "Adds a public seller reply to an approved review")
     @ApiResponses({

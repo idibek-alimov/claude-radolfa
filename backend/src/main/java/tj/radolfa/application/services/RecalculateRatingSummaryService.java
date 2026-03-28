@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.review.RecalculateRatingSummaryUseCase;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.SaveRatingSummaryPort;
@@ -27,6 +28,7 @@ public class RecalculateRatingSummaryService implements RecalculateRatingSummary
     }
 
     @Override
+    @Transactional
     public void execute(Long listingVariantId) {
         List<Review> approved = loadReviewPort.findAllApprovedByVariant(listingVariantId);
 
