@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchReviews } from "../api";
+import { fetchReviews, fetchRatingSummary } from "../api";
 import { ReviewCard } from "./ReviewCard";
 import type { ReviewSortOption } from "../model/types";
 
@@ -16,12 +16,19 @@ const sortLabels: Record<ReviewSortOption, string> = {
 
 interface ReviewListProps {
   slug: string;
-  totalReviews: number;
 }
 
-export function ReviewList({ slug, totalReviews }: ReviewListProps) {
+export function ReviewList({ slug }: ReviewListProps) {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<ReviewSortOption>("newest");
+
+  // Shares the cache entry with RatingSummaryCard — no extra network request.
+  const { data: ratingSummary } = useQuery({
+    queryKey: ["rating", slug],
+    queryFn: () => fetchRatingSummary(slug),
+  });
+
+  const totalReviews = ratingSummary?.reviewCount ?? 0;
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["reviews", slug, page, sort],
