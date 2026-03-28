@@ -14,7 +14,8 @@ class ListingVariantTest {
     private ListingVariant freshVariant() {
         return new ListingVariant(null, 1L, "red", null, null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null, false, true);
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
     }
 
     // ---- slug generation ----
@@ -33,7 +34,8 @@ class ListingVariantTest {
     void generateSlug_sanitisesSpecialChars() {
         ListingVariant v = new ListingVariant(null, 1L, "dark blue", null, null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null, false, true);
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         v.generateSlug("TPL 001");
 
         // spaces become hyphens; consecutive hyphens collapsed
@@ -46,7 +48,8 @@ class ListingVariantTest {
     void generateSlug_idempotent() {
         ListingVariant v = new ListingVariant(1L, 1L, "red", "existing-slug", null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null, false, true);
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         v.generateSlug("INTERNAL-NEW");
 
         assertEquals("existing-slug", v.getSlug(), "generateSlug must not overwrite an existing slug");
@@ -69,10 +72,10 @@ class ListingVariantTest {
     @DisplayName("setAttributes replaces attribute list")
     void setAttributes_replacesExistingList() {
         ListingVariant v = freshVariant();
-        v.setAttributes(List.of(new ProductAttribute("Material", "Cotton", 1)));
+        v.setAttributes(List.of(new ProductAttribute("Material", List.of("Cotton"), 1)));
         v.setAttributes(List.of(
-                new ProductAttribute("Fit", "Slim", 1),
-                new ProductAttribute("Care", "Machine wash", 2)));
+                new ProductAttribute("Fit", List.of("Slim"), 1),
+                new ProductAttribute("Care", List.of("Machine wash"), 2)));
 
         assertEquals(2, v.getAttributes().size());
         assertEquals("Fit", v.getAttributes().get(0).key());
@@ -91,10 +94,10 @@ class ListingVariantTest {
     @DisplayName("getAttributes returns unmodifiable view")
     void getAttributes_returnsUnmodifiableView() {
         ListingVariant v = freshVariant();
-        v.setAttributes(List.of(new ProductAttribute("Key", "Val", 0)));
+        v.setAttributes(List.of(new ProductAttribute("Key", List.of("Val"), 0)));
 
         assertThrows(UnsupportedOperationException.class,
-                () -> v.getAttributes().add(new ProductAttribute("X", "Y", 99)));
+                () -> v.getAttributes().add(new ProductAttribute("X", List.of("Y"), 99)));
     }
 
     // ---- images ----
@@ -169,20 +172,29 @@ class ListingVariantTest {
                 () -> v.getImages().add("https://cdn.example.com/b.jpg"));
     }
 
-    // ---- flags ----
+    // ---- tags ----
 
     @Test
-    @DisplayName("updateTopSelling and updateFeatured toggle flags")
-    void updateFlags_toggleCorrectly() {
+    @DisplayName("assignTags replaces the tag set")
+    void assignTags_replacesTagSet() {
         ListingVariant v = freshVariant();
-        assertFalse(v.isTopSelling());
-        assertFalse(v.isFeatured());
+        assertTrue(v.getTagIds().isEmpty());
 
-        v.updateTopSelling(true);
-        v.updateFeatured(true);
+        v.assignTags(List.of(1L, 2L));
+        assertEquals(List.of(1L, 2L), v.getTagIds());
 
-        assertTrue(v.isTopSelling());
-        assertTrue(v.isFeatured());
+        v.assignTags(List.of(3L));
+        assertEquals(List.of(3L), v.getTagIds());
+    }
+
+    @Test
+    @DisplayName("assignTags with empty list removes all tags")
+    void assignTags_emptyListClearsTags() {
+        ListingVariant v = freshVariant();
+        v.assignTags(List.of(1L, 2L));
+        v.assignTags(List.of());
+
+        assertTrue(v.getTagIds().isEmpty());
     }
 
     // ---- hasEnrichment ----
@@ -217,7 +229,8 @@ class ListingVariantTest {
         List<String> images = new ArrayList<>();
         images.add("https://cdn.example.com/a.jpg");
         ListingVariant v = new ListingVariant(null, 1L, "blue", null, null,
-                images, Collections.emptyList(), false, false, null, null, false, true);
+                images, Collections.emptyList(), Collections.emptyList(),
+                null, null, false, true, null, null, null, null);
 
         images.add("https://cdn.example.com/b.jpg"); // mutate original
 

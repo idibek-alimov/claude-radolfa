@@ -12,11 +12,13 @@ import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadBrandPort.BrandView;
 import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort;
 import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort.BlueprintEntry;
+import tj.radolfa.domain.model.AttributeType;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.readmodel.CategoryView;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadColorPort.ColorView;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
+import tj.radolfa.domain.exception.InvalidAttributeValueException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Money;
@@ -109,34 +111,34 @@ class CreateProductServiceTest {
     }
 
     @Test
-    @DisplayName("SKU barcode is auto-generated with 'BC-' prefix and logistics fields are persisted correctly")
+    @DisplayName("SKU barcode is auto-generated with 'BC-' prefix; variant dimensions are persisted correctly")
     void execute_skuLogisticsFields_persistedCorrectly() {
-        SkuDefinition sku = new SkuDefinition("XL", new Money(new BigDecimal("49.99")),
-                30, 0.8, 30, 20, 10);
+        SkuDefinition sku = new SkuDefinition("XL", new Money(new BigDecimal("49.99")), 30);
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(), List.of(), List.of(sku), false, true, 0.8, 30, 20, 10);
 
-        service.execute(commandWith(List.of(variantDef(10L, List.of(sku)))));
+        service.execute(commandWith(List.of(varDef)));
 
-        Sku saved = fakeSave.lastSavedSku;
-        assertNotNull(saved);
-        assertNotNull(saved.getBarcode());
-        assertTrue(saved.getBarcode().startsWith("BC-"), "Barcode must be auto-generated with 'BC-' prefix");
-        assertEquals(0.8, saved.getWeightKg());
-        assertEquals(30, saved.getWidthCm());
-        assertEquals(20, saved.getHeightCm());
-        assertEquals(10, saved.getDepthCm());
-        assertEquals("XL", saved.getSizeLabel());
-        assertEquals(30, saved.getStockQuantity());
+        Sku savedSku = fakeSave.lastSavedSku;
+        assertNotNull(savedSku);
+        assertNotNull(savedSku.getBarcode());
+        assertTrue(savedSku.getBarcode().startsWith("BC-"), "Barcode must be auto-generated with 'BC-' prefix");
+        assertEquals("XL", savedSku.getSizeLabel());
+        assertEquals(30, savedSku.getStockQuantity());
+
+        ListingVariant savedVariant = fakeSave.lastSavedVariant;
+        assertEquals(0.8, savedVariant.getWeightKg());
+        assertEquals(30, savedVariant.getWidthCm());
+        assertEquals(20, savedVariant.getHeightCm());
+        assertEquals(10, savedVariant.getDepthCm());
     }
 
     @Test
-    @DisplayName("SKU logistics fields are null when not provided")
+    @DisplayName("Variant dimensions are null when not provided")
     void execute_skuLogisticsFields_nullWhenOmitted() {
-        SkuDefinition sku = new SkuDefinition("M", new Money(new BigDecimal("19.99")),
-                10, null, null, null, null);
+        service.execute(commandWith(List.of(variantDef(10L, List.of(skuDef("M", "19.99", 10))))));
 
-        service.execute(commandWith(List.of(variantDef(10L, List.of(sku)))));
-
-        Sku saved = fakeSave.lastSavedSku;
+        ListingVariant saved = fakeSave.lastSavedVariant;
         assertNull(saved.getWeightKg());
         assertNull(saved.getWidthCm());
         assertNull(saved.getHeightCm());
@@ -148,7 +150,7 @@ class CreateProductServiceTest {
     void execute_webDescription_isSetOnVariant() {
         VariantDefinition varDef = new VariantDefinition(
                 10L, "Beautiful red dress", List.of(), List.of(),
-                List.of(skuDef("S", "59.99", 5)), false, true);
+                List.of(skuDef("S", "59.99", 5)), false, true, null, null, null, null);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -162,7 +164,7 @@ class CreateProductServiceTest {
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(),
                 List.of("https://cdn.example.com/a.jpg", "https://cdn.example.com/b.jpg"),
-                List.of(skuDef("S", "29.99", 10)), false, true);
+                List.of(skuDef("S", "29.99", 10)), false, true, null, null, null, null);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -173,12 +175,12 @@ class CreateProductServiceTest {
     @DisplayName("Variant attributes are set when provided")
     void execute_attributes_areSetOnVariant() {
         List<ProductAttribute> attrs = List.of(
-                new ProductAttribute("Material", "Silk", 1),
-                new ProductAttribute("Fit", "Regular", 2));
+                new ProductAttribute("Material", List.of("Silk"), 1),
+                new ProductAttribute("Fit", List.of("Regular"), 2));
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, attrs, List.of(),
-                List.of(skuDef("S", "19.99", 8)), false, true);
+                List.of(skuDef("S", "19.99", 8)), false, true, null, null, null, null);
 
         service.execute(commandWith(List.of(varDef)));
 
@@ -327,11 +329,11 @@ class CreateProductServiceTest {
         fakeBlueprint.storeRequired(1L, "Fit");
 
         List<ProductAttribute> attrs = List.of(
-                new ProductAttribute("Material", "Wool", 1),
-                new ProductAttribute("Fit", "Slim", 2));
+                new ProductAttribute("Material", List.of("Wool"), 1),
+                new ProductAttribute("Fit", List.of("Slim"), 2));
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, attrs, List.of(),
-                List.of(skuDef("S", "29.99", 5)), false, true);
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
 
         assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
@@ -344,7 +346,7 @@ class CreateProductServiceTest {
         // Variant provides no attributes at all
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(), List.of(),
-                List.of(skuDef("S", "29.99", 5)), false, true);
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(varDef))));
@@ -357,14 +359,14 @@ class CreateProductServiceTest {
         fakeColor.store(new ColorView(20L, "blue", "Blue", "#0000FF"));
         fakeBlueprint.storeRequired(1L, "Fit");
 
-        List<ProductAttribute> attrsOk = List.of(new ProductAttribute("Fit", "Regular", 1));
+        List<ProductAttribute> attrsOk = List.of(new ProductAttribute("Fit", List.of("Regular"), 1));
         VariantDefinition variantOk   = new VariantDefinition(
                 10L, null, attrsOk, List.of(),
-                List.of(skuDef("S", "19.99", 5)), false, true);
+                List.of(skuDef("S", "19.99", 5)), false, true, null, null, null, null);
 
         VariantDefinition variantBad  = new VariantDefinition(
                 20L, null, List.of(), List.of(),  // missing "Fit"
-                List.of(skuDef("M", "19.99", 5)), false, true);
+                List.of(skuDef("M", "19.99", 5)), false, true, null, null, null, null);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(variantOk, variantBad))));
@@ -377,7 +379,7 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, List.of(), List.of(),   // "Care" not provided
-                List.of(skuDef("S", "19.99", 5)), false, true);
+                List.of(skuDef("S", "19.99", 5)), false, true, null, null, null, null);
 
         assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
@@ -389,10 +391,136 @@ class CreateProductServiceTest {
 
         VariantDefinition varDef = new VariantDefinition(
                 10L, null, null, List.of(),   // null attributes
-                List.of(skuDef("S", "29.99", 5)), false, true);
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.execute(commandWith(List.of(varDef))));
+    }
+
+    // =========================================================
+    //  Validation — blueprint attribute type constraints
+    // =========================================================
+
+    @Test
+    @DisplayName("ENUM: passes when single value is in allowedValues")
+    void execute_enumAttribute_validValue_passes() {
+        fakeBlueprint.storeTyped(1L, "Fit", AttributeType.ENUM, List.of("Slim", "Regular", "Oversized"));
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Fit", List.of("Slim"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
+    }
+
+    @Test
+    @DisplayName("ENUM: throws when value is not in allowedValues")
+    void execute_enumAttribute_invalidValue_throws() {
+        fakeBlueprint.storeTyped(1L, "Fit", AttributeType.ENUM, List.of("Slim", "Regular", "Oversized"));
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Fit", List.of("Baggy"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        InvalidAttributeValueException ex = assertThrows(InvalidAttributeValueException.class,
+                () -> service.execute(commandWith(List.of(varDef))));
+        assertTrue(ex.getMessage().contains("Fit"));
+        assertTrue(ex.getMessage().contains("Baggy"));
+    }
+
+    @Test
+    @DisplayName("ENUM: throws when more than one value is supplied")
+    void execute_enumAttribute_multipleValues_throws() {
+        fakeBlueprint.storeTyped(1L, "Fit", AttributeType.ENUM, List.of("Slim", "Regular"));
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Fit", List.of("Slim", "Regular"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        assertThrows(InvalidAttributeValueException.class,
+                () -> service.execute(commandWith(List.of(varDef))));
+    }
+
+    @Test
+    @DisplayName("MULTI: passes when all values are in allowedValues")
+    void execute_multiAttribute_allValidValues_passes() {
+        fakeBlueprint.storeTyped(1L, "Material", AttributeType.MULTI, List.of("Cotton", "Polyester", "Wool"));
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Material", List.of("Cotton", "Polyester"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
+    }
+
+    @Test
+    @DisplayName("MULTI: throws when one value is not in allowedValues")
+    void execute_multiAttribute_oneInvalidValue_throws() {
+        fakeBlueprint.storeTyped(1L, "Material", AttributeType.MULTI, List.of("Cotton", "Polyester"));
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Material", List.of("Cotton", "Nylon"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        InvalidAttributeValueException ex = assertThrows(InvalidAttributeValueException.class,
+                () -> service.execute(commandWith(List.of(varDef))));
+        assertTrue(ex.getMessage().contains("Material"));
+        assertTrue(ex.getMessage().contains("Nylon"));
+    }
+
+    @Test
+    @DisplayName("NUMBER: passes when value is a valid numeric string")
+    void execute_numberAttribute_validNumber_passes() {
+        fakeBlueprint.storeTyped(1L, "Weight", AttributeType.NUMBER, List.of());
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Weight", List.of("200"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
+    }
+
+    @Test
+    @DisplayName("NUMBER: throws when value is not parseable as a number")
+    void execute_numberAttribute_nonNumericValue_throws() {
+        fakeBlueprint.storeTyped(1L, "Weight", AttributeType.NUMBER, List.of());
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Weight", List.of("heavy"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        InvalidAttributeValueException ex = assertThrows(InvalidAttributeValueException.class,
+                () -> service.execute(commandWith(List.of(varDef))));
+        assertTrue(ex.getMessage().contains("Weight"));
+        assertTrue(ex.getMessage().contains("heavy"));
+    }
+
+    @Test
+    @DisplayName("NUMBER: throws when more than one value is supplied")
+    void execute_numberAttribute_multipleValues_throws() {
+        fakeBlueprint.storeTyped(1L, "Weight", AttributeType.NUMBER, List.of());
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(new ProductAttribute("Weight", List.of("100", "200"), 1)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        assertThrows(InvalidAttributeValueException.class,
+                () -> service.execute(commandWith(List.of(varDef))));
+    }
+
+    @Test
+    @DisplayName("Attribute key not present in blueprint is permitted without validation")
+    void execute_attributeKeyNotInBlueprint_noValidation() {
+        // Blueprint only knows about "Fit", but the variant also sends "Season" — that's fine
+        fakeBlueprint.storeTyped(1L, "Fit", AttributeType.ENUM, List.of("Slim"));
+
+        VariantDefinition varDef = new VariantDefinition(
+                10L, null, List.of(
+                        new ProductAttribute("Fit", List.of("Slim"), 1),
+                        new ProductAttribute("Season", List.of("Summer"), 2)), List.of(),
+                List.of(skuDef("S", "29.99", 5)), false, true, null, null, null, null);
+
+        assertDoesNotThrow(() -> service.execute(commandWith(List.of(varDef))));
     }
 
     // =========================================================
@@ -404,12 +532,11 @@ class CreateProductServiceTest {
     }
 
     private VariantDefinition variantDef(Long colorId, List<SkuDefinition> skus) {
-        return new VariantDefinition(colorId, null, List.of(), List.of(), skus, false, true);
+        return new VariantDefinition(colorId, null, List.of(), List.of(), skus, false, true, null, null, null, null);
     }
 
     private SkuDefinition skuDef(String size, String price, int stock) {
-        return new SkuDefinition(size, new Money(new BigDecimal(price)), stock,
-                null, null, null, null);
+        return new SkuDefinition(size, new Money(new BigDecimal(price)), stock);
     }
 
     // =========================================================
@@ -453,11 +580,18 @@ class CreateProductServiceTest {
         private final AtomicLong idGen = new AtomicLong(1);
 
         void storeRequired(Long categoryId, String key) {
-            entries.add(new BlueprintEntry(idGen.getAndIncrement(), categoryId, key, true, 0));
+            entries.add(new BlueprintEntry(idGen.getAndIncrement(), categoryId, key,
+                    AttributeType.TEXT, null, List.of(), true, 0));
         }
 
         void storeOptional(Long categoryId, String key) {
-            entries.add(new BlueprintEntry(idGen.getAndIncrement(), categoryId, key, false, 0));
+            entries.add(new BlueprintEntry(idGen.getAndIncrement(), categoryId, key,
+                    AttributeType.TEXT, null, List.of(), false, 0));
+        }
+
+        void storeTyped(Long categoryId, String key, AttributeType type, List<String> allowedValues) {
+            entries.add(new BlueprintEntry(idGen.getAndIncrement(), categoryId, key,
+                    type, null, allowedValues, false, 0));
         }
 
         @Override
@@ -491,9 +625,11 @@ class CreateProductServiceTest {
                     idGen.getAndIncrement(), productBaseId, variant.getColorKey(),
                     variant.getSlug(), variant.getWebDescription(),
                     variant.getImages(), variant.getAttributes(),
-                    variant.isTopSelling(), variant.isFeatured(),
+                    variant.getTagIds(),
                     variant.getLastSyncAt(), "RD-" + idGen.get(),
-                    variant.isEnabled(), variant.isActive());
+                    variant.isEnabled(), variant.isActive(),
+                    variant.getWeightKg(), variant.getWidthCm(),
+                    variant.getHeightCm(), variant.getDepthCm());
             return lastSavedVariant;
         }
 
@@ -503,8 +639,7 @@ class CreateProductServiceTest {
             lastSavedSku = new Sku(
                     idGen.getAndIncrement(), listingVariantId, sku.getSkuCode(),
                     sku.getSizeLabel(), sku.getStockQuantity(), sku.getPrice(),
-                    sku.getBarcode(), sku.getWeightKg(),
-                    sku.getWidthCm(), sku.getHeightCm(), sku.getDepthCm());
+                    sku.getBarcode());
             return lastSavedSku;
         }
     }
@@ -517,7 +652,7 @@ class CreateProductServiceTest {
         public void index(Long variantId, String slug, String name, String category,
                           String colorKey, String colorHexCode, String description,
                           List<String> images, Double price, Integer totalStock,
-                          boolean topSelling, boolean featured, Instant lastSyncAt) {
+                          Instant lastSyncAt) {
             if (throwOnIndex) throw new RuntimeException("ES unavailable");
             indexCallCount++;
         }

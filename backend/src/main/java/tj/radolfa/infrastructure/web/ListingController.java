@@ -2,6 +2,8 @@ package tj.radolfa.infrastructure.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -98,7 +100,7 @@ public class ListingController {
 
     @PutMapping("/{slug}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    @Operation(summary = "Update listing details", description = "Manager-enrichment: description, top-selling status")
+    @Operation(summary = "Update listing details", description = "Manager-enrichment: web description and attributes")
     public ResponseEntity<Void> update(
             @PathVariable String slug,
             @jakarta.validation.Valid @RequestBody UpdateListingRequest request) {
@@ -144,6 +146,10 @@ public class ListingController {
     @PatchMapping("/{slug}/dimensions")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Update variant dimensions", description = "Sets the logistics dimensions for a colour variant. All fields are optional — pass only what changed.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Dimensions updated"),
+        @ApiResponse(responseCode = "404", description = "Listing not found")
+    })
     public ResponseEntity<Void> updateDimensions(
             @PathVariable String slug,
             @RequestBody UpdateDimensionsRequest request) {

@@ -15,7 +15,7 @@
 --   7. Variant attributes
 --   8. Orders & order items
 --   9. Discounts & discount items
---  10. Featured flags
+--  10. Product tags & assignments
 --  11. Category attribute blueprints
 -- ================================================================
 
@@ -278,7 +278,6 @@ DECLARE
     v_base_price    NUMERIC;
     v_size_label    TEXT;
     v_stock         INT;
-    v_is_top        BOOLEAN;
     v_description   TEXT;
     v_cat_id        BIGINT;
     v_color_id      BIGINT;
@@ -300,17 +299,16 @@ BEGIN
             SELECT id INTO v_color_id FROM colors WHERE color_key = v_color_keys[v_color_idx];
 
             v_slug     := lower(v_codes[i]) || '-' || v_color_keys[v_color_idx];
-            v_is_top   := (i IN (1,4,7,10,15,21,29) AND v_ci = 1);
 
             v_description := v_names[i] || ' in ' || v_color_keys[v_color_idx]
                 || '. Premium quality, crafted with care for everyday comfort and style.';
 
             INSERT INTO listing_variants (
-                product_base_id, color_id, slug, web_description, top_selling,
+                product_base_id, color_id, slug, web_description,
                 product_code
             )
             VALUES (
-                v_base_id, v_color_id, v_slug, v_description, v_is_top,
+                v_base_id, v_color_id, v_slug, v_description,
                 'RD-' || LPAD(NEXTVAL('listing_variant_code_seq')::TEXT, 5, '0')
             )
             RETURNING id INTO v_variant_id;
@@ -386,6 +384,7 @@ DECLARE
     v_color_idx  INT;
     v_slug       TEXT;
     v_variant_id BIGINT;
+    v_attr_id    BIGINT;
     v_ai         INT;
 
 BEGIN
@@ -435,12 +434,19 @@ BEGIN
             END IF;
 
             FOR v_ai IN 1..array_length(v_attr_pairs, 1) LOOP
-                INSERT INTO listing_variant_attributes (listing_variant_id, attr_key, attr_value, sort_order)
+                INSERT INTO listing_variant_attributes (listing_variant_id, attr_key, sort_order)
                 VALUES (
                     v_variant_id,
                     split_part(v_attr_pairs[v_ai], '|', 1),
-                    split_part(v_attr_pairs[v_ai], '|', 2),
                     v_ai - 1
+                )
+                RETURNING id INTO v_attr_id;
+
+                INSERT INTO listing_variant_attribute_values (attribute_id, value, sort_order)
+                VALUES (
+                    v_attr_id,
+                    split_part(v_attr_pairs[v_ai], '|', 2),
+                    0
                 );
             END LOOP;
         END LOOP;
@@ -640,25 +646,41 @@ ON CONFLICT DO NOTHING;
 
 
 -- ================================================================
--- 10. FEATURED FLAGS
+-- 10. PRODUCT TAGS & ASSIGNMENTS
 -- ================================================================
 
-UPDATE listing_variants SET featured = TRUE
-WHERE id IN (
-    SELECT lv.id FROM listing_variants lv
-    JOIN product_bases pb ON lv.product_base_id = pb.id
-    WHERE pb.external_ref IN (
-        'TPL-SUIT-001',
-        'TPL-POLO-001',
-        'TPL-BKPCK-001',
-        'TPL-BOOTS-001'
-    )
-    AND lv.id IN (
-        SELECT MIN(lv2.id) FROM listing_variants lv2
-        WHERE lv2.product_base_id = lv.product_base_id
-        GROUP BY lv2.product_base_id
-    )
-);
+INSERT INTO product_tags (name, color_hex) VALUES
+    ('Featured',    '6366F1'),
+    ('Top Selling', 'F59E0B'),
+    ('New Arrival', '10B981'),
+    ('Sale',        'EF4444');
+
+-- Assign "Featured" tag to first variant of selected products
+INSERT INTO listing_variant_tags (variant_id, tag_id)
+SELECT lv.id, (SELECT id FROM product_tags WHERE name = 'Featured')
+FROM listing_variants lv
+JOIN product_bases pb ON lv.product_base_id = pb.id
+WHERE pb.external_ref IN ('TPL-SUIT-001', 'TPL-POLO-001', 'TPL-BKPCK-001', 'TPL-BOOTS-001')
+  AND lv.id IN (
+      SELECT MIN(lv2.id) FROM listing_variants lv2
+      WHERE lv2.product_base_id = lv.product_base_id
+      GROUP BY lv2.product_base_id
+  )
+ON CONFLICT DO NOTHING;
+
+-- Assign "Top Selling" tag to first variant of high-traffic products
+INSERT INTO listing_variant_tags (variant_id, tag_id)
+SELECT lv.id, (SELECT id FROM product_tags WHERE name = 'Top Selling')
+FROM listing_variants lv
+JOIN product_bases pb ON lv.product_base_id = pb.id
+WHERE pb.external_ref IN ('TPL-TSHIRT-001', 'TPL-HOODIE-001', 'TPL-JEANS-001', 'TPL-SNEAK-001',
+                           'TPL-DRESS-001', 'TPL-POLO-001', 'TPL-BKPCK-001')
+  AND lv.id IN (
+      SELECT MIN(lv2.id) FROM listing_variants lv2
+      WHERE lv2.product_base_id = lv.product_base_id
+      GROUP BY lv2.product_base_id
+  )
+ON CONFLICT DO NOTHING;
 
 -- ================================================================
 -- 11. CATEGORY ATTRIBUTE BLUEPRINTS

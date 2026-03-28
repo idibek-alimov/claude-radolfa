@@ -41,7 +41,8 @@ class UpdateListingServiceTest {
     private ListingVariant storedVariant(String slug) {
         ListingVariant v = new ListingVariant(1L, 1L, "red", slug, null,
                 Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null, false, true);
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         fakeLoad.store(slug, v);
         return v;
     }
@@ -54,7 +55,7 @@ class UpdateListingServiceTest {
     @DisplayName("update() throws ResourceNotFoundException for unknown slug")
     void update_unknownSlug_throws() {
         assertThrows(ResourceNotFoundException.class,
-                () -> service.update("ghost-slug", new UpdateListingCommand(null, null, null, null)));
+                () -> service.update("ghost-slug", new UpdateListingCommand(null, null)));
     }
 
     @Test
@@ -62,8 +63,7 @@ class UpdateListingServiceTest {
     void update_setsWebDescription() {
         storedVariant("red-shirt");
 
-        service.update("red-shirt",
-                new UpdateListingCommand("Great red shirt", null, null, null));
+        service.update("red-shirt", new UpdateListingCommand("Great red shirt", null));
 
         assertEquals("Great red shirt", fakeSave.lastSaved.getWebDescription());
     }
@@ -73,42 +73,13 @@ class UpdateListingServiceTest {
     void update_nullWebDescription_doesNotOverwrite() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 "Original description", Collections.emptyList(), Collections.emptyList(),
-                false, false, null, null, false, true);
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         fakeLoad.store("red-shirt", existing);
 
-        service.update("red-shirt", new UpdateListingCommand(null, null, null, null));
+        service.update("red-shirt", new UpdateListingCommand(null, null));
 
         assertEquals("Original description", fakeSave.lastSaved.getWebDescription());
-    }
-
-    @Test
-    @DisplayName("update() sets topSelling flag when provided")
-    void update_setsTopSelling() {
-        storedVariant("red-shirt");
-        service.update("red-shirt", new UpdateListingCommand(null, true, null, null));
-        assertTrue(fakeSave.lastSaved.isTopSelling());
-    }
-
-    @Test
-    @DisplayName("update() sets featured flag when provided")
-    void update_setsFeatured() {
-        storedVariant("red-shirt");
-        service.update("red-shirt", new UpdateListingCommand(null, null, true, null));
-        assertTrue(fakeSave.lastSaved.isFeatured());
-    }
-
-    @Test
-    @DisplayName("update() does NOT change flags when topSelling and featured are null")
-    void update_nullFlags_doesNotChangeExistingFlags() {
-        ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
-                null, Collections.emptyList(), Collections.emptyList(),
-                true, true, null, null, false, true);
-        fakeLoad.store("red-shirt", existing);
-
-        service.update("red-shirt", new UpdateListingCommand(null, null, null, null));
-
-        assertTrue(fakeSave.lastSaved.isTopSelling());
-        assertTrue(fakeSave.lastSaved.isFeatured());
     }
 
     @Test
@@ -116,14 +87,15 @@ class UpdateListingServiceTest {
     void update_replacesAttributes() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(),
-                List.of(new ProductAttribute("OldKey", "OldVal", 0)),
-                false, false, null, null, false, true);
+                List.of(new ProductAttribute("OldKey", List.of("OldVal"), 0)),
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         fakeLoad.store("red-shirt", existing);
 
         List<ProductAttribute> newAttrs = List.of(
-                new ProductAttribute("Material", "Silk", 1),
-                new ProductAttribute("Fit", "Slim", 2));
-        service.update("red-shirt", new UpdateListingCommand(null, null, null, newAttrs));
+                new ProductAttribute("Material", List.of("Silk"), 1),
+                new ProductAttribute("Fit", List.of("Slim"), 2));
+        service.update("red-shirt", new UpdateListingCommand(null, newAttrs));
 
         List<ProductAttribute> saved = fakeSave.lastSaved.getAttributes();
         assertEquals(2, saved.size());
@@ -136,11 +108,12 @@ class UpdateListingServiceTest {
     void update_nullAttributes_doesNotClearExisting() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(),
-                List.of(new ProductAttribute("Fit", "Regular", 0)),
-                false, false, null, null, false, true);
+                List.of(new ProductAttribute("Fit", List.of("Regular"), 0)),
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         fakeLoad.store("red-shirt", existing);
 
-        service.update("red-shirt", new UpdateListingCommand(null, null, null, null));
+        service.update("red-shirt", new UpdateListingCommand(null, null));
 
         assertEquals(1, fakeSave.lastSaved.getAttributes().size());
     }
@@ -150,11 +123,12 @@ class UpdateListingServiceTest {
     void update_emptyAttributesList_clearsAttributes() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, Collections.emptyList(),
-                List.of(new ProductAttribute("Fit", "Regular", 0)),
-                false, false, null, null, false, true);
+                List.of(new ProductAttribute("Fit", List.of("Regular"), 0)),
+                Collections.emptyList(), null, null, false, true,
+                null, null, null, null);
         fakeLoad.store("red-shirt", existing);
 
-        service.update("red-shirt", new UpdateListingCommand(null, null, null, List.of()));
+        service.update("red-shirt", new UpdateListingCommand(null, List.of()));
 
         assertTrue(fakeSave.lastSaved.getAttributes().isEmpty());
     }
@@ -163,7 +137,7 @@ class UpdateListingServiceTest {
     @DisplayName("update() always calls save exactly once")
     void update_savesExactlyOnce() {
         storedVariant("red-shirt");
-        service.update("red-shirt", new UpdateListingCommand("desc", true, false, List.of()));
+        service.update("red-shirt", new UpdateListingCommand("desc", List.of()));
         assertEquals(1, fakeSave.saveCount);
     }
 
@@ -215,7 +189,8 @@ class UpdateListingServiceTest {
     void removeImage_removesUrlAndSaves() {
         ListingVariant existing = new ListingVariant(1L, 1L, "red", "red-shirt",
                 null, new ArrayList<>(List.of("https://cdn.example.com/a.jpg")),
-                Collections.emptyList(), false, false, null, null, false, true);
+                Collections.emptyList(), Collections.emptyList(),
+                null, null, false, true, null, null, null, null);
         fakeLoad.store("red-shirt", existing);
 
         service.removeImage("red-shirt", "https://cdn.example.com/a.jpg");
@@ -270,6 +245,11 @@ class UpdateListingServiceTest {
         public void save(ListingVariant variant) {
             saveCount++;
             lastSaved = variant;
+        }
+
+        @Override
+        public void saveTags(Long variantId, List<Long> tagIds) {
+            // no-op in this test context
         }
     }
 }

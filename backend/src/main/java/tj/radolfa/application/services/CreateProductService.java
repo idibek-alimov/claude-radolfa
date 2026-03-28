@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
+import tj.radolfa.domain.exception.InvalidAttributeValueException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadBrandPort;
@@ -14,12 +15,14 @@ import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -73,20 +76,25 @@ public class CreateProductService implements CreateProductUseCase {
             brandId = command.brandId();
         }
 
-        // 3. Validate required attributes against category blueprint (if any)
-        List<String> requiredKeys = loadBlueprintPort.findByCategoryId(command.categoryId())
-                .stream()
-                .filter(LoadCategoryBlueprintPort.BlueprintEntry::required)
-                .map(LoadCategoryBlueprintPort.BlueprintEntry::attributeKey)
-                .toList();
+        // 3. Validate attributes against category blueprint (required-key and type checks)
+        List<LoadCategoryBlueprintPort.BlueprintEntry> blueprints =
+                loadBlueprintPort.findByCategoryId(command.categoryId());
 
-        if (!requiredKeys.isEmpty()) {
+        if (!blueprints.isEmpty()) {
+            Map<String, LoadCategoryBlueprintPort.BlueprintEntry> blueprintByKey = blueprints.stream()
+                    .collect(Collectors.toMap(LoadCategoryBlueprintPort.BlueprintEntry::attributeKey, e -> e));
+
+            List<String> requiredKeys = blueprints.stream()
+                    .filter(LoadCategoryBlueprintPort.BlueprintEntry::required)
+                    .map(LoadCategoryBlueprintPort.BlueprintEntry::attributeKey)
+                    .toList();
+
             for (Command.VariantDefinition variantDef : command.variants()) {
-                Set<String> providedKeys = variantDef.attributes() == null
-                        ? Set.of()
-                        : variantDef.attributes().stream()
-                                .map(a -> a.key())
-                                .collect(Collectors.toSet());
+                List<ProductAttribute> attrs = variantDef.attributes() == null
+                        ? List.of() : variantDef.attributes();
+                Set<String> providedKeys = attrs.stream()
+                        .map(ProductAttribute::key)
+                        .collect(Collectors.toSet());
 
                 List<String> missing = requiredKeys.stream()
                         .filter(k -> !providedKeys.contains(k))
@@ -97,6 +105,8 @@ public class CreateProductService implements CreateProductUseCase {
                             "Missing required attributes for category '" + category.name()
                             + "': " + missing);
                 }
+
+                validateAttributeValues(attrs, blueprintByKey);
             }
         }
 
@@ -181,6 +191,51 @@ public class CreateProductService implements CreateProductUseCase {
         }
 
         return savedBase.getId();
+    }
+
+    private void validateAttributeValues(
+            List<ProductAttribute> attrs,
+            Map<String, LoadCategoryBlueprintPort.BlueprintEntry> blueprintByKey) {
+
+        for (ProductAttribute attr : attrs) {
+            LoadCategoryBlueprintPort.BlueprintEntry bp = blueprintByKey.get(attr.key());
+            if (bp == null) continue; // attribute not in blueprint — permitted
+
+            switch (bp.type()) {
+                case ENUM -> {
+                    if (attr.values().size() != 1) {
+                        throw new InvalidAttributeValueException(attr.key(),
+                                "ENUM attributes must have exactly one value, got: " + attr.values());
+                    }
+                    String value = attr.values().get(0);
+                    if (!bp.allowedValues().contains(value)) {
+                        throw new InvalidAttributeValueException(attr.key(),
+                                "'" + value + "' is not an allowed value. Allowed: " + bp.allowedValues());
+                    }
+                }
+                case MULTI -> {
+                    for (String value : attr.values()) {
+                        if (!bp.allowedValues().contains(value)) {
+                            throw new InvalidAttributeValueException(attr.key(),
+                                    "'" + value + "' is not an allowed value. Allowed: " + bp.allowedValues());
+                        }
+                    }
+                }
+                case NUMBER -> {
+                    if (attr.values().size() != 1) {
+                        throw new InvalidAttributeValueException(attr.key(),
+                                "NUMBER attributes must have exactly one value, got: " + attr.values());
+                    }
+                    try {
+                        new java.math.BigDecimal(attr.values().get(0));
+                    } catch (NumberFormatException e) {
+                        throw new InvalidAttributeValueException(attr.key(),
+                                "'" + attr.values().get(0) + "' is not a valid number");
+                    }
+                }
+                case TEXT -> { /* no constraint beyond presence */ }
+            }
+        }
     }
 
     private void indexVariant(ListingVariant variant, String productName, String category,

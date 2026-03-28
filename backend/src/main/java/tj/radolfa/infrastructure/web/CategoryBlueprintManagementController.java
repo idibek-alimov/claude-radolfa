@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tj.radolfa.application.ports.in.CreateCategoryBlueprintUseCase;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/categories/{categoryId}/blueprint")
 @Tag(name = "Blueprint Management", description = "ADMIN: manage category attribute blueprint entries")
+@PreAuthorize("hasRole('ADMIN')")
 public class CategoryBlueprintManagementController {
 
     private final CreateCategoryBlueprintUseCase createBlueprintUseCase;

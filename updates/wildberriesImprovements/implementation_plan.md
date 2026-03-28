@@ -25,7 +25,7 @@ This plan implements four structural improvements to the product catalog inspire
 | **Phase 2:** Multi-Value Attribute Storage | ✅ COMPLETE | `ProductAttribute.value` → `values: List<String>` across domain, JPA entities (new `listing_variant_attribute_values` child table), DTO, mapper, adapter, read model, and both controllers. |
 | **Phase 3:** Tags System | ✅ COMPLETE | Replaced `topSelling`/`featured` booleans with a flexible `ProductTag` entity and `listing_variant_tags` junction table; added `GET /api/v1/tags`, `POST /api/v1/admin/tags`, `PUT /api/v1/admin/variants/{id}/tags` endpoints; updated all grid queries, read models, mapper, and ES index accordingly. |
 | **Phase 4:** Dimensions to Variant Level | ✅ COMPLETE | Moved `weightKg/widthCm/heightCm/depthCm` from `Sku`/`skus` to `ListingVariant`/`listing_variants`; updated domain, entities, DTOs, use-case commands, service, mapper, read model, and added `PATCH /{slug}/dimensions` endpoint. Also fixed a pre-existing self-reference bug in `HomeCollectionsAdapter`. |
-| **Phase 5:** Blueprint Validation + Final Cleanup | ⬜ PENDING | |
+| **Phase 5:** Blueprint Validation + Final Cleanup | ✅ COMPLETE | Added `InvalidAttributeValueException`, extended `CreateProductService` with ENUM/MULTI/NUMBER type validation, added `@ApiResponse` to dimensions endpoint, fixed all stale seed data (`top_selling`, `attr_value`, `featured`), and repaired 4 test files to match current domain model. `./mvnw test`: 117 tests, 0 failures. |
 
 ---
 
