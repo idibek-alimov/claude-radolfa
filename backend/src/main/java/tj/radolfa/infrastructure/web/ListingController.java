@@ -23,11 +23,14 @@ import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.in.UpdateListingUseCase;
 import tj.radolfa.application.ports.in.UploadImageUseCase;
+import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadRatingSummaryPort;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.infrastructure.web.dto.ProductAttributeDto;
+import tj.radolfa.infrastructure.web.dto.RatingSummaryResponseDto;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,19 +47,25 @@ import java.util.Map;
 @Tag(name = "Listings", description = "Storefront listing variant operations")
 public class ListingController {
 
-    private final GetListingUseCase  getListingUseCase;
-    private final UpdateListingUseCase updateListingUseCase;
-    private final UploadImageUseCase uploadImageUseCase;
-    private final TierPricingEnricher tierPricing;
+    private final GetListingUseCase      getListingUseCase;
+    private final UpdateListingUseCase   updateListingUseCase;
+    private final UploadImageUseCase     uploadImageUseCase;
+    private final TierPricingEnricher    tierPricing;
+    private final LoadListingVariantPort loadListingVariantPort;
+    private final LoadRatingSummaryPort  loadRatingSummaryPort;
 
     public ListingController(GetListingUseCase getListingUseCase,
             UpdateListingUseCase updateListingUseCase,
             UploadImageUseCase uploadImageUseCase,
-            TierPricingEnricher tierPricing) {
-        this.getListingUseCase = getListingUseCase;
-        this.updateListingUseCase = updateListingUseCase;
-        this.uploadImageUseCase = uploadImageUseCase;
-        this.tierPricing = tierPricing;
+            TierPricingEnricher tierPricing,
+            LoadListingVariantPort loadListingVariantPort,
+            LoadRatingSummaryPort loadRatingSummaryPort) {
+        this.getListingUseCase      = getListingUseCase;
+        this.updateListingUseCase   = updateListingUseCase;
+        this.uploadImageUseCase     = uploadImageUseCase;
+        this.tierPricing            = tierPricing;
+        this.loadListingVariantPort = loadListingVariantPort;
+        this.loadRatingSummaryPort  = loadRatingSummaryPort;
     }
 
     @GetMapping
@@ -94,6 +103,23 @@ public class ListingController {
             @Parameter(description = "Max suggestions") @RequestParam(defaultValue = "5") int limit) {
 
         return ResponseEntity.ok(getListingUseCase.autocomplete(q, limit));
+    }
+
+    @GetMapping("/{slug}/rating")
+    @Operation(summary = "Rating summary", description = "Aggregated star-rating summary for a listing variant")
+    public ResponseEntity<RatingSummaryResponseDto> getRating(@PathVariable String slug) {
+        return loadListingVariantPort.findBySlug(slug)
+                .map(variant -> loadRatingSummaryPort.findByVariantId(variant.getId())
+                        .map(s -> new RatingSummaryResponseDto(
+                                s.averageRating(),
+                                s.reviewCount(),
+                                s.distribution(),
+                                s.sizeAccurate(),
+                                s.sizeRunsSmall(),
+                                s.sizeRunsLarge()))
+                        .orElse(RatingSummaryResponseDto.empty()))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // ---- Manager Operations ----

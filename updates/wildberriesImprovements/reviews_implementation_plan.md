@@ -42,7 +42,7 @@ docker-compose down -v && docker-compose up -d postgres
 | **Phase 2:** Persistence Layer | ✅ COMPLETE | 4 JPA entities, 3 repositories, 7 out-ports, 2 MapStruct mappers, 4 adapters — compiles clean. |
 | **Phase 3:** Review Submission (Customer) | ✅ COMPLETE | 2 domain exceptions, use case, service with purchase/duplicate guards, DTO, controller — compiles clean. |
 | **Phase 4:** Moderation + Admin Reply | ✅ COMPLETE | RecalculateRatingSummaryUseCase stub + 2 use cases, 2 services, ReviewAdminView read model, GetPendingReviewsService, DTO, ReviewManagementController — compiles clean. |
-| **Phase 5:** Rating Aggregation | ⬜ PENDING | |
+| **Phase 5:** Rating Aggregation | ✅ COMPLETE | RecalculateRatingSummaryService implements stub from Phase 4; RatingSummaryResponseDto + GET /api/v1/listings/{slug}/rating added to ListingController — compiles clean. |
 | **Phase 6:** Q&A System | ⬜ PENDING | |
 | **Phase 7:** Storefront Read API + Cleanup | ⬜ PENDING | |
 
