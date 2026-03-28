@@ -36,4 +36,6 @@ export interface LoyaltyProfile {
   spendToMaintainTier: number | null;
   currentMonthSpending: number | null;
   recentEarnings: LoyaltyEarning[];
+  permanent: boolean;
+  floorTierName: string | null;
 }
