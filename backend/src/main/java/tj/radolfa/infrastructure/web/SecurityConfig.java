@@ -98,6 +98,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/home/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/tags").permitAll()
@@ -163,6 +164,8 @@ public class SecurityConfig {
                                                 // USER role: Cart, profile, wishlist, order history, reviews
                                                 // ============================================================
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/reviews")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/questions")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
