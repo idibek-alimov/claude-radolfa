@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Flame, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
 import { Badge } from "@/shared/ui/badge";
 import { formatPrice } from "@/shared/lib/format";
@@ -43,15 +43,6 @@ export default function ProductCard({ listing }: ProductCardProps) {
         <div className="absolute top-1.5 left-1.5 right-1.5 z-10 sm:top-3 sm:left-3 sm:right-3 flex items-start justify-between gap-1">
           {/* Left: Popular + sale badges stacked */}
           <div className="flex flex-col gap-1">
-            {listing.topSelling && (
-              <Badge
-                variant="default"
-                className="text-[9px] sm:text-xs gap-0.5 shrink-0"
-              >
-                <Flame className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                {tc("popular")}
-              </Badge>
-            )}
             {hasDiscount && (
               <Badge
                 style={{ backgroundColor: listing.discountColorHex ?? "#ef4444" }}

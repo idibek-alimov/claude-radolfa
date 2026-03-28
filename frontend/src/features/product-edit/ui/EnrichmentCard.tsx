@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, Loader2, Star } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { updateListing } from "@/entities/product/api";
@@ -19,12 +19,10 @@ export function EnrichmentCard({ detail }: Props) {
   const queryClient = useQueryClient();
 
   const [webDescription, setWebDescription] = useState(detail.webDescription ?? "");
-  const [topSelling, setTopSelling] = useState(detail.topSelling);
-  const [featured, setFeatured] = useState(detail.featured);
 
   const mutation = useMutation({
     mutationFn: () =>
-      updateListing(detail.slug, { webDescription, topSelling, featured }),
+      updateListing(detail.slug, { webDescription }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listing", detail.slug] });
       queryClient.invalidateQueries({ queryKey: ["listings"] });
@@ -33,10 +31,7 @@ export function EnrichmentCard({ detail }: Props) {
     onError: (err: unknown) => toast.error(getErrorMessage(err)),
   });
 
-  const isDirty =
-    webDescription !== (detail.webDescription ?? "") ||
-    topSelling !== detail.topSelling ||
-    featured !== detail.featured;
+  const isDirty = webDescription !== (detail.webDescription ?? "");
 
   return (
     <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
@@ -56,31 +51,6 @@ export function EnrichmentCard({ detail }: Props) {
         <p className="text-xs text-muted-foreground text-right">
           {webDescription.length} / 5000
         </p>
-      </div>
-
-      <div className="flex items-center gap-6">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={topSelling}
-            onChange={(e) => setTopSelling(e.target.checked)}
-            className="h-4 w-4 rounded border-input"
-          />
-          <span className="text-sm">{t("topSelling")}</span>
-        </label>
-
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={featured}
-            onChange={(e) => setFeatured(e.target.checked)}
-            className="h-4 w-4 rounded border-input"
-          />
-          <span className="text-sm flex items-center gap-1">
-            <Star className="h-3.5 w-3.5" />
-            {t("featured")}
-          </span>
-        </label>
       </div>
 
       <div className="flex justify-end">

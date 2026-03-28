@@ -47,7 +47,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, Search, Package, Star, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check } from "lucide-react";
+import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -295,19 +295,7 @@ function ProductManagement() {
                       <span className="text-sm">{computeStock(item)}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {item.topSelling && (
-                        <Badge variant="success">{t("topSeller")}</Badge>
-                      )}
-                      {item.featured && (
-                        <Badge variant="default">
-                          <Star className="h-3 w-3 mr-0.5" />
-                          {t("featured")}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
+                  <TableCell />
                   <TableCell className="text-right pr-4">
                     <Button
                       variant="ghost"

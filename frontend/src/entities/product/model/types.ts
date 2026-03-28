@@ -37,8 +37,7 @@ export interface ListingVariant {
   colorDisplayName: string;
   colorHex: string | null;
   categoryName: string | null;
-  topSelling: boolean;
-  featured: boolean;
+  webDescription: string | null;
   images: string[];
   skus: Sku[];
   // Pricing — mirrors backend ListingVariantDto exactly
@@ -78,7 +77,6 @@ export interface SiblingVariant {
 export interface ListingVariantDetail extends ListingVariant {
   productBaseId: number;
   categoryId: number | null;
-  webDescription: string | null;
   attributes: Attribute[];
   siblingVariants: SiblingVariant[];
 }

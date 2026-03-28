@@ -10,8 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ZoomIn,
-  Flame,
-  Star,
   Crown,
   Copy,
   Check,
@@ -385,29 +383,6 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               {productName}
             </h1>
 
-            {/* Status badges */}
-            {(listing.topSelling || listing.featured) && (
-              <div className="flex items-center gap-2 mt-2">
-                {listing.topSelling && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-orange-50 text-orange-700 border-orange-200 text-xs gap-1"
-                  >
-                    <Flame className="w-3 h-3" />
-                    {t("bestseller")}
-                  </Badge>
-                )}
-                {listing.featured && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-blue-50 text-blue-700 border-blue-200 text-xs gap-1"
-                  >
-                    <Star className="w-3 h-3" />
-                    {t("featured")}
-                  </Badge>
-                )}
-              </div>
-            )}
           </div>
 
           {/* ── Price block ───────────────────────────────────────── */}
