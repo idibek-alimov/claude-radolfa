@@ -76,8 +76,12 @@ export interface SiblingVariant {
  */
 export interface ListingVariantDetail extends ListingVariant {
   productBaseId: number;
-  categoryId: number | null;
-  attributes: Attribute[];
+  categoryId:    number | null;
+  weightKg:      number | null;
+  widthCm:       number | null;
+  heightCm:      number | null;
+  depthCm:       number | null;
+  attributes:    Attribute[];
   siblingVariants: SiblingVariant[];
 }
 
