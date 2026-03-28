@@ -25,6 +25,7 @@ public interface OrderMapper {
 
     @Mapping(target = "price", source = "priceAtPurchase")
     @Mapping(target = "skuId", source = "sku.id")
+    @Mapping(target = "listingVariantId", source = "sku.listingVariant.id")
     OrderItem toOrderItem(OrderItemEntity entity);
 
     @Mapping(target = "priceAtPurchase", source = "price")

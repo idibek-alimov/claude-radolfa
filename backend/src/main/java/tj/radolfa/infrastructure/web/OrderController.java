@@ -103,7 +103,9 @@ public class OrderController {
                         .map(item -> new OrderItemDto(
                                 item.getProductName(),
                                 item.getQuantity(),
-                                item.getPrice().amount()))
+                                item.getPrice().amount(),
+                                item.getSkuId(),
+                                item.getListingVariantId()))
                         .toList(),
                 order.createdAt());
     }

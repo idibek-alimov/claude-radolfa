@@ -3,6 +3,7 @@ package tj.radolfa.domain.model;
 public class OrderItem {
         private final Long id;
         private final Long skuId;
+        private final Long listingVariantId;
         private final String skuCode;
         private final String productName;
         private final int quantity;
@@ -10,6 +11,7 @@ public class OrderItem {
 
         public OrderItem(Long id,
                         Long skuId,
+                        Long listingVariantId,
                         String skuCode,
                         String productName,
                         int quantity,
@@ -19,6 +21,7 @@ public class OrderItem {
                 }
                 this.id = id;
                 this.skuId = skuId;
+                this.listingVariantId = listingVariantId;
                 this.skuCode = skuCode;
                 this.productName = productName;
                 this.quantity = quantity;
@@ -31,6 +34,10 @@ public class OrderItem {
 
         public Long getSkuId() {
                 return skuId;
+        }
+
+        public Long getListingVariantId() {
+                return listingVariantId;
         }
 
         public String getSkuCode() {

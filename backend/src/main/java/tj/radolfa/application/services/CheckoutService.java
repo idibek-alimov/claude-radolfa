@@ -191,7 +191,7 @@ public class CheckoutService implements CheckoutUseCase {
                 .orElseThrow(() -> new IllegalStateException(
                         "Product not found: " + variant.getProductBaseId()));
 
-        return new OrderItem(null, cartItem.getSkuId(), sku.getSkuCode(),
+        return new OrderItem(null, cartItem.getSkuId(), variant.getId(), sku.getSkuCode(),
                 product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot());
     }
 }
