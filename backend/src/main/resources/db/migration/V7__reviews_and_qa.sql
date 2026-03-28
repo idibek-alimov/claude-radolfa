@@ -30,6 +30,7 @@ CREATE TABLE reviews (
                                         -- PENDING | APPROVED | REJECTED
     seller_reply         TEXT,
     seller_replied_at    TIMESTAMPTZ,
+    version              BIGINT         NOT NULL DEFAULT 0,
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
 
@@ -84,7 +85,9 @@ CREATE TABLE product_questions (
     answered_at      TIMESTAMPTZ,
     status           VARCHAR(16)  NOT NULL DEFAULT 'PENDING',
                                   -- PENDING | PUBLISHED | REJECTED
-    created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    version          BIGINT       NOT NULL DEFAULT 0,
+    created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_questions_product_base_id ON product_questions (product_base_id);
