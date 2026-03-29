@@ -179,7 +179,7 @@ export function ManageUserDialog({
             <div className="space-y-2 border-t pt-4">
               <Label>Tier Lock</Label>
               <p className="text-xs text-muted-foreground">
-                When locked, this user's tier is never downgraded by the monthly evaluation job.
+                When locked, this user&apos;s tier is never downgraded by the monthly evaluation job.
               </p>
               <div className="flex items-center justify-between">
                 <div>
