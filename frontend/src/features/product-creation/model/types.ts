@@ -50,6 +50,28 @@ export interface BlueprintEntryDto {
   suggestedValues?: string[];
 }
 
+export type BlueprintFieldType = "ENUM_SINGLE" | "ENUM_MULTI" | "TEXT" | "NUMERIC";
+
+/** Full shape returned by the admin blueprint GET — includes id, type, and all fields. */
+export interface AdminBlueprintEntry {
+  id: number;
+  attributeKey: string;
+  type: BlueprintFieldType;
+  unitName: string | null;
+  allowedValues: string[]; // empty array for TEXT / NUMERIC types
+  required: boolean;
+  sortOrder: number;
+}
+
+export interface CreateBlueprintEntryRequest {
+  attributeKey: string; // max 128 chars
+  type: BlueprintFieldType;
+  unitName?: string; // max 64 chars; only meaningful for NUMERIC
+  allowedValues?: string[]; // required when type is ENUM_SINGLE or ENUM_MULTI
+  required: boolean;
+  sortOrder: number;
+}
+
 export interface Step1Errors {
   name?: string;
   categoryId?: string;
