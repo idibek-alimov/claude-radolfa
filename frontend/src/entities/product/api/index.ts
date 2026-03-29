@@ -13,6 +13,13 @@ export interface UpdateListingRequest {
   webDescription?: string;
 }
 
+export interface UpdateDimensionsRequest {
+  weightKg?: number;
+  widthCm?: number;
+  heightCm?: number;
+  depthCm?: number;
+}
+
 export interface ImageUploadResponse {
   images: string[];
 }
@@ -90,6 +97,14 @@ export async function updateListing(
   data: UpdateListingRequest
 ): Promise<void> {
   await apiClient.put(`/api/v1/listings/${slug}`, data);
+}
+
+/** PATCH /api/v1/listings/{slug}/dimensions — MANAGER+ */
+export async function updateListingDimensions(
+  slug: string,
+  data: UpdateDimensionsRequest
+): Promise<void> {
+  await apiClient.patch(`/api/v1/listings/${slug}/dimensions`, data);
 }
 
 /** Upload images to a listing (manager only). Field name must be "files". */
