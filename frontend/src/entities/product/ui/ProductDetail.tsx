@@ -21,10 +21,7 @@ import { fetchListingBySlug, fetchListings } from "@/entities/product/api";
 import type { Sku } from "@/entities/product";
 import { useAddToCart } from "@/features/cart";
 import { useAuth } from "@/features/auth";
-import { RatingSummaryCard, ReviewList } from "@/entities/review";
-import { SubmitReviewForm } from "@/features/review-submission";
-import { QuestionList } from "@/entities/question";
-import { AskQuestionDialog } from "@/features/ask-question";
+import { ReviewsAndQuestionsSection } from "@/widgets/reviews-questions";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Badge } from "@/shared/ui/badge";
@@ -682,32 +679,13 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         </div>
       </div>
 
-      {/* ── Reviews ───────────────────────────────────────────────── */}
-      <div className="mt-12 pt-8 border-t space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Reviews</h2>
-          {isAuthenticated && (
-            <SubmitReviewForm listingVariantId={listing.variantId} slug={slug} />
-          )}
-        </div>
-
-        <RatingSummaryCard slug={slug} />
-
-        <ReviewList slug={slug} />
-
-        {!isAuthenticated && (
-          <p className="text-sm text-muted-foreground">Log in to write a review.</p>
-        )}
-      </div>
-
-      {/* ── Q&A ───────────────────────────────────────────────────── */}
-      <div className="mt-12 pt-8 border-t space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Questions & Answers</h2>
-          <AskQuestionDialog productBaseId={listing.productBaseId} />
-        </div>
-        <QuestionList productBaseId={listing.productBaseId} slug={slug} />
-      </div>
+      {/* ── Reviews & Questions ───────────────────────────────────── */}
+      <ReviewsAndQuestionsSection
+        slug={slug}
+        productBaseId={listing.productBaseId}
+        listingVariantId={listing.variantId}
+        isAuthenticated={isAuthenticated}
+      />
 
       {/* ── Related products — "You May Also Like" ────────────────── */}
       <div className="mt-12 pt-8 border-t">

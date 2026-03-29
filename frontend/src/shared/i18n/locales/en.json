@@ -375,5 +375,11 @@
     "seeAll": "See all questions",
     "empty": "No questions yet.",
     "login": "Log in to ask a question"
+  },
+  "section": {
+    "tabs": {
+      "reviews": "Reviews",
+      "questions": "Questions"
+    }
   }
 }
