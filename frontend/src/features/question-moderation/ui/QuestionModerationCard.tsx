@@ -1,12 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { XCircle, MessageCircleQuestion, CheckCircle2 } from "lucide-react";
+import { XCircle, MessageCircleQuestion } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { rejectQuestion } from "@/entities/question";
 import type { QuestionView } from "@/entities/question";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
+import { AnswerDialog } from "./AnswerDialog";
 
 interface QuestionModerationCardProps {
   question: QuestionView;
@@ -40,11 +41,7 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        {/* TODO: Phase 4 — replace with <AnswerDialog questionId={question.id} /> */}
-        <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700 text-white" disabled>
-          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-          Answer
-        </Button>
+        <AnswerDialog questionId={question.id} />
         <Button
           size="sm"
           variant="destructive"
