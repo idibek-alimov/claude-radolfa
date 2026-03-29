@@ -359,6 +359,13 @@
     "strip": {
       "photosAndVideos": "Акс ва видео",
       "seeAll": "Ҳамаро бинед {n}"
-    }
+    },
+    "sort": {
+      "newest": "Навтарин",
+      "highestRated": "Баҳои баланд",
+      "lowestRated": "Баҳои паст"
+    },
+    "seeAll": "Ҳамаи шарҳҳо",
+    "empty": "Ҳанӯз шарҳе нест."
   }
 }

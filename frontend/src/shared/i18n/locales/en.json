@@ -359,6 +359,13 @@
     "strip": {
       "photosAndVideos": "Photos & Videos",
       "seeAll": "See all {n}"
-    }
+    },
+    "sort": {
+      "newest": "Newest",
+      "highestRated": "Highest rated",
+      "lowestRated": "Lowest rated"
+    },
+    "seeAll": "See all reviews",
+    "empty": "No reviews yet."
   }
 }
