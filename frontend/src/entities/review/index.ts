@@ -19,4 +19,5 @@ export {
 } from "./api";
 export { RatingSummaryCard } from "./ui/RatingSummaryCard";
 export { ReviewCard } from "./ui/ReviewCard";
+export { ReviewPhotoStrip } from "./ui/ReviewPhotoStrip";
 export { ReviewList } from "./ui/ReviewList";

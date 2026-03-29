@@ -355,6 +355,10 @@
       "comment": "Комментарий",
       "sellerReply": "Ответ продавца",
       "morePhotos": "ещё"
+    },
+    "strip": {
+      "photosAndVideos": "Фото и видео",
+      "seeAll": "Смотреть все {n}"
     }
   }
 }

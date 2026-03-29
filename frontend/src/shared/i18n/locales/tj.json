@@ -355,6 +355,10 @@
       "comment": "Шарҳ",
       "sellerReply": "Ҷавоби фурӯшанда",
       "morePhotos": "боз"
+    },
+    "strip": {
+      "photosAndVideos": "Акс ва видео",
+      "seeAll": "Ҳамаро бинед {n}"
     }
   }
 }

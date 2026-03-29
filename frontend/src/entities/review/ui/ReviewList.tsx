@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchReviews, fetchRatingSummary } from "../api";
 import { ReviewCard } from "./ReviewCard";
+import { ReviewPhotoStrip } from "./ReviewPhotoStrip";
 import type { ReviewSortOption } from "../model/types";
 
 const PAGE_SIZE = 10;
@@ -40,6 +41,13 @@ export function ReviewList({ slug }: ReviewListProps) {
 
   return (
     <div className="space-y-4">
+      {/* Photo strip */}
+      {data && (
+        <ReviewPhotoStrip
+          photoUrls={data.content.flatMap((r) => r.photoUrls)}
+        />
+      )}
+
       {/* Sort pills */}
       <div className="flex gap-2 flex-wrap">
         {(["newest", "highest", "lowest"] as ReviewSortOption[]).map((opt) => (

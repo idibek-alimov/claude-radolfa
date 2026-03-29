@@ -355,6 +355,10 @@
       "comment": "Comment",
       "sellerReply": "Seller reply",
       "morePhotos": "more"
+    },
+    "strip": {
+      "photosAndVideos": "Photos & Videos",
+      "seeAll": "See all {n}"
     }
   }
 }
