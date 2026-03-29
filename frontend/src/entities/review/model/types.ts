@@ -35,6 +35,26 @@ export interface ReviewPage {
 
 export type ReviewSortOption = "newest" | "highest" | "lowest";
 
+export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+/** Full review details returned to admin/manager for moderation. */
+export interface ReviewAdminView {
+  id: number;
+  listingVariantId: number;
+  variantSlug: string;
+  authorName: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  pros: string | null;
+  cons: string | null;
+  matchingSize: MatchingSize | null;
+  photoUrls: string[];
+  status: ReviewStatus;
+  sellerReply: string | null;
+  createdAt: string;
+}
+
 /** Request body for POST /api/v1/reviews */
 export interface SubmitReviewRequest {
   listingVariantId: number;
