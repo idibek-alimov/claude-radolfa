@@ -22,6 +22,7 @@ interface ReviewListProps {
 
 export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
   const t = useTranslations("reviews");
+  const tCommon = useTranslations("common");
   const router = useRouter();
 
   const [page, setPage] = useState(1);
@@ -166,7 +167,7 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
             onClick={() => setPage((p) => p - 1)}
             className="px-3 py-1 text-sm border rounded disabled:opacity-30 hover:bg-muted transition-colors"
           >
-            Previous
+            {tCommon("pagination.previous")}
           </button>
           <span className="px-3 py-1 text-sm text-muted-foreground">
             {page} / {data.totalPages}
@@ -176,7 +177,7 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
             onClick={() => setPage((p) => p + 1)}
             className="px-3 py-1 text-sm border rounded disabled:opacity-30 hover:bg-muted transition-colors"
           >
-            Next
+            {tCommon("pagination.next")}
           </button>
         </div>
       )}

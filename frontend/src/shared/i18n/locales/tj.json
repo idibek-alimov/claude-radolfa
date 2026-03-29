@@ -109,7 +109,11 @@
     "yourPrice": "Нархи шумо",
     "loyaltyTag": "-{pct}% бонус",
     "loyaltyTierBadge": "Тахфифи сатҳ {pct}%",
-    "loyaltyTierDetail": "Сатҳи вафодории шумо · тахфифи {pct}%"
+    "loyaltyTierDetail": "Сатҳи вафодории шумо · тахфифи {pct}%",
+    "pagination": {
+      "previous": "Қаблӣ",
+      "next": "Навбатӣ"
+    }
   },
   "megaMenu": {
     "categories": "Категорияҳо"

@@ -20,6 +20,7 @@ interface QuestionListProps {
 
 export function QuestionList({ productBaseId, slug, mode = "preview" }: QuestionListProps) {
   const t = useTranslations("questions");
+  const tCommon = useTranslations("common");
   const [page, setPage] = useState(1);
   const [carouselPage, setCarouselPage] = useState(0);
 
@@ -122,7 +123,7 @@ export function QuestionList({ productBaseId, slug, mode = "preview" }: Question
             onClick={() => setPage((p) => p - 1)}
             className="px-3 py-1 text-sm border rounded disabled:opacity-30 hover:bg-muted transition-colors"
           >
-            Previous
+            {tCommon("pagination.previous")}
           </button>
           <span className="px-3 py-1 text-sm text-muted-foreground">
             {page} / {data.totalPages}
@@ -132,7 +133,7 @@ export function QuestionList({ productBaseId, slug, mode = "preview" }: Question
             onClick={() => setPage((p) => p + 1)}
             className="px-3 py-1 text-sm border rounded disabled:opacity-30 hover:bg-muted transition-colors"
           >
-            Next
+            {tCommon("pagination.next")}
           </button>
         </div>
       )}

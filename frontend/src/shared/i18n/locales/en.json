@@ -109,7 +109,11 @@
     "yourPrice": "Your price",
     "loyaltyTag": "-{pct}% loyalty",
     "loyaltyTierBadge": "{pct}% tier discount",
-    "loyaltyTierDetail": "Your loyalty tier · {pct}% off applied"
+    "loyaltyTierDetail": "Your loyalty tier · {pct}% off applied",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "megaMenu": {
     "categories": "Categories"

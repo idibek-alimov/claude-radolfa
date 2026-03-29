@@ -109,7 +109,11 @@
     "yourPrice": "Ваша цена",
     "loyaltyTag": "-{pct}% бонус",
     "loyaltyTierBadge": "Скидка уровня {pct}%",
-    "loyaltyTierDetail": "Ваш уровень лояльности · скидка {pct}%"
+    "loyaltyTierDetail": "Ваш уровень лояльности · скидка {pct}%",
+    "pagination": {
+      "previous": "Назад",
+      "next": "Далее"
+    }
   },
   "megaMenu": {
     "categories": "Категории"
