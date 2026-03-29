@@ -12,7 +12,7 @@ import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
 import { Badge } from "@/shared/ui/badge";
 import { useLoyaltyTiers } from "@/entities/loyalty/api";
-import { changeUserRole, assignUserTier } from "../api";
+import { changeUserRole, assignUserTier, setLoyaltyPermanent } from "../api";
 import type { UserDto } from "../types";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
@@ -60,6 +60,20 @@ export function ManageUserDialog({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
       toast.success("Tier assigned");
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const permanentMutation = useMutation({
+    mutationFn: (permanent: boolean) =>
+      setLoyaltyPermanent({ userId: target.id, permanent }),
+    onSuccess: (updatedUser) => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(
+        updatedUser.loyalty.permanent
+          ? "Tier locked — user is exempt from monthly evaluation"
+          : "Tier unlocked — user will be evaluated monthly"
+      );
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -160,7 +174,39 @@ export function ManageUserDialog({
             </div>
           )}
 
-          {/* Loyalty lock section — added in Phase 4 */}
+          {/* Loyalty lock — ADMIN only */}
+          {isAdmin && !isSelf && (
+            <div className="space-y-2 border-t pt-4">
+              <Label>Tier Lock</Label>
+              <p className="text-xs text-muted-foreground">
+                When locked, this user's tier is never downgraded by the monthly evaluation job.
+              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    {target.loyalty.permanent ? "Locked" : "Unlocked"}
+                  </p>
+                  {target.loyalty.floorTierName && (
+                    <p className="text-xs text-muted-foreground">
+                      Floor: {target.loyalty.floorTierName}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant={target.loyalty.permanent ? "destructive" : "outline"}
+                  disabled={permanentMutation.isPending}
+                  onClick={() => permanentMutation.mutate(!target.loyalty.permanent)}
+                >
+                  {permanentMutation.isPending
+                    ? "Saving…"
+                    : target.loyalty.permanent
+                    ? "Unlock"
+                    : "Lock Tier"}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
