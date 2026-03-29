@@ -706,7 +706,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
           <h2 className="text-xl font-semibold text-foreground">Questions & Answers</h2>
           <AskQuestionDialog productBaseId={listing.productBaseId} />
         </div>
-        <QuestionList productBaseId={listing.productBaseId} />
+        <QuestionList productBaseId={listing.productBaseId} slug={slug} />
       </div>
 
       {/* ── Related products — "You May Also Like" ────────────────── */}
