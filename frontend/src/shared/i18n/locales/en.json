@@ -366,7 +366,12 @@
       "lowestRated": "Lowest rated"
     },
     "seeAll": "See all reviews",
-    "empty": "No reviews yet."
+    "empty": "No reviews yet.",
+    "page": {
+      "back": "Back",
+      "sidebarAsk": "Want to know something?",
+      "askButton": "Ask the seller"
+    }
   },
   "questions": {
     "card": {
