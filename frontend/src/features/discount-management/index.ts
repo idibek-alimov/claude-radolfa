@@ -5,4 +5,4 @@ export type {
   DiscountTypeFormValues,
   DiscountListFilters,
 } from "./model/types";
-// UI exports added in later phases
+export { DiscountsTab } from "./ui/DiscountsTab";
