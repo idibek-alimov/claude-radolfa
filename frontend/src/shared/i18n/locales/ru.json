@@ -346,5 +346,15 @@
     "noUsersFound": "Пользователи не найдены.",
     "usersTotal": "{count} пользователей всего",
     "page": "Страница {page}"
+  },
+  "reviews": {
+    "card": {
+      "purchased": "Выкупили",
+      "pros": "Достоинства",
+      "cons": "Недостатки",
+      "comment": "Комментарий",
+      "sellerReply": "Ответ продавца",
+      "morePhotos": "ещё"
+    }
   }
 }

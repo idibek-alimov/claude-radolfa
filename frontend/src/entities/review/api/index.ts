@@ -19,7 +19,7 @@ export const fetchReviews = (
   sort: ReviewSortOption
 ): Promise<ReviewPage> =>
   apiClient
-    .get(`/api/v1/listings/${slug}/reviews`, { params: { page, size, sort } })
+    .get(`/api/v1/listings/${slug}/reviews`, { params: { page: page - 1, size, sort } })
     .then((r) => r.data);
 
 /** POST /api/v1/reviews — authenticated users only */

@@ -42,7 +42,7 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
     @Override
     public List<Review> findAllApprovedByVariant(Long listingVariantId) {
         return reviewRepository
-                .findByListingVariantIdAndStatus(listingVariantId, ReviewStatus.APPROVED.name())
+                .findByListingVariantIdAndStatus(listingVariantId, ReviewStatus.APPROVED)
                 .stream()
                 .map(mapper::toReview)
                 .toList();
@@ -51,14 +51,14 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
     @Override
     public Page<Review> findApprovedByVariant(Long listingVariantId, Pageable pageable) {
         return reviewRepository
-                .findByListingVariantIdAndStatus(listingVariantId, ReviewStatus.APPROVED.name(), pageable)
+                .findByListingVariantIdAndStatus(listingVariantId, ReviewStatus.APPROVED, pageable)
                 .map(mapper::toReview);
     }
 
     @Override
     public List<Review> findPendingOldestFirst(int limit) {
         return reviewRepository
-                .findByStatusOrderByCreatedAtAsc(ReviewStatus.PENDING.name(), PageRequest.of(0, limit))
+                .findByStatusOrderByCreatedAtAsc(ReviewStatus.PENDING, PageRequest.of(0, limit))
                 .getContent()
                 .stream()
                 .map(mapper::toReview)

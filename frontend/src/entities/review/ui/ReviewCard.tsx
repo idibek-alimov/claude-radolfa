@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { StarRating } from "@/shared/ui/StarRating";
 import type { StorefrontReview, MatchingSize } from "../model/types";
 
@@ -8,47 +11,73 @@ const sizeFitLabel: Record<MatchingSize, string> = {
   RUNS_LARGE: "Runs Large",
 };
 
-interface ReviewCardProps {
-  review: StorefrontReview;
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
-export function ReviewCard({ review }: ReviewCardProps) {
+const MAX_VISIBLE_PHOTOS = 4;
+
+interface ReviewCardProps {
+  review: StorefrontReview;
+  showSellerReply?: boolean;
+}
+
+export function ReviewCard({ review, showSellerReply = false }: ReviewCardProps) {
+  const t = useTranslations("reviews.card");
+
+  const visiblePhotos = review.photoUrls.slice(0, MAX_VISIBLE_PHOTOS);
+  const extraCount = review.photoUrls.length - MAX_VISIBLE_PHOTOS;
+  const hasStructuredBody = !!(review.pros || review.cons);
+
   return (
-    <div className="space-y-2 py-4 border-b last:border-b-0">
-      {/* Header: stars + author + date */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <StarRating rating={review.rating} size="sm" />
-          <span className="text-sm font-medium">{review.authorName}</span>
+    <div className="rounded-xl border bg-card p-4 space-y-3">
+      {/* Header: avatar + name + purchased / stars + date */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
+            {getInitials(review.authorName)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-tight truncate">{review.authorName}</p>
+            <p className="text-xs text-muted-foreground">✓ {t("purchased")}</p>
+          </div>
         </div>
-        <span className="text-xs text-muted-foreground shrink-0">
-          {new Date(review.createdAt).toLocaleDateString()}
-        </span>
+        <div className="flex flex-col items-end shrink-0 gap-0.5">
+          <StarRating rating={review.rating} size="sm" />
+          <span className="text-xs text-muted-foreground">
+            {new Date(review.createdAt).toLocaleDateString()}
+          </span>
+        </div>
       </div>
 
-      {/* Title */}
-      {review.title && (
-        <p className="text-sm font-semibold">{review.title}</p>
-      )}
-
-      {/* Body */}
-      <p className="text-sm text-foreground">{review.body}</p>
-
-      {/* Pros / Cons */}
-      {(review.pros || review.cons) && (
-        <div className="flex flex-wrap gap-2">
-          {review.pros && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs text-green-700 border border-green-200">
-              + {review.pros}
-            </span>
-          )}
-          {review.cons && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs text-red-700 border border-red-200">
-              − {review.cons}
-            </span>
-          )}
-        </div>
-      )}
+      {/* Body: pros / cons / comment */}
+      <div className="space-y-1 text-sm">
+        {review.pros && (
+          <p>
+            <span className="font-medium text-muted-foreground">{t("pros")}: </span>
+            {review.pros}
+          </p>
+        )}
+        {review.cons && (
+          <p>
+            <span className="font-medium text-muted-foreground">{t("cons")}: </span>
+            {review.cons}
+          </p>
+        )}
+        {review.body && (
+          <p>
+            {hasStructuredBody && (
+              <span className="font-medium text-muted-foreground">{t("comment")}: </span>
+            )}
+            {review.body}
+          </p>
+        )}
+      </div>
 
       {/* Size fit badge */}
       {review.matchingSize && (
@@ -57,11 +86,11 @@ export function ReviewCard({ review }: ReviewCardProps) {
         </span>
       )}
 
-      {/* Photo thumbnails */}
-      {review.photoUrls.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {review.photoUrls.map((url, i) => (
-            <div key={i} className="relative h-16 w-16 overflow-hidden rounded-md border">
+      {/* Photo thumbnails — max 4, overflow chip */}
+      {visiblePhotos.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {visiblePhotos.map((url, i) => (
+            <div key={i} className="relative h-16 w-16 overflow-hidden rounded-lg border shrink-0">
               <Image
                 src={url}
                 alt={`Review photo ${i + 1}`}
@@ -71,13 +100,18 @@ export function ReviewCard({ review }: ReviewCardProps) {
               />
             </div>
           ))}
+          {extraCount > 0 && (
+            <div className="h-16 w-16 rounded-lg border bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium shrink-0">
+              +{extraCount} {t("morePhotos")}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Seller reply */}
-      {review.sellerReply && (
-        <div className="ml-4 border-l-2 border-muted pl-3">
-          <p className="text-xs font-medium text-muted-foreground mb-0.5">Seller reply:</p>
+      {/* Seller reply — only on full reviews page */}
+      {showSellerReply && review.sellerReply && (
+        <div className="rounded-lg bg-muted p-3 space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">{t("sellerReply")}</p>
           <p className="text-sm">{review.sellerReply}</p>
         </div>
       )}

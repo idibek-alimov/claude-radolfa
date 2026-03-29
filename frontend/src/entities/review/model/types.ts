@@ -30,7 +30,7 @@ export interface ReviewPage {
   content: StorefrontReview[];
   totalElements: number;
   totalPages: number;
-  page: number;
+  number: number;  // 0-based current page index (Spring Page field name)
 }
 
 export type ReviewSortOption = "newest" | "highest" | "lowest";

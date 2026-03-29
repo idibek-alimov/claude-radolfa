@@ -346,5 +346,15 @@
     "noUsersFound": "Корбарон ёфт нашуданд.",
     "usersTotal": "{count} корбарон ҷамъан",
     "page": "Саҳифа {page}"
+  },
+  "reviews": {
+    "card": {
+      "purchased": "Харидори",
+      "pros": "Бартариҳо",
+      "cons": "Камбудиҳо",
+      "comment": "Шарҳ",
+      "sellerReply": "Ҷавоби фурӯшанда",
+      "morePhotos": "боз"
+    }
   }
 }

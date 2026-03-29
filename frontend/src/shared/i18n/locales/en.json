@@ -346,5 +346,15 @@
     "noUsersFound": "No users found.",
     "usersTotal": "{count, plural, one {# user total} other {# users total}}",
     "page": "Page {page}"
+  },
+  "reviews": {
+    "card": {
+      "purchased": "Purchased",
+      "pros": "Pros",
+      "cons": "Cons",
+      "comment": "Comment",
+      "sellerReply": "Seller reply",
+      "morePhotos": "more"
+    }
   }
 }
