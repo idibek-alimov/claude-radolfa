@@ -1,6 +1,6 @@
 import apiClient from "@/shared/api/axios";
 import type { PaginatedResponse } from "@/shared/api/types";
-import type { UserDto, ToggleStatusParams, ChangeRoleParams } from "./types";
+import type { UserDto, ToggleStatusParams, ChangeRoleParams, AssignTierParams, SetLoyaltyPermanentParams } from "./types";
 
 export async function fetchUsers(
   search: string,
@@ -31,6 +31,29 @@ export async function changeUserRole({
   const { data } = await apiClient.patch<UserDto>(
     `/api/v1/users/${userId}/role`,
     { role }
+  );
+  return data;
+}
+
+export async function assignUserTier({
+  userId,
+  tierId,
+}: AssignTierParams): Promise<UserDto> {
+  const { data } = await apiClient.patch<UserDto>(
+    `/api/v1/users/${userId}/tier`,
+    { tierId }
+  );
+  return data;
+}
+
+export async function setLoyaltyPermanent({
+  userId,
+  permanent,
+}: SetLoyaltyPermanentParams): Promise<UserDto> {
+  const { data } = await apiClient.patch<UserDto>(
+    `/api/v1/users/${userId}/loyalty-permanent`,
+    null,
+    { params: { permanent } }
   );
   return data;
 }
