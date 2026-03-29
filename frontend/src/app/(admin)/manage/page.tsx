@@ -25,6 +25,7 @@ import { createCategory, deleteCategory } from "@/entities/category";
 import { fetchColors, updateColor } from "@/entities/color";
 import { reindexSearch } from "@/features/search/api";
 import { ReviewModerationQueue } from "@/features/review-moderation";
+import { QuestionModerationQueue } from "@/features/question-moderation";
 import type { ReindexResult } from "@/features/search/api";
 import {
   Table,
@@ -111,6 +112,7 @@ export default function ManagePage() {
                 {t("tabColors")}
               </TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              {isAdmin && <TabsTrigger value="qa">Q&A</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="products">
@@ -136,6 +138,11 @@ export default function ManagePage() {
             <TabsContent value="reviews">
               <ReviewModerationQueue />
             </TabsContent>
+            {isAdmin && (
+              <TabsContent value="qa">
+                <QuestionModerationQueue />
+              </TabsContent>
+            )}
           </Tabs>
 
           {/* Search Tools (ADMIN only) */}
