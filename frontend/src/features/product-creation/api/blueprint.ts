@@ -22,7 +22,7 @@ export async function fetchAdminBlueprint(
   categoryId: number
 ): Promise<AdminBlueprintEntry[]> {
   const { data } = await apiClient.get<AdminBlueprintEntry[]>(
-    `/api/v1/admin/categories/${categoryId}/blueprint`
+    `/api/v1/categories/${categoryId}/blueprint`
   );
   return data;
 }
