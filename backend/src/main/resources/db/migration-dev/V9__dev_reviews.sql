@@ -14,9 +14,14 @@
 
 
 -- ================================================================
--- 1. EXTRA DELIVERED ORDERS
---    (existing SO-2025-00101 for user 1 covers T-Shirt)
+-- 1. EXTRA USERS & DELIVERED ORDERS
 -- ================================================================
+
+-- Extra test users
+INSERT INTO users (phone, role, loyalty_points) VALUES
+    ('+992905678901', 'USER', 150),
+    ('+992906789012', 'USER', 280)
+ON CONFLICT (phone) DO NOTHING;
 
 -- User 1: Hoodie (forest-green) + Watch (ocean-blue)
 INSERT INTO orders (user_id, external_order_id, status, total_amount, version, created_at, updated_at) VALUES
@@ -54,7 +59,7 @@ SELECT
     'TPL-WATCH-001-OBL-S', 'Minimalist Analog Watch Ocean Blue - S', 1, 250.00
 WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-WATCH-001-OBL-S');
 
--- User 2 (MANAGER): T-Shirt, Hoodie, Watch  — used for the PENDING review + extra review coverage
+-- User 2 (MANAGER): T-Shirt, Hoodie, Watch
 INSERT INTO orders (user_id, external_order_id, status, total_amount, version, created_at, updated_at) VALUES
     (2, 'SO-2026-00004', 'DELIVERED', 340.00, 0, NOW() - INTERVAL '35 days', NOW() - INTERVAL '30 days');
 
@@ -104,23 +109,38 @@ SELECT
     'TPL-JEANS-001-DSN-M', 'Stretch Denim Jeans Desert Sand - M', 1, 80.00
 WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-JEANS-001-DSN-M');
 
+-- User 5: T-Shirt, Watch
+INSERT INTO orders (user_id, external_order_id, status, total_amount, version, created_at, updated_at) VALUES
+    ((SELECT id FROM users WHERE phone = '+992905678901'), 'SO-2026-00005', 'DELIVERED', 275.00, 0, NOW() - INTERVAL '15 days', NOW() - INTERVAL '12 days');
+
 INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
 SELECT
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002'),
+    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00005'),
+    (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M'),
+    'TPL-TSHIRT-001-MBK-M', 'Essential Cotton T-Shirt Midnight Black - M', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT
+    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00005'),
     (SELECT id FROM skus WHERE sku_code = 'TPL-WATCH-001-OBL-M'),
     'TPL-WATCH-001-OBL-M', 'Minimalist Analog Watch Ocean Blue - M', 1, 250.00
 WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-WATCH-001-OBL-M');
 
+-- Extra orders for "a lot" of reviews
+INSERT INTO orders (user_id, external_order_id, status, total_amount, version, created_at, updated_at) VALUES
+    (1, 'SO-2026-00007', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '5 days', NOW() - INTERVAL '4 days'),
+    (2, 'SO-2026-00008', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '6 days', NOW() - INTERVAL '5 days'),
+    (3, 'SO-2026-00009', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '7 days', NOW() - INTERVAL '6 days'),
+    (4, 'SO-2026-00010', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '8 days', NOW() - INTERVAL '7 days'),
+    (1, 'SO-2026-00011', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '9 days', NOW() - INTERVAL '8 days'),
+    (2, 'SO-2026-00012', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '10 days', NOW() - INTERVAL '9 days'),
+    (3, 'SO-2026-00013', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '11 days', NOW() - INTERVAL '10 days'),
+    (4, 'SO-2026-00014', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '12 days', NOW() - INTERVAL '11 days');
+
 
 -- ================================================================
 -- 2. APPROVED REVIEWS
---
--- Products with reviews:
---   tpl-tshirt-001-midnight-black  — 5 reviews (avg ~4.4)
---   tpl-hoodie-001-forest-green    — 3 reviews (avg ~4.0)
---   tpl-watch-001-ocean-blue       — 4 reviews (avg ~4.75)
---   tpl-jeans-001-desert-sand      — 1 review  (avg 4.0)
---   + 1 PENDING review (not shown on storefront)
 -- ================================================================
 
 -- ── T-Shirt (midnight-black) ─────────────────────────────────────
@@ -181,75 +201,15 @@ INSERT INTO reviews (
     NOW() - INTERVAL '38 days', NOW() - INTERVAL '36 days'
 );
 
-INSERT INTO reviews (
-    listing_variant_id, order_id,
-    author_id, author_name, rating, title, body,
-    matching_size, status, created_at, updated_at
-) VALUES (
-    (SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'),
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00004'),
-    2, 'Zafar B.', 5,
-    'Bought a second time',
-    'Already reviewed this before. Still five stars. My M order arrived and the fit is perfect.',
-    'ACCURATE',
-    'PENDING',
-    NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'
-);
-
--- ── Hoodie (forest-green) ────────────────────────────────────────
-
-INSERT INTO reviews (
-    listing_variant_id, sku_id, order_id,
-    author_id, author_name, rating, title, body, pros, cons,
-    matching_size, status, created_at, updated_at
-) VALUES (
-    (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green'),
-    (SELECT id FROM skus WHERE sku_code = 'TPL-HOODIE-001-FGN-M'),
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00001'),
-    1, 'Alex M.', 5,
-    'My new favourite hoodie',
-    'Thick, warm, and the forest green is stunning. Pocket placement is perfect. Zipper feels solid. This will last years.',
-    'Heavyweight fabric, excellent zipper quality',
-    'None',
-    'ACCURATE',
-    'APPROVED',
-    NOW() - INTERVAL '52 days', NOW() - INTERVAL '50 days'
-);
-
-INSERT INTO reviews (
-    listing_variant_id, sku_id, order_id,
-    author_id, author_name, rating, title, body, pros, cons,
-    matching_size, status, created_at, updated_at
-) VALUES (
-    (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green'),
-    (SELECT id FROM skus WHERE sku_code = 'TPL-HOODIE-001-FGN-L'),
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002'),
-    4, 'Dilnoza T.', 4,
-    'Warm and stylish',
-    'Great for cold evenings. The colour photographs beautifully. I went with L as reviews suggested it runs small and it fits perfectly.',
-    'Warm, good colour',
-    'Slightly thin cuffs',
-    'RUNS_SMALL',
-    'APPROVED',
-    NOW() - INTERVAL '13 days', NOW() - INTERVAL '12 days'
-);
-
-INSERT INTO reviews (
-    listing_variant_id, order_id,
-    author_id, author_name, rating, title, body, pros, cons,
-    matching_size, status, created_at, updated_at
-) VALUES (
-    (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green'),
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00004'),
-    2, 'Zafar B.', 3,
-    'Good but not great',
-    'After a few washes the hood started to lose its shape slightly. Still comfortable but expected better durability at this price.',
-    'Comfortable day-to-day',
-    'Hood loses shape after washing',
-    NULL,
-    'APPROVED',
-    NOW() - INTERVAL '30 days', NOW() - INTERVAL '28 days'
-);
+-- Extra reviews for T-Shirt
+INSERT INTO reviews (listing_variant_id, author_id, author_name, rating, body, status, order_id, created_at) VALUES
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 1, 'Alex M.', 5, 'Best t-shirt ever.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00007'), NOW() - INTERVAL '4 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 2, 'Zafar B.', 4, 'Really nice quality cotton.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00008'), NOW() - INTERVAL '5 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 3, 'Kamol A.', 5, 'Fits perfectly. Midnight black is a great color.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00009'), NOW() - INTERVAL '6 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 4, 'Dilnoza T.', 3, 'A bit too long for me.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00010'), NOW() - INTERVAL '7 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 4, 'Dilnoza T.', 5, 'Super soft.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00014'), NOW() - INTERVAL '11 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 1, 'Alex M.', 5, 'Great for gym too.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00011'), NOW() - INTERVAL '8 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black'), 2, 'Zafar B.', 4, 'Good value for money.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00012'), NOW() - INTERVAL '9 days');
 
 -- ── Watch (ocean-blue) ───────────────────────────────────────────
 
@@ -307,47 +267,96 @@ INSERT INTO reviews (
     NOW() - INTERVAL '39 days', NOW() - INTERVAL '37 days'
 );
 
-INSERT INTO reviews (
-    listing_variant_id, sku_id, order_id,
-    author_id, author_name, rating, title, body, pros, cons,
-    matching_size, status, created_at, updated_at
-) VALUES (
-    (SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue'),
-    (SELECT id FROM skus WHERE sku_code = 'TPL-WATCH-001-OBL-M'),
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00004'),
-    2, 'Zafar B.', 4,
-    NULL,
-    'Solid everyday watch. Strap is slightly stiff out of the box but softens after a week of wear.',
-    'Reliable, good looks',
-    'Stiff strap initially',
-    NULL,
-    'APPROVED',
-    NOW() - INTERVAL '20 days', NOW() - INTERVAL '19 days'
-);
+-- Extra reviews for Watch
+INSERT INTO reviews (listing_variant_id, author_id, author_name, rating, body, status, order_id, created_at) VALUES
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue'), 1, 'Alex M.', 5, 'The strap is very comfortable.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00007'), NOW() - INTERVAL '4 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue'), 2, 'Zafar B.', 4, 'Elegant and functional.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00008'), NOW() - INTERVAL '5 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue'), (SELECT id FROM users WHERE phone = '+992905678901'), 'Elena K.', 5, 'Looks great with my suit.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00005'), NOW() - INTERVAL '12 days'),
+    ((SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue'), 3, 'Kamol A.', 4, 'Very accurate movement.', 'APPROVED', (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00004'), NOW() - INTERVAL '30 days');
 
--- ── Jeans (desert-sand) ──────────────────────────────────────────
+-- ── Hoodie (forest-green) ────────────────────────────────────────
 
 INSERT INTO reviews (
     listing_variant_id, sku_id, order_id,
     author_id, author_name, rating, title, body, pros, cons,
     matching_size, status, created_at, updated_at
 ) VALUES (
-    (SELECT id FROM listing_variants WHERE slug = 'tpl-jeans-001-desert-sand'),
-    (SELECT id FROM skus WHERE sku_code = 'TPL-JEANS-001-DSN-M'),
-    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002'),
-    4, 'Dilnoza T.', 4,
-    'Great neutral colour',
-    'Desert sand is an underrated colour for jeans. Very versatile. The stretch fabric means all-day comfort. Sizing is accurate.',
-    'Comfortable stretch, great colour',
-    'Back pockets slightly small',
+    (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green'),
+    (SELECT id FROM skus WHERE sku_code = 'TPL-HOODIE-001-FGN-M'),
+    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00001'),
+    1, 'Alex M.', 5,
+    'My new favourite hoodie',
+    'Thick, warm, and the forest green is stunning. Pocket placement is perfect. Zipper feels solid. This will last years.',
+    'Heavyweight fabric, excellent zipper quality',
+    'None',
     'ACCURATE',
     'APPROVED',
-    NOW() - INTERVAL '8 days', NOW() - INTERVAL '7 days'
+    NOW() - INTERVAL '52 days', NOW() - INTERVAL '50 days'
+);
+
+INSERT INTO reviews (
+    listing_variant_id, sku_id, order_id,
+    author_id, author_name, rating, title, body, pros, cons,
+    matching_size, status, created_at, updated_at
+) VALUES (
+    (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green'),
+    (SELECT id FROM skus WHERE sku_code = 'TPL-HOODIE-001-FGN-L'),
+    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002'),
+    4, 'Dilnoza T.', 4,
+    'Warm and stylish',
+    'Great for cold evenings. The colour photographs beautifully. I went with L as reviews suggested it runs small and it fits perfectly.',
+    'Warm, good colour',
+    'Slightly thin cuffs',
+    'RUNS_SMALL',
+    'APPROVED',
+    NOW() - INTERVAL '13 days', NOW() - INTERVAL '12 days'
+);
+
+INSERT INTO reviews (
+    listing_variant_id, order_id,
+    author_id, author_name, rating, title, body, pros, cons,
+    matching_size, status, created_at, updated_at
+) VALUES (
+    (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green'),
+    (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00004'),
+    2, 'Zafar B.', 3,
+    'Good but not great',
+    'After a few washes the hood started to lose its shape slightly. Still comfortable but expected better durability at this price.',
+    'Comfortable day-to-day',
+    'Hood loses shape after washing',
+    NULL,
+    'APPROVED',
+    NOW() - INTERVAL '30 days', NOW() - INTERVAL '28 days'
 );
 
 
 -- ================================================================
--- 3. PRODUCT RATING SUMMARIES
+-- 3. PRODUCT QUESTIONS
+-- ================================================================
+
+-- T-Shirt questions
+INSERT INTO product_questions (product_base_id, author_id, author_name, question_text, answer_text, answered_at, status, created_at) VALUES
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-TSHIRT-001'), 1, 'Alex M.', 'Does the color fade after washing?', 'No, the midnight black color is very durable and stays deep even after many washes.', NOW() - INTERVAL '10 days', 'PUBLISHED', NOW() - INTERVAL '12 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-TSHIRT-001'), 2, 'Zafar B.', 'Is it 100% cotton?', 'Yes, it is 100% premium pima cotton.', NOW() - INTERVAL '5 days', 'PUBLISHED', NOW() - INTERVAL '6 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-TSHIRT-001'), 3, 'Kamol A.', 'Can I iron it?', 'Yes, but we recommend ironing on the reverse side at medium temperature.', NOW() - INTERVAL '2 days', 'PUBLISHED', NOW() - INTERVAL '3 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-TSHIRT-001'), NULL, 'Anonymous', 'Is it see-through?', NULL, NULL, 'PENDING', NOW() - INTERVAL '1 day'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-TSHIRT-001'), 4, 'Dilnoza T.', 'When will more sizes be available?', 'We expect a restock of all sizes by next week.', NOW() - INTERVAL '1 hour', 'PUBLISHED', NOW() - INTERVAL '2 days');
+
+-- Watch questions
+INSERT INTO product_questions (product_base_id, author_id, author_name, question_text, answer_text, answered_at, status, created_at) VALUES
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-WATCH-001'), 1, 'Alex M.', 'Is it waterproof?', 'It is water-resistant up to 30 meters, suitable for splashes but not for swimming.', NOW() - INTERVAL '15 days', 'PUBLISHED', NOW() - INTERVAL '20 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-WATCH-001'), (SELECT id FROM users WHERE phone = '+992905678901'), 'Elena K.', 'Does it come with a warranty?', 'Yes, it comes with a 2-year international warranty.', NOW() - INTERVAL '8 days', 'PUBLISHED', NOW() - INTERVAL '10 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-WATCH-001'), (SELECT id FROM users WHERE phone = '+992906789012'), 'Mirzo S.', 'Is the strap replaceable?', 'Yes, it uses standard 20mm spring bars.', NOW() - INTERVAL '4 days', 'PUBLISHED', NOW() - INTERVAL '5 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-WATCH-001'), NULL, 'Shopper', 'Does the glass scratch easily?', 'It uses hardened mineral glass which is quite scratch-resistant for daily use.', NOW() - INTERVAL '1 day', 'PUBLISHED', NOW() - INTERVAL '2 days');
+
+-- Hoodie questions
+INSERT INTO product_questions (product_base_id, author_id, author_name, question_text, answer_text, answered_at, status, created_at) VALUES
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-HOODIE-001'), 2, 'Zafar B.', 'How thick is the material?', 'It is a heavyweight fleece, approximately 350 GSM.', NOW() - INTERVAL '20 days', 'PUBLISHED', NOW() - INTERVAL '25 days'),
+    ((SELECT id FROM product_bases WHERE external_ref = 'TPL-HOODIE-001'), 4, 'Dilnoza T.', 'Does it shrink in the dryer?', 'We recommend air drying to prevent any potential shrinkage, although the material is pre-shrunk.', NOW() - INTERVAL '12 days', 'PUBLISHED', NOW() - INTERVAL '15 days');
+
+
+-- ================================================================
+-- 4. PRODUCT RATING SUMMARIES
 --    Computed from the APPROVED reviews inserted above.
 -- ================================================================
 
