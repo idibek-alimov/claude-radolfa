@@ -28,6 +28,7 @@ import { ReviewModerationQueue } from "@/features/review-moderation";
 import { QuestionModerationQueue } from "@/features/question-moderation";
 import { TagListPanel } from "@/features/tag-management";
 import { DiscountsTab } from "@/features/discount-management";
+import { BlueprintManagementPanel } from "@/features/blueprint-management";
 import type { ReindexResult } from "@/features/search/api";
 import {
   Table,
@@ -51,7 +52,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check, Tag, Percent } from "lucide-react";
+import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check, Tag, Percent, BookOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -563,6 +564,7 @@ function CategoryManagement() {
   const [newParentId, setNewParentId] = useState<number | "">("");
   const [formError, setFormError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -616,6 +618,21 @@ function CategoryManagement() {
           {isAdmin && (
             <Button
               variant="ghost"
+              size="sm"
+              className="h-6 px-2 opacity-0 group-hover:opacity-100 gap-1 text-muted-foreground"
+              onClick={() =>
+                setExpandedCategoryId((prev) =>
+                  prev === node.id ? null : node.id
+                )
+              }
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="text-xs">Blueprint</span>
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              variant="ghost"
               size="icon"
               className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => setConfirmDeleteId(node.id)}
@@ -624,6 +641,17 @@ function CategoryManagement() {
             </Button>
           )}
         </div>
+        {isAdmin && expandedCategoryId === node.id && (
+          <div
+            className="border-l ml-6 pl-4 pb-2"
+            style={{ marginLeft: `${12 + depth * 20 + 20}px` }}
+          >
+            <BlueprintManagementPanel
+              categoryId={node.id}
+              categoryName={node.name}
+            />
+          </div>
+        )}
         {node.children.length > 0 && renderTree(node.children, depth + 1)}
       </div>
     ));
