@@ -12,6 +12,7 @@ import { SkuTableCard } from "./SkuTableCard";
 import { EnrichmentCard } from "./EnrichmentCard";
 import { ImageCard } from "./ImageCard";
 import { EditSectionNav, type SectionKey } from "./EditSectionNav";
+import { TagAssignmentCard } from "@/features/tag-management";
 
 interface Props {
   slug: string;
@@ -113,6 +114,11 @@ export function ProductEditPage({ slug }: Props) {
               {activeSection === "content" && (
                 <>
                   <EnrichmentCard detail={detail} />
+                  <TagAssignmentCard
+                    variantId={detail.variantId}
+                    variantSlug={detail.slug}
+                    currentTags={detail.tags}
+                  />
                   <ImageCard slug={slug} images={detail.images} />
                 </>
               )}
