@@ -26,6 +26,7 @@ import { fetchColors, updateColor } from "@/entities/color";
 import { reindexSearch } from "@/features/search/api";
 import { ReviewModerationQueue } from "@/features/review-moderation";
 import { QuestionModerationQueue } from "@/features/question-moderation";
+import { TagListPanel } from "@/features/tag-management";
 import type { ReindexResult } from "@/features/search/api";
 import {
   Table,
@@ -49,7 +50,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check } from "lucide-react";
+import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check, Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -113,6 +114,12 @@ export default function ManagePage() {
               </TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
               {isAdmin && <TabsTrigger value="qa">Q&A</TabsTrigger>}
+              {isAdmin && (
+                <TabsTrigger value="tags" className="gap-1.5">
+                  <Tag className="h-4 w-4" />
+                  Tags
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="products">
@@ -141,6 +148,11 @@ export default function ManagePage() {
             {isAdmin && (
               <TabsContent value="qa">
                 <QuestionModerationQueue />
+              </TabsContent>
+            )}
+            {isAdmin && (
+              <TabsContent value="tags">
+                <TagListPanel />
               </TabsContent>
             )}
           </Tabs>
