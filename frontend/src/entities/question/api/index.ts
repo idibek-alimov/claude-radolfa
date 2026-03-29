@@ -17,3 +17,15 @@ export const askQuestion = (
   body: AskQuestionRequest
 ): Promise<{ questionId: number }> =>
   apiClient.post("/api/v1/questions", body).then((r) => r.data);
+
+/** GET /api/v1/admin/questions/pending — ADMIN only */
+export const fetchPendingQuestions = (): Promise<QuestionView[]> =>
+  apiClient.get("/api/v1/admin/questions/pending").then((r) => r.data);
+
+/** POST /api/v1/admin/questions/{id}/answer — ADMIN only */
+export const answerQuestion = (id: number, answerText: string): Promise<void> =>
+  apiClient.post(`/api/v1/admin/questions/${id}/answer`, { answerText });
+
+/** PATCH /api/v1/admin/questions/{id}/reject — ADMIN only */
+export const rejectQuestion = (id: number): Promise<void> =>
+  apiClient.patch(`/api/v1/admin/questions/${id}/reject`);
