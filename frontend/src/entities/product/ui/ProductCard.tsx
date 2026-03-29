@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
+import { TagBadge } from "@/entities/tag";
 import { Badge } from "@/shared/ui/badge";
 import { formatPrice } from "@/shared/lib/format";
 import { useTranslations } from "next-intl";
@@ -54,6 +55,9 @@ export default function ProductCard({ listing }: ProductCardProps) {
                 )}
               </Badge>
             )}
+            {listing.tags.slice(0, 2).map((tag) => (
+              <TagBadge key={tag.id} tag={tag} size="sm" />
+            ))}
           </div>
 
           {/* Right: Color dot + label */}
