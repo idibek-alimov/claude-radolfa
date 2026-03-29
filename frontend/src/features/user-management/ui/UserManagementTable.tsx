@@ -31,7 +31,8 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import { ManageUserDialog } from "./ManageUserDialog";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -41,6 +42,7 @@ export function UserManagementTable() {
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
+  const [managingUser, setManagingUser] = useState<UserDto | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -147,7 +149,17 @@ export function UserManagementTable() {
                       {user.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm">{user.loyalty.points}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="flex flex-col gap-0.5">
+                      <span>{user.loyalty.points} pts</span>
+                      {user.loyalty.tier && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          {user.loyalty.permanent && <Lock className="h-3 w-3 text-amber-500" />}
+                          {user.loyalty.tier.name}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     {user.enabled ? (
                       <Badge variant="success">{t("statusActive")}</Badge>
@@ -156,27 +168,40 @@ export function UserManagementTable() {
                     )}
                   </TableCell>
                   <TableCell className="text-right pr-4">
-                    {currentUser && canToggleStatus(currentUser.role, currentUser.id, user) && (
-                      <Button
-                        variant={user.enabled ? "outline" : "default"}
-                        size="sm"
-                        className="gap-1.5"
-                        disabled={toggleMutation.isPending}
-                        onClick={() => handleToggleStatus(user)}
-                      >
-                        {user.enabled ? (
-                          <>
-                            <ShieldOff className="h-3.5 w-3.5" />
-                            {t("actionBlock")}
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            {t("actionUnblock")}
-                          </>
+                    <div className="flex items-center justify-end gap-2">
+                      {currentUser && canToggleStatus(currentUser.role, currentUser.id, user) && (
+                        <Button
+                          variant={user.enabled ? "outline" : "default"}
+                          size="sm"
+                          className="gap-1.5"
+                          disabled={toggleMutation.isPending}
+                          onClick={() => handleToggleStatus(user)}
+                        >
+                          {user.enabled ? (
+                            <>
+                              <ShieldOff className="h-3.5 w-3.5" />
+                              {t("actionBlock")}
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              {t("actionUnblock")}
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      {currentUser &&
+                        (ROLE_RANK[currentUser.role] ?? 0) >= ROLE_RANK["MANAGER"] &&
+                        currentUser.id !== user.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setManagingUser(user)}
+                          >
+                            Manage
+                          </Button>
                         )}
-                      </Button>
-                    )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -192,6 +217,16 @@ export function UserManagementTable() {
           </div>
         )}
       </div>
+
+      {managingUser && currentUser && (
+        <ManageUserDialog
+          open={managingUser !== null}
+          onClose={() => setManagingUser(null)}
+          target={managingUser}
+          callerRole={currentUser.role}
+          callerId={currentUser.id}
+        />
+      )}
 
       {/* Pagination */}
       {data && data.totalElements > 0 && (
