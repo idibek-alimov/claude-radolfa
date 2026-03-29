@@ -171,6 +171,7 @@ Keep query keys consistent to ensure correct cache invalidation:
 | Users (admin) | `["users", page, search]` |
 | Rating summary | `["rating", slug]` |
 | Reviews page | `["reviews", slug, page, sort]` |
+| Tags (public list) | `["tags"]` |
 
 ---
 

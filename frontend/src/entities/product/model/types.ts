@@ -1,4 +1,5 @@
 import type { PaginatedResponse } from "@/shared/api/types";
+import type { Tag } from "@/entities/tag";
 
 /**
  * A purchasable unit — one size of one colour variant.
@@ -39,6 +40,7 @@ export interface ListingVariant {
   categoryName: string | null;
   webDescription: string | null;
   images: string[];
+  tags: Tag[];
   skus: Sku[];
   // Pricing — mirrors backend ListingVariantDto exactly
   originalPrice: number;              // pre-discount price of cheapest SKU; always present
