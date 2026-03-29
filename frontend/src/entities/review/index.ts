@@ -12,6 +12,7 @@ export {
   fetchRatingSummary,
   fetchReviews,
   submitReview,
+  uploadReviewPhotos,
   fetchPendingReviews,
   approveReview,
   rejectReview,

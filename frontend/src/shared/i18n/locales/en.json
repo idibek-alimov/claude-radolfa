@@ -371,6 +371,11 @@
     },
     "seeAll": "See all reviews",
     "empty": "No reviews yet.",
+    "form": {
+      "addPhotos": "Add photos",
+      "photoLimit": "Up to 5 photos",
+      "uploading": "Uploading…"
+    },
     "page": {
       "back": "Back",
       "sidebarAsk": "Want to know something?",

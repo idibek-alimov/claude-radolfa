@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import { X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { Label } from "@/shared/ui/label";
 import { fetchMyDeliveredOrders } from "@/entities/order";
-import { submitReview } from "@/entities/review";
+import { submitReview, uploadReviewPhotos } from "@/entities/review";
 import type { MatchingSize } from "@/entities/review";
 import { getErrorMessage } from "@/shared/lib";
+
+const MAX_PHOTOS = 5;
 
 interface SubmitReviewFormProps {
   listingVariantId: number;
@@ -25,6 +29,8 @@ const sizeFitOptions: { value: MatchingSize; label: string }[] = [
 ];
 
 export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormProps) {
+  const tForm = useTranslations("reviews.form");
+
   const [open, setOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [selectedSkuId, setSelectedSkuId] = useState<number | null>(null);
@@ -35,6 +41,9 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
   const [pros, setPros] = useState("");
   const [cons, setCons] = useState("");
   const [matchingSize, setMatchingSize] = useState<MatchingSize | null>(null);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const qc = useQueryClient();
 
@@ -70,6 +79,23 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
     setPros("");
     setCons("");
     setMatchingSize(null);
+    photoFiles.forEach((f) => URL.revokeObjectURL(URL.createObjectURL(f)));
+    setPhotoFiles([]);
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(e.target.files ?? []);
+    setPhotoFiles((prev) => {
+      const slots = MAX_PHOTOS - prev.length;
+      return [...prev, ...selected.slice(0, slots)];
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removePhoto(index: number) {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleOrderChange(id: number) {
@@ -83,10 +109,26 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
     selectedOrderId !== null &&
     rating > 0 &&
     body.trim().length > 0 &&
-    !mutation.isPending;
+    !mutation.isPending &&
+    !isUploading;
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!canSubmit || selectedOrderId === null) return;
+
+    let photoUrls: string[] = [];
+    if (photoFiles.length > 0) {
+      setIsUploading(true);
+      try {
+        const result = await uploadReviewPhotos(photoFiles);
+        photoUrls = result.urls;
+      } catch (err) {
+        toast.error(getErrorMessage(err));
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+
     mutation.mutate({
       listingVariantId,
       skuId: selectedSkuId,
@@ -97,7 +139,7 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
       pros: pros.trim() || null,
       cons: cons.trim() || null,
       matchingSize,
-      photoUrls: [],
+      photoUrls,
     });
   }
 
@@ -240,12 +282,68 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
               </div>
             </div>
 
+            {/* Photos */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Photos</Label>
+                <span className="text-xs text-muted-foreground">{tForm("photoLimit")}</span>
+              </div>
+
+              {photoFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {photoFiles.map((file, i) => (
+                    <div key={i} className="relative h-14 w-14 shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Photo ${i + 1}`}
+                        className="h-full w-full rounded-lg object-cover border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(i)}
+                        className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background shadow"
+                        aria-label="Remove photo"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {photoFiles.length < MAX_PHOTOS && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {tForm("addPhotos")}
+                  </Button>
+                </>
+              )}
+            </div>
+
             <Button
               className="w-full"
               disabled={!canSubmit}
               onClick={handleSubmit}
             >
-              {mutation.isPending ? "Submitting…" : "Submit Review"}
+              {isUploading
+                ? tForm("uploading")
+                : mutation.isPending
+                  ? "Submitting…"
+                  : "Submit Review"}
             </Button>
           </div>
         )}

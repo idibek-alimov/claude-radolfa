@@ -41,3 +41,10 @@ export const rejectReview = (id: number): Promise<void> =>
 /** POST /api/v1/admin/reviews/{id}/reply — MANAGER+ */
 export const replyToReview = (id: number, replyText: string): Promise<void> =>
   apiClient.post(`/api/v1/admin/reviews/${id}/reply`, { replyText });
+
+/** POST /api/v1/reviews/upload-photos — authenticated users; max 5 files */
+export const uploadReviewPhotos = (files: File[]): Promise<{ urls: string[] }> => {
+  const form = new FormData();
+  files.forEach((f) => form.append("files", f));
+  return apiClient.post("/api/v1/reviews/upload-photos", form).then((r) => r.data);
+};
