@@ -3,9 +3,10 @@
 import { cn } from "@/shared/lib/utils";
 
 const SECTIONS = [
-  { key: "general", label: "General Info", description: "Name, category, color" },
-  { key: "skus", label: "Sizes & Stock", description: "Size labels, prices, inventory" },
-  { key: "content", label: "Content & Media", description: "Description, flags, images" },
+  { key: "general",    label: "General Info",    description: "Name, category, color" },
+  { key: "skus",       label: "Sizes & Stock",   description: "Size labels, prices, inventory" },
+  { key: "content",    label: "Content & Media", description: "Description, flags, images" },
+  { key: "dimensions", label: "Dimensions",      description: "Weight, width, height, depth" },
 ] as const;
 
 export type SectionKey = (typeof SECTIONS)[number]["key"];

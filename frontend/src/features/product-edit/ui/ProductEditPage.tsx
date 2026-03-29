@@ -11,6 +11,7 @@ import { GeneralInfoCard } from "./GeneralInfoCard";
 import { SkuTableCard } from "./SkuTableCard";
 import { EnrichmentCard } from "./EnrichmentCard";
 import { ImageCard } from "./ImageCard";
+import { DimensionsCard } from "./DimensionsCard";
 import { EditSectionNav, type SectionKey } from "./EditSectionNav";
 import { TagAssignmentCard } from "@/features/tag-management";
 
@@ -18,7 +19,7 @@ interface Props {
   slug: string;
 }
 
-const SECTION_ORDER: SectionKey[] = ["general", "skus", "content"];
+const SECTION_ORDER: SectionKey[] = ["general", "skus", "content", "dimensions"];
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -122,6 +123,7 @@ export function ProductEditPage({ slug }: Props) {
                   <ImageCard slug={slug} images={detail.images} />
                 </>
               )}
+              {activeSection === "dimensions" && <DimensionsCard detail={detail} />}
             </motion.div>
           </AnimatePresence>
         </main>
