@@ -20,5 +20,15 @@ export interface ToggleStatusParams {
 
 export interface ChangeRoleParams {
   userId: number;
-  role: "USER" | "MANAGER";
+  role: "USER" | "MANAGER" | "ADMIN";
+}
+
+export interface AssignTierParams {
+  userId: number;
+  tierId: number;
+}
+
+export interface SetLoyaltyPermanentParams {
+  userId: number;
+  permanent: boolean;
 }
