@@ -367,5 +367,10 @@
     },
     "seeAll": "See all reviews",
     "empty": "No reviews yet."
+  },
+  "questions": {
+    "card": {
+      "sellerReply": "Seller reply"
+    }
   }
 }
