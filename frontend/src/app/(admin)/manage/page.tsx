@@ -24,6 +24,7 @@ import type { LoyaltyTier } from "@/entities/loyalty";
 import { createCategory, deleteCategory } from "@/entities/category";
 import { fetchColors, updateColor } from "@/entities/color";
 import { reindexSearch } from "@/features/search/api";
+import { ReviewModerationQueue } from "@/features/review-moderation";
 import type { ReindexResult } from "@/features/search/api";
 import {
   Table,
@@ -109,6 +110,7 @@ export default function ManagePage() {
                 <Palette className="h-4 w-4" />
                 {t("tabColors")}
               </TabsTrigger>
+              <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products">
@@ -129,6 +131,10 @@ export default function ManagePage() {
 
             <TabsContent value="colors">
               <ColorManagement />
+            </TabsContent>
+
+            <TabsContent value="reviews">
+              <ReviewModerationQueue />
             </TabsContent>
           </Tabs>
 
