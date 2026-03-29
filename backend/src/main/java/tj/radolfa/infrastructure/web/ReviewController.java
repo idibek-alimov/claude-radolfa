@@ -10,7 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,13 +21,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.review.SubmitReviewUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.readmodel.ReviewStorefrontView;
+import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.SubmitReviewRequestDto;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,18 +41,22 @@ import java.util.Map;
 @Tag(name = "Reviews", description = "Customer reviews — submit, browse, and rate products")
 public class ReviewController {
 
-    private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_PAGE_SIZE   = 50;
+    private static final int MAX_PHOTO_COUNT = 5;
 
-    private final SubmitReviewUseCase    submitReviewUseCase;
-    private final LoadReviewPort         loadReviewPort;
-    private final LoadListingVariantPort loadListingVariantPort;
+    private final SubmitReviewUseCase       submitReviewUseCase;
+    private final LoadReviewPort            loadReviewPort;
+    private final LoadListingVariantPort    loadListingVariantPort;
+    private final GenericUploadImageUseCase genericUploadImageUseCase;
 
     public ReviewController(SubmitReviewUseCase submitReviewUseCase,
                             LoadReviewPort loadReviewPort,
-                            LoadListingVariantPort loadListingVariantPort) {
-        this.submitReviewUseCase    = submitReviewUseCase;
-        this.loadReviewPort         = loadReviewPort;
-        this.loadListingVariantPort = loadListingVariantPort;
+                            LoadListingVariantPort loadListingVariantPort,
+                            GenericUploadImageUseCase genericUploadImageUseCase) {
+        this.submitReviewUseCase       = submitReviewUseCase;
+        this.loadReviewPort            = loadReviewPort;
+        this.loadListingVariantPort    = loadListingVariantPort;
+        this.genericUploadImageUseCase = genericUploadImageUseCase;
     }
 
     @PostMapping("/reviews")
@@ -74,6 +86,42 @@ public class ReviewController {
         ));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("reviewId", reviewId));
+    }
+
+    @PostMapping(value = "/reviews/upload-photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Upload review photos",
+               description = "Upload up to 5 photos for a review. Returns permanent S3 URLs to pass into the review submission request.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Photos uploaded; body contains {urls}"),
+        @ApiResponse(responseCode = "400", description = "No files provided or more than 5 files"),
+        @ApiResponse(responseCode = "403", description = "Not authenticated")
+    })
+    public ResponseEntity<Map<String, List<String>>> uploadReviewPhotos(
+            @RequestParam("files") List<MultipartFile> files) {
+
+        if (files == null || files.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (files.size() > MAX_PHOTO_COUNT) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            try {
+                String url = genericUploadImageUseCase.upload(
+                        file.getInputStream(),
+                        file.getOriginalFilename());
+                urls.add(url);
+            } catch (IOException e) {
+                throw new ImageProcessingException(
+                        "Failed to read uploaded file: " + file.getOriginalFilename(), e);
+            }
+        }
+
+        return ResponseEntity.ok(Map.of("urls", urls));
     }
 
     @GetMapping("/listings/{slug}/reviews")
