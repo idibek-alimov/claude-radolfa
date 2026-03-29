@@ -379,7 +379,11 @@
     },
     "seeAll": "See all questions",
     "empty": "No questions yet.",
-    "login": "Log in to ask a question"
+    "login": "Log in to ask a question",
+    "page": {
+      "back": "Back",
+      "title": "Questions"
+    }
   },
   "section": {
     "tabs": {
