@@ -358,7 +358,9 @@
       "cons": "Камбудиҳо",
       "comment": "Шарҳ",
       "sellerReply": "Ҷавоби фурӯшанда",
-      "morePhotos": "боз"
+      "morePhotos": "боз",
+      "helpful": "Кӯмак кард?",
+      "report": "Шикоят кардан"
     },
     "strip": {
       "photosAndVideos": "Акс ва видео",
@@ -367,7 +369,8 @@
     "sort": {
       "newest": "Навтарин",
       "highestRated": "Баҳои баланд",
-      "lowestRated": "Баҳои паст"
+      "lowestRated": "Баҳои паст",
+      "withPhoto": "Бо акс"
     },
     "seeAll": "Ҳамаи шарҳҳо",
     "empty": "Ҳанӯз шарҳе нест.",
@@ -376,10 +379,16 @@
       "photoLimit": "То 5 акс",
       "uploading": "Боргузорӣ…"
     },
+    "summary": {
+      "reviews": "{count} баҳо",
+      "writeReview": "Баҳо нависед",
+      "sizeFit": "Андоза",
+      "runsSmall": "Хурдтар аст",
+      "trueToSize": "Мувофиқ аст",
+      "runsLarge": "Калонтар аст"
+    },
     "page": {
-      "back": "Бозгашт",
-      "sidebarAsk": "Мехоҳед чизе бидонед?",
-      "askButton": "Аз фурӯшанда бипурсед"
+      "back": "Бозгашт"
     }
   },
   "questions": {

@@ -358,7 +358,9 @@
       "cons": "Cons",
       "comment": "Comment",
       "sellerReply": "Seller reply",
-      "morePhotos": "more"
+      "morePhotos": "more",
+      "helpful": "Was this helpful?",
+      "report": "Report"
     },
     "strip": {
       "photosAndVideos": "Photos & Videos",
@@ -367,7 +369,8 @@
     "sort": {
       "newest": "Newest",
       "highestRated": "Highest rated",
-      "lowestRated": "Lowest rated"
+      "lowestRated": "Lowest rated",
+      "withPhoto": "With photo"
     },
     "seeAll": "See all reviews",
     "empty": "No reviews yet.",
@@ -376,10 +379,16 @@
       "photoLimit": "Up to 5 photos",
       "uploading": "Uploading…"
     },
+    "summary": {
+      "reviews": "{count} reviews",
+      "writeReview": "Write a Review",
+      "sizeFit": "Size fit",
+      "runsSmall": "Runs small",
+      "trueToSize": "True to size",
+      "runsLarge": "Runs large"
+    },
     "page": {
-      "back": "Back",
-      "sidebarAsk": "Want to know something?",
-      "askButton": "Ask the seller"
+      "back": "Back"
     }
   },
   "questions": {

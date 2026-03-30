@@ -13,6 +13,7 @@ export {
   fetchReviews,
   submitReview,
   uploadReviewPhotos,
+  voteOnReview,
   fetchPendingReviews,
   approveReview,
   rejectReview,
@@ -22,3 +23,5 @@ export { RatingSummaryCard } from "./ui/RatingSummaryCard";
 export { ReviewCard } from "./ui/ReviewCard";
 export { ReviewPhotoStrip } from "./ui/ReviewPhotoStrip";
 export { ReviewList } from "./ui/ReviewList";
+export { ReviewVariantFilterStrip } from "./ui/ReviewVariantFilterStrip";
+export type { VariantPill } from "./ui/ReviewVariantFilterStrip";

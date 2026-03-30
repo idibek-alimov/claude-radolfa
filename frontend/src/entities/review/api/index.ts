@@ -16,10 +16,13 @@ export const fetchReviews = (
   slug: string,
   page: number,
   size: number,
-  sort: ReviewSortOption
+  sort: ReviewSortOption,
+  hasPhotos?: boolean
 ): Promise<ReviewPage> =>
   apiClient
-    .get(`/api/v1/listings/${slug}/reviews`, { params: { page: page - 1, size, sort } })
+    .get(`/api/v1/listings/${slug}/reviews`, {
+      params: { page: page - 1, size, sort, ...(hasPhotos ? { hasPhotos: true } : {}) },
+    })
     .then((r) => r.data);
 
 /** POST /api/v1/reviews — authenticated users only */
@@ -41,6 +44,10 @@ export const rejectReview = (id: number): Promise<void> =>
 /** POST /api/v1/admin/reviews/{id}/reply — MANAGER+ */
 export const replyToReview = (id: number, replyText: string): Promise<void> =>
   apiClient.post(`/api/v1/admin/reviews/${id}/reply`, { replyText });
+
+/** POST /api/v1/reviews/{id}/vote — authenticated users; upserts HELPFUL / NOT_HELPFUL */
+export const voteOnReview = (reviewId: number, vote: "HELPFUL" | "NOT_HELPFUL"): Promise<void> =>
+  apiClient.post(`/api/v1/reviews/${reviewId}/vote`, { vote }).then(() => undefined);
 
 /** POST /api/v1/reviews/upload-photos — authenticated users; max 5 files */
 export const uploadReviewPhotos = (files: File[]): Promise<{ urls: string[] }> => {

@@ -20,5 +20,7 @@ public record ReviewStorefrontView(
         MatchingSize matchingSize,
         List<String> photoUrls,
         String sellerReply,
-        Instant createdAt
+        Instant createdAt,
+        int helpfulCount,
+        int notHelpfulCount
 ) {}

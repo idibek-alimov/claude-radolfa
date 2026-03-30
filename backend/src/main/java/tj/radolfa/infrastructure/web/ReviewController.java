@@ -24,11 +24,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.review.SubmitReviewUseCase;
+import tj.radolfa.application.ports.in.review.VoteReviewUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
+import tj.radolfa.application.ports.out.LoadReviewVoteCountsPort;
 import tj.radolfa.application.readmodel.ReviewStorefrontView;
 import tj.radolfa.domain.exception.ImageProcessingException;
+import tj.radolfa.domain.model.Review;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
+import tj.radolfa.infrastructure.web.dto.ReviewVoteRequestDto;
 import tj.radolfa.infrastructure.web.dto.SubmitReviewRequestDto;
 
 import java.io.IOException;
@@ -45,17 +49,23 @@ public class ReviewController {
     private static final int MAX_PHOTO_COUNT = 5;
 
     private final SubmitReviewUseCase       submitReviewUseCase;
+    private final VoteReviewUseCase         voteReviewUseCase;
     private final LoadReviewPort            loadReviewPort;
+    private final LoadReviewVoteCountsPort  loadReviewVoteCountsPort;
     private final LoadListingVariantPort    loadListingVariantPort;
     private final GenericUploadImageUseCase genericUploadImageUseCase;
 
     public ReviewController(SubmitReviewUseCase submitReviewUseCase,
+                            VoteReviewUseCase voteReviewUseCase,
                             LoadReviewPort loadReviewPort,
+                            LoadReviewVoteCountsPort loadReviewVoteCountsPort,
                             LoadListingVariantPort loadListingVariantPort,
                             GenericUploadImageUseCase genericUploadImageUseCase) {
-        this.submitReviewUseCase       = submitReviewUseCase;
-        this.loadReviewPort            = loadReviewPort;
-        this.loadListingVariantPort    = loadListingVariantPort;
+        this.submitReviewUseCase      = submitReviewUseCase;
+        this.voteReviewUseCase        = voteReviewUseCase;
+        this.loadReviewPort           = loadReviewPort;
+        this.loadReviewVoteCountsPort = loadReviewVoteCountsPort;
+        this.loadListingVariantPort   = loadListingVariantPort;
         this.genericUploadImageUseCase = genericUploadImageUseCase;
     }
 
@@ -126,7 +136,7 @@ public class ReviewController {
 
     @GetMapping("/listings/{slug}/reviews")
     @Operation(summary = "List approved reviews",
-               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest.")
+               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest and hasPhotos filter.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Page of reviews"),
         @ApiResponse(responseCode = "404", description = "Listing not found")
@@ -135,29 +145,58 @@ public class ReviewController {
             @Parameter(description = "Listing variant slug") @PathVariable String slug,
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Items per page (max 50)") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Sort order: newest | highest | lowest") @RequestParam(defaultValue = "newest") String sort) {
+            @Parameter(description = "Sort order: newest | highest | lowest") @RequestParam(defaultValue = "newest") String sort,
+            @Parameter(description = "When true, only reviews with photos are returned") @RequestParam(defaultValue = "false") boolean hasPhotos) {
 
         return loadListingVariantPort.findBySlug(slug)
                 .map(variant -> {
                     int effectiveSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
                     Sort sortOrder = toSort(sort);
-                    Page<ReviewStorefrontView> reviews = loadReviewPort
-                            .findApprovedByVariant(variant.getId(), PageRequest.of(page, effectiveSize, sortOrder))
-                            .map(r -> new ReviewStorefrontView(
-                                    r.getId(),
-                                    r.getAuthorName(),
-                                    r.getRating(),
-                                    r.getTitle(),
-                                    r.getBody(),
-                                    r.getPros(),
-                                    r.getCons(),
-                                    r.getMatchingSize(),
-                                    r.getPhotos(),
-                                    r.getSellerReply(),
-                                    r.getCreatedAt()));
-                    return ResponseEntity.ok(reviews);
+
+                    Page<Review> reviewPage = loadReviewPort.findApprovedByVariant(
+                            variant.getId(), hasPhotos, PageRequest.of(page, effectiveSize, sortOrder));
+
+                    List<Long> ids = reviewPage.getContent().stream().map(Review::getId).toList();
+                    Map<Long, int[]> voteCounts = loadReviewVoteCountsPort.findVoteCountsByReviewIds(ids);
+
+                    Page<ReviewStorefrontView> views = reviewPage.map(r -> {
+                        int[] counts = voteCounts.getOrDefault(r.getId(), new int[]{0, 0});
+                        return new ReviewStorefrontView(
+                                r.getId(),
+                                r.getAuthorName(),
+                                r.getRating(),
+                                r.getTitle(),
+                                r.getBody(),
+                                r.getPros(),
+                                r.getCons(),
+                                r.getMatchingSize(),
+                                r.getPhotos(),
+                                r.getSellerReply(),
+                                r.getCreatedAt(),
+                                counts[0],
+                                counts[1]);
+                    });
+                    return ResponseEntity.ok(views);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/reviews/{id}/vote")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Vote on a review",
+               description = "Cast or update a HELPFUL / NOT_HELPFUL vote on an approved review. One vote per user per review.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Vote recorded"),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "404", description = "Review not found")
+    })
+    public ResponseEntity<Void> voteOnReview(
+            @PathVariable Long id,
+            @Valid @RequestBody ReviewVoteRequestDto request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+
+        voteReviewUseCase.execute(new VoteReviewUseCase.Command(id, principal.userId(), request.vote()));
+        return ResponseEntity.noContent().build();
     }
 
     private static Sort toSort(String sort) {

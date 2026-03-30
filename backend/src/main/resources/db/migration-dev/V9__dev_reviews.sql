@@ -396,3 +396,69 @@ ON CONFLICT (listing_variant_id) DO UPDATE
         size_runs_small  = EXCLUDED.size_runs_small,
         size_runs_large  = EXCLUDED.size_runs_large,
         last_calculated_at = EXCLUDED.last_calculated_at;
+
+
+-- ================================================================
+-- 5. REVIEW PHOTOS (dev placeholder images via picsum.photos)
+-- ================================================================
+
+-- T-Shirt: Alex M. (5★) — 2 photos
+INSERT INTO review_photos (review_id, url, sort_order)
+SELECT r.id, v.url, v.sort_order
+FROM reviews r
+CROSS JOIN (VALUES
+    ('https://picsum.photos/seed/rshirt1a/400/500', 0),
+    ('https://picsum.photos/seed/rshirt1b/400/500', 1)
+) AS v(url, sort_order)
+WHERE r.author_id = 1
+  AND r.listing_variant_id = (SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black')
+  AND r.order_id = (SELECT id FROM orders WHERE external_order_id = 'SO-2025-00101');
+
+-- T-Shirt: Dilnoza T. (4★) — 1 photo
+INSERT INTO review_photos (review_id, url, sort_order)
+SELECT r.id, 'https://picsum.photos/seed/rshirt2a/400/500', 0
+FROM reviews r
+WHERE r.author_id = 4
+  AND r.listing_variant_id = (SELECT id FROM listing_variants WHERE slug = 'tpl-tshirt-001-midnight-black')
+  AND r.order_id = (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002');
+
+-- Watch: Alex M. (5★) — 3 photos
+INSERT INTO review_photos (review_id, url, sort_order)
+SELECT r.id, v.url, v.sort_order
+FROM reviews r
+CROSS JOIN (VALUES
+    ('https://picsum.photos/seed/rwatch1a/400/500', 0),
+    ('https://picsum.photos/seed/rwatch1b/400/500', 1),
+    ('https://picsum.photos/seed/rwatch1c/400/500', 2)
+) AS v(url, sort_order)
+WHERE r.author_id = 1
+  AND r.listing_variant_id = (SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue')
+  AND r.order_id = (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00001');
+
+-- Watch: Dilnoza T. (5★) — 1 photo
+INSERT INTO review_photos (review_id, url, sort_order)
+SELECT r.id, 'https://picsum.photos/seed/rwatch2a/400/500', 0
+FROM reviews r
+WHERE r.author_id = 4
+  AND r.listing_variant_id = (SELECT id FROM listing_variants WHERE slug = 'tpl-watch-001-ocean-blue')
+  AND r.order_id = (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002');
+
+-- Hoodie: Alex M. (5★) — 2 photos
+INSERT INTO review_photos (review_id, url, sort_order)
+SELECT r.id, v.url, v.sort_order
+FROM reviews r
+CROSS JOIN (VALUES
+    ('https://picsum.photos/seed/rhoodie1a/400/500', 0),
+    ('https://picsum.photos/seed/rhoodie1b/400/500', 1)
+) AS v(url, sort_order)
+WHERE r.author_id = 1
+  AND r.listing_variant_id = (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green')
+  AND r.order_id = (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00001');
+
+-- Hoodie: Dilnoza T. (4★) — 1 photo
+INSERT INTO review_photos (review_id, url, sort_order)
+SELECT r.id, 'https://picsum.photos/seed/rhoodie2a/400/500', 0
+FROM reviews r
+WHERE r.author_id = 4
+  AND r.listing_variant_id = (SELECT id FROM listing_variants WHERE slug = 'tpl-hoodie-001-forest-green')
+  AND r.order_id = (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00002');

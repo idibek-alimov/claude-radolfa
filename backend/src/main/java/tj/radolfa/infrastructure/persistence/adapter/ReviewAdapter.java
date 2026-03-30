@@ -49,7 +49,12 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
     }
 
     @Override
-    public Page<Review> findApprovedByVariant(Long listingVariantId, Pageable pageable) {
+    public Page<Review> findApprovedByVariant(Long listingVariantId, boolean hasPhotos, Pageable pageable) {
+        if (hasPhotos) {
+            return reviewRepository
+                    .findByListingVariantIdAndStatusWithPhotos(listingVariantId, ReviewStatus.APPROVED, pageable)
+                    .map(mapper::toReview);
+        }
         return reviewRepository
                 .findByListingVariantIdAndStatus(listingVariantId, ReviewStatus.APPROVED, pageable)
                 .map(mapper::toReview);

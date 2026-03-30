@@ -358,7 +358,9 @@
       "cons": "Недостатки",
       "comment": "Комментарий",
       "sellerReply": "Ответ продавца",
-      "morePhotos": "ещё"
+      "morePhotos": "ещё",
+      "helpful": "Помогло?",
+      "report": "Пожаловаться"
     },
     "strip": {
       "photosAndVideos": "Фото и видео",
@@ -367,7 +369,8 @@
     "sort": {
       "newest": "Новые",
       "highestRated": "Высокий рейтинг",
-      "lowestRated": "Низкий рейтинг"
+      "lowestRated": "Низкий рейтинг",
+      "withPhoto": "С фото"
     },
     "seeAll": "Смотреть все отзывы",
     "empty": "Отзывов пока нет.",
@@ -376,10 +379,16 @@
       "photoLimit": "До 5 фото",
       "uploading": "Загрузка…"
     },
+    "summary": {
+      "reviews": "{count} отзывов",
+      "writeReview": "Написать отзыв",
+      "sizeFit": "Размер",
+      "runsSmall": "Маломерит",
+      "trueToSize": "Соответствует",
+      "runsLarge": "Большемерит"
+    },
     "page": {
-      "back": "Назад",
-      "sidebarAsk": "Хотите узнать о товаре?",
-      "askButton": "Задать вопрос"
+      "back": "Назад"
     }
   },
   "questions": {

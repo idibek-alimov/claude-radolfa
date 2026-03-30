@@ -27,6 +27,7 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
 
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<ReviewSortOption>("newest");
+  const [hasPhotos, setHasPhotos] = useState(false);
   const [carouselPage, setCarouselPage] = useState(0);
 
   // Shares cache with RatingSummaryCard — no extra network request.
@@ -40,10 +41,11 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
   const fetchPage = mode === "preview" ? 1 : page;
   const fetchSort = mode === "preview" ? "newest" : sort;
   const fetchSize = mode === "preview" ? PREVIEW_SIZE : FULL_SIZE;
+  const fetchHasPhotos = mode === "preview" ? undefined : (hasPhotos || undefined);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["reviews", slug, fetchPage, fetchSort, fetchSize],
-    queryFn: () => fetchReviews(slug, fetchPage, fetchSize, fetchSort),
+    queryKey: ["reviews", slug, fetchPage, fetchSort, fetchSize, fetchHasPhotos],
+    queryFn: () => fetchReviews(slug, fetchPage, fetchSize, fetchSort, fetchHasPhotos),
     enabled: totalReviews > 0,
   });
 
@@ -132,7 +134,7 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
     <div className="space-y-4">
       <ReviewPhotoStrip photoUrls={allPhotos} />
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
         {sortOptions.map(({ value, label }) => (
           <button
             key={value}
@@ -146,9 +148,20 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
             {label}
           </button>
         ))}
+        <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
+        <button
+          onClick={() => { setHasPhotos((v) => !v); setPage(1); }}
+          className={`text-sm px-3 py-1 rounded-full border transition-colors ${
+            hasPhotos
+              ? "bg-primary text-primary-foreground border-primary"
+              : "border-border text-muted-foreground hover:border-foreground"
+          }`}
+        >
+          {t("sort.withPhoto")}
+        </button>
       </div>
 
-      <div className={`space-y-4 transition-opacity ${isFetching && !isLoading ? "opacity-50" : ""}`}>
+      <div className={`transition-opacity ${isFetching && !isLoading ? "opacity-50" : ""}`}>
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="rounded-xl border p-4 h-36 animate-pulse bg-muted" />
@@ -156,7 +169,7 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
           : data?.content.length === 0
             ? <p className="py-4 text-sm text-muted-foreground">{t("empty")}</p>
             : data?.content.map((review) => (
-                <ReviewCard key={review.id} review={review} showSellerReply />
+                <ReviewCard key={review.id} review={review} showSellerReply variant="list" />
               ))}
       </div>
 

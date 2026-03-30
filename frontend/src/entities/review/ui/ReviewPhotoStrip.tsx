@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+const MAX_VISIBLE = 10;
+
 interface ReviewPhotoStripProps {
   photoUrls: string[];
   totalCount?: number;
@@ -17,6 +19,8 @@ export function ReviewPhotoStrip({ photoUrls, totalCount, onSeeAll }: ReviewPhot
 
   const isOpen = lightboxIndex !== null;
   const count = photoUrls.length;
+  const visiblePhotos = photoUrls.slice(0, MAX_VISIBLE);
+  const overflow = count - MAX_VISIBLE;
 
   const close = useCallback(() => setLightboxIndex(null), []);
 
@@ -58,49 +62,64 @@ export function ReviewPhotoStrip({ photoUrls, totalCount, onSeeAll }: ReviewPhot
           )}
         </div>
 
-        {/* Scrollable thumbnails */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {photoUrls.map((url, i) => (
-            <button
-              key={i}
-              onClick={() => setLightboxIndex(i)}
-              className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border hover:opacity-90 transition-opacity"
-            >
-              <Image
-                src={url}
-                alt={`Review photo ${i + 1}`}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </button>
-          ))}
+        {/* Photo grid */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1.5">
+          {visiblePhotos.map((url, i) => {
+            const isLastSlot = i === MAX_VISIBLE - 1 && overflow > 0;
+            return (
+              <button
+                key={i}
+                onClick={() => setLightboxIndex(i)}
+                className="relative aspect-square overflow-hidden rounded-md border hover:opacity-85 hover:scale-[0.97] transition-all"
+              >
+                <Image
+                  src={url}
+                  alt={`Review photo ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                {isLastSlot && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-md">
+                    <span className="text-white text-sm font-semibold">+{overflow}</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Lightbox */}
       {isOpen && lightboxIndex !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={close}
         >
+          {/* Counter — top center */}
+          {count > 1 && (
+            <span className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 rounded-full px-3 py-1 text-sm text-white">
+              {lightboxIndex + 1} / {count}
+            </span>
+          )}
+
           {/* Close button */}
           <button
             onClick={close}
-            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+            className="absolute top-4 right-4 bg-black/30 hover:bg-black/60 rounded-full p-2 text-white transition-colors"
             aria-label="Close"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
 
           {/* Prev arrow */}
           {count > 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-4 text-white/80 hover:text-white transition-colors p-2"
+              className="absolute left-4 bg-black/30 hover:bg-black/60 rounded-full p-2 text-white transition-colors"
               aria-label="Previous"
             >
-              <ChevronLeft className="h-8 w-8" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
           )}
 
@@ -123,18 +142,11 @@ export function ReviewPhotoStrip({ photoUrls, totalCount, onSeeAll }: ReviewPhot
           {count > 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-4 text-white/80 hover:text-white transition-colors p-2"
+              className="absolute right-4 bg-black/30 hover:bg-black/60 rounded-full p-2 text-white transition-colors"
               aria-label="Next"
             >
-              <ChevronRight className="h-8 w-8" />
+              <ChevronRight className="h-6 w-6" />
             </button>
-          )}
-
-          {/* Counter */}
-          {count > 1 && (
-            <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/70">
-              {lightboxIndex + 1} / {count}
-            </span>
           )}
         </div>
       )}

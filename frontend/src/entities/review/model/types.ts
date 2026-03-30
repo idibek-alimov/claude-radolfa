@@ -13,6 +13,8 @@ export interface StorefrontReview {
   photoUrls: string[];
   sellerReply: string | null;
   createdAt: string;        // ISO instant
+  helpfulCount: number;
+  notHelpfulCount: number;
 }
 
 /** Rating summary for a variant — returned by GET /listings/{slug}/rating */

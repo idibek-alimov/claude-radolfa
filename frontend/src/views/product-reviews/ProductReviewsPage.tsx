@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
-import { RatingSummaryCard, ReviewList } from "@/entities/review";
+import { RatingSummaryCard, ReviewList, ReviewVariantFilterStrip } from "@/entities/review";
+import type { VariantPill } from "@/entities/review";
+import { fetchListingBySlug } from "@/entities/product/api";
+
+function formatColorKey(key: string): string {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 interface ProductReviewsPageProps {
   slug: string;
@@ -11,6 +18,28 @@ interface ProductReviewsPageProps {
 
 export function ProductReviewsPage({ slug }: ProductReviewsPageProps) {
   const t = useTranslations("reviews.page");
+
+  const { data: listing } = useQuery({
+    queryKey: ["listing", slug],
+    queryFn: () => fetchListingBySlug(slug),
+  });
+
+  const variants: VariantPill[] = listing
+    ? [
+        {
+          slug: listing.slug,
+          label: listing.colorDisplayName,
+          thumbnail: listing.images[0] ?? null,
+          isActive: true,
+        },
+        ...listing.siblingVariants.map((s) => ({
+          slug: s.slug,
+          label: formatColorKey(s.colorKey),
+          thumbnail: s.thumbnail,
+          isActive: false,
+        })),
+      ]
+    : [];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -24,25 +53,16 @@ export function ProductReviewsPage({ slug }: ProductReviewsPageProps) {
       </Link>
 
       {/* Two-column layout: main + sticky sidebar */}
-      <div className="lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
+      <div className="lg:grid lg:grid-cols-[1fr_320px] gap-8 items-start">
         {/* Main column */}
-        <div>
+        <div className="space-y-4">
+          <ReviewVariantFilterStrip variants={variants} />
           <ReviewList slug={slug} mode="full" />
         </div>
 
-        {/* Sticky sidebar */}
-        <aside className="lg:sticky lg:top-24 space-y-6">
+        {/* Sticky sidebar — stacks below reviews on mobile */}
+        <aside className="mt-6 lg:mt-0 lg:sticky lg:top-6">
           <RatingSummaryCard slug={slug} />
-
-          <div className="border-t pt-6 space-y-3">
-            <p className="text-sm font-medium">{t("sidebarAsk")}</p>
-            <Link
-              href={`/products/${slug}/questions`}
-              className="inline-flex w-full items-center justify-center rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              {t("askButton")}
-            </Link>
-          </div>
         </aside>
       </div>
     </div>

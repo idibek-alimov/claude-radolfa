@@ -1,14 +1,18 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { fetchRatingSummary } from "../api";
 import { StarRating } from "@/shared/ui/StarRating";
 
 interface RatingSummaryCardProps {
   slug: string;
+  onWriteReview?: () => void;
 }
 
-export function RatingSummaryCard({ slug }: RatingSummaryCardProps) {
+export function RatingSummaryCard({ slug, onWriteReview }: RatingSummaryCardProps) {
+  const t = useTranslations("reviews.summary");
+
   const { data, isLoading } = useQuery({
     queryKey: ["rating", slug],
     queryFn: () => fetchRatingSummary(slug),
@@ -20,57 +24,83 @@ export function RatingSummaryCard({ slug }: RatingSummaryCardProps) {
   const totalSizeFeedback = data.sizeAccurate + data.sizeRunsSmall + data.sizeRunsLarge;
 
   return (
-    <div className="space-y-4">
-      {/* Hero: average + count */}
-      <div className="flex items-center gap-3">
-        <span className="text-4xl font-bold">{data.averageRating.toFixed(1)}</span>
-        <div className="space-y-0.5">
+    <div className="border rounded-xl p-5 space-y-5 bg-card">
+      {/* Hero: average + stars + count */}
+      <div className="flex items-center gap-4">
+        <span className="text-4xl sm:text-5xl font-bold tracking-tight leading-none">
+          {data.averageRating.toFixed(1)}
+        </span>
+        <div className="space-y-1">
           <StarRating rating={data.averageRating} size="md" />
-          <p className="text-sm text-muted-foreground">{data.reviewCount} reviews</p>
+          <p className="text-sm text-muted-foreground">
+            {t("reviews", { count: data.reviewCount })}
+          </p>
         </div>
       </div>
 
       {/* Distribution bars: 5 → 1 */}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {[5, 4, 3, 2, 1].map((star) => {
           const count = data.distribution[star] ?? 0;
           const pct = data.reviewCount > 0 ? (count / data.reviewCount) * 100 : 0;
           return (
             <div key={star} className="flex items-center gap-2 text-sm">
-              <span className="w-3 text-right">{star}</span>
-              <span className="text-amber-400">★</span>
+              <span className="w-3 shrink-0 text-right text-muted-foreground">{star}</span>
+              <span className="text-amber-400 shrink-0">★</span>
               <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-amber-400"
+                  className="h-full rounded-full bg-amber-400 transition-all"
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="w-8 text-right text-muted-foreground">{count}</span>
+              <span className="w-8 shrink-0 text-right text-xs text-muted-foreground">
+                {pct.toFixed(0)}%
+              </span>
             </div>
           );
         })}
       </div>
 
-      {/* Size fit — only shown if any feedback exists */}
+      {/* Size fit */}
       {totalSizeFeedback > 0 && (
-        <div className="space-y-1">
-          <p className="text-sm font-medium">Size fit</p>
-          <div className="flex gap-3 text-sm text-muted-foreground">
-            <span>Runs small: {data.sizeRunsSmall}</span>
-            <span>True to size: {data.sizeAccurate}</span>
-            <span>Runs large: {data.sizeRunsLarge}</span>
+        <div className="space-y-2 border-t pt-4">
+          <p className="text-sm font-medium">{t("sizeFit")}</p>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span className="bg-muted rounded-full px-3 py-1">
+              {t("runsSmall")}: {data.sizeRunsSmall}
+            </span>
+            <span className="bg-muted rounded-full px-3 py-1">
+              {t("trueToSize")}: {data.sizeAccurate}
+            </span>
+            <span className="bg-muted rounded-full px-3 py-1">
+              {t("runsLarge")}: {data.sizeRunsLarge}
+            </span>
           </div>
         </div>
       )}
+
+      {/* CTA */}
+      <button
+        onClick={onWriteReview}
+        className="w-full rounded-lg border border-primary text-primary text-sm font-medium py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+      >
+        {t("writeReview")}
+      </button>
     </div>
   );
 }
 
 function RatingSummarySkeleton() {
   return (
-    <div className="space-y-2 animate-pulse">
-      <div className="h-10 w-40 rounded bg-muted" />
-      <div className="space-y-1">
+    <div className="border rounded-xl p-5 space-y-5 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-16 rounded bg-muted" />
+        <div className="space-y-2">
+          <div className="h-4 w-24 rounded bg-muted" />
+          <div className="h-3 w-16 rounded bg-muted" />
+        </div>
+      </div>
+      <div className="space-y-2">
         {[5, 4, 3, 2, 1].map((s) => (
           <div key={s} className="h-2 rounded bg-muted" />
         ))}
