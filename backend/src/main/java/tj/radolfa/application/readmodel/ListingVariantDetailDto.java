@@ -13,6 +13,7 @@ import java.util.List;
  * frontend can swap prices when the user selects a different size.
  */
 public record ListingVariantDetailDto(
+        Long productBaseId,
         Long variantId,
         String slug,
         String colorDisplayName,
@@ -91,7 +92,7 @@ public record ListingVariantDetailDto(
                 })
                 .toList();
 
-        return new ListingVariantDetailDto(variantId, slug, colorDisplayName, categoryName,
+        return new ListingVariantDetailDto(productBaseId, variantId, slug, colorDisplayName, categoryName,
                 colorKey, colorHex, webDescription, images, attributes,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,

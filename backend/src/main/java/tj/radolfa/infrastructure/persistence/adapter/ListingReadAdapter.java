@@ -206,6 +206,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .toList();
 
                 return new ListingVariantDetailDto(
+                                baseId,
                                 entity.getId(),
                                 entity.getSlug(),
                                 entity.getProductBase().getName(),

@@ -36,14 +36,14 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
     @Override
     public Page<ProductQuestion> findPublishedByProductBase(Long productBaseId, Pageable pageable) {
         return repository
-                .findByProductBaseIdAndStatus(productBaseId, QuestionStatus.PUBLISHED.name(), pageable)
+                .findByProductBaseIdAndStatus(productBaseId, QuestionStatus.PUBLISHED, pageable)
                 .map(mapper::toProductQuestion);
     }
 
     @Override
     public List<ProductQuestion> findPendingOldestFirst(int limit) {
         return repository
-                .findByStatusOrderByCreatedAtAsc(QuestionStatus.PENDING.name(), PageRequest.of(0, limit))
+                .findByStatusOrderByCreatedAtAsc(QuestionStatus.PENDING, PageRequest.of(0, limit))
                 .getContent()
                 .stream()
                 .map(mapper::toProductQuestion)

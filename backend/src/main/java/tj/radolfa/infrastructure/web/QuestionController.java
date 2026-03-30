@@ -67,12 +67,12 @@ public class QuestionController {
     })
     public ResponseEntity<Page<QuestionView>> getPublishedQuestions(
             @Parameter(description = "Product base ID") @PathVariable Long productBaseId,
-            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "Items per page (max 50)") @RequestParam(defaultValue = "10") int size) {
 
         int effectiveSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         Page<QuestionView> result = loadProductQuestionPort
-                .findPublishedByProductBase(productBaseId, PageRequest.of(page, effectiveSize))
+                .findPublishedByProductBase(productBaseId, PageRequest.of(Math.max(page - 1, 0), effectiveSize))
                 .map(q -> new QuestionView(
                         q.getId(),
                         q.getAuthorName(),
