@@ -17,6 +17,7 @@ export { default as ProductDetail } from "./ui/ProductDetail";
 export { default as ProductCardSkeleton } from "./ui/ProductCardSkeleton";
 export { default as ProductDetailSkeleton } from "./ui/ProductDetailSkeleton";
 export { default as StockBadge } from "./ui/StockBadge";
+export { SkuPicker } from "./ui/SkuPicker";
 export {
     fetchListings,
     fetchListingBySlug,

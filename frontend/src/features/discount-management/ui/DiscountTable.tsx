@@ -12,21 +12,112 @@ import {
 } from "@/shared/ui/table";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import { fetchDiscounts, fetchDiscountTypes, enableDiscount, disableDiscount } from "../api";
 import { DiscountStatusBadge } from "./DiscountStatusBadge";
 import type { DiscountListFilters, DiscountResponse } from "../model/types";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  MoreHorizontal,
+  Pencil,
+  Copy,
+  PowerOff,
+  Power,
+} from "lucide-react";
+import { cn } from "@/shared/lib";
 
 const PAGE_SIZE = 15;
 
 interface DiscountTableProps {
   onEdit: (discount: DiscountResponse) => void;
   onNew: () => void;
+  onDuplicate: (discount: DiscountResponse) => void;
 }
 
-export function DiscountTable({ onEdit, onNew }: DiscountTableProps) {
+function StatusBadge({ discount }: { discount: DiscountResponse }) {
+  const now = new Date();
+  const isExpired = !discount.disabled && new Date(discount.validUpto) < now;
+  const isDisabled = discount.disabled;
+
+  if (isDisabled) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+        Disabled
+      </span>
+    );
+  }
+  if (isExpired) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-orange-600 dark:text-orange-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+        Expired
+      </span>
+    );
+  }
+  const isScheduled = new Date(discount.validFrom) > now;
+  if (isScheduled) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+        Scheduled
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+      Active
+    </span>
+  );
+}
+
+function SkuCodesPopover({ codes }: { codes: string[] }) {
+  const [open, setOpen] = useState(false);
+  const preview = codes.slice(0, 5);
+  const remaining = codes.length - preview.length;
+
+  return (
+    <div className="relative">
+      <button
+        className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {codes.length} SKU{codes.length !== 1 ? "s" : ""}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute z-20 left-0 top-full mt-1 min-w-[180px] rounded-lg border border-border bg-popover shadow-md p-3 space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">SKU codes</p>
+            {preview.map((code) => (
+              <p key={code} className="text-xs font-mono text-foreground">
+                {code}
+              </p>
+            ))}
+            {remaining > 0 && (
+              <p className="text-xs text-muted-foreground">
+                +{remaining} more…
+              </p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps) {
   const [filters, setFilters] = useState<DiscountListFilters>({
     page: 1,
     size: PAGE_SIZE,
@@ -99,7 +190,7 @@ export function DiscountTable({ onEdit, onNew }: DiscountTableProps) {
               }))
             }
           >
-            <option value="all">All</option>
+            <option value="all">All statuses</option>
             <option value="active">Active</option>
             <option value="disabled">Disabled</option>
           </select>
@@ -112,7 +203,12 @@ export function DiscountTable({ onEdit, onNew }: DiscountTableProps) {
       </div>
 
       {/* Table */}
-      <div className={`bg-card rounded-xl border shadow-sm transition-opacity ${isFetching && !isLoading ? "opacity-60" : ""}`}>
+      <div
+        className={cn(
+          "bg-card rounded-xl border shadow-sm transition-opacity",
+          isFetching && !isLoading && "opacity-60"
+        )}
+      >
         {isLoading ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -140,35 +236,54 @@ export function DiscountTable({ onEdit, onNew }: DiscountTableProps) {
                   <TableCell className="text-sm text-muted-foreground">
                     {d.type.name}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {d.itemCodes.length} SKU{d.itemCodes.length !== 1 ? "s" : ""}
+                  <TableCell>
+                    <SkuCodesPopover codes={d.itemCodes} />
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                     {formatDate(d.validFrom)} – {formatDate(d.validUpto)}
                   </TableCell>
                   <TableCell>
-                    <span
-                      className={`text-xs font-medium ${
-                        d.disabled ? "text-muted-foreground" : "text-green-600"
-                      }`}
-                    >
-                      {d.disabled ? "Disabled" : "Active"}
-                    </span>
+                    <StatusBadge discount={d} />
                   </TableCell>
                   <TableCell className="text-right pr-4">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => toggleMutation.mutate({ id: d.id, disabled: d.disabled })}
-                        disabled={toggleMutation.isPending}
-                      >
-                        {d.disabled ? "Enable" : "Disable"}
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => onEdit(d)}>
-                        Edit
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(d)}>
+                          <Pencil className="h-3.5 w-3.5 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDuplicate(d)}>
+                          <Copy className="h-3.5 w-3.5 mr-2" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() =>
+                            toggleMutation.mutate({ id: d.id, disabled: d.disabled })
+                          }
+                          disabled={toggleMutation.isPending}
+                          className={d.disabled ? "text-green-600" : "text-muted-foreground"}
+                        >
+                          {d.disabled ? (
+                            <>
+                              <Power className="h-3.5 w-3.5 mr-2" />
+                              Enable
+                            </>
+                          ) : (
+                            <>
+                              <PowerOff className="h-3.5 w-3.5 mr-2" />
+                              Disable
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -177,7 +292,9 @@ export function DiscountTable({ onEdit, onNew }: DiscountTableProps) {
         )}
 
         {!isLoading && data?.content.length === 0 && (
-          <div className="p-12 text-center text-muted-foreground">No discounts found.</div>
+          <div className="p-12 text-center text-muted-foreground">
+            No discounts found.
+          </div>
         )}
       </div>
 
