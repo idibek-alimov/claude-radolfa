@@ -1,9 +1,8 @@
 # Frontend Integration Plan
 
-> **Goal:** Bring the frontend in full alignment with the standalone backend (post Phase 10
-> migration). The backend no longer mirrors ERPNext — it owns all data. The frontend must
-> drop ERP-era assumptions (per-SKU discounts, sale titles, SYSTEM role, SyncResult, etc.)
-> and gain the new standalone flows: cart, checkout, payments, and admin product creation.
+> **Goal:** Bring the frontend in full alignment with the standalone backend.
+> The backend owns all data. The frontend gains the standalone flows: cart,
+> checkout, payments, and admin product creation.
 >
 > Each phase leaves the app in a working, deployable state.
 > Mark phases as done and add a short summary as they are completed.
@@ -24,7 +23,7 @@
 | 5 | [x] | Created features/checkout (API + types), pages/checkout/CheckoutPage with cart summary + loyalty points + notes + total breakdown; added cancelOrder to profile API; Cancel button on PENDING orders in profile; Order.status typed union; tsc ✅ build ✅ |
 | 6 | [x] | Created features/payment (initiatePayment + getPaymentStatus); views/payment/return/PaymentReturnPage with 30s polling, completed/pending/refunded/error states; updated CheckoutPage to call initiatePayment after checkout → redirect to provider; renamed FSD pages/ layer to views/ (avoids Next.js Pages Router conflict); tsc ✅ build ✅ |
 | 7 | [x] | Created entities/product/api/admin.ts (createProduct, updateSkuPrice, updateSkuStock), entities/color (fetchColors), features/product-creation/CreateProductDialog (2-step: name/category/color + dynamic SKU rows); added "+ New Product" button to admin panel; ADMIN-only inline price (onBlur) and stock (confirm button) editing in SKU table; tsc ✅ build ✅ |
-| 8 | [x] | Created entities/category (createCategory, deleteCategory), extended entities/color (updateColor), extended features/search/api (reindexSearch); added Categories tab (tree + create form + ADMIN delete with 422 guard), Colors tab (editable display name + hex picker per row), and ADMIN-only Search Tools section (reindex button + result); removed all ERP-era strings from UI and locales; tsc ✅ build ✅ |
+| 8 | [x] | Created entities/category (createCategory, deleteCategory), extended entities/color (updateColor), extended features/search/api (reindexSearch); added Categories tab (tree + create form + ADMIN delete with 422 guard), Colors tab (editable display name + hex picker per row), and ADMIN-only Search Tools section (reindex button + result); cleaned up stale strings from UI and locales; tsc ✅ build ✅ |
 
 ---
 
@@ -152,7 +151,7 @@ The following fields exist in the frontend types but are **not returned** by the
 
 | Frontend type | Stale field(s) | New backend field(s) |
 |---|---|---|
-| `Sku` | `id`, `erpItemCode` | `skuId`, `skuCode` |
+| `Sku` | `id`, `itemCode` | `skuId`, `skuCode` |
 | `Sku` | `originalPrice`, `discountedPrice`, `loyaltyPrice` | `price` (single field) |
 | `Sku` | `discountPercentage`, `loyaltyDiscountPercentage`, `saleTitle`, `saleColorHex`, `onSale`, `discountedEndsAt` | *(removed — no per-SKU sale model)* |
 | `ListingVariant` | `id` | `variantId` |
@@ -169,7 +168,7 @@ The following fields exist in the frontend types but are **not returned** by the
 | `AuthResponse` | `token` | `accessToken` |
 | `UserRole` | `SYSTEM` | `ADMIN` |
 | `LoyaltyProfile` | *(missing)* | `recentEarnings[]` |
-| `SyncResult` | entire type | *(deleted — ERP era)* |
+| `SyncResult` | entire type | *(deleted)* |
 
 ### API Function Bugs (silent runtime failures)
 
@@ -299,7 +298,7 @@ export interface CollectionPage {
 ### 1.3 Rewrite `entities/user/model/types.ts`
 
 - Add `ADMIN = "ADMIN"` to `UserRole`, remove `SYSTEM = "SYSTEM"`.
-- Remove the ERP comment from the enum docblock.
+- Remove the stale comment from the enum docblock.
 - Add `recentEarnings` to `LoyaltyProfile` (in `entities/loyalty/model/types.ts`):
 ```ts
 export interface LoyaltyEarning {
@@ -344,7 +343,7 @@ export interface LoyaltyProfile {
 ### 1.7 Definition of Done
 
 `npx tsc --noEmit` exits with zero errors. All API function parameters and response
-destructuring use the new field names. No `erpItemCode`, `SYSTEM`, `SyncResult`, `originalPrice`
+destructuring use the new field names. No `SYSTEM`, `SyncResult`, `originalPrice`
 (in types), `discountedPrice`, or `loyaltyPrice` remain in any `.ts` / `.tsx` file.
 
 ---
@@ -418,8 +417,8 @@ Replace `data.items` → `data.content`, `data.hasMore` → `!data.last`, across
 - Replace `item.name` (if removed from backend) with slug-based or productCode display
 - Replace `item.totalStock` with computed sum from `item.skus`
 - Replace price display: use `item.minPrice`
-- Rename label "ERP Synced Data" → "Catalog Data"
-- Rename "ERP-locked" comments/labels → "Managed by system" or remove the Lock metaphor
+- Use label "Catalog Data" for the read-only section
+- Use "Managed by system" for protected field labels or remove the Lock metaphor
 
 ### 2.7 Definition of Done
 
@@ -870,18 +869,17 @@ or as a section below the tabs:
 - On success: shows result inline: "Indexed 1,250 products (0 errors)"
 - On error: toast with error message
 
-### 8.5 Remove Stale ERP-era Strings in Admin UI
+### 8.5 Clean Up Stale Strings in Admin UI
 
 - Rename "ERP Synced Data" section header → "Catalog Data (read-only)"
-- Remove/reword the "ERP-locked" tooltip text on Lock icons in the tier management table
-- Replace "Managed by ERP" with "Managed by system" or remove the lock metaphors
-  that no longer make sense now that ADMIN can edit price/stock directly
+- Remove/reword lock icon tooltip text in the tier management table
+- Replace "Managed by ERP" with "Managed by system" or remove lock metaphors
 
 ### 8.6 Definition of Done
 
 Admin can create categories, delete categories, update color display names/hex codes.
 ADMIN can trigger a search reindex and see the result. Manager sees categories and colors
-tabs but cannot delete categories or trigger reindex. No ERP-era text remains in the UI.
+tabs but cannot delete categories or trigger reindex. No stale system labels remain in the UI.
 
 ---
 

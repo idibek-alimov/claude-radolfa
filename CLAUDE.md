@@ -96,14 +96,14 @@ Logic (hooks, TanStack Query calls) lives in `features/` or `entities/`. The `ap
 
 ## Critical Constraints
 
-### Field Ownership — ERP vs. Radolfa
+### Field Ownership
 
 | Fields | Owner | Consequence |
 |---|---|---|
-| SKU price, stock, size label | ERP / ADMIN | Overwritten on sync. Never editable by MANAGER. Show `Lock` icon in UI. |
-| Product descriptions, images, attributes, tags, dimensions | Radolfa | Never overwritten. MANAGER and ADMIN may edit. |
+| SKU price, stock, size label | ADMIN only | Never editable by MANAGER. Show `Lock` icon in UI. |
+| Product descriptions, images, attributes, tags, dimensions | Radolfa | MANAGER and ADMIN may edit. |
 
-`FieldLockException` is thrown if locked fields are modified via the wrong path.
+`FieldLockException` is thrown if protected fields are modified via the wrong path.
 
 ### Price Model — Never Recompute on Frontend
 
@@ -127,5 +127,21 @@ Three roles: `USER`, `MANAGER`, `ADMIN`. `ADMIN` is the only role that can edit 
 - **OTP auth** — Login is phone-number + OTP. SMS-based. Rate-limited and configurable.
 - **Loyalty tier re-evaluation** — `MonthlyTierEvaluationService` re-evaluates tiers based on monthly spend. Users can opt out via `ToggleLoyaltyPermanentService`.
 - **Review/Question moderation** — Both follow PENDING → APPROVED/REJECTED workflow. Votes (helpful/unhelpful) are tracked separately.
-- **No "ERP" labels in UI** — The system is fully standalone. Use "Catalog Data" or "System-managed" for read-only sections.
+- **No legacy labels in UI** — Use "Catalog Data" or "System-managed" for read-only sections.
 - **Active feature rollout** is tracked in `FRONTEND_INTEGRATION_PLAN.md`. Check it before implementing a new feature.
+
+---
+
+## Pre-Implementation Protocol
+
+**Before writing any code for a non-trivial feature (touching >2 files or introducing a new use case), I MUST ask the following questions and wait for answers:**
+
+1. **Scope** — Backend only, frontend only, or full-stack?
+2. **Plan first?** — Show a file-level plan before writing code? (Default: yes. Skip only if user says "just do it".)
+3. **Role gate** — Which roles can use this? USER / MANAGER / ADMIN?
+4. **Field locks** — Does this touch SKU price or stock? If yes, ADMIN-only path required.
+5. **Phase check** — Is this already scoped in `FRONTEND_INTEGRATION_PLAN.md`? If yes, follow that scope exactly.
+6. **Scaffold with skills?** — Use `/hexagonal-feature` for new backend slices. Use `/fsd-gen` for new frontend features. Use `/bridge` after adding Java DTOs.
+7. **Tests** — Which application service needs a fake-adapter test?
+
+**After implementation:** run `/audit-data` to validate Hexagonal + FSD compliance. Run `/review` for any security-sensitive code.

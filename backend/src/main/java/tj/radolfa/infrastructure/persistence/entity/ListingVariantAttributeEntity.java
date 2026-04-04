@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * JPA entity for a single product attribute row (key + ordered list of values).
- * Enrichment data owned by Radolfa content team — never overwritten by ERP sync.
+ * Enrichment data owned by Radolfa content team.
  *
  * <p>Examples: key="Material" values=["Cotton","Acrylic"], key="Fit" values=["Oversized"].
  */

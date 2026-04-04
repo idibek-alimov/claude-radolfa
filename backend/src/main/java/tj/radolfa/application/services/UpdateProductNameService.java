@@ -12,8 +12,7 @@ import tj.radolfa.domain.model.ProductBase;
 /**
  * Renames a ProductBase (MANAGER / ADMIN action).
  *
- * <p>When the external importer is still active this name will be overwritten
- * on the next import cycle. Intended for use once Radolfa is the authoritative source.
+ * <p>Radolfa is the authoritative source for product names.
  */
 @Service
 public class UpdateProductNameService implements UpdateProductNameUseCase {

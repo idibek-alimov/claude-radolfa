@@ -19,7 +19,7 @@
 CREATE SEQUENCE listing_variant_code_seq START WITH 10001 INCREMENT BY 1;
 
 -- ----------------------------------------------------------------
--- Product bases  (previously: erp_template_code → external_ref)
+-- Product bases
 -- ----------------------------------------------------------------
 CREATE TABLE product_bases (
     id            BIGSERIAL    PRIMARY KEY,
@@ -128,7 +128,7 @@ CREATE TABLE category_attribute_blueprint_values (
 CREATE INDEX idx_cabv_blueprint_id ON category_attribute_blueprint_values (blueprint_id);
 
 -- ----------------------------------------------------------------
--- SKUs  (previously: erp_item_code → sku_code)
+-- SKUs
 -- ----------------------------------------------------------------
 CREATE TABLE skus (
     id                 BIGSERIAL      PRIMARY KEY,

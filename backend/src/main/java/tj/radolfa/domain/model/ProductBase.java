@@ -1,14 +1,12 @@
 package tj.radolfa.domain.model;
 
 /**
- * Root of the product hierarchy — represents an Item Template from the
- * authoritative external catalogue.
+ * Root of the product hierarchy — groups all colour variants and their SKUs
+ * under a single reference code.
  *
  * <p>
- * A ProductBase groups all colour variants and their SKUs under a single
- * external reference code. The {@code name} and {@code category} fields are
- * authoritative-source-locked and may only be updated through
- * {@link #applyExternalUpdate(String, String)}.
+ * The {@code name} and {@code category} fields are admin-managed and may only
+ * be updated through {@link #applyExternalUpdate(String, String)}.
  *
  * <p>
  * Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
@@ -22,7 +20,7 @@ public class ProductBase {
     private String name;
     private String category;
 
-    // Radolfa-managed fields (never touched by ERP sync)
+    // Radolfa-managed fields
     private Long categoryId;
     private Long brandId;
 
@@ -33,7 +31,7 @@ public class ProductBase {
      * @param category    nullable — populated by import sync (denormalized name)
      * @param categoryId  nullable — DB FK for the category; preferred over name for
      *                    persistence
-     * @param brandId     nullable — Radolfa-managed, never overwritten by ERP sync
+     * @param brandId     nullable — Radolfa-managed
      */
     public ProductBase(Long id, String externalRef, String name, String category,
             Long categoryId, Long brandId) {
@@ -73,8 +71,7 @@ public class ProductBase {
     }
 
     /**
-     * Assigns a brand to this product. Radolfa-managed — never called from the ERP
-     * sync path.
+     * Assigns a brand to this product. Radolfa-managed.
      */
     public void assignBrand(Long brandId) {
         this.brandId = brandId;

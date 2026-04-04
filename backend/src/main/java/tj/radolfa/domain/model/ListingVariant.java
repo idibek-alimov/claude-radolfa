@@ -11,8 +11,8 @@ import java.util.List;
  *
  * <p>
  * The {@code webDescription} and {@code images} are <b>enrichment</b>
- * fields owned by the Radolfa content team. ERP sync must <b>never</b>
- * overwrite them once they have been populated.
+ * fields owned by the Radolfa content team and must <b>never</b>
+ * be overwritten once they have been populated.
  *
  * <p>
  * Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
@@ -24,7 +24,7 @@ public class ListingVariant {
     private final String colorKey;
     private String slug;
 
-    // Enrichment fields — never overwritten by ERP sync
+    // Enrichment fields — Radolfa-managed, never overwritten
     private String webDescription;
     private List<String> images;
     private List<ProductAttribute> attributes;
@@ -96,8 +96,7 @@ public class ListingVariant {
     }
 
     /**
-     * Stamps the sync clock. Called on every successful ERP sync.
-     * Does NOT touch enrichment fields.
+     * Stamps the sync clock. Does NOT touch enrichment fields.
      */
     public void markSynced() {
         this.lastSyncAt = Instant.now();

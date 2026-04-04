@@ -3,9 +3,7 @@ package tj.radolfa.application.ports.in.product;
 /**
  * In-Port: rename a product (updates ProductBase.name).
  *
- * <p>Called by MANAGER or ADMIN. When the external importer is active,
- * this name will be overwritten on the next import cycle; use this only
- * when the app is the authoritative source.
+ * <p>Called by MANAGER or ADMIN.
  */
 public interface UpdateProductNameUseCase {
 

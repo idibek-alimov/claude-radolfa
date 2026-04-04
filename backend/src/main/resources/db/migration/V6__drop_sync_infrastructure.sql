@@ -1,11 +1,9 @@
--- Phase 10: Decommission ERP integration
--- Drop import/sync tables, Spring Batch schema, and SYNC role
+-- Drop legacy import/sync tables, Spring Batch schema, and SYNC role.
 --
 -- NOTE: As of V1__core_schema.sql, sync_log, import_idempotency, and
 -- Spring Batch tables are no longer created in the baseline schema.
 -- All DROP IF EXISTS statements below are intentional no-ops for clean
--- databases and exist only to handle any databases migrated from the
--- old monolithic V1__baseline_clean_schema.sql baseline.
+-- databases and exist only to handle databases migrated from an older baseline.
 
 -- Drop sync log
 DROP TABLE IF EXISTS sync_log CASCADE;

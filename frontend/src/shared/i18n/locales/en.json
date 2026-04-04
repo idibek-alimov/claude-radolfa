@@ -142,7 +142,7 @@
     "page": "Page {page}",
     "editProductTitle": "Edit Product",
     "editProductDesc": "Update description and images. Price, stock, and core data are managed by the system and cannot be changed here.",
-    "erpSyncedData": "Catalog Data (read-only)",
+    "catalogData": "Catalog Data (read-only)",
     "slug": "Slug",
     "nameAndColor": "Name & Color",
     "price": "Price",

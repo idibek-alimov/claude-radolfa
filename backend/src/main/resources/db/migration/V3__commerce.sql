@@ -12,7 +12,7 @@
 -- ================================================================
 
 -- ----------------------------------------------------------------
--- Orders  (previously: erp_order_id → external_order_id)
+-- Orders
 -- ----------------------------------------------------------------
 CREATE TABLE orders (
     id                BIGSERIAL      PRIMARY KEY,
@@ -31,7 +31,7 @@ CREATE INDEX idx_orders_active           ON orders (id) WHERE deleted_at IS NULL
 CREATE INDEX idx_orders_external_order_id ON orders (external_order_id) WHERE external_order_id IS NOT NULL;
 
 -- ----------------------------------------------------------------
--- Order items  (previously: erp_item_code → sku_code)
+-- Order items
 -- ----------------------------------------------------------------
 CREATE TABLE order_items (
     id                BIGSERIAL      PRIMARY KEY,

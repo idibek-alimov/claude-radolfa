@@ -3,11 +3,10 @@ package tj.radolfa.domain.model;
 /**
  * A size/price variant — the actual purchasable unit.
  *
- * <p>All pricing and stock fields are authoritative-source-locked and
- * <b>always</b> overwritten on every sync via {@link #updatePriceAndStock}.
+ * <p>Pricing and stock fields are ADMIN-managed and must only be written
+ * via {@link #updatePriceAndStock}.
  *
- * <p>Logistics fields (barcode, weight, dimensions) are Radolfa-managed only
- * and are never overwritten by ERP sync.
+ * <p>Logistics fields (barcode, weight, dimensions) are Radolfa-managed only.
  *
  * <p>Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
  */
@@ -19,11 +18,11 @@ public class Sku {
 
     private String  sizeLabel;
 
-    // Authoritative-source-locked fields — always overwritten on sync
+    // ADMIN-managed fields
     private Integer stockQuantity;
     private Money   price;
 
-    // Radolfa-managed logistics fields — never touched by ERP sync
+    // Radolfa-managed logistics fields
     private String  barcode;
 
     public Sku(Long id,
@@ -42,7 +41,7 @@ public class Sku {
         this.barcode          = barcode;
     }
 
-    /** Constructor used by ERP sync path (no barcode). */
+    /** Constructor without barcode. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
@@ -53,8 +52,7 @@ public class Sku {
     }
 
     /**
-     * Authoritative-source merge — overwrites ALL pricing and stock fields.
-     * This is the single authorised write path for ERP sync.
+     * ADMIN-only write path — overwrites ALL pricing and stock fields.
      */
     public void updatePriceAndStock(Money price, Integer stockQuantity) {
         this.price         = price;

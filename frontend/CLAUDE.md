@@ -89,21 +89,20 @@ or disappear depending on whether that SKU is part of an active campaign.
 `loyaltyPrice = originalPrice × (1 − max(discountPercentage, loyaltyPercentage) / 100)`
 
 ### Key Type Field Names
-These differ from legacy ERP-era names — use the correct ones:
 
-| Entity | Old (deleted) | Current |
-|---|---|---|
-| `Sku` | `id`, `erpItemCode`, `price` | `skuId`, `skuCode`, `originalPrice` (+ full pricing block — see Price Model) |
-| `ListingVariant` | `id`, `colorHexCode`, `category`, `totalStock`, `minPrice`, `maxPrice`, `tierDiscountedMinPrice` | `variantId`, `colorHex`, `categoryName`, `originalPrice` (+ full pricing block — see Price Model) |
-| `AuthResponse` | `token` | `accessToken` |
-| Pagination | `items`, `hasMore` | `content`, `last` |
-| `HomeSection` items array | `items` | `listings` |
+| Entity | Field names |
+|---|---|
+| `Sku` | `skuId`, `skuCode`, `originalPrice` (+ full pricing block — see Price Model) |
+| `ListingVariant` | `variantId`, `colorHex`, `categoryName`, `originalPrice` (+ full pricing block — see Price Model) |
+| `AuthResponse` | `accessToken` |
+| Pagination | `content`, `last` |
+| `HomeSection` items array | `listings` |
 
 ---
 
 ## Role Model
 
-Three roles exist: `USER`, `MANAGER`, `ADMIN`. The old `SYSTEM` role was deleted.
+Three roles exist: `USER`, `MANAGER`, `ADMIN`.
 
 | Action | USER | MANAGER | ADMIN |
 |---|---|---|---|
@@ -149,8 +148,7 @@ Three roles exist: `USER`, `MANAGER`, `ADMIN`. The old `SYSTEM` role was deleted
 - Price and stock fields in the product edit dialog are **read-only for MANAGER**.
   Only `ADMIN` role may call `PUT /admin/skus/{id}/price` or `PUT /admin/skus/{id}/stock`.
 - Render a `Lock` icon next to read-only fields. Do not use disabled inputs that look editable.
-- No UI labels referencing "ERP" — the system is fully standalone. Use "Catalog Data" or
-  "System-managed" for read-only sections.
+- Use "Catalog Data" or "System-managed" labels for read-only sections.
 
 ---
 

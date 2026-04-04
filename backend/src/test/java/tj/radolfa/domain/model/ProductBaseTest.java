@@ -63,7 +63,7 @@ class ProductBaseTest {
 
         base.applyExternalUpdate("T-Shirt v2", "Apparel");
 
-        assertEquals(42L, base.getBrandId(), "brandId must never be overwritten by ERP sync");
+        assertEquals(42L, base.getBrandId(), "brandId must not be overwritten by applyExternalUpdate");
     }
 
     @Test

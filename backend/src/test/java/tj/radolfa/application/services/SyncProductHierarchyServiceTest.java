@@ -202,7 +202,7 @@
 
 // private HierarchySyncCommand buildCommand(
 // String templateCode, String templateName,
-// String colorKey, String erpItemCode, String sizeLabel,
+// String colorKey, String skuCode, String sizeLabel,
 // int stock, BigDecimal listPrice, BigDecimal effectivePrice,
 // Instant saleEndsAt) {
 
@@ -210,7 +210,7 @@
 // templateCode, templateName,
 // List.of(new VariantCommand(colorKey,
 // List.of(new SkuCommand(
-// erpItemCode, sizeLabel, stock,
+// skuCode, sizeLabel, stock,
 // Money.of(listPrice), Money.of(effectivePrice), saleEndsAt
 // ))
 // ))

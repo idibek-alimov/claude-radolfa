@@ -11,7 +11,7 @@ import java.util.Comparator;
  * Computes spend-to-next-tier for a user based on current tiers.
  *
  * Rules:
- * - If ERPNext provides an explicit value, it is used as-is.
+ * - If an explicit value is provided externally, it is used as-is.
  * - If the user has no tier, returns the gap to the lowest tier's minSpendRequirement.
  * - If the user has a tier, returns the gap to the next tier's minSpendRequirement.
  *   Returns null if the user is already on the highest tier.

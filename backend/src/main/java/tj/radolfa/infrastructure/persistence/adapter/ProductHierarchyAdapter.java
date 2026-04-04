@@ -223,8 +223,8 @@ public class ProductHierarchyAdapter
             entity = mapper.toBaseEntity(base);
         }
 
-        // Resolve category → use ID (native creation / update path) first,
-        // fall back to name lookup for the ERP sync path (no ID available).
+        // Resolve category → use ID (preferred path) first,
+        // fall back to name lookup when ID is not available.
         if (base.getCategoryId() != null) {
             entity.setCategory(categoryRepo.getReferenceById(base.getCategoryId()));
             entity.setCategoryName(base.getCategory());
@@ -239,8 +239,7 @@ public class ProductHierarchyAdapter
             entity.setCategoryName(null);
         }
 
-        // Resolve brand id -> BrandEntity (Radolfa-managed, never set from ERP sync
-        // path)
+        // Resolve brand id -> BrandEntity (Radolfa-managed).
         // Service already validated brand existence; use getReferenceById to avoid a
         // second DB round-trip.
         if (base.getBrandId() != null) {
@@ -306,14 +305,12 @@ public class ProductHierarchyAdapter
 
         // Resolve colorKey String -> ColorEntity.
         // Native product creation always pre-validates color via LoadColorPort, so this
-        // fallback is only reached from the ERP sync path where color keys arrive as
-        // strings
-        // without a prior lookup. Auto-created colors have no hex code — acceptable for
-        // sync.
+        // fallback is only reached when color keys arrive as strings without a prior
+        // lookup. Auto-created colors have no hex code.
         if (variant.getColorKey() != null) {
             ColorEntity colorEntity = colorRepo.findByColorKey(variant.getColorKey())
                     .orElseGet(() -> {
-                        LOG.warn("[PRODUCT-ADAPTER] Auto-creating color '{}' for ERP sync — hex code not set",
+                        LOG.warn("[PRODUCT-ADAPTER] Auto-creating color '{}' — hex code not set",
                                 variant.getColorKey());
                         ColorEntity newColor = new ColorEntity();
                         newColor.setColorKey(variant.getColorKey());

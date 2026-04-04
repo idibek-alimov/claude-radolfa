@@ -12,7 +12,7 @@ import java.util.List;
  *   <li>{@code ("Weight", ["200"], 2)} — NUMBER: numeric value</li>
  * </ul>
  *
- * <p>Owned entirely by the Radolfa content team — never overwritten by ERP sync.
+ * <p>Owned entirely by the Radolfa content team.
  * Pure Java — zero Spring / JPA / Jackson dependencies.
  */
 public record ProductAttribute(String key, List<String> values, int sortOrder) {
