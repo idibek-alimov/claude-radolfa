@@ -70,13 +70,16 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                         String colorKey, String colorHexCode,
                         String description, List<String> images,
                         Double price, Integer totalStock,
-                        Instant lastSyncAt) {
+                        Instant lastSyncAt,
+                        String productCode, List<String> skuCodes) {
                 try {
                         ListingDocument doc = new ListingDocument(
                                         variantId, slug, name, category,
                                         colorKey, colorHexCode, description,
                                         images, price, totalStock,
-                                        lastSyncAt);
+                                        lastSyncAt,
+                                        productCode,
+                                        skuCodes != null ? skuCodes : List.of());
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
                 } catch (Exception e) {
@@ -98,6 +101,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
 
         @Override
         public PageResult<ListingVariantDto> search(String query, int page, int limit) {
+                String upperQuery = query != null ? query.toUpperCase() : "";
                 Query fuzzyQuery = BoolQuery.of(b -> b
                                 .should(
                                                 Query.of(q -> q.match(m -> m
@@ -112,7 +116,19 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                 Query.of(q -> q.match(m -> m
                                                                 .field("colorKey")
                                                                 .query(query)
-                                                                .boost(2.0f))))
+                                                                .boost(2.0f))),
+                                                // Product code prefix search (e.g. "RD-100")
+                                                Query.of(q -> q.wildcard(w -> w
+                                                                .field("productCode")
+                                                                .wildcard("*" + upperQuery + "*")
+                                                                .caseInsensitive(true)
+                                                                .boost(4.0f))),
+                                                // SKU code prefix search (e.g. "RD-10047-S")
+                                                Query.of(q -> q.wildcard(w -> w
+                                                                .field("skuCodes")
+                                                                .wildcard("*" + upperQuery + "*")
+                                                                .caseInsensitive(true)
+                                                                .boost(5.0f))))
                                 .minimumShouldMatch("1"))._toQuery();
 
                 NativeQuery searchQuery = NativeQuery.builder()
@@ -210,7 +226,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 null,    // loyaltyPercentage
                                 false,   // isPartialDiscount — enriched post-query
                                 List.of(), // tags — not stored in ES index
-                                null,    // productCode — not stored in ES index
+                                doc.getProductCode(),
                                 List.of() // skus — batch-loaded post-query
                 );
         }

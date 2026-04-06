@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.ports.in.loyalty.RestoreLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
@@ -24,19 +25,22 @@ import tj.radolfa.domain.model.UserRole;
 @Service
 public class CancelOrderService implements CancelOrderUseCase {
 
-    private final LoadOrderPort       loadOrderPort;
-    private final SaveOrderPort       saveOrderPort;
-    private final LoadUserPort        loadUserPort;
-    private final StockAdjustmentPort stockAdjustmentPort;
+    private final LoadOrderPort                loadOrderPort;
+    private final SaveOrderPort               saveOrderPort;
+    private final LoadUserPort                loadUserPort;
+    private final StockAdjustmentPort         stockAdjustmentPort;
+    private final RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase;
 
     public CancelOrderService(LoadOrderPort loadOrderPort,
                               SaveOrderPort saveOrderPort,
                               LoadUserPort loadUserPort,
-                              StockAdjustmentPort stockAdjustmentPort) {
-        this.loadOrderPort       = loadOrderPort;
-        this.saveOrderPort       = saveOrderPort;
-        this.loadUserPort        = loadUserPort;
-        this.stockAdjustmentPort = stockAdjustmentPort;
+                              StockAdjustmentPort stockAdjustmentPort,
+                              RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase) {
+        this.loadOrderPort               = loadOrderPort;
+        this.saveOrderPort               = saveOrderPort;
+        this.loadUserPort                = loadUserPort;
+        this.stockAdjustmentPort         = stockAdjustmentPort;
+        this.restoreLoyaltyPointsUseCase = restoreLoyaltyPointsUseCase;
     }
 
     @Override
@@ -73,8 +77,14 @@ public class CancelOrderService implements CancelOrderUseCase {
             }
         });
 
+        // Restore loyalty points that were pessimistically deducted at checkout
+        if (order.loyaltyPointsRedeemed() > 0) {
+            restoreLoyaltyPointsUseCase.execute(order.userId(), order.loyaltyPointsRedeemed());
+        }
+
         Order cancelled = new Order(order.id(), order.userId(), order.externalOrderId(),
-                OrderStatus.CANCELLED, order.totalAmount(), order.items(), order.createdAt());
+                OrderStatus.CANCELLED, order.totalAmount(), order.items(), order.createdAt(),
+                order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded());
         saveOrderPort.save(cancelled);
     }
 }

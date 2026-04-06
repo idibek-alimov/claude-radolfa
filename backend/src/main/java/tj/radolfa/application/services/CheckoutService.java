@@ -134,9 +134,10 @@ public class CheckoutService implements CheckoutUseCase {
                 .map(this::enrichToOrderItem)
                 .toList();
 
-        // 9. Persist order with PENDING status
+        // 9. Persist order with PENDING status, recording points redeemed for later reversal
         Order newOrder = new Order(null, command.userId(), null,
-                OrderStatus.PENDING, total, orderItems, Instant.now());
+                OrderStatus.PENDING, total, orderItems, Instant.now(),
+                pointsToRedeem, 0);
         Order saved = saveOrderPort.save(newOrder);
 
         // 10. Decrement stock for each item

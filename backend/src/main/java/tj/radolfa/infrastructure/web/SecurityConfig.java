@@ -20,6 +20,7 @@ import tj.radolfa.infrastructure.security.JwtAuthenticationFilter;
 import tj.radolfa.infrastructure.security.JwtProperties;
 import tj.radolfa.infrastructure.security.OtpProperties;
 import tj.radolfa.infrastructure.security.RateLimitProperties;
+import tj.radolfa.infrastructure.security.WebhookProperties;
 
 import java.util.List;
 
@@ -47,7 +48,8 @@ import java.util.List;
                 OtpProperties.class,
                 CorsProperties.class,
                 RateLimitProperties.class,
-                ApiKeyProperties.class
+                ApiKeyProperties.class,
+                WebhookProperties.class
 })
 public class SecurityConfig {
 
@@ -95,7 +97,8 @@ public class SecurityConfig {
                                                 // Public endpoints (no authentication required)
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
-                                                .requestMatchers("/actuator/**").permitAll()
+                                                .requestMatchers("/actuator/health").permitAll()
+                                                .requestMatchers("/actuator/**").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/home/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
@@ -105,11 +108,11 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers").permitAll()
                                                 .requestMatchers("/api/v1/webhooks/**").permitAll()
 
-                                                // Swagger / OpenAPI endpoints
-                                                .requestMatchers("/swagger-ui/**").permitAll()
-                                                .requestMatchers("/swagger-ui.html").permitAll()
-                                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                                .requestMatchers("/v3/api-docs.yaml").permitAll()
+                                                // Swagger / OpenAPI endpoints (ADMIN only)
+                                                .requestMatchers("/swagger-ui/**").hasRole("ADMIN")
+                                                .requestMatchers("/swagger-ui.html").hasRole("ADMIN")
+                                                .requestMatchers("/v3/api-docs/**").hasRole("ADMIN")
+                                                .requestMatchers("/v3/api-docs.yaml").hasRole("ADMIN")
 
                                                 // ============================================================
                                                 // ADMIN only: Search index management

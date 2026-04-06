@@ -50,7 +50,7 @@ public class ConfirmPaymentService implements ConfirmPaymentUseCase {
 
     @Override
     @Transactional
-    public void execute(String providerTransactionId, String webhookPayload) {
+    public void execute(String providerTransactionId) {
         Payment payment = loadPaymentPort.findByProviderTransactionId(providerTransactionId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No payment found for transaction: " + providerTransactionId));

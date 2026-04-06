@@ -33,7 +33,7 @@ export async function fetchListings(
 ): Promise<PaginatedResponse<ListingVariant>> {
   const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     "/api/v1/listings",
-    { params: { page, size } }
+    { params: { page, limit: size } }
   );
   return data;
 }
@@ -56,7 +56,7 @@ export async function searchListings(
 ): Promise<PaginatedResponse<ListingVariant>> {
   const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     "/api/v1/listings/search",
-    { params: { q, page, size } }
+    { params: { q, page, limit: size } }
   );
   return data;
 }

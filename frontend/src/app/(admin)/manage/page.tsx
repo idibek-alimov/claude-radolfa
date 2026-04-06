@@ -28,6 +28,8 @@ import { ReviewModerationQueue } from "@/features/review-moderation";
 import { QuestionModerationQueue } from "@/features/question-moderation";
 import { TagListPanel } from "@/features/tag-management";
 import { DiscountsTab } from "@/features/discount-management";
+import { fetchDiscounts, fetchDiscountTypes } from "@/features/discount-management/api";
+import { fetchUsers } from "@/features/user-management";
 import { BlueprintManagementPanel } from "@/features/blueprint-management";
 import type { ReindexResult } from "@/features/search/api";
 import {
@@ -52,7 +54,7 @@ import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
-import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check, Tag, Percent, BookOpen } from "lucide-react";
+import { Pencil, Lock, Search, Package, Users, ChevronLeft, ChevronRight, Award, Plus, Folder, FolderPlus, Palette, RefreshCw, Trash2, Loader2, AlertCircle, Check, Tag, Percent, BookOpen, Star, HelpCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -62,6 +64,36 @@ function flattenTree(nodes: CategoryTree[], depth = 0): FlatCategory[] {
     { id: node.id, name: node.name, depth },
     ...flattenTree(node.children, depth + 1),
   ]);
+}
+
+// ── StatCard ─────────────────────────────────────────────────────────
+
+interface StatCardProps {
+  icon: React.ElementType;
+  label: string;
+  value: number | undefined;
+  iconBg: string;
+  iconColor: string;
+}
+
+function StatCard({ icon: Icon, label, value, iconBg, iconColor }: StatCardProps) {
+  return (
+    <div className="bg-card rounded-xl border shadow-sm p-5 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
+        <Icon className={`h-5 w-5 ${iconColor}`} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground font-medium truncate">{label}</p>
+        {value !== undefined ? (
+          <p className="text-2xl font-bold tabular-nums leading-tight">
+            {value.toLocaleString()}
+          </p>
+        ) : (
+          <div className="mt-1 h-7 w-16 rounded bg-muted animate-pulse" />
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ── Page ─────────────────────────────────────────────────────────────
@@ -78,18 +110,75 @@ export default function ManagePage() {
     onError: (err: unknown) => toast.error(getErrorMessage(err, "Reindex failed")),
   });
 
+  // ── Stat card queries (staleTime 60s — low-priority background data) ──
+  const { data: productStats } = useQuery({
+    queryKey: ["listings-count"],
+    queryFn: () => fetchListings(1, 1),
+    staleTime: 60_000,
+  });
+
+  const { data: activeDiscountStats } = useQuery({
+    queryKey: ["discounts-count-active"],
+    queryFn: () => fetchDiscounts({ status: "active", page: 1, size: 1 }),
+    staleTime: 60_000,
+  });
+
+  const { data: discountTypeStats } = useQuery({
+    queryKey: ["discount-types"],
+    queryFn: fetchDiscountTypes,
+    staleTime: 60_000,
+  });
+
+  const { data: userStats } = useQuery({
+    queryKey: ["users-count"],
+    queryFn: () => fetchUsers("", 1, 1),
+    staleTime: 60_000,
+  });
+
   return (
     <ProtectedRoute requiredRole="MANAGER">
       <div className="min-h-screen bg-muted/30 py-10">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
               {t("dashboardTitle")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {t("dashboardSubtitle")}
             </p>
+          </div>
+
+          {/* Stat cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Package}
+              label="Total Products"
+              value={productStats?.totalElements}
+              iconBg="bg-blue-100 dark:bg-blue-950"
+              iconColor="text-blue-600 dark:text-blue-400"
+            />
+            <StatCard
+              icon={Percent}
+              label="Active Campaigns"
+              value={activeDiscountStats?.totalElements}
+              iconBg="bg-green-100 dark:bg-green-950"
+              iconColor="text-green-600 dark:text-green-400"
+            />
+            <StatCard
+              icon={Tag}
+              label="Discount Types"
+              value={discountTypeStats?.length}
+              iconBg="bg-purple-100 dark:bg-purple-950"
+              iconColor="text-purple-600 dark:text-purple-400"
+            />
+            <StatCard
+              icon={Users}
+              label="Registered Users"
+              value={userStats?.totalElements}
+              iconBg="bg-amber-100 dark:bg-amber-950"
+              iconColor="text-amber-600 dark:text-amber-400"
+            />
           </div>
 
           <Tabs defaultValue="products" className="space-y-6">
@@ -118,8 +207,16 @@ export default function ManagePage() {
                 <Percent className="h-4 w-4" />
                 Discounts
               </TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              {isAdmin && <TabsTrigger value="qa">Q&A</TabsTrigger>}
+              <TabsTrigger value="reviews" className="gap-1.5">
+                <Star className="h-4 w-4" />
+                Reviews
+              </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="qa" className="gap-1.5">
+                  <HelpCircle className="h-4 w-4" />
+                  Q&A
+                </TabsTrigger>
+              )}
               {isAdmin && (
                 <TabsTrigger value="tags" className="gap-1.5">
                   <Tag className="h-4 w-4" />

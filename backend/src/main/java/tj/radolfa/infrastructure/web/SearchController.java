@@ -87,6 +87,11 @@ public class SearchController {
                 String colorHexCode = variant.getColor() != null
                         ? variant.getColor().getHexCode() : null;
 
+                List<String> skuCodes = skus.stream()
+                        .map(SkuEntity::getSkuCode)
+                        .filter(Objects::nonNull)
+                        .toList();
+
                 indexPort.index(
                         variant.getId(),
                         variant.getSlug(),
@@ -98,7 +103,9 @@ public class SearchController {
                         images,
                         price != null ? price.doubleValue() : null,
                         totalStock,
-                        variant.getLastSyncAt()
+                        variant.getLastSyncAt(),
+                        variant.getProductCode(),
+                        skuCodes
                 );
                 indexed++;
             } catch (Exception e) {

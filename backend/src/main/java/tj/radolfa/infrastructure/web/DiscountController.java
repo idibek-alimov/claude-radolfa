@@ -12,6 +12,7 @@ import tj.radolfa.application.ports.in.discount.DisableDiscountUseCase;
 import tj.radolfa.application.ports.in.discount.UpdateDiscountUseCase;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.infrastructure.web.dto.CreateDiscountRequest;
 import tj.radolfa.infrastructure.web.dto.DiscountResponse;
 import tj.radolfa.infrastructure.web.dto.UpdateDiscountRequest;
@@ -47,6 +48,13 @@ public class DiscountController {
 
         DiscountFilter filter = new DiscountFilter(typeId, status, from, to);
         return loadDiscountPort.findAll(filter, pageable).map(DiscountResponse::fromDomain);
+    }
+
+    @GetMapping("/{id}")
+    public DiscountResponse getById(@PathVariable Long id) {
+        return loadDiscountPort.findById(id)
+                .map(DiscountResponse::fromDomain)
+                .orElseThrow(() -> new ResourceNotFoundException("Discount not found: " + id));
     }
 
     @PostMapping

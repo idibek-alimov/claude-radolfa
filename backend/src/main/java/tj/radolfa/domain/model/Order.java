@@ -11,7 +11,9 @@ public record Order(
         OrderStatus status,
         Money totalAmount,
         List<OrderItem> items,
-        Instant createdAt) {
+        Instant createdAt,
+        int loyaltyPointsRedeemed,
+        int loyaltyPointsAwarded) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);

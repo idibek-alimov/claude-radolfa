@@ -35,7 +35,8 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         validateTransition(order.status(), newStatus);
 
         Order updated = new Order(order.id(), order.userId(), order.externalOrderId(),
-                newStatus, order.totalAmount(), order.items(), order.createdAt());
+                newStatus, order.totalAmount(), order.items(), order.createdAt(),
+                order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded());
         saveOrderPort.save(updated);
     }
 

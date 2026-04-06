@@ -108,6 +108,11 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                                 .map(LoadColorPort.ColorView::hexCode)
                                 .orElse(null);
 
+                List<String> skuCodes = skus.stream()
+                                .map(Sku::getSkuCode)
+                                .filter(java.util.Objects::nonNull)
+                                .toList();
+
                 listingIndexPort.index(
                                 variant.getId(),
                                 variant.getSlug(),
@@ -119,6 +124,8 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                                 variant.getImages(),
                                 minPrice,
                                 totalStock,
-                                variant.getLastSyncAt());
+                                variant.getLastSyncAt(),
+                                variant.getProductCode(),
+                                skuCodes);
         }
 }

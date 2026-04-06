@@ -43,6 +43,12 @@ public class OrderEntity extends BaseAuditEntity {
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items = new ArrayList<>();
 
+    @Column(name = "loyalty_points_redeemed", nullable = false)
+    private int loyaltyPointsRedeemed;
+
+    @Column(name = "loyalty_points_awarded", nullable = false)
+    private int loyaltyPointsAwarded;
+
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant deletedAt;

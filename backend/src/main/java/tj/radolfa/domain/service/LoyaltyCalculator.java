@@ -83,6 +83,21 @@ public class LoyaltyCalculator {
                 current.permanent(), lowestTierEver);
     }
 
+    /**
+     * Returns how many cashback points would be earned for the given order amount,
+     * based on the user's current tier cashback percentage.
+     * Mirrors the calculation inside {@link #awardPoints}.
+     */
+    public int computeEarnedPoints(LoyaltyProfile profile, Money orderAmount) {
+        BigDecimal cashbackPct = profile.tier() != null && profile.tier().cashbackPercentage() != null
+                ? profile.tier().cashbackPercentage()
+                : BigDecimal.ZERO;
+        return orderAmount.amount()
+                .multiply(cashbackPct)
+                .divide(BigDecimal.valueOf(100), 0, RoundingMode.FLOOR)
+                .intValue();
+    }
+
     // ── Tier Discount ─────────────────────────────────────────────────────────
 
     /**

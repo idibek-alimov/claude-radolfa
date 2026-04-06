@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.in.loyalty.AwardLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.LoyaltyTier;
@@ -38,17 +39,20 @@ public class AwardLoyaltyPointsService implements AwardLoyaltyPointsUseCase {
     private final LoadOrderPort        loadOrderPort;
     private final LoadLoyaltyTierPort  loadLoyaltyTierPort;
     private final SaveUserPort         saveUserPort;
+    private final SaveOrderPort        saveOrderPort;
     private final LoyaltyCalculator    loyaltyCalculator;
 
     public AwardLoyaltyPointsService(LoadUserPort loadUserPort,
                                      LoadOrderPort loadOrderPort,
                                      LoadLoyaltyTierPort loadLoyaltyTierPort,
                                      SaveUserPort saveUserPort,
+                                     SaveOrderPort saveOrderPort,
                                      LoyaltyCalculator loyaltyCalculator) {
         this.loadUserPort        = loadUserPort;
         this.loadOrderPort       = loadOrderPort;
         this.loadLoyaltyTierPort = loadLoyaltyTierPort;
         this.saveUserPort        = saveUserPort;
+        this.saveOrderPort       = saveOrderPort;
         this.loyaltyCalculator   = loyaltyCalculator;
     }
 
@@ -62,11 +66,19 @@ public class AwardLoyaltyPointsService implements AwardLoyaltyPointsUseCase {
 
         List<LoyaltyTier> allTiers = loadLoyaltyTierPort.findAll();
 
+        int earnedPoints = loyaltyCalculator.computeEarnedPoints(user.loyalty(), order.totalAmount());
         LoyaltyProfile updated = loyaltyCalculator.awardPoints(
                 user.loyalty(), order.totalAmount(), allTiers);
 
         saveUserPort.save(new User(
                 user.id(), user.phone(), user.role(), user.name(),
                 user.email(), updated, user.enabled(), user.version()));
+
+        // Record awarded points on the order so RefundPaymentService can revoke them later
+        Order recorded = new Order(
+                order.id(), order.userId(), order.externalOrderId(),
+                order.status(), order.totalAmount(), order.items(), order.createdAt(),
+                order.loyaltyPointsRedeemed(), earnedPoints);
+        saveOrderPort.save(recorded);
     }
 }

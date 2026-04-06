@@ -11,6 +11,7 @@ import tj.radolfa.application.ports.out.SaveDiscountPort;
 import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountType;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -34,7 +35,7 @@ public class CreateDiscountService implements CreateDiscountUseCase {
         DiscountType type = loadDiscountTypePort.findById(command.typeId())
                 .orElseThrow(() -> new IllegalArgumentException("Discount type not found: " + command.typeId()));
 
-        validateNoConflict(command.typeId(), command.itemCodes(), null);
+        validateNoConflict(command.typeId(), command.itemCodes(), command.validFrom(), command.validUpto(), null);
 
         Discount discount = new Discount(
                 null,
@@ -45,7 +46,7 @@ public class CreateDiscountService implements CreateDiscountUseCase {
                 command.validUpto(),
                 false,
                 command.title(),
-                command.colorHex()
+                normalizeColorHex(command.colorHex())
         );
         return saveDiscountPort.save(discount);
     }
@@ -56,16 +57,26 @@ public class CreateDiscountService implements CreateDiscountUseCase {
      *
      * @param excludeId the discount being updated (null on create)
      */
-    void validateNoConflict(Long typeId, List<String> itemCodes, Long excludeId) {
+    static String normalizeColorHex(String hex) {
+        return hex != null && hex.startsWith("#") ? hex.substring(1) : hex;
+    }
+
+    void validateNoConflict(Long typeId, List<String> itemCodes,
+                            Instant validFrom, Instant validUpto, Long excludeId) {
         DiscountFilter filter = new DiscountFilter(typeId, null, null, null);
         loadDiscountPort.findAll(filter, Pageable.unpaged())
                 .forEach(existing -> {
                     if (excludeId != null && excludeId.equals(existing.id())) return;
+                    if (existing.disabled()) return; // disabled discounts do not block new ones
+                    boolean datesOverlap = !existing.validUpto().isBefore(validFrom)
+                            && !existing.validFrom().isAfter(validUpto);
+                    if (!datesOverlap) return; // non-overlapping date ranges are always allowed
                     boolean coversItem = existing.itemCodes().stream().anyMatch(itemCodes::contains);
                     if (coversItem) {
                         throw new IllegalStateException(
-                                "A discount of the same type already covers one or more of the target SKUs. " +
-                                "Resolve the conflict before creating a new discount (existing id=" + existing.id() + ")");
+                                "A discount of the same type already covers one or more of the target SKUs " +
+                                "in an overlapping date range. Resolve the conflict before creating a new " +
+                                "discount (existing id=" + existing.id() + ")");
                     }
                 });
     }

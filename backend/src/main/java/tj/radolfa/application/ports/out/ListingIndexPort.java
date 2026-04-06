@@ -21,12 +21,15 @@ public interface ListingIndexPort {
      * @param images       image URLs
      * @param price        lowest effective price among SKUs (for search/sort)
      * @param totalStock   sum of all SKU stock
+     * @param productCode  human-friendly product code, e.g. "RD-10047" (may be null)
+     * @param skuCodes     all SKU codes belonging to this variant
      */
     void index(Long variantId, String slug, String name, String category,
                String colorKey, String colorHexCode,
                String description, java.util.List<String> images,
                Double price, Integer totalStock,
-               java.time.Instant lastSyncAt);
+               java.time.Instant lastSyncAt,
+               String productCode, java.util.List<String> skuCodes);
 
     /**
      * Remove a listing variant from the search index.

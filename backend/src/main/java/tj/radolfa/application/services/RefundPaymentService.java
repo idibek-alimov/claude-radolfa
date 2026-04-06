@@ -2,11 +2,14 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.ports.in.loyalty.RevokeAwardedPointsUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.payment.RefundPaymentUseCase;
+import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPaymentPort;
 import tj.radolfa.application.ports.out.PaymentPort;
 import tj.radolfa.application.ports.out.SavePaymentPort;
+import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.Payment;
 import tj.radolfa.domain.model.PaymentStatus;
 
@@ -24,19 +27,25 @@ import tj.radolfa.domain.model.PaymentStatus;
 @Service
 public class RefundPaymentService implements RefundPaymentUseCase {
 
-    private final LoadPaymentPort  loadPaymentPort;
-    private final SavePaymentPort  savePaymentPort;
-    private final PaymentPort      paymentPort;
-    private final CancelOrderUseCase cancelOrderUseCase;
+    private final LoadPaymentPort            loadPaymentPort;
+    private final SavePaymentPort            savePaymentPort;
+    private final PaymentPort               paymentPort;
+    private final LoadOrderPort             loadOrderPort;
+    private final CancelOrderUseCase        cancelOrderUseCase;
+    private final RevokeAwardedPointsUseCase revokeAwardedPointsUseCase;
 
     public RefundPaymentService(LoadPaymentPort loadPaymentPort,
                                 SavePaymentPort savePaymentPort,
                                 PaymentPort paymentPort,
-                                CancelOrderUseCase cancelOrderUseCase) {
-        this.loadPaymentPort   = loadPaymentPort;
-        this.savePaymentPort   = savePaymentPort;
-        this.paymentPort       = paymentPort;
-        this.cancelOrderUseCase = cancelOrderUseCase;
+                                LoadOrderPort loadOrderPort,
+                                CancelOrderUseCase cancelOrderUseCase,
+                                RevokeAwardedPointsUseCase revokeAwardedPointsUseCase) {
+        this.loadPaymentPort            = loadPaymentPort;
+        this.savePaymentPort            = savePaymentPort;
+        this.paymentPort               = paymentPort;
+        this.loadOrderPort             = loadOrderPort;
+        this.cancelOrderUseCase        = cancelOrderUseCase;
+        this.revokeAwardedPointsUseCase = revokeAwardedPointsUseCase;
     }
 
     @Override
@@ -51,6 +60,10 @@ public class RefundPaymentService implements RefundPaymentUseCase {
                     "Only COMPLETED payments can be refunded, current status: " + payment.status());
         }
 
+        // Load order before cancellation to read loyaltyPointsAwarded
+        Order order = loadOrderPort.loadById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
+
         // Call the gateway
         PaymentPort.RefundResult result = paymentPort.refund(
                 payment.providerTransactionId(), payment.amount());
@@ -62,7 +75,12 @@ public class RefundPaymentService implements RefundPaymentUseCase {
         // Persist REFUNDED state
         savePaymentPort.save(payment.refunded());
 
-        // Cancel the order and restore stock (ADMIN-level cancellation)
+        // Cancel the order: restores stock and any redeemed loyalty points
         cancelOrderUseCase.execute(orderId, adminUserId, "Refunded by admin");
+
+        // Revoke cashback points that were awarded when the payment was confirmed
+        if (order.loyaltyPointsAwarded() > 0) {
+            revokeAwardedPointsUseCase.execute(order.userId(), order.loyaltyPointsAwarded());
+        }
     }
 }

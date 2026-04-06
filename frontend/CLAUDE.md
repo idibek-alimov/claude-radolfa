@@ -178,3 +178,38 @@ Keep query keys consistent to ensure correct cache invalidation:
 Active migration tracked in `/FRONTEND_INTEGRATION_PLAN.md` at the repo root.
 Before implementing any new feature, check if it is already scoped to a phase there.
 Mark phases complete with a short summary when done.
+
+---
+
+## Design Standards (CRITICAL — read before writing any UI code)
+
+Quality bar: professional marketplace (Wildberries, Amazon, Noon). Design is non-negotiable.
+
+### Layout & Sizing
+
+| Element | Rule |
+|---|---|
+| Dialog with >2 fields | `max-w-2xl` min; rich forms `max-w-3xl`–`max-w-4xl` |
+| Wizard steps | `max-w-2xl` simple / `max-w-4xl` product pickers — never leave half the screen blank |
+| Modal overlay | `bg-black/30` or `bg-background/60 backdrop-blur-sm` — never the default `bg-black/80` |
+| Card / panel padding | `p-5` or `p-6`. Form field gaps: `space-y-5` or `space-y-6` |
+| Border radius | `rounded-xl` cards, `rounded-lg` inputs/buttons, `rounded-full` badges/pills |
+| Section heading | icon + `text-sm font-semibold` + `border-b pb-2 mb-4` |
+
+### Components & Inputs
+
+- Always use Shadcn `<Select>` — never a plain `<select>`.
+- Any color hex input **must** show a live rendered preview (badge or swatch), not just the string.
+- Numeric range inputs (e.g. discount %) use a slider + number input side-by-side.
+- `<input type="number">` spinners are removed globally via `globals.css`. Never rely on browser-native steppers — they look unprofessional. If increment/decrement is needed, add explicit `+` / `−` icon buttons instead.
+- Group related fields with `SectionHeading` (icon + border-b) or `bg-muted/30 rounded-xl p-5` blocks.
+
+### Color, Hierarchy & Feedback
+
+- Accent palette: destructive `rose-600`, success `green-600`, info `blue-600`, warning `orange-500`, muted `muted-foreground`.
+- Status indicators: colored dot **and** colored text — not one alone.
+- Key metrics: `tabular-nums font-bold text-xl` or `text-2xl`.
+- Interactive cards: `hover:shadow-md hover:-translate-y-0.5 transition-all`.
+- Empty states: centered, `border-dashed`, icon `h-10 w-10 text-muted-foreground/40`, brief message.
+- Loading: always show a skeleton — never a blank area.
+- Mutations: toast on success **and** error. Destructive confirm dialogs must name what is deleted.

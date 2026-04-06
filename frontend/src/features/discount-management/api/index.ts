@@ -57,7 +57,7 @@ export async function fetchDiscounts(
     {
       params: {
         ...(typeId !== undefined && { typeId }),
-        ...(status && status !== "all" && { status }),
+        ...(status && status !== "all" && { status: status.toUpperCase() }),
         ...(from && { from }),
         ...(to && { to }),
         page,
@@ -65,6 +65,12 @@ export async function fetchDiscounts(
       },
     }
   );
+  return response.data;
+}
+
+/** GET /api/v1/admin/discounts/{id} — MANAGER+ */
+export async function fetchDiscountById(id: number): Promise<DiscountResponse> {
+  const response = await apiClient.get<DiscountResponse>(`/api/v1/admin/discounts/${id}`);
   return response.data;
 }
 

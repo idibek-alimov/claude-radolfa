@@ -2,22 +2,15 @@ package tj.radolfa.application.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
-import tj.radolfa.application.ports.out.LoadMonthlySpendingPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
-import tj.radolfa.application.ports.out.SaveUserPort;
-import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.User;
-import tj.radolfa.domain.service.LoyaltyCalculator;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Evaluates loyalty tier promotions and demotions for all non-permanent users
@@ -29,22 +22,16 @@ import java.util.Objects;
 @Service
 public class MonthlyTierEvaluationService {
 
-    private final LoadUserPort            loadUserPort;
-    private final SaveUserPort            saveUserPort;
-    private final LoadLoyaltyTierPort     loadLoyaltyTierPort;
-    private final LoadMonthlySpendingPort loadMonthlySpendingPort;
-    private final LoyaltyCalculator       loyaltyCalculator;
+    private final LoadUserPort           loadUserPort;
+    private final LoadLoyaltyTierPort    loadLoyaltyTierPort;
+    private final UserTierEvaluatorService userTierEvaluatorService;
 
     public MonthlyTierEvaluationService(LoadUserPort loadUserPort,
-                                        SaveUserPort saveUserPort,
                                         LoadLoyaltyTierPort loadLoyaltyTierPort,
-                                        LoadMonthlySpendingPort loadMonthlySpendingPort,
-                                        LoyaltyCalculator loyaltyCalculator) {
+                                        UserTierEvaluatorService userTierEvaluatorService) {
         this.loadUserPort            = loadUserPort;
-        this.saveUserPort            = saveUserPort;
         this.loadLoyaltyTierPort     = loadLoyaltyTierPort;
-        this.loadMonthlySpendingPort = loadMonthlySpendingPort;
-        this.loyaltyCalculator       = loyaltyCalculator;
+        this.userTierEvaluatorService = userTierEvaluatorService;
     }
 
     /**
@@ -65,7 +52,7 @@ public class MonthlyTierEvaluationService {
 
         for (User user : users) {
             try {
-                Result result = evaluateUser(user, from, to, allTiers);
+                Result result = userTierEvaluatorService.evaluate(user, from, to, allTiers);
                 switch (result) {
                     case PROMOTED  -> promoted++;
                     case DEMOTED   -> demoted++;
@@ -78,35 +65,6 @@ public class MonthlyTierEvaluationService {
 
         log.info("Monthly tier evaluation complete — promoted={}, demoted={}, unchanged={}",
                 promoted, demoted, unchanged);
-    }
-
-    @Transactional
-    public Result evaluateUser(User user, Instant from, Instant to, List<LoyaltyTier> allTiers) {
-        BigDecimal netSpending = loadMonthlySpendingPort.calculateNetSpending(user.id(), from, to);
-        LoyaltyProfile current = user.loyalty();
-        LoyaltyProfile updated = loyaltyCalculator.evaluateMonthlyTier(netSpending, current, allTiers);
-
-        saveUserPort.save(new User(
-                user.id(), user.phone(), user.role(), user.name(),
-                user.email(), updated, user.enabled(), user.version()));
-
-        String previousTierName = current.tier() != null ? current.tier().name() : null;
-        String newTierName      = updated.tier() != null ? updated.tier().name() : null;
-
-        if (!Objects.equals(previousTierName, newTierName)) {
-            if (tierRank(updated.tier()) > tierRank(current.tier())) {
-                log.debug("User {} promoted: {} → {}", user.id(), previousTierName, newTierName);
-                return Result.PROMOTED;
-            } else {
-                log.debug("User {} demoted: {} → {}", user.id(), previousTierName, newTierName);
-                return Result.DEMOTED;
-            }
-        }
-        return Result.UNCHANGED;
-    }
-
-    private int tierRank(LoyaltyTier tier) {
-        return tier != null ? tier.displayOrder() : -1;
     }
 
     public enum Result { PROMOTED, DEMOTED, UNCHANGED }

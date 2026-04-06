@@ -84,7 +84,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         Page<Object[]> findGridByCategoryIds(@Param("categoryIds") List<Long> categoryIds, Pageable pageable);
 
         /**
-         * SQL LIKE fallback search on product name and colour key.
+         * SQL LIKE fallback search on product name, colour key, product code, and SKU codes.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
@@ -99,6 +99,9 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         WHERE LOWER(pb.name) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.color.colorKey) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.webDescription) LIKE LOWER(CONCAT('%', :query, '%'))
+                           OR LOWER(lv.productCode) LIKE LOWER(CONCAT('%', :query, '%'))
+                           OR EXISTS (SELECT 1 FROM SkuEntity sku WHERE sku.listingVariant = lv
+                                      AND LOWER(sku.skuCode) LIKE LOWER(CONCAT('%', :query, '%')))
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode
                         ORDER BY lv.id ASC

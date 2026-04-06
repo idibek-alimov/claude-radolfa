@@ -60,13 +60,22 @@ public class ListingDocument {
     @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
     private Instant lastSyncAt;
 
+    /** Human-friendly product code, e.g. "RD-10047". Used for admin SKU-picker search. */
+    @Field(type = FieldType.Keyword)
+    private String productCode;
+
+    /** All SKU codes belonging to this variant, e.g. ["RD-10047-S", "RD-10047-M"]. */
+    @Field(type = FieldType.Keyword)
+    private List<String> skuCodes;
+
     public ListingDocument() {}
 
     public ListingDocument(Long id, String slug, String name, String category,
                            String colorKey, String colorHexCode,
                            String webDescription, List<String> images,
                            Double price, Integer totalStock,
-                           Instant lastSyncAt) {
+                           Instant lastSyncAt,
+                           String productCode, List<String> skuCodes) {
         this.id             = id;
         this.slug           = slug;
         this.name           = name;
@@ -78,6 +87,8 @@ public class ListingDocument {
         this.price          = price;
         this.totalStock     = totalStock;
         this.lastSyncAt     = lastSyncAt;
+        this.productCode    = productCode;
+        this.skuCodes       = skuCodes;
     }
 
     public Long         getId()             { return id; }
@@ -91,4 +102,6 @@ public class ListingDocument {
     public Double       getPrice()          { return price; }
     public Integer      getTotalStock()     { return totalStock; }
     public Instant      getLastSyncAt()     { return lastSyncAt; }
+    public String       getProductCode()    { return productCode; }
+    public List<String> getSkuCodes()       { return skuCodes; }
 }

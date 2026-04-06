@@ -10,6 +10,8 @@ interface Props {
   onNext: () => void;
   isNextDisabled?: boolean;
   isSubmitting?: boolean;
+  submitLabel?: string;
+  sidebarOffset?: number;
 }
 
 export function WizardFooter({
@@ -19,12 +21,14 @@ export function WizardFooter({
   onNext,
   isNextDisabled = false,
   isSubmitting = false,
+  submitLabel = "Create Product",
+  sidebarOffset = 220,
 }: Props) {
   const isLastStep = step === totalSteps;
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-40 border-t bg-white shadow-[0_-1px_8px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between pl-[220px] pr-8 py-3">
+      <div className="flex items-center justify-between pr-8 py-3" style={{ paddingLeft: sidebarOffset }}>
         <Button
           variant="ghost"
           onClick={onPrev}
@@ -50,7 +54,7 @@ export function WizardFooter({
               Creating…
             </>
           ) : isLastStep ? (
-            "Create Product"
+            submitLabel
           ) : (
             <>
               Continue

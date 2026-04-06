@@ -252,6 +252,11 @@ public class CreateProductService implements CreateProductUseCase {
                 .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
                 .sum();
 
+        List<String> skuCodes = skus.stream()
+                .map(Sku::getSkuCode)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
         listingIndexPort.index(
                 variant.getId(),
                 variant.getSlug(),
@@ -263,7 +268,9 @@ public class CreateProductService implements CreateProductUseCase {
                 List.of(),
                 price,
                 totalStock,
-                null
+                null,
+                variant.getProductCode(),
+                skuCodes
         );
     }
 }

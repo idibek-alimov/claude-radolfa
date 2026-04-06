@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
@@ -31,30 +31,31 @@ export function SkuPicker({ selectedCodes, onSelectionChange }: SkuPickerProps) 
     thumbnail: string | null;
   }>>(new Map());
 
-  // Whenever search results load, hydrate the enrichment map
+  // Hydrate the enrichment map whenever new results arrive (effect, not render body)
   const results = data?.content ?? [];
-  if (results.length > 0) {
-    const toAdd: typeof enriched = new Map(enriched);
-    let changed = false;
-    for (const variant of results) {
-      for (const sku of variant.skus) {
-        if (!toAdd.has(sku.skuCode)) {
-          toAdd.set(sku.skuCode, {
-            skuCode: sku.skuCode,
-            sizeLabel: sku.sizeLabel,
-            productCode: variant.productCode,
-            colorDisplayName: variant.colorDisplayName,
-            thumbnail: variant.images[0] ?? null,
-          });
-          changed = true;
+  useEffect(() => {
+    if (!data?.content || data.content.length === 0) return;
+    setEnriched((prev) => {
+      const next = new Map(prev);
+      let changed = false;
+      for (const variant of data.content) {
+        for (const sku of variant.skus) {
+          if (!next.has(sku.skuCode)) {
+            next.set(sku.skuCode, {
+              skuCode: sku.skuCode,
+              sizeLabel: sku.sizeLabel,
+              productCode: variant.productCode,
+              colorDisplayName: variant.colorDisplayName,
+              thumbnail: variant.images[0] ?? null,
+            });
+            changed = true;
+          }
         }
       }
-    }
-    if (changed) {
-      // Use a ref-style update to avoid re-render loop: only update on next tick
-      setTimeout(() => setEnriched(toAdd), 0);
-    }
-  }
+      return changed ? next : prev;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.content]);
 
   const toggle = (code: string) => {
     const next = new Set(selectedSet);
@@ -90,7 +91,7 @@ export function SkuPicker({ selectedCodes, onSelectionChange }: SkuPickerProps) 
   };
 
   return (
-    <div className="flex flex-col md:grid md:grid-cols-[1fr_300px] gap-4 h-[480px]">
+    <div className="flex flex-col md:grid md:grid-cols-[1fr_300px] gap-4 h-full min-h-[480px]">
       {/* Left panel: search + results */}
       <div className="flex flex-col min-h-0">
         {/* Search input */}
