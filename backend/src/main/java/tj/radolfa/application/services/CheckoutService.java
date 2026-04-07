@@ -31,6 +31,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CheckoutService implements CheckoutUseCase {
@@ -86,10 +89,15 @@ public class CheckoutService implements CheckoutUseCase {
             throw new IllegalStateException("Cannot checkout with an empty cart");
         }
 
-        // 3. Re-validate all items are still in stock
+        // 3. Load all SKUs in one batch, then re-validate stock
+        Set<Long> skuIds = cart.getItems().stream()
+                .map(CartItem::getSkuId)
+                .collect(Collectors.toSet());
+        Map<Long, Sku> skuById = loadSkuPort.findAllByIdsAsMap(skuIds);
+
         for (CartItem item : cart.getItems()) {
-            Sku sku = loadSkuPort.findSkuById(item.getSkuId())
-                    .orElseThrow(() -> new IllegalStateException("SKU not found: " + item.getSkuId()));
+            Sku sku = skuById.get(item.getSkuId());
+            if (sku == null) throw new IllegalStateException("SKU not found: " + item.getSkuId());
             int available = sku.getStockQuantity() != null ? sku.getStockQuantity() : 0;
             if (available < item.getQuantity()) {
                 throw new IllegalStateException(
@@ -103,7 +111,7 @@ public class CheckoutService implements CheckoutUseCase {
         BigDecimal tierPct = loyaltyCalculator.resolveTierPercentage(profile); // 0 if no tier
 
         BigDecimal subtotalRaw = cart.getItems().stream()
-                .map(item -> bestOfUnitPrice(item, tierPct).multiply(BigDecimal.valueOf(item.getQuantity())))
+                .map(item -> bestOfUnitPrice(item, tierPct, skuById).multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         Money subtotal = new Money(subtotalRaw);
 
@@ -131,7 +139,7 @@ public class CheckoutService implements CheckoutUseCase {
 
         // 8. Build order items enriched with skuCode and productName
         List<OrderItem> orderItems = cart.getItems().stream()
-                .map(this::enrichToOrderItem)
+                .map(item -> enrichToOrderItem(item, skuById))
                 .toList();
 
         // 9. Persist order with PENDING status, recording points redeemed for later reversal
@@ -157,7 +165,7 @@ public class CheckoutService implements CheckoutUseCase {
      * compares the active sale discount price vs the loyalty tier price
      * against the unit price snapshot, and returns whichever is lowest.
      */
-    private BigDecimal bestOfUnitPrice(CartItem item, BigDecimal tierPct) {
+    private BigDecimal bestOfUnitPrice(CartItem item, BigDecimal tierPct, Map<Long, Sku> skuById) {
         BigDecimal original = item.getUnitPriceSnapshot().amount();
 
         BigDecimal loyaltyPrice = tierPct.compareTo(BigDecimal.ZERO) > 0
@@ -166,8 +174,8 @@ public class CheckoutService implements CheckoutUseCase {
                         .setScale(2, RoundingMode.HALF_UP)
                 : original;
 
-        Sku sku = loadSkuPort.findSkuById(item.getSkuId())
-                .orElseThrow(() -> new IllegalStateException("SKU not found: " + item.getSkuId()));
+        Sku sku = skuById.get(item.getSkuId());
+        if (sku == null) throw new IllegalStateException("SKU not found: " + item.getSkuId());
 
         BigDecimal salePrice = loadBestActiveDiscountPort
                 .findBestActiveForItemCode(sku.getSkuCode())
@@ -180,9 +188,9 @@ public class CheckoutService implements CheckoutUseCase {
         return loyaltyPrice.min(salePrice);
     }
 
-    private OrderItem enrichToOrderItem(CartItem cartItem) {
-        Sku sku = loadSkuPort.findSkuById(cartItem.getSkuId())
-                .orElseThrow(() -> new IllegalStateException("SKU not found: " + cartItem.getSkuId()));
+    private OrderItem enrichToOrderItem(CartItem cartItem, Map<Long, Sku> skuById) {
+        Sku sku = skuById.get(cartItem.getSkuId());
+        if (sku == null) throw new IllegalStateException("SKU not found: " + cartItem.getSkuId());
 
         ListingVariant variant = loadListingVariantPort.findVariantById(sku.getListingVariantId())
                 .orElseThrow(() -> new IllegalStateException(

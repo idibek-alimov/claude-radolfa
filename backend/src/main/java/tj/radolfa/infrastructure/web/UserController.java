@@ -19,6 +19,8 @@ import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.AssignTierRequestDto;
+import tj.radolfa.infrastructure.web.dto.ChangeUserRoleRequestDto;
+import tj.radolfa.infrastructure.web.dto.ToggleUserStatusRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateUserProfileRequestDto;
 import tj.radolfa.infrastructure.web.dto.UserDto;
 
@@ -73,7 +75,7 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "List all users (paginated, searchable)")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<PageResponse<UserDto>> listUsers(
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "1") int page,
@@ -93,13 +95,13 @@ public class UserController {
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Block or unblock a user")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<UserDto> toggleUserStatus(
             @AuthenticationPrincipal JwtAuthenticatedUser caller,
             @PathVariable Long id,
-            @RequestParam boolean enabled) {
+            @Valid @RequestBody ToggleUserStatusRequestDto request) {
         var callerRole = UserRole.valueOf(caller.role());
-        var updatedUser = toggleUserStatusUseCase.execute(caller.userId(), callerRole, id, enabled);
+        var updatedUser = toggleUserStatusUseCase.execute(caller.userId(), callerRole, id, request.enabled());
         return ResponseEntity.ok(UserDto.fromDomain(updatedUser));
     }
 
@@ -108,10 +110,10 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDto> changeUserRole(
             @PathVariable Long id,
-            @RequestParam String role) {
+            @Valid @RequestBody ChangeUserRoleRequestDto request) {
         UserRole newRole;
         try {
-            newRole = UserRole.valueOf(role.toUpperCase());
+            newRole = UserRole.valueOf(request.role().toUpperCase());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }

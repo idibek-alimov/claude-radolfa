@@ -206,6 +206,13 @@ public class ProductHierarchyAdapter
                 .toList();
     }
 
+    @Override
+    public List<Sku> findAllByIds(Collection<Long> ids) {
+        return skuRepo.findAllById(ids).stream()
+                .map(mapper::toSku)
+                .toList();
+    }
+
     // ---- SaveProductHierarchyPort ----
 
     @Override

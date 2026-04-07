@@ -183,33 +183,214 @@ Mark phases complete with a short summary when done.
 
 ## Design Standards (CRITICAL — read before writing any UI code)
 
-Quality bar: professional marketplace (Wildberries, Amazon, Noon). Design is non-negotiable.
+Quality bar: **Wildberries-level professional marketplace**. Every screen must look intentional. Rules below are non-negotiable — no one-off colors, no inline style exceptions, no approximations.
 
-### Layout & Sizing
+---
 
-| Element | Rule |
+### Brand & Color System
+
+**Primary color: Wildberries magenta-purple (`#CB11AB`)**
+
+This is set in `globals.css`:
+```css
+--primary: 308 84% 43%;
+--ring:    308 84% 43%;
+```
+
+**Always use semantic tokens — never raw Tailwind color classes for brand color:**
+- `bg-primary`, `text-primary`, `border-primary` ← correct
+- `bg-fuchsia-700`, `bg-purple-600` ← forbidden (breaks theming)
+
+**Fixed semantic palette:**
+
+| Token | Tailwind / class | Use case |
+|---|---|---|
+| Primary | `bg-primary` / `text-primary` | CTAs, active nav item, key badges |
+| Destructive | `text-rose-600` / `bg-rose-600` | Delete, error, out-of-stock |
+| Success | `text-green-600` / `bg-green-600` | Confirmed, in-stock, approved |
+| Warning | `text-orange-500` / `bg-orange-500` | Low stock, pending |
+| Info | `text-blue-600` / `bg-blue-600` | Informational badges |
+| Sale price | `text-rose-600` | Strikethrough original, discount badge |
+| Loyalty price | `text-amber-500` | Crown icon + tier price |
+| Muted text | `text-muted-foreground` | Labels, captions, secondary info |
+
+**Background layers:**
+| Layer | Class |
 |---|---|
-| Dialog with >2 fields | `max-w-2xl` min; rich forms `max-w-3xl`–`max-w-4xl` |
-| Wizard steps | `max-w-2xl` simple / `max-w-4xl` product pickers — never leave half the screen blank |
-| Modal overlay | `bg-black/30` or `bg-background/60 backdrop-blur-sm` — never the default `bg-black/80` |
-| Card / panel padding | `p-5` or `p-6`. Form field gaps: `space-y-5` or `space-y-6` |
-| Border radius | `rounded-xl` cards, `rounded-lg` inputs/buttons, `rounded-full` badges/pills |
-| Section heading | icon + `text-sm font-semibold` + `border-b pb-2 mb-4` |
+| Page | `bg-background` (white) |
+| Card / panel | `bg-card` (white) |
+| Subtle section | `bg-muted/40` or `bg-slate-50` |
+| Admin sidebar | `bg-slate-900 text-slate-100` |
 
-### Components & Inputs
+---
 
+### Typography
+
+Font: **Geist Sans** — already configured in `layout.tsx`. Do not add other fonts.
+
+| Role | Classes |
+|---|---|
+| Storefront page title | `text-3xl font-bold tracking-tight` |
+| Admin page title | `text-2xl font-semibold` |
+| Section heading | `text-sm font-semibold` + `border-b pb-2 mb-4` (with an icon) |
+| Card title | `text-base font-semibold` |
+| Body text (admin) | `text-sm` |
+| Body text (storefront) | `text-base` |
+| Caption / label | `text-xs text-muted-foreground` |
+| Hero price | `text-xl font-bold tabular-nums` |
+| Stat / metric | `text-2xl font-bold tabular-nums` |
+
+---
+
+### Layout
+
+**Storefront:**
+- Max content width: `max-w-[1400px] mx-auto px-4` (Wildberries-width, ~1400px)
+- Product grid: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6`
+- Section vertical rhythm: `py-8` between sections
+
+**Admin panel:**
+- Structure: fixed left sidebar (240px) + scrollable main content area
+- Sidebar: `w-60 bg-slate-900 text-slate-100 flex flex-col h-screen sticky top-0`
+- Main area: `flex-1 overflow-y-auto bg-background p-6`
+- Content max-width: none — fills the remaining space
+- Page header row: `flex items-center justify-between mb-6`
+  - Left: page title (`text-2xl font-semibold`)
+  - Right: primary action button (e.g. `+ New Product`)
+
+**Standard admin page structure (must follow this template):**
+```tsx
+// 1. Header row
+<div className="flex items-center justify-between mb-6">
+  <h1 className="text-2xl font-semibold">Page Title</h1>
+  <Button><PlusIcon className="h-4 w-4 mr-2" />Primary Action</Button>
+</div>
+
+// 2. Stats row (always present on list/dashboard pages)
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <StatCard />
+</div>
+
+// 3. Main content
+<Card>
+  <CardContent className="p-0">
+    {/* table, list, or form */}
+  </CardContent>
+</Card>
+```
+
+---
+
+### Buttons
+
+Use Shadcn `<Button>` variants only. No custom button styles ever.
+
+| Purpose | `variant` | `size` | Example label |
+|---|---|---|---|
+| Primary CTA | `default` | `default` | "Save", "Add to cart", "+ New" |
+| Secondary / cancel | `outline` | `default` | "Cancel", "Back" |
+| Destructive | `destructive` | `default` | "Delete", "Remove" |
+| Table row action | `ghost` | `sm` | Edit / Delete icons |
+| Inline nav / link | `link` | — | Breadcrumbs |
+
+Rules:
+- `size="sm"` in admin tables and tight controls only. Never `size="lg"` in admin.
+- Icon + label: `<Icon className="h-4 w-4 mr-2" />Label`
+- Icon-only buttons: always wrap in Shadcn `<Tooltip>` — no bare icon buttons.
+
+---
+
+### Cards & Panels
+
+| Context | Classes |
+|---|---|
+| Admin stat card | `rounded-xl border bg-card p-5 shadow-sm` |
+| Admin content panel | `<Card>` (Shadcn — `rounded-xl border bg-card`) |
+| Form section block | `bg-muted/30 rounded-xl p-5 space-y-4` |
+| Storefront product card | `rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150` |
+
+- Card padding: always `p-5` or `p-6`. Never `p-3` or `p-4` for main content.
+- Border radius: `rounded-xl` cards, `rounded-lg` inputs/buttons, `rounded-full` badges/pills.
+
+---
+
+### Admin Sidebar
+
+```tsx
+<aside className="w-60 bg-slate-900 text-slate-100 flex flex-col h-screen sticky top-0">
+  {/* Logo at top */}
+  <nav className="flex-1 py-4 space-y-1 px-2">
+    {/* Group label */}
+    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1">
+      Group Name
+    </p>
+    {/* Nav item — default */}
+    <a className="flex items-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg px-3 py-2 text-sm">
+      <Icon className="h-4 w-4 mr-3" />Label
+    </a>
+    {/* Nav item — active */}
+    <a className="flex items-center bg-primary/20 text-primary font-medium rounded-lg px-3 py-2 text-sm">
+      <Icon className="h-4 w-4 mr-3" />Label
+    </a>
+  </nav>
+  {/* User footer at bottom: avatar + role */}
+</aside>
+```
+
+---
+
+### Admin Stat Card Template
+
+```tsx
+<div className="rounded-xl border bg-card p-5 shadow-sm">
+  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Label</p>
+  <p className="text-2xl font-bold tabular-nums mt-1">Value</p>
+  <p className="text-xs text-muted-foreground mt-1">Trend or sub-label</p>
+</div>
+```
+
+---
+
+### Forms & Inputs
+
+- Field gaps: `space-y-5` inside a form; `space-y-4` inside a section block.
+- Always use Shadcn `<Input>` — never a plain `<input>`.
 - Always use Shadcn `<Select>` — never a plain `<select>`.
-- Any color hex input **must** show a live rendered preview (badge or swatch), not just the string.
-- Numeric range inputs (e.g. discount %) use a slider + number input side-by-side.
-- `<input type="number">` spinners are removed globally via `globals.css`. Never rely on browser-native steppers — they look unprofessional. If increment/decrement is needed, add explicit `+` / `−` icon buttons instead.
-- Group related fields with `SectionHeading` (icon + border-b) or `bg-muted/30 rounded-xl p-5` blocks.
+- Color hex inputs: always show a live circular or square color swatch next to the field.
+- Numeric range fields (e.g. discount %): slider + number input side-by-side, not a lone number input.
+- `input[type="number"]` spinners removed globally — if +/− is needed, use explicit `+`/`−` icon buttons.
 
-### Color, Hierarchy & Feedback
+**Dialog sizes by content:**
 
-- Accent palette: destructive `rose-600`, success `green-600`, info `blue-600`, warning `orange-500`, muted `muted-foreground`.
-- Status indicators: colored dot **and** colored text — not one alone.
-- Key metrics: `tabular-nums font-bold text-xl` or `text-2xl`.
-- Interactive cards: `hover:shadow-md hover:-translate-y-0.5 transition-all`.
-- Empty states: centered, `border-dashed`, icon `h-10 w-10 text-muted-foreground/40`, brief message.
-- Loading: always show a skeleton — never a blank area.
-- Mutations: toast on success **and** error. Destructive confirm dialogs must name what is deleted.
+| Content | `className` on `DialogContent` |
+|---|---|
+| Confirmation (1–2 lines) | `max-w-sm` |
+| Simple form (2–4 fields) | `max-w-2xl` |
+| Rich form (5+ fields) | `max-w-3xl` or `max-w-4xl` |
+| Wizard / product picker | `max-w-4xl` or `max-w-5xl` |
+
+- Never leave >20% of a dialog blank — size up if content is sparse.
+- Modal overlay: `bg-black/30` — never the Shadcn default `bg-black/80`.
+
+---
+
+### Feedback & States
+
+| State | Rule |
+|---|---|
+| Loading | `<Skeleton>` — never a blank area, never a lone spinner |
+| Empty state | Centered, `border border-dashed rounded-xl p-12`, icon `h-10 w-10 text-muted-foreground/40`, 1-line message, optional CTA |
+| Field error | `text-destructive text-sm` inline under the field |
+| API error | `toast.error(getErrorMessage(err))` |
+| Success mutation | `toast.success("...")` |
+| Destructive confirm | Dialog **must name the specific item** — never a generic "Are you sure?" |
+| Status badge | Colored dot **and** colored text — never one alone |
+
+---
+
+### Interactive Patterns
+
+- Interactive cards: `hover:shadow-md hover:-translate-y-0.5 transition-all duration-150`
+- Table row action buttons: `variant="ghost" size="sm"` + `<Tooltip>`
+- Sortable column headers: `cursor-pointer hover:bg-muted/50 select-none`
+- Pagination: always show total — `Showing 1–20 of 143`

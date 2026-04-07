@@ -32,7 +32,7 @@ public class UpdateDiscountService implements UpdateDiscountUseCase {
 
     @Override
     public Discount execute(Command command) {
-        loadDiscountPort.findById(command.id())
+        Discount existing = loadDiscountPort.findById(command.id())
                 .orElseThrow(() -> new IllegalArgumentException("Discount not found: " + command.id()));
 
         DiscountType type = loadDiscountTypePort.findById(command.typeId())
@@ -48,7 +48,7 @@ public class UpdateDiscountService implements UpdateDiscountUseCase {
                 command.discountValue(),
                 command.validFrom(),
                 command.validUpto(),
-                false,
+                existing.disabled(),
                 command.title(),
                 CreateDiscountService.normalizeColorHex(command.colorHex())
         );

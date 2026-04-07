@@ -10,4 +10,6 @@ public interface LoadProductTagPort {
     Optional<ProductTag> findById(Long id);
     List<ProductTag> findAllByIds(List<Long> ids);
     boolean existsByName(String name);
+    boolean existsByNameExcludingId(String name, Long excludeId);
+    long countVariantsUsingTag(Long tagId);
 }

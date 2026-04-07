@@ -652,7 +652,7 @@ class CreateProductServiceTest {
         public void index(Long variantId, String slug, String name, String category,
                           String colorKey, String colorHexCode, String description,
                           List<String> images, Double price, Integer totalStock,
-                          Instant lastSyncAt) {
+                          Instant lastSyncAt, String productCode, List<String> skuCodes) {
             if (throwOnIndex) throw new RuntimeException("ES unavailable");
             indexCallCount++;
         }

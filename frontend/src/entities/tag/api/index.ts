@@ -14,6 +14,14 @@ export interface CreateTagRequest {
 export const createTag = (body: CreateTagRequest): Promise<Tag> =>
   apiClient.post("/api/v1/admin/tags", body).then((r) => r.data);
 
+/** PATCH /api/v1/admin/tags/{id} — ADMIN only */
+export const updateTag = (id: number, body: CreateTagRequest): Promise<Tag> =>
+  apiClient.patch(`/api/v1/admin/tags/${id}`, body).then((r) => r.data);
+
+/** DELETE /api/v1/admin/tags/{id} — ADMIN only */
+export const deleteTag = (id: number): Promise<void> =>
+  apiClient.delete(`/api/v1/admin/tags/${id}`).then(() => undefined);
+
 /**
  * PUT /api/v1/admin/variants/{variantId}/tags — MANAGER+
  * Replaces all tags on a variant. Pass empty array to remove all.

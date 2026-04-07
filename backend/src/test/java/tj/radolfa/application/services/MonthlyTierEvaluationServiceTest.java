@@ -47,8 +47,8 @@ class MonthlyTierEvaluationServiceTest {
     @BeforeEach
     void setUp() {
         service = new MonthlyTierEvaluationService(
-                loadUserPort, saveUserPort, loadLoyaltyTierPort,
-                loadMonthlySpendingPort, calculator);
+                loadUserPort, loadLoyaltyTierPort,
+                new UserTierEvaluatorService(saveUserPort, loadMonthlySpendingPort, calculator));
 
         gold     = new LoyaltyTier(1L, "Gold",     new BigDecimal("5"),  new BigDecimal("5"),  new BigDecimal("10000"), 1, "#FFD700");
         platinum = new LoyaltyTier(2L, "Platinum", new BigDecimal("15"), new BigDecimal("7.5"), new BigDecimal("50000"), 2, "#E5E4E2");

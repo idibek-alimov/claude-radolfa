@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Table,
@@ -29,7 +29,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { fetchDiscounts, fetchDiscountTypes, enableDiscount, disableDiscount } from "../api";
 import type { DiscountListFilters, DiscountResponse } from "../model/types";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage, useDynamicPageSize } from "@/shared/lib";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -51,7 +51,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/shared/lib";
 
-const PAGE_SIZE = 15;
 
 // ── Status derivation ─────────────────────────────────────────────
 
@@ -255,15 +254,22 @@ interface DiscountTableProps {
 }
 
 export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const pageSize = useDynamicPageSize(cardRef, 49);
+
   const [filters, setFilters] = useState<DiscountListFilters>({
     page: 1,
-    size: PAGE_SIZE,
+    size: pageSize,
     status: "all",
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sort, setSort] = useState<Sort | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    setFilters((f) => ({ ...f, page: 1, size: pageSize }));
+  }, [pageSize]);
 
   const qc = useQueryClient();
 
@@ -327,7 +333,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
   }, [data?.content, debouncedSearch, sort]);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 min-h-0 gap-4">
       {/* Toolbar */}
       <div className="flex flex-wrap items-end gap-3">
         {/* Text search */}
@@ -400,8 +406,9 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
 
       {/* Table */}
       <div
+        ref={cardRef}
         className={cn(
-          "bg-card rounded-xl border shadow-sm transition-opacity overflow-x-auto",
+          "flex-1 min-h-0 overflow-auto bg-card rounded-xl border shadow-sm transition-opacity",
           isFetching && !isLoading && "opacity-60"
         )}
       >

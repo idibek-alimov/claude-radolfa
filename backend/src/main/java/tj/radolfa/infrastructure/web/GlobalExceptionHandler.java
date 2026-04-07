@@ -15,6 +15,7 @@ import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.exception.TagInUseException;
 import tj.radolfa.domain.exception.UnauthorizedReviewException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
@@ -105,6 +106,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<MessageResponseDto> handleDuplicateResource(DuplicateResourceException ex) {
         LOG.warn("[CONFLICT] Duplicate resource: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(TagInUseException.class)
+    public ResponseEntity<MessageResponseDto> handleTagInUse(TagInUseException ex) {
+        LOG.warn("[CONFLICT] {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }

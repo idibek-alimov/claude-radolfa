@@ -14,7 +14,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.AssignVariantTagsUseCase;
 import tj.radolfa.application.ports.in.CreateProductTagUseCase;
+import tj.radolfa.application.ports.in.DeleteProductTagUseCase;
 import tj.radolfa.application.ports.in.ListAllTagsUseCase;
+import tj.radolfa.application.ports.in.UpdateProductTagUseCase;
+import tj.radolfa.domain.model.ProductTag;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 
 import java.util.List;
@@ -26,13 +29,19 @@ public class ProductTagController {
 
     private final ListAllTagsUseCase listAllTagsUseCase;
     private final CreateProductTagUseCase createProductTagUseCase;
+    private final UpdateProductTagUseCase updateProductTagUseCase;
+    private final DeleteProductTagUseCase deleteProductTagUseCase;
     private final AssignVariantTagsUseCase assignVariantTagsUseCase;
 
     public ProductTagController(ListAllTagsUseCase listAllTagsUseCase,
                                 CreateProductTagUseCase createProductTagUseCase,
+                                UpdateProductTagUseCase updateProductTagUseCase,
+                                DeleteProductTagUseCase deleteProductTagUseCase,
                                 AssignVariantTagsUseCase assignVariantTagsUseCase) {
         this.listAllTagsUseCase = listAllTagsUseCase;
         this.createProductTagUseCase = createProductTagUseCase;
+        this.updateProductTagUseCase = updateProductTagUseCase;
+        this.deleteProductTagUseCase = deleteProductTagUseCase;
         this.assignVariantTagsUseCase = assignVariantTagsUseCase;
     }
 
@@ -61,6 +70,38 @@ public class ProductTagController {
         Long id = createProductTagUseCase.execute(request.name(), request.colorHex());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("id", id, "name", request.name(), "colorHex", request.colorHex()));
+    }
+
+    @PatchMapping("/api/v1/admin/tags/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update a tag", description = "Rename or recolor a tag. ADMIN only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Tag updated"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "404", description = "Tag not found"),
+            @ApiResponse(responseCode = "409", description = "Tag name already exists")
+    })
+    public ResponseEntity<Map<String, Object>> updateTag(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateTagRequest request) {
+        ProductTag updated = updateProductTagUseCase.execute(id, request.name(), request.colorHex());
+        return ResponseEntity.ok(Map.of(
+                "id", updated.id(),
+                "name", updated.name(),
+                "colorHex", updated.colorHex()));
+    }
+
+    @DeleteMapping("/api/v1/admin/tags/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete a tag", description = "Deletes a tag. Fails with 409 if any variant still references it.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Tag deleted"),
+            @ApiResponse(responseCode = "404", description = "Tag not found"),
+            @ApiResponse(responseCode = "409", description = "Tag is still referenced by one or more variants")
+    })
+    public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
+        deleteProductTagUseCase.execute(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/api/v1/admin/variants/{variantId}/tags")

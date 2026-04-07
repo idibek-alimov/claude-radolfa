@@ -19,7 +19,7 @@ export function DiscountsTab() {
     router.push(`/manage/discounts/create?from=${discount.id}`);
 
   return (
-    <Tabs defaultValue="campaigns" className="space-y-6">
+    <Tabs defaultValue="campaigns" className="flex flex-col flex-1 min-h-0 gap-6">
       {/* Underline-style sub-tab bar — visually distinct from the outer pill tabs */}
       <div className="border-b">
         <TabsList className="h-auto p-0 bg-transparent rounded-none gap-0">
@@ -40,7 +40,7 @@ export function DiscountsTab() {
         </TabsList>
       </div>
 
-      <TabsContent value="campaigns" className="mt-0 space-y-0">
+      <TabsContent value="campaigns" className="mt-0 flex flex-col flex-1 min-h-0">
         <DiscountTable
           onEdit={openEdit}
           onNew={openCreate}

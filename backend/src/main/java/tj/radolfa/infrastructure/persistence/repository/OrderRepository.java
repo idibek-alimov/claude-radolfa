@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +21,22 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByUser_IdAndStatusOrderByCreatedAtDesc(Long userId, OrderStatus status, Pageable pageable);
+
+    // ── Admin summary queries ──────────────────────────────────────────────────
+
+    @Query("SELECT COUNT(o) FROM OrderEntity o")
+    long countAllOrders();
+
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.createdAt >= :since")
+    long countOrdersSince(@Param("since") Instant since);
+
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM OrderEntity o WHERE o.createdAt >= :from")
+    BigDecimal sumRevenueSince(@Param("from") Instant from);
+
+    @Query("SELECT o FROM OrderEntity o JOIN FETCH o.user ORDER BY o.createdAt DESC")
+    List<OrderEntity> findMostRecent(Pageable pageable);
+
+    // ── Purchase verification ──────────────────────────────────────────────────
 
     @Query(value = """
             SELECT COUNT(*) > 0

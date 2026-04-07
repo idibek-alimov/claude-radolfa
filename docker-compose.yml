@@ -129,6 +129,9 @@ services:
       # CORS: tell the backend which port nginx is on so Origin headers pass
       HTTP_PORT: ${HTTP_PORT:-80}
 
+      # Machine-to-machine API key (min 32 chars)
+      SYSTEM_API_KEY: ${SYSTEM_API_KEY}
+
       # JVM options
       JAVA_OPTS: ${JAVA_OPTS:--XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0}
     ports:

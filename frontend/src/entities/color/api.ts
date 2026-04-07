@@ -7,6 +7,20 @@ export async function fetchColors(): Promise<Color[]> {
   return data;
 }
 
+/** Create a new color (MANAGER+). */
+export async function createColor(
+  colorKey: string,
+  displayName: string,
+  hexCode: string
+): Promise<Color> {
+  const { data } = await apiClient.post<Color>("/api/v1/colors", {
+    colorKey,
+    displayName,
+    hexCode,
+  });
+  return data;
+}
+
 /** Update a color's display name and hex code (MANAGER+). */
 export async function updateColor(
   colorId: number,

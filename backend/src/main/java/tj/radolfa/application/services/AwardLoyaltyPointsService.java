@@ -64,6 +64,10 @@ public class AwardLoyaltyPointsService implements AwardLoyaltyPointsUseCase {
         Order order = loadOrderPort.loadById(orderId)
                 .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
 
+        if (order.loyaltyPointsAwarded() > 0) {
+            return; // already awarded — idempotency guard
+        }
+
         List<LoyaltyTier> allTiers = loadLoyaltyTierPort.findAll();
 
         int earnedPoints = loyaltyCalculator.computeEarnedPoints(user.loyalty(), order.totalAmount());

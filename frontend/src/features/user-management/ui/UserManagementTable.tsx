@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -30,7 +30,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage, useDynamicPageSize } from "@/shared/lib";
 import { Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { ManageUserDialog } from "./ManageUserDialog";
 import { toast } from "sonner";
@@ -46,6 +46,10 @@ export function UserManagementTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const pageSize = useDynamicPageSize(cardRef, 49);
+
+  useEffect(() => { setPage(1); }, [pageSize]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -57,8 +61,8 @@ export function UserManagementTable() {
   }, []);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-users", page, debouncedSearch],
-    queryFn: () => fetchUsers(debouncedSearch, page),
+    queryKey: ["admin-users", page, debouncedSearch, pageSize],
+    queryFn: () => fetchUsers(debouncedSearch, page, pageSize),
     placeholderData: keepPreviousData,
   });
 
@@ -95,7 +99,7 @@ export function UserManagementTable() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search */}
       <div className="mb-4 relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -108,7 +112,7 @@ export function UserManagementTable() {
       </div>
 
       {/* Table */}
-      <div className="bg-card rounded-xl border shadow-sm">
+      <div ref={cardRef} className="flex-1 min-h-0 overflow-auto bg-card rounded-xl border shadow-sm">
         {isLoading && users.length === 0 ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (

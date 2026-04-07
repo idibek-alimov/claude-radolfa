@@ -1,13 +1,17 @@
 package tj.radolfa.infrastructure.web;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadColorPort.ColorView;
 import tj.radolfa.application.ports.out.SaveColorPort;
+import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.infrastructure.web.dto.ColorDto;
+import tj.radolfa.infrastructure.web.dto.CreateColorDto;
 import tj.radolfa.infrastructure.web.dto.UpdateColorDto;
 
 import java.util.List;
@@ -32,8 +36,20 @@ public class ColorController {
         return ResponseEntity.ok(colors);
     }
 
+    @PostMapping
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<ColorDto> createColor(@Valid @RequestBody CreateColorDto request) {
+        boolean keyExists = loadColorPort.findAll().stream()
+                .anyMatch(c -> c.colorKey().equalsIgnoreCase(request.colorKey()));
+        if (keyExists) {
+            throw new DuplicateResourceException("Color key '" + request.colorKey() + "' already exists");
+        }
+        ColorView created = saveColorPort.save(request.colorKey(), request.displayName(), request.hexCode());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(created));
+    }
+
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ColorDto> updateColor(
             @PathVariable Long id,
             @RequestBody UpdateColorDto request) {
