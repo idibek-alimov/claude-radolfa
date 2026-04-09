@@ -13,7 +13,6 @@ import {
   RefreshCw,
   Package,
   ChevronsDown,
-  Palette,
   Star,
 } from "lucide-react";
 import {
@@ -34,6 +33,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { fetchColors } from "@/entities/color";
+import { VariantTabBar, ColorPickerDialog } from "@/entities/product";
 import { uploadProductImage } from "../../api/imageUpload";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -47,12 +47,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { cn } from "@/shared/lib/utils";
 import type {
   WizardState,
@@ -193,67 +187,22 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
       </div>
 
       {/* ── Variant selector bar ───────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
-        {state.variants.map((variant) => {
+      <VariantTabBar<number>
+        items={state.variants.map((variant) => {
           const color = colorMap[variant.colorId];
-          const isActive = variant.colorId === currentColorId;
-          const hasErrors =
-            submitted &&
-            variant.skus.some((r) => errors.emptySize.has(r._key));
-
-          return (
-            <div key={variant.colorId} className="relative group">
-              <button
-                type="button"
-                onClick={() => setActiveColorId(variant.colorId)}
-                className={cn(
-                  "flex items-center gap-2 pl-3 pr-8 py-2 rounded-lg border text-sm font-medium transition-all",
-                  isActive
-                    ? "border-primary bg-primary/5 text-primary shadow-sm"
-                    : "border-border bg-white hover:border-primary/40 text-foreground"
-                )}
-              >
-                <span
-                  className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0"
-                  style={{ backgroundColor: color?.hexCode ?? "#e5e7eb" }}
-                />
-                <span className="max-w-[120px] truncate">
-                  {color?.displayName ?? color?.colorKey ?? `#${variant.colorId}`}
-                </span>
-                <span
-                  className={cn(
-                    "text-xs",
-                    isActive ? "text-primary/70" : "text-muted-foreground"
-                  )}
-                >
-                  {variant.skus.length} SKU{variant.skus.length !== 1 ? "s" : ""}
-                </span>
-                {hasErrors && (
-                  <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
-                )}
-              </button>
-              {/* Remove button — appears on hover */}
-              <button
-                type="button"
-                onClick={() => handleRemoveClick(variant.colorId)}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                aria-label={`Remove ${color?.displayName ?? "color"} variant`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          );
+          return {
+            id: variant.colorId,
+            colorHex: color?.hexCode ?? "#e5e7eb",
+            label: color?.displayName ?? color?.colorKey ?? `#${variant.colorId}`,
+            subtitle: `${variant.skus.length} SKU${variant.skus.length !== 1 ? "s" : ""}`,
+            errored: submitted && variant.skus.some((r) => errors.emptySize.has(r._key)),
+          };
         })}
-
-        <button
-          type="button"
-          onClick={() => setColorPickerOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-muted-foreground/40 text-sm text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-colors"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add Color
-        </button>
-      </div>
+        activeId={currentColorId ?? -1}
+        onSelect={setActiveColorId}
+        onRemove={handleRemoveClick}
+        onAdd={() => setColorPickerOpen(true)}
+      />
 
       {/* ── Empty state ───────────────────────────────────────────── */}
       {state.variants.length === 0 && (
@@ -376,116 +325,6 @@ export function Step2Variants({ state, update, submitted, errors }: Props) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-}
-
-// ── ColorPickerDialog ─────────────────────────────────────────────────
-
-interface ColorPickerDialogProps {
-  open: boolean;
-  onClose: () => void;
-  colors: Color[];
-  usedColorIds: Set<number>;
-  onSelect: (colorId: number) => void;
-}
-
-function ColorPickerDialog({
-  open,
-  onClose,
-  colors,
-  usedColorIds,
-  onSelect,
-}: ColorPickerDialogProps) {
-  const available = colors.filter((c) => !usedColorIds.has(c.id));
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent
-        className="max-w-[420px] p-0 gap-0 border-0 shadow-2xl rounded-2xl overflow-hidden bg-white"
-        overlayClassName="bg-black/20"
-      >
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100">
-          <DialogHeader>
-            <DialogTitle className="text-[15px] font-semibold text-gray-900 tracking-tight">
-              Choose a color
-            </DialogTitle>
-            {available.length > 0 && (
-              <p className="text-xs text-gray-400 mt-0.5">
-                {available.length} color{available.length !== 1 ? "s" : ""} available
-              </p>
-            )}
-          </DialogHeader>
-        </div>
-
-        {/* Content */}
-        {available.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-14 px-6">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-100 flex items-center justify-center">
-              <Palette className="h-7 w-7 text-gray-300" />
-            </div>
-            <div className="text-center space-y-1">
-              <p className="text-sm font-semibold text-gray-700">All colors assigned</p>
-              <p className="text-xs text-gray-400 leading-relaxed max-w-[200px]">
-                Every available color has been added as a variant.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 max-h-[360px] overflow-y-auto">
-            <div className="grid grid-cols-3 gap-2">
-              {available.map((color) => {
-                const isHovered = hoveredId === color.id;
-                const hex = color.hexCode ?? "#e5e7eb";
-                return (
-                  <button
-                    key={color.id}
-                    type="button"
-                    onClick={() => onSelect(color.id)}
-                    onMouseEnter={() => setHoveredId(color.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    className={cn(
-                      "flex flex-col items-center gap-2.5 rounded-xl border bg-white p-3.5 text-center transition-all duration-150 active:scale-[0.96]",
-                      isHovered ? "-translate-y-0.5 shadow-lg" : "shadow-sm"
-                    )}
-                    style={{ borderColor: isHovered ? hex : "#f3f4f6" }}
-                  >
-                    <span
-                      className={cn(
-                        "h-10 w-10 rounded-full shrink-0 transition-transform duration-150",
-                        isHovered ? "scale-110" : "scale-100"
-                      )}
-                      style={{
-                        backgroundColor: hex,
-                        boxShadow: isHovered
-                          ? `0 0 0 2px white, 0 0 0 4px ${hex}, 0 6px 16px ${hex}50`
-                          : `0 0 0 2px white, 0 0 0 3px ${hex}40, 0 2px 8px rgba(0,0,0,0.08)`,
-                      }}
-                    />
-                    <span
-                      className={cn(
-                        "text-[11px] font-medium leading-tight transition-colors line-clamp-2 w-full",
-                        isHovered ? "text-gray-900" : "text-gray-500"
-                      )}
-                    >
-                      {color.displayName ?? color.colorKey}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-50 bg-gray-50/60">
-          <p className="text-[10px] text-gray-300 text-center tracking-widest uppercase">
-            Click a color to add a variant
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 

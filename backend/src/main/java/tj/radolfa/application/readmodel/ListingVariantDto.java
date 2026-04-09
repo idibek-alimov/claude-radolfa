@@ -26,6 +26,7 @@ import java.util.List;
  * </ul>
  */
 public record ListingVariantDto(
+        Long productBaseId,
         Long variantId,
         String slug,
         String colorDisplayName,
@@ -85,7 +86,7 @@ public record ListingVariantDto(
                 })
                 .toList();
 
-        return new ListingVariantDto(variantId, slug, colorDisplayName, categoryName,
+        return new ListingVariantDto(productBaseId, variantId, slug, colorDisplayName, categoryName,
                 colorKey, colorHex, webDescription, images,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,

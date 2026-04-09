@@ -256,5 +256,10 @@ class UpdateListingServiceTest {
         public void saveTags(Long variantId, List<Long> tagIds) {
             // no-op in this test context
         }
+
+        @Override
+        public void reorderImages(Long variantId, List<Long> orderedImageIds) {
+            // no-op in this test context
+        }
     }
 }

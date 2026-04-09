@@ -13,12 +13,14 @@ import type { Tag } from "@/entities/tag";
 interface TagAssignmentCardProps {
   variantId: number;
   variantSlug: string;
+  productBaseId: number;
   currentTags: Tag[];
 }
 
 export function TagAssignmentCard({
   variantId,
   variantSlug,
+  productBaseId,
   currentTags,
 }: TagAssignmentCardProps) {
   const [selected, setSelected] = useState<number[]>(
@@ -34,6 +36,7 @@ export function TagAssignmentCard({
   const mutation = useMutation({
     mutationFn: () => setVariantTags(variantId, selected),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-product", productBaseId] });
       qc.invalidateQueries({ queryKey: ["listing", variantSlug] });
       toast.success("Tags updated");
     },

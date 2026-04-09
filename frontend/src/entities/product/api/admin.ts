@@ -1,4 +1,5 @@
 import { apiClient } from "@/shared/api";
+import type { ProductCard } from "@/entities/product/model/types";
 
 export interface SkuDefinition {
   sizeLabel: string;
@@ -91,4 +92,45 @@ export async function updateProductCategory(
   categoryId: number
 ): Promise<void> {
   await apiClient.patch(`/api/v1/admin/products/${productBaseId}/category`, { categoryId });
+}
+
+/** Fetch the full admin product card — base + all variants + images + SKUs (MANAGER+). */
+export async function fetchProductCard(productBaseId: number): Promise<ProductCard> {
+  const { data } = await apiClient.get<ProductCard>(
+    `/api/v1/admin/products/${productBaseId}`
+  );
+  return data;
+}
+
+/** Persist a new image sort order for a variant (MANAGER+). */
+export async function reorderVariantImages(
+  variantId: number,
+  imageIds: number[]
+): Promise<void> {
+  await apiClient.patch(`/api/v1/admin/listings/${variantId}/images/order`, { imageIds });
+}
+
+/** Add a new SKU to an existing variant (ADMIN only — price/stock are ADMIN fields). */
+export async function addSkuToVariant(
+  productBaseId: number,
+  variantId: number,
+  payload: { sizeLabel: string; price: number; stockQuantity: number }
+): Promise<{ skuId: number }> {
+  const { data } = await apiClient.post<{ skuId: number }>(
+    `/api/v1/admin/products/${productBaseId}/variants/${variantId}/skus`,
+    payload
+  );
+  return data;
+}
+
+/** Add a new empty color variant to an existing product base (MANAGER+). */
+export async function addVariantToProduct(
+  productBaseId: number,
+  colorId: number
+): Promise<{ variantId: number; slug: string }> {
+  const { data } = await apiClient.post<{ variantId: number; slug: string }>(
+    `/api/v1/admin/products/${productBaseId}/variants`,
+    { colorId }
+  );
+  return data;
 }

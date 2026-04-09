@@ -186,6 +186,32 @@ public class ProductHierarchyAdapter
         variantRepo.save(entity);
     }
 
+    @Override
+    public void reorderImages(Long variantId, List<Long> orderedImageIds) {
+        ListingVariantEntity entity = variantRepo.findById(variantId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "ListingVariant not found: id=" + variantId));
+
+        Map<Long, ListingVariantImageEntity> byId = entity.getImages().stream()
+                .collect(Collectors.toMap(ListingVariantImageEntity::getId, img -> img));
+
+        Set<Long> existingIds = byId.keySet();
+        Set<Long> requestedIds = new java.util.HashSet<>(orderedImageIds);
+        if (!existingIds.equals(requestedIds)) {
+            throw new IllegalArgumentException(
+                    "imageIds do not match existing images for variantId=" + variantId
+                    + ". Expected " + existingIds + " but received " + requestedIds);
+        }
+
+        for (int i = 0; i < orderedImageIds.size(); i++) {
+            ListingVariantImageEntity img = byId.get(orderedImageIds.get(i));
+            img.setSortOrder(i + 1);
+            img.setPrimary(i == 0);
+        }
+
+        variantRepo.save(entity);
+    }
+
     // ---- LoadSkuPort ----
 
     @Override

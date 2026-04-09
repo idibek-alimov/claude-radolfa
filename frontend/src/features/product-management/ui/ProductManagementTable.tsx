@@ -147,7 +147,7 @@ export function ProductManagementTable() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => router.push(`/manage/products/${item.slug}/edit`)}
+                      onClick={() => router.push(`/manage/products/${item.productBaseId}/edit`)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>

@@ -31,6 +31,7 @@ export interface Sku {
  * loyaltyPrice / loyaltyPercentage are null for guests and users without a tier.
  */
 export interface ListingVariant {
+  productBaseId: number;
   variantId: number;
   productCode: string;
   slug: string;
@@ -127,4 +128,54 @@ export interface Color {
   colorKey: string;
   displayName: string | null;
   hexCode: string | null;
+}
+
+// ── Admin product-card read model ─────────────────────────────────────────────
+// Mirrors ProductCardDto from the backend.
+
+/** Full admin read model for a product base and all its color variants. */
+export interface ProductCard {
+  productBaseId: number;
+  name: string;
+  brand: string | null;
+  categoryId: number | null;
+  categoryName: string | null;
+  variants: ProductCardVariant[];
+}
+
+/** One color variant inside a ProductCard. */
+export interface ProductCardVariant {
+  variantId: number;
+  slug: string;
+  productCode: string;
+  colorId: number;
+  colorKey: string;
+  colorDisplayName: string;
+  colorHex: string;
+  webDescription: string | null;
+  images: ProductCardImage[];
+  attributes: { key: string; values: string[] }[];
+  tags: Tag[];
+  skus: ProductCardSku[];
+  isEnabled: boolean;
+  isActive: boolean;
+  weightKg: number | null;
+  widthCm: number | null;
+  heightCm: number | null;
+  depthCm: number | null;
+}
+
+/** Image reference — id is needed to call the reorder endpoint. */
+export interface ProductCardImage {
+  id: number;
+  url: string;
+}
+
+/** SKU in admin context — raw pricing, no discount/loyalty fields. */
+export interface ProductCardSku {
+  skuId: number;
+  skuCode: string;
+  sizeLabel: string;
+  stockQuantity: number;
+  originalPrice: number;
 }

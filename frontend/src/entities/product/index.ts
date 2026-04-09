@@ -12,6 +12,9 @@ export type {
     CategoryTree,
     Color,
 } from "./model/types";
+export { VariantTabBar } from "./ui/VariantTabBar";
+export type { VariantTabBarItem } from "./ui/VariantTabBar";
+export { ColorPickerDialog } from "./ui/ColorPickerDialog";
 export { default as ProductCard } from "./ui/ProductCard";
 export { default as ProductDetail } from "./ui/ProductDetail";
 export { default as ProductCardSkeleton } from "./ui/ProductCardSkeleton";

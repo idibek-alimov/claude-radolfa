@@ -169,7 +169,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                         List<SkuDto> skus = skuMap.getOrDefault(dto.variantId(), List.of());
                                         List<TagView> tags = tagMap.getOrDefault(dto.variantId(), List.of());
                                         return new ListingVariantDto(
-                                                        dto.variantId(), dto.slug(), dto.colorDisplayName(),
+                                                        dto.productBaseId(), dto.variantId(), dto.slug(), dto.colorDisplayName(),
                                                         dto.categoryName(), dto.colorKey(), dto.colorHex(),
                                                         dto.webDescription(), dto.images(),
                                                         originalPrice, discountPrice, discountPercentage,
@@ -209,6 +209,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         private ListingVariantDto toDto(ListingDocument doc) {
                 BigDecimal price = doc.getPrice() != null ? BigDecimal.valueOf(doc.getPrice()) : null;
                 return new ListingVariantDto(
+                                null,    // productBaseId - not available in ListingDocument
                                 doc.getId(),
                                 doc.getSlug(),
                                 doc.getName(),           // colorDisplayName

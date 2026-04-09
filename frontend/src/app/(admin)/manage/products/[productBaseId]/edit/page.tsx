@@ -1,16 +1,16 @@
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
-import { ProductEditPage } from "@/features/product-edit";
+import { ProductCardEditPage } from "@/features/product-edit";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ productBaseId: string }>;
 }
 
 export default async function EditProductPage({ params }: Props) {
-  const { slug } = await params;
+  const { productBaseId } = await params;
 
   return (
     <ProtectedRoute requiredRole="MANAGER">
-      <ProductEditPage slug={slug} />
+      <ProductCardEditPage productBaseId={Number(productBaseId)} />
     </ProtectedRoute>
   );
 }

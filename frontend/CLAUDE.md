@@ -170,6 +170,7 @@ Keep query keys consistent to ensure correct cache invalidation:
 | Rating summary | `["rating", slug]` |
 | Reviews page | `["reviews", slug, page, sort]` |
 | Tags (public list) | `["tags"]` |
+| Admin product card | `["admin-product", productBaseId]` |
 
 ---
 

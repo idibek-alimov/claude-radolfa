@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
  * <p>Used by both {@link ListingReadAdapter} and {@link HomeCollectionsAdapter}
  * to eliminate duplicated column-index logic.
  *
- * <p>Column layout (11 columns):
+ * <p>Column layout (12 columns):
  * [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
  * [5]=webDescription, [6]=MIN(originalPrice), [7]=totalStock,
- * [8]=colorHexCode, [9]=productCode, [10]=MAX(originalPrice)
+ * [8]=colorHexCode, [9]=productCode, [10]=MAX(originalPrice), [11]=productBaseId
  */
 final class ListingGridRowMapper {
 
@@ -43,6 +43,7 @@ final class ListingGridRowMapper {
         boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
 
         return new ListingVariantDto(
+                (Long) row[11],    // productBaseId
                 variantId,
                 (String) row[1],   // slug
                 (String) row[2],   // colorDisplayName (product name)

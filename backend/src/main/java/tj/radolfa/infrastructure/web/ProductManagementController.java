@@ -12,17 +12,25 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
+import tj.radolfa.application.ports.in.product.AddSkuToVariantUseCase;
+import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
+import tj.radolfa.application.ports.in.product.GetProductCardUseCase;
+import tj.radolfa.application.ports.in.product.ReorderVariantImagesUseCase;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
+import tj.radolfa.application.readmodel.ProductCardDto;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.infrastructure.web.dto.AddSkuRequestDto;
+import tj.radolfa.infrastructure.web.dto.AddVariantRequestDto;
 import tj.radolfa.infrastructure.web.dto.CreateProductRequestDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
+import tj.radolfa.infrastructure.web.dto.ReorderImagesRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdatePriceRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateProductCategoryRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateProductNameRequestDto;
@@ -44,6 +52,10 @@ import java.util.Map;
 public class ProductManagementController {
 
     private final CreateProductUseCase createProductUseCase;
+    private final GetProductCardUseCase getProductCardUseCase;
+    private final ReorderVariantImagesUseCase reorderVariantImagesUseCase;
+    private final AddSkuToVariantUseCase addSkuToVariantUseCase;
+    private final AddVariantToProductUseCase addVariantToProductUseCase;
     private final UpdateProductPriceUseCase updateProductPriceUseCase;
     private final UpdateProductStockUseCase updateProductStockUseCase;
     private final UpdateProductNameUseCase updateProductNameUseCase;
@@ -52,6 +64,10 @@ public class ProductManagementController {
     private final GenericUploadImageUseCase genericUploadImageUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
+            GetProductCardUseCase getProductCardUseCase,
+            ReorderVariantImagesUseCase reorderVariantImagesUseCase,
+            AddSkuToVariantUseCase addSkuToVariantUseCase,
+            AddVariantToProductUseCase addVariantToProductUseCase,
             UpdateProductPriceUseCase updateProductPriceUseCase,
             UpdateProductStockUseCase updateProductStockUseCase,
             UpdateProductNameUseCase updateProductNameUseCase,
@@ -59,6 +75,10 @@ public class ProductManagementController {
             UpdateProductCategoryUseCase updateProductCategoryUseCase,
             GenericUploadImageUseCase genericUploadImageUseCase) {
         this.createProductUseCase = createProductUseCase;
+        this.getProductCardUseCase = getProductCardUseCase;
+        this.reorderVariantImagesUseCase = reorderVariantImagesUseCase;
+        this.addSkuToVariantUseCase = addSkuToVariantUseCase;
+        this.addVariantToProductUseCase = addVariantToProductUseCase;
         this.updateProductPriceUseCase = updateProductPriceUseCase;
         this.updateProductStockUseCase = updateProductStockUseCase;
         this.updateProductNameUseCase = updateProductNameUseCase;
@@ -148,6 +168,104 @@ public class ProductManagementController {
         Long productBaseId = createProductUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("productBaseId", productBaseId));
+    }
+
+    /**
+     * GET /api/v1/admin/products/{productBaseId}
+     * Retrieve the full admin product card (base + all variants + SKUs). MANAGER + ADMIN.
+     */
+    @Operation(summary = "Get admin product card",
+            description = "Returns the full product card: base metadata plus every color variant "
+                    + "with its images, attributes, tags and SKUs. Prices are raw (no discount/loyalty enrichment).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Product card returned"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
+    })
+    @GetMapping("/products/{productBaseId}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<ProductCardDto> getProductCard(@PathVariable Long productBaseId) {
+        return ResponseEntity.ok(getProductCardUseCase.execute(productBaseId));
+    }
+
+    /**
+     * PATCH /api/v1/admin/listings/{variantId}/images/order
+     * Persist a new image sort order for the variant. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Reorder variant images",
+            description = "Persists the new sort order of a variant's images. "
+                    + "The imageIds list must exactly match the set of existing image IDs for the variant. "
+                    + "MANAGER + ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Image order updated"),
+            @ApiResponse(responseCode = "400", description = "imageIds do not match existing images"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "Variant not found")
+    })
+    @PatchMapping("/listings/{variantId}/images/order")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<MessageResponseDto> reorderVariantImages(
+            @PathVariable Long variantId,
+            @Valid @RequestBody ReorderImagesRequestDto request) {
+
+        reorderVariantImagesUseCase.execute(variantId, request.imageIds());
+        return ResponseEntity.ok(MessageResponseDto.success("Image order updated successfully."));
+    }
+
+    /**
+     * POST /api/v1/admin/products/{productBaseId}/variants/{variantId}/skus
+     * Add a new SKU (size entry) to an existing variant. ADMIN only.
+     */
+    @Operation(summary = "Add SKU to variant",
+            description = "Creates a new size/price entry under the given variant. "
+                    + "Auto-generates skuCode and barcode. ADMIN only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "SKU created; body contains {skuId}"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "Variant not found")
+    })
+    @PostMapping("/products/{productBaseId}/variants/{variantId}/skus")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Long>> addSkuToVariant(
+            @PathVariable Long productBaseId,
+            @PathVariable Long variantId,
+            @Valid @RequestBody AddSkuRequestDto request) {
+
+        Long skuId = addSkuToVariantUseCase.execute(new AddSkuToVariantUseCase.Command(
+                productBaseId,
+                variantId,
+                request.sizeLabel(),
+                new tj.radolfa.domain.model.Money(request.price()),
+                request.stockQuantity()));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("skuId", skuId));
+    }
+
+    /**
+     * POST /api/v1/admin/products/{productBaseId}/variants
+     * Add a new empty color variant to an existing product. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Add color variant to product",
+            description = "Creates a new empty color variant (no images, no SKUs) under the given ProductBase. "
+                    + "The variant starts as disabled (isEnabled=false). "
+                    + "MANAGER + ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Variant created; body contains {variantId, slug}"),
+            @ApiResponse(responseCode = "400", description = "Validation failed or duplicate color"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role"),
+            @ApiResponse(responseCode = "404", description = "ProductBase or color not found")
+    })
+    @PostMapping("/products/{productBaseId}/variants")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Map<String, Object>> addVariantToProduct(
+            @PathVariable Long productBaseId,
+            @Valid @RequestBody AddVariantRequestDto request) {
+
+        AddVariantToProductUseCase.Result result = addVariantToProductUseCase.execute(
+                new AddVariantToProductUseCase.Command(productBaseId, request.colorId()));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("variantId", result.variantId(), "slug", result.slug()));
     }
 
     /**

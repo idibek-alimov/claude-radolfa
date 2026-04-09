@@ -30,24 +30,28 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { uploadListingImage, removeListingImage } from "@/entities/product/api";
+import { reorderVariantImages } from "@/entities/product/api/admin";
 import { getErrorMessage } from "@/shared/lib";
 import { cn } from "@/shared/lib/utils";
+import type { ProductCardImage } from "@/entities/product/model/types";
 
 interface Props {
   slug: string;
-  images: string[];
+  variantId: number;
+  productBaseId: number;
+  images: ProductCardImage[];
 }
 
 // ── SortableImageCard ──────────────────────────────────────────────────
 
 interface SortableImageCardProps {
-  url: string;
+  image: ProductCardImage;
   index: number;
   onDelete: (url: string) => void;
   isDeleting: boolean;
 }
 
-function SortableImageCard({ url, index, onDelete, isDeleting }: SortableImageCardProps) {
+function SortableImageCard({ image, index, onDelete, isDeleting }: SortableImageCardProps) {
   const {
     attributes,
     listeners,
@@ -55,7 +59,7 @@ function SortableImageCard({ url, index, onDelete, isDeleting }: SortableImageCa
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: url });
+  } = useSortable({ id: image.id.toString() });
 
   return (
     <div
@@ -69,7 +73,7 @@ function SortableImageCard({ url, index, onDelete, isDeleting }: SortableImageCa
       )}
     >
       <Image
-        src={url}
+        src={image.url}
         alt={index === 0 ? "Main product image" : "Product image"}
         fill
         className="object-cover"
@@ -96,7 +100,7 @@ function SortableImageCard({ url, index, onDelete, isDeleting }: SortableImageCa
       {/* Delete button */}
       <button
         type="button"
-        onClick={() => onDelete(url)}
+        onClick={() => onDelete(image.url)}
         disabled={isDeleting}
         className="absolute top-1.5 right-1.5 z-10 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 disabled:cursor-not-allowed"
         aria-label="Remove image"
@@ -112,10 +116,10 @@ function SortableImageCard({ url, index, onDelete, isDeleting }: SortableImageCa
 type UploadStatus = "uploading" | "error";
 
 interface MediaZoneProps {
-  images: string[];
+  images: ProductCardImage[];
   onUploaded: (url: string) => void;
   onDelete: (url: string) => void;
-  onReorder: (images: string[]) => void;
+  onReorder: (images: ProductCardImage[]) => void;
   slug: string;
   isDeletingUrl: string | null;
 }
@@ -149,7 +153,6 @@ function MediaZone({ images, onUploaded, onDelete, onReorder, slug, isDeletingUr
         setStatus(tempId, "uploading");
         try {
           const result = await uploadListingImage(slug, file);
-          // Backend returns updated images array; take the last one as the new URL
           const newUrl = result.images[result.images.length - 1];
           if (newUrl) {
             onUploadedRef.current(newUrl);
@@ -181,8 +184,8 @@ function MediaZone({ images, onUploaded, onDelete, onReorder, slug, isDeletingUr
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = images.indexOf(active.id as string);
-      const newIndex = images.indexOf(over.id as string);
+      const oldIndex = images.findIndex((img) => img.id.toString() === active.id);
+      const newIndex = images.findIndex((img) => img.id.toString() === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
         onReorder(arrayMove(images, oldIndex, newIndex));
       }
@@ -283,15 +286,15 @@ function MediaZone({ images, onUploaded, onDelete, onReorder, slug, isDeletingUr
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={images} strategy={rectSortingStrategy}>
+          <SortableContext items={images.map((i) => i.id.toString())} strategy={rectSortingStrategy}>
             <div className="grid grid-cols-4 gap-2">
-              {images.map((url, index) => (
+              {images.map((image, index) => (
                 <SortableImageCard
-                  key={url}
-                  url={url}
+                  key={image.id}
+                  image={image}
                   index={index}
                   onDelete={onDelete}
-                  isDeleting={isDeletingUrl === url}
+                  isDeleting={isDeletingUrl === image.url}
                 />
               ))}
 
@@ -331,28 +334,38 @@ function MediaZone({ images, onUploaded, onDelete, onReorder, slug, isDeletingUr
 
 // ── ImageCard ──────────────────────────────────────────────────────────
 
-export function ImageCard({ slug, images: serverImages }: Props) {
+export function ImageCard({ slug, variantId, productBaseId, images: serverImages }: Props) {
   const queryClient = useQueryClient();
   const [localImages, setLocalImages] = useState(serverImages);
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null);
 
-  // Sync server images into local state when they change (e.g. after page load
-  // or background refetch), but only if no images are currently tracked locally
-  // that aren't on the server yet (i.e. keep uploads in sync).
   useEffect(() => {
     setLocalImages(serverImages);
   }, [serverImages]);
 
   const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-product", productBaseId] });
     queryClient.invalidateQueries({ queryKey: ["listing", slug] });
     queryClient.invalidateQueries({ queryKey: ["listings"] });
   };
+
+  const reorderMutation = useMutation({
+    mutationFn: (ids: number[]) => reorderVariantImages(variantId, ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-product", productBaseId] });
+      toast.success("Image order saved");
+    },
+    onError: (err: unknown) => {
+      setLocalImages(serverImages); // rollback optimistic update
+      toast.error(getErrorMessage(err, "Failed to save image order"));
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (url: string) => removeListingImage(slug, url),
     onMutate: (url) => setDeletingUrl(url),
     onSuccess: (_, url) => {
-      setLocalImages((prev) => prev.filter((u) => u !== url));
+      setLocalImages((prev) => prev.filter((img) => img.url !== url));
       setDeletingUrl(null);
       invalidate();
       toast.success("Image removed");
@@ -363,8 +376,8 @@ export function ImageCard({ slug, images: serverImages }: Props) {
     },
   });
 
-  function handleUploaded(url: string) {
-    setLocalImages((prev) => [...prev, url]);
+  function handleUploaded(_url: string) {
+    // After upload, refetch the product card to get the new image with its server-assigned ID
     invalidate();
   }
 
@@ -372,8 +385,9 @@ export function ImageCard({ slug, images: serverImages }: Props) {
     deleteMutation.mutate(url);
   }
 
-  function handleReorder(newImages: string[]) {
-    setLocalImages(newImages);
+  function handleReorder(newImages: ProductCardImage[]) {
+    setLocalImages(newImages);                              // optimistic
+    reorderMutation.mutate(newImages.map((i) => i.id));
   }
 
   return (
