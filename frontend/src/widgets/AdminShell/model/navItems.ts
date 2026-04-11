@@ -50,7 +50,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Moderation",
     items: [
       { href: "/manage/reviews", label: "Reviews", icon: Star },
-      { href: "/manage/qa", label: "Q&A", icon: HelpCircle, adminOnly: true },
+      { href: "/manage/qa", label: "Q&A", icon: HelpCircle },
     ],
   },
 ];

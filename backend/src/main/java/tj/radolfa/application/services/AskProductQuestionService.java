@@ -30,7 +30,7 @@ public class AskProductQuestionService implements AskProductQuestionUseCase {
 
     @Override
     @Transactional
-    public Long execute(Long productBaseId, Long authorId, String questionText) {
+    public Long execute(Long productBaseId, Long listingVariantId, Long authorId, String questionText) {
         // Resolve author name server-side — never trust the client
         User author = loadUserPort.loadById(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: id=" + authorId));
@@ -46,6 +46,7 @@ public class AskProductQuestionService implements AskProductQuestionUseCase {
         ProductQuestion question = new ProductQuestion(
                 null,
                 productBaseId,
+                listingVariantId,
                 authorId,
                 authorName,
                 questionText,

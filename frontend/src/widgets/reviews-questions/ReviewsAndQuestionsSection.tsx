@@ -93,7 +93,7 @@ export function ReviewsAndQuestionsSection({
         <div className="space-y-6">
           {isAuthenticated ? (
             <div className="flex justify-end">
-              <AskQuestionDialog productBaseId={productBaseId} />
+              <AskQuestionDialog productBaseId={productBaseId} listingVariantId={listingVariantId} />
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">

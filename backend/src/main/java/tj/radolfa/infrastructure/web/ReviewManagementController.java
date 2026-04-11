@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.question.AnswerProductQuestionUseCase;
+import tj.radolfa.application.ports.in.question.GetPendingQuestionsUseCase;
 import tj.radolfa.application.ports.in.question.ModerateProductQuestionUseCase;
 import tj.radolfa.application.ports.in.review.GetPendingReviewsUseCase;
 import tj.radolfa.application.ports.in.review.ModerateReviewUseCase;
 import tj.radolfa.application.ports.in.review.ReplyToReviewUseCase;
-import tj.radolfa.application.ports.out.LoadProductQuestionPort;
-import tj.radolfa.application.readmodel.QuestionView;
+import tj.radolfa.application.readmodel.QuestionAdminView;
 import tj.radolfa.application.readmodel.ReviewAdminView;
 import tj.radolfa.infrastructure.web.dto.AnswerQuestionRequestDto;
 import tj.radolfa.infrastructure.web.dto.ReplyToReviewRequestDto;
@@ -28,7 +28,7 @@ import tj.radolfa.infrastructure.web.dto.ReplyToReviewRequestDto;
 import java.util.List;
 
 @RestController
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 public class ReviewManagementController {
 
     private static final int MAX_LIMIT = 200;
@@ -36,20 +36,20 @@ public class ReviewManagementController {
     private final GetPendingReviewsUseCase       getPendingReviewsUseCase;
     private final ModerateReviewUseCase          moderateReviewUseCase;
     private final ReplyToReviewUseCase           replyToReviewUseCase;
-    private final LoadProductQuestionPort        loadProductQuestionPort;
+    private final GetPendingQuestionsUseCase     getPendingQuestionsUseCase;
     private final AnswerProductQuestionUseCase   answerProductQuestionUseCase;
     private final ModerateProductQuestionUseCase moderateProductQuestionUseCase;
 
     public ReviewManagementController(GetPendingReviewsUseCase getPendingReviewsUseCase,
                                       ModerateReviewUseCase moderateReviewUseCase,
                                       ReplyToReviewUseCase replyToReviewUseCase,
-                                      LoadProductQuestionPort loadProductQuestionPort,
+                                      GetPendingQuestionsUseCase getPendingQuestionsUseCase,
                                       AnswerProductQuestionUseCase answerProductQuestionUseCase,
                                       ModerateProductQuestionUseCase moderateProductQuestionUseCase) {
         this.getPendingReviewsUseCase       = getPendingReviewsUseCase;
         this.moderateReviewUseCase          = moderateReviewUseCase;
         this.replyToReviewUseCase           = replyToReviewUseCase;
-        this.loadProductQuestionPort        = loadProductQuestionPort;
+        this.getPendingQuestionsUseCase     = getPendingQuestionsUseCase;
         this.answerProductQuestionUseCase   = answerProductQuestionUseCase;
         this.moderateProductQuestionUseCase = moderateProductQuestionUseCase;
     }
@@ -110,23 +110,13 @@ public class ReviewManagementController {
 
     @GetMapping("/api/v1/admin/questions/pending")
     @Tag(name = "Q&A Management")
-    @Operation(summary = "Pending question queue", description = "Returns pending questions oldest-first for moderation")
-    @ApiResponse(responseCode = "200", description = "List of pending questions")
-    public ResponseEntity<List<QuestionView>> getPendingQuestions(
+    @Operation(summary = "Pending question queue", description = "Returns pending questions oldest-first for moderation, enriched with product context")
+    @ApiResponse(responseCode = "200", description = "List of pending questions with product context")
+    public ResponseEntity<List<QuestionAdminView>> getPendingQuestions(
             @RequestParam(defaultValue = "50") int limit) {
 
         int effectiveLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
-        List<QuestionView> result = loadProductQuestionPort.findPendingOldestFirst(effectiveLimit)
-                .stream()
-                .map(q -> new QuestionView(
-                        q.getId(),
-                        q.getAuthorName(),
-                        q.getQuestionText(),
-                        q.getAnswerText(),
-                        q.getAnsweredAt(),
-                        q.getCreatedAt()))
-                .toList();
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(getPendingQuestionsUseCase.getPending(effectiveLimit));
     }
 
     @PostMapping("/api/v1/admin/questions/{questionId}/answer")

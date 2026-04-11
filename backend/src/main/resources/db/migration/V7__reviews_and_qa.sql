@@ -76,19 +76,21 @@ CREATE TABLE product_rating_summaries (
 -- Product questions (pre-purchase Q&A, base-product level)
 -- ----------------------------------------------------------------
 CREATE TABLE product_questions (
-    id               BIGSERIAL    PRIMARY KEY,
-    product_base_id  BIGINT       NOT NULL REFERENCES product_bases(id),
-    author_id        BIGINT       REFERENCES users(id) ON DELETE SET NULL,
-    author_name      VARCHAR(128) NOT NULL,
-    question_text    TEXT         NOT NULL,
-    answer_text      TEXT,
-    answered_at      TIMESTAMPTZ,
-    status           VARCHAR(16)  NOT NULL DEFAULT 'PENDING',
-                                  -- PENDING | PUBLISHED | REJECTED
-    version          BIGINT       NOT NULL DEFAULT 0,
-    created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    id                  BIGSERIAL    PRIMARY KEY,
+    product_base_id     BIGINT       NOT NULL REFERENCES product_bases(id),
+    listing_variant_id  BIGINT       REFERENCES listing_variants(id) ON DELETE SET NULL,
+    author_id           BIGINT       REFERENCES users(id) ON DELETE SET NULL,
+    author_name         VARCHAR(128) NOT NULL,
+    question_text       TEXT         NOT NULL,
+    answer_text         TEXT,
+    answered_at         TIMESTAMPTZ,
+    status              VARCHAR(16)  NOT NULL DEFAULT 'PENDING',
+                                     -- PENDING | PUBLISHED | REJECTED
+    version             BIGINT       NOT NULL DEFAULT 0,
+    created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_questions_product_base_id ON product_questions (product_base_id);
-CREATE INDEX idx_questions_status         ON product_questions (status);
+CREATE INDEX idx_questions_product_base_id     ON product_questions (product_base_id);
+CREATE INDEX idx_questions_status              ON product_questions (status);
+CREATE INDEX idx_questions_listing_variant_id  ON product_questions (listing_variant_id);

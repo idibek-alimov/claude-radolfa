@@ -6,12 +6,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadProductQuestionPort;
 import tj.radolfa.application.ports.out.SaveProductQuestionPort;
+import tj.radolfa.application.readmodel.QuestionAdminView;
 import tj.radolfa.domain.model.ProductQuestion;
 import tj.radolfa.domain.model.QuestionStatus;
 import tj.radolfa.infrastructure.persistence.entity.ProductQuestionEntity;
 import tj.radolfa.infrastructure.persistence.mappers.ProductQuestionMapper;
 import tj.radolfa.infrastructure.persistence.repository.ProductQuestionRepository;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +52,42 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
                 .stream()
                 .map(mapper::toProductQuestion)
                 .toList();
+    }
+
+    @Override
+    public List<QuestionAdminView> findPendingWithContextOldestFirst(int limit) {
+        // SQL column order: id, author_name, question_text, answer_text, answered_at, created_at,
+        //                   product_base_id(6), product_name(7), listing_variant_id(8),
+        //                   product_slug(9), thumbnail_url(10), color_name(11), color_hex(12)
+        // Record constructor order: id, authorName, questionText, answerText, answeredAt, createdAt,
+        //                           productBaseId, productName, productSlug, thumbnailUrl,
+        //                           listingVariantId, colorName, colorHex
+        List<Object[]> rows = repository.findPendingWithContext(limit);
+        return rows.stream()
+                .map(row -> new QuestionAdminView(
+                        ((Number) row[0]).longValue(),                                         // id
+                        (String)  row[1],                                                      // authorName
+                        (String)  row[2],                                                      // questionText
+                        (String)  row[3],                                                      // answerText
+                        toInstant(row[4]),                                                     // answeredAt
+                        toInstant(row[5]),                                                     // createdAt
+                        ((Number) row[6]).longValue(),                                         // productBaseId
+                        (String)  row[7],                                                      // productName
+                        (String)  row[9],                                                      // productSlug (SQL col 9)
+                        (String)  row[10],                                                     // thumbnailUrl (SQL col 10)
+                        row[8] != null ? Long.valueOf(((Number) row[8]).longValue()) : null,   // listingVariantId (SQL col 8)
+                        (String)  row[11],                                                     // colorName
+                        (String)  row[12]                                                      // colorHex
+                ))
+                .toList();
+    }
+
+    private static Instant toInstant(Object val) {
+        if (val == null) return null;
+        if (val instanceof Instant inst) return inst;
+        if (val instanceof Timestamp ts) return ts.toInstant();
+        if (val instanceof OffsetDateTime odt) return odt.toInstant();
+        throw new IllegalStateException("Unexpected timestamp type: " + val.getClass());
     }
 
     // ---- SaveProductQuestionPort ---------------------------------------

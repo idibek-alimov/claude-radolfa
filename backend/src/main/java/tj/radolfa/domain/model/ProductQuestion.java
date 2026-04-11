@@ -14,6 +14,7 @@ public class ProductQuestion {
 
     private final Long           id;
     private final Long           productBaseId;
+    private final Long           listingVariantId; // nullable — set when user viewed a specific variant
     private final Long           authorId;     // nullable — may be anonymous
     private final String         authorName;
     private final String         questionText;
@@ -24,6 +25,7 @@ public class ProductQuestion {
 
     public ProductQuestion(Long id,
                            Long productBaseId,
+                           Long listingVariantId,
                            Long authorId,
                            String authorName,
                            String questionText,
@@ -36,9 +38,10 @@ public class ProductQuestion {
         Objects.requireNonNull(authorName,    "authorName must not be null");
         Objects.requireNonNull(questionText,  "questionText must not be null");
 
-        this.id           = id;
-        this.productBaseId = productBaseId;
-        this.authorId     = authorId;
+        this.id                = id;
+        this.productBaseId     = productBaseId;
+        this.listingVariantId  = listingVariantId;
+        this.authorId          = authorId;
         this.authorName   = authorName;
         this.questionText = questionText;
         this.answerText   = answerText;
@@ -68,9 +71,10 @@ public class ProductQuestion {
 
     // ── Getters ───────────────────────────────────────────────────────────────
 
-    public Long           getId()           { return id; }
-    public Long           getProductBaseId() { return productBaseId; }
-    public Long           getAuthorId()     { return authorId; }
+    public Long           getId()              { return id; }
+    public Long           getProductBaseId()   { return productBaseId; }
+    public Long           getListingVariantId() { return listingVariantId; }
+    public Long           getAuthorId()        { return authorId; }
     public String         getAuthorName()   { return authorName; }
     public String         getQuestionText() { return questionText; }
     public String         getAnswerText()   { return answerText; }

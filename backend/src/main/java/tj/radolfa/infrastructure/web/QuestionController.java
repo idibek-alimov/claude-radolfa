@@ -53,6 +53,7 @@ public class QuestionController {
 
         Long questionId = askProductQuestionUseCase.execute(
                 request.productBaseId(),
+                request.listingVariantId(),
                 principal.userId(),
                 request.questionText());
 

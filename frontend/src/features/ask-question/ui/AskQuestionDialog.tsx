@@ -20,16 +20,17 @@ import { getErrorMessage } from "@/shared/lib";
 
 interface AskQuestionDialogProps {
   productBaseId: number;
+  listingVariantId?: number;
 }
 
-export function AskQuestionDialog({ productBaseId }: AskQuestionDialogProps) {
+export function AskQuestionDialog({ productBaseId, listingVariantId }: AskQuestionDialogProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const qc = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: () => askQuestion({ productBaseId, questionText: text.trim() }),
+    mutationFn: () => askQuestion({ productBaseId, questionText: text.trim(), listingVariantId }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["questions", productBaseId] });
       handleClose();

@@ -57,7 +57,7 @@ export function ProductQuestionsPage({ slug }: ProductQuestionsPageProps) {
         </h1>
 
         {isAuthenticated && productBaseId != null && (
-          <AskQuestionDialog productBaseId={productBaseId} />
+          <AskQuestionDialog productBaseId={productBaseId} listingVariantId={listing?.variantId} />
         )}
       </div>
 

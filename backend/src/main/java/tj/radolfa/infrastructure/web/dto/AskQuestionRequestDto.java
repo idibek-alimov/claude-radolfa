@@ -9,6 +9,8 @@ public record AskQuestionRequestDto(
         @NotNull
         Long productBaseId,
 
+        Long listingVariantId,
+
         @NotBlank
         @Size(max = 2000)
         String questionText

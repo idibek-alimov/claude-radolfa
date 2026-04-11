@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, Package } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +24,24 @@ interface AnswerDialogProps {
   questionId: number;
   questionText: string;
   authorName: string;
+  // Product context — used by Phase 6 redesign
+  productName?: string;
+  productSlug?: string;
+  thumbnailUrl?: string | null;
+  colorName?: string | null;
+  colorHex?: string | null;
 }
 
-export function AnswerDialog({ questionId, questionText, authorName }: AnswerDialogProps) {
+export function AnswerDialog({
+  questionId,
+  questionText,
+  authorName,
+  productName,
+  productSlug,
+  thumbnailUrl,
+  colorName,
+  colorHex,
+}: AnswerDialogProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const qc = useQueryClient();
@@ -55,6 +72,48 @@ export function AnswerDialog({ questionId, questionText, authorName }: AnswerDia
             Your answer will be visible on the product page once posted.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Product context block */}
+        {productName && (
+          <div className="bg-muted/40 rounded-xl p-4 flex items-center gap-3">
+            {thumbnailUrl ? (
+              <Image
+                src={thumbnailUrl}
+                alt={productName}
+                width={48}
+                height={48}
+                unoptimized
+                className="rounded-lg object-cover shrink-0"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                <Package className="h-5 w-5 text-muted-foreground/40" />
+              </div>
+            )}
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-semibold truncate">{productName}</p>
+              {colorName && (
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0 border border-black/10"
+                    style={{ backgroundColor: colorHex ?? undefined }}
+                  />
+                  <span className="text-xs text-muted-foreground">{colorName}</span>
+                </div>
+              )}
+              {productSlug && (
+                <Link
+                  href={`/product/${productSlug}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                >
+                  View Product
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Original question context */}
         <div className="bg-muted/40 rounded-xl p-4 space-y-1.5">

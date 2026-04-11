@@ -24,6 +24,9 @@ public class ProductQuestionEntity extends BaseAuditEntity {
     @Column(name = "product_base_id", nullable = false)
     private Long productBaseId;
 
+    @Column(name = "listing_variant_id")
+    private Long listingVariantId;
+
     @Column(name = "author_id")
     private Long authorId;
 

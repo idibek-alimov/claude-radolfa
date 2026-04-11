@@ -1,6 +1,6 @@
 import apiClient from "@/shared/api/axios";
 import type { PaginatedResponse } from "@/shared/api/types";
-import type { AskQuestionRequest, QuestionView } from "../model/types";
+import type { AskQuestionRequest, QuestionView, QuestionAdminView } from "../model/types";
 
 /** GET /api/v1/products/{productBaseId}/questions — public, paginated */
 export const fetchQuestions = (
@@ -19,8 +19,8 @@ export const askQuestion = (
   apiClient.post("/api/v1/questions", body).then((r) => r.data);
 
 /** GET /api/v1/admin/questions/pending — ADMIN only */
-export const fetchPendingQuestions = (): Promise<QuestionView[]> =>
-  apiClient.get("/api/v1/admin/questions/pending").then((r) => r.data);
+export const fetchPendingQuestions = (): Promise<QuestionAdminView[]> =>
+  apiClient.get<QuestionAdminView[]>("/api/v1/admin/questions/pending").then((r) => r.data);
 
 /** POST /api/v1/admin/questions/{id}/answer — ADMIN only */
 export const answerQuestion = (id: number, answerText: string): Promise<void> =>

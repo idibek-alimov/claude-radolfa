@@ -15,15 +15,17 @@
 -- Orders
 -- ----------------------------------------------------------------
 CREATE TABLE orders (
-    id                BIGSERIAL      PRIMARY KEY,
-    user_id           BIGINT         NOT NULL REFERENCES users(id),
-    external_order_id VARCHAR(64)    UNIQUE,
-    status            VARCHAR(32)    NOT NULL DEFAULT 'PENDING' REFERENCES order_statuses(name),
-    total_amount      NUMERIC(12,2)  NOT NULL DEFAULT 0,
-    deleted_at        TIMESTAMPTZ,
-    version           BIGINT         NOT NULL DEFAULT 0,
-    created_at        TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    updated_at        TIMESTAMPTZ    NOT NULL DEFAULT NOW()
+    id                       BIGSERIAL      PRIMARY KEY,
+    user_id                  BIGINT         NOT NULL REFERENCES users(id),
+    external_order_id        VARCHAR(64)    UNIQUE,
+    status                   VARCHAR(32)    NOT NULL DEFAULT 'PENDING' REFERENCES order_statuses(name),
+    total_amount             NUMERIC(12,2)  NOT NULL DEFAULT 0,
+    loyalty_points_redeemed  INT            NOT NULL DEFAULT 0,
+    loyalty_points_awarded   INT            NOT NULL DEFAULT 0,
+    deleted_at               TIMESTAMPTZ,
+    version                  BIGINT         NOT NULL DEFAULT 0,
+    created_at               TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
+    updated_at               TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_orders_user_id          ON orders (user_id);

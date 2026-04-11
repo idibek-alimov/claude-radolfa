@@ -5,7 +5,7 @@ import { QuestionModerationQueue } from "@/features/question-moderation";
 
 export default function QAPage() {
   return (
-    <ProtectedRoute requiredRole="ADMIN">
+    <ProtectedRoute requiredRole="MANAGER">
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
