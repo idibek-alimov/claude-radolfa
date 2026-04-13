@@ -7,6 +7,8 @@ export interface QuestionView {
   createdAt: string;
 }
 
+export type QuestionStatus = 'PENDING' | 'PUBLISHED' | 'REJECTED';
+
 export interface QuestionAdminView {
   id: number;
   authorName: string;
@@ -14,6 +16,7 @@ export interface QuestionAdminView {
   answerText: string | null;
   answeredAt: string | null;
   createdAt: string;
+  status: QuestionStatus;
 
   // Product context
   productBaseId: number;
@@ -25,6 +28,17 @@ export interface QuestionAdminView {
   listingVariantId: number | null;
   colorName: string | null;
   colorHex: string | null;
+}
+
+export interface FetchAdminQuestionsParams {
+  status: 'PENDING' | 'PUBLISHED';
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page: number;
+  size?: number;
+  sortBy?: 'createdAt' | 'answeredAt';
+  sortDir?: 'ASC' | 'DESC';
 }
 
 export interface AskQuestionRequest {

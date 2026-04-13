@@ -53,20 +53,49 @@ public class ProductQuestion {
     // ── Domain mutations ──────────────────────────────────────────────────────
 
     /**
-     * Publishes the question with an admin answer, making it visible on the storefront.
+     * First answer: transitions PENDING → PUBLISHED.
+     * Also tolerates PUBLISHED → PUBLISHED (double-click safety net).
+     * Throws if the question has been rejected — a rejected question cannot
+     * be resurrected via the answer flow.
      */
     public void publish(String answerText) {
-        if (answerText == null || answerText.isBlank()) {
-            throw new IllegalArgumentException("answerText must not be blank");
+        requireNonBlankAnswer(answerText);
+        if (status == QuestionStatus.REJECTED) {
+            throw new IllegalArgumentException(
+                    "Cannot answer a rejected question: id=" + id);
         }
         this.answerText = answerText;
         this.answeredAt = Instant.now();
         this.status     = QuestionStatus.PUBLISHED;
     }
 
+    /**
+     * Edit path: replaces the answer text of an already-published question.
+     * Refreshes {@code answeredAt} so "most recently answered" sorts work correctly.
+     * Throws if the question is not yet published.
+     */
+    public void updateAnswer(String newAnswerText) {
+        requireNonBlankAnswer(newAnswerText);
+        if (status != QuestionStatus.PUBLISHED) {
+            throw new IllegalArgumentException(
+                    "Only published questions can have their answer edited: id=" + id
+                            + ", status=" + status);
+        }
+        this.answerText = newAnswerText;
+        this.answeredAt = Instant.now();
+    }
+
     /** Rejects the question — it will never appear publicly. */
     public void reject() {
         this.status = QuestionStatus.REJECTED;
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private static void requireNonBlankAnswer(String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("answerText must not be blank");
+        }
     }
 
     // ── Getters ───────────────────────────────────────────────────────────────

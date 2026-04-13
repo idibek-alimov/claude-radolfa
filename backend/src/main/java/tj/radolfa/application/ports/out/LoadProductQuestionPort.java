@@ -4,8 +4,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import tj.radolfa.application.readmodel.QuestionAdminView;
 import tj.radolfa.domain.model.ProductQuestion;
+import tj.radolfa.domain.model.QuestionStatus;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.Optional;
 
 public interface LoadProductQuestionPort {
@@ -14,9 +15,17 @@ public interface LoadProductQuestionPort {
 
     Page<ProductQuestion> findPublishedByProductBase(Long productBaseId, Pageable pageable);
 
-    /** Returns the oldest pending questions up to {@code limit} — used by the admin queue. */
-    List<ProductQuestion> findPendingOldestFirst(int limit);
-
-    /** Returns pending questions enriched with product/variant context, oldest-first. */
-    List<QuestionAdminView> findPendingWithContextOldestFirst(int limit);
+    /**
+     * Returns a paginated, filtered, sorted page of questions for the admin queue.
+     * {@code page} is 1-based. {@code search} and date range are optional (null = no filter).
+     * {@code sortBy} is "createdAt" or "answeredAt"; {@code sortDir} is "ASC" or "DESC".
+     */
+    Page<QuestionAdminView> findAdminQuestions(QuestionStatus status,
+                                               String search,
+                                               Instant dateFrom,
+                                               Instant dateTo,
+                                               int page,
+                                               int size,
+                                               String sortBy,
+                                               String sortDir);
 }

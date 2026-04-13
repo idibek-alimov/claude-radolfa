@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, ExternalLink, Package } from "lucide-react";
+import { CheckCircle2, Pencil, ExternalLink, Package } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { Label } from "@/shared/ui/label";
-import { answerQuestion } from "@/entities/question";
+import { answerQuestion, updateAnswer } from "@/entities/question";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
 
@@ -24,12 +24,15 @@ interface AnswerDialogProps {
   questionId: number;
   questionText: string;
   authorName: string;
-  // Product context — used by Phase 6 redesign
+  // Product context
   productName?: string;
   productSlug?: string;
   thumbnailUrl?: string | null;
   colorName?: string | null;
   colorHex?: string | null;
+  // Edit mode
+  initialAnswer?: string;
+  isEdit?: boolean;
 }
 
 export function AnswerDialog({
@@ -41,18 +44,25 @@ export function AnswerDialog({
   thumbnailUrl,
   colorName,
   colorHex,
+  initialAnswer,
+  isEdit = false,
 }: AnswerDialogProps) {
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialAnswer ?? "");
   const qc = useQueryClient();
 
+  // Reset text whenever the dialog opens, picking up the latest initialAnswer.
+  useEffect(() => {
+    if (open) setText(initialAnswer ?? "");
+  }, [open, initialAnswer]);
+
   const mutation = useMutation({
-    mutationFn: () => answerQuestion(questionId, text.trim()),
+    mutationFn: () =>
+      isEdit ? updateAnswer(questionId, text.trim()) : answerQuestion(questionId, text.trim()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pending-questions"] });
+      qc.invalidateQueries({ queryKey: ["admin-questions"] });
       setOpen(false);
-      setText("");
-      toast.success("Answer posted");
+      toast.success(isEdit ? "Answer updated" : "Answer posted");
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -61,15 +71,26 @@ export function AnswerDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="default">
-          <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
-          Answer
+          {isEdit ? (
+            <>
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+              Edit Answer
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+              Answer
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Answer Customer Question</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Answer" : "Answer Customer Question"}</DialogTitle>
           <DialogDescription>
-            Your answer will be visible on the product page once posted.
+            {isEdit
+              ? "Update the published answer. Changes are visible on the product page immediately."
+              : "Your answer will be visible on the product page once posted."}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +136,7 @@ export function AnswerDialog({
           </div>
         )}
 
-        {/* Original question context */}
+        {/* Original question */}
         <div className="bg-muted/40 rounded-xl p-4 space-y-1.5">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Question from {authorName}
@@ -147,7 +168,9 @@ export function AnswerDialog({
               disabled={!text.trim() || mutation.isPending}
               onClick={() => mutation.mutate()}
             >
-              {mutation.isPending ? "Posting…" : "Post Answer"}
+              {mutation.isPending
+                ? isEdit ? "Updating…" : "Posting…"
+                : isEdit ? "Update Answer" : "Post Answer"}
             </Button>
           </div>
         </div>

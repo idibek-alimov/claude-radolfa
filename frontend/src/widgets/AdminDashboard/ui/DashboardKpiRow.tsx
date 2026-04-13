@@ -6,7 +6,7 @@ import { fetchListings } from "@/entities/product/api";
 import { fetchDiscounts } from "@/features/discount-management/api";
 import { fetchUsers } from "@/features/user-management";
 import { fetchPendingReviews } from "@/entities/review";
-import { fetchPendingQuestions } from "@/entities/question";
+import { fetchAdminQuestions } from "@/entities/question";
 import { cn } from "@/shared/lib";
 import type { LucideIcon } from "lucide-react";
 
@@ -71,15 +71,15 @@ export function DashboardKpiRow() {
     staleTime: 30_000,
   });
 
-  const { data: pendingQuestions } = useQuery({
-    queryKey: ["pending-questions"],
-    queryFn: fetchPendingQuestions,
+  const { data: pendingQuestionsPage } = useQuery({
+    queryKey: ["admin-questions-count", "PENDING"],
+    queryFn: () => fetchAdminQuestions({ status: "PENDING", page: 1, size: 1 }),
     staleTime: 30_000,
   });
 
   const pendingModerationCount =
-    pendingReviews !== undefined && pendingQuestions !== undefined
-      ? pendingReviews.length + pendingQuestions.length
+    pendingReviews !== undefined && pendingQuestionsPage !== undefined
+      ? pendingReviews.length + pendingQuestionsPage.totalElements
       : undefined;
 
   return (

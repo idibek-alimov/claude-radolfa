@@ -4,12 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Star, MessageSquare, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchPendingReviews } from "@/entities/review";
-import { fetchPendingQuestions } from "@/entities/question";
+import { fetchAdminQuestions } from "@/entities/question";
 import { useAuth } from "@/features/auth";
 import { cn } from "@/shared/lib";
 import { Button } from "@/shared/ui/button";
 import type { ReviewAdminView } from "@/entities/review";
-import type { QuestionView } from "@/entities/question";
+import type { QuestionAdminView } from "@/entities/question";
 
 type UrgencyLevel = "clear" | "moderate" | "high";
 
@@ -62,7 +62,7 @@ function ReviewPreviewRow({ review }: { review: ReviewAdminView }) {
 
 // ── Preview row for a pending question ───────────────────────────────────────
 
-function QuestionPreviewRow({ question }: { question: QuestionView }) {
+function QuestionPreviewRow({ question }: { question: QuestionAdminView }) {
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-zinc-100 last:border-0">
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[11px] font-bold text-zinc-500">
@@ -160,12 +160,13 @@ export function ModerationAlertsRow() {
     staleTime: 30_000,
   });
 
-  const { data: questions = [], isLoading: questionsLoading } = useQuery({
-    queryKey: ["pending-questions"],
-    queryFn: fetchPendingQuestions,
+  const { data: questionsPage, isLoading: questionsLoading } = useQuery({
+    queryKey: ["admin-questions-preview", "PENDING"],
+    queryFn: () => fetchAdminQuestions({ status: "PENDING", page: 1, size: 5 }),
     staleTime: 30_000,
     enabled: isAdmin,
   });
+  const questions = questionsPage?.content ?? [];
 
   return (
     <div>
@@ -189,7 +190,7 @@ export function ModerationAlertsRow() {
           <ModerationCard
             title="Pending Q&A"
             icon={MessageSquare}
-            count={questionsLoading ? undefined : questions.length}
+            count={questionsLoading ? undefined : questionsPage?.totalElements}
             isLoading={questionsLoading}
             href="/manage/qa"
           >
