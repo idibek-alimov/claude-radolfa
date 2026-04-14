@@ -259,16 +259,17 @@ public class CreateProductService implements CreateProductUseCase {
 
         listingIndexPort.index(
                 variant.getId(),
+                variant.getProductBaseId(),
                 variant.getSlug(),
                 productName,
                 category,
                 variant.getColorKey(),
                 colorHex,
-                null,
-                List.of(),
+                variant.getWebDescription(),
+                new java.util.ArrayList<>(variant.getImages()),
                 price,
                 totalStock,
-                null,
+                variant.getLastSyncAt(),
                 variant.getProductCode(),
                 skuCodes
         );

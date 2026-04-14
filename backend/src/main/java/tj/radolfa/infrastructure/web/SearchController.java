@@ -94,6 +94,7 @@ public class SearchController {
 
                 indexPort.index(
                         variant.getId(),
+                        variant.getProductBase().getId(),
                         variant.getSlug(),
                         variant.getProductBase().getName(),
                         category,

@@ -241,6 +241,23 @@ class CreateProductServiceTest {
     }
 
     @Test
+    @DisplayName("ES index payload carries productBaseId, description, and images from the variant")
+    void execute_esIndex_capturesProductBaseIdDescriptionAndImages() {
+        VariantDefinition varDef = new VariantDefinition(
+                10L, "A lovely red dress", List.of(),
+                List.of("https://cdn.example.com/front.jpg", "https://cdn.example.com/back.jpg"),
+                List.of(skuDef("S", "49.99", 10)), false, true, null, null, null, null);
+
+        service.execute(commandWith(List.of(varDef)));
+
+        assertNotNull(fakeIndex.capturedProductBaseId, "productBaseId must be non-null in ES payload");
+        assertEquals("A lovely red dress", fakeIndex.capturedDescription,
+                "ES payload description must match the variant webDescription");
+        assertNotNull(fakeIndex.capturedImages, "images must not be null in ES payload");
+        assertFalse(fakeIndex.capturedImages.isEmpty(), "ES payload images must not be empty when the variant has images");
+    }
+
+    @Test
     @DisplayName("ES indexing failure does not propagate — product is still created")
     void execute_esIndexFailure_doesNotRollBack() {
         fakeIndex.throwOnIndex = true;
@@ -647,14 +664,21 @@ class CreateProductServiceTest {
     static class FakeListingIndexPort implements ListingIndexPort {
         int indexCallCount;
         boolean throwOnIndex;
+        Long capturedProductBaseId;
+        String capturedDescription;
+        List<String> capturedImages;
 
         @Override
-        public void index(Long variantId, String slug, String name, String category,
-                          String colorKey, String colorHexCode, String description,
-                          List<String> images, Double price, Integer totalStock,
+        public void index(Long variantId, Long productBaseId, String slug, String name,
+                          String category, String colorKey, String colorHexCode,
+                          String description, List<String> images,
+                          Double price, Integer totalStock,
                           Instant lastSyncAt, String productCode, List<String> skuCodes) {
             if (throwOnIndex) throw new RuntimeException("ES unavailable");
             indexCallCount++;
+            this.capturedProductBaseId = productBaseId;
+            this.capturedDescription   = description;
+            this.capturedImages        = images;
         }
 
         @Override

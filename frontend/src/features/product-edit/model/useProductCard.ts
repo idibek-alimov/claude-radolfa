@@ -7,5 +7,6 @@ export function useProductCard(productBaseId: number) {
   return useQuery({
     queryKey: ["admin-product", productBaseId],
     queryFn: () => fetchProductCard(productBaseId),
+    enabled: Number.isFinite(productBaseId) && productBaseId > 0,
   });
 }

@@ -115,6 +115,7 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
 
                 listingIndexPort.index(
                                 variant.getId(),
+                                variant.getProductBaseId(),
                                 variant.getSlug(),
                                 productName,
                                 categoryName,

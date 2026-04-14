@@ -89,6 +89,7 @@ public class AddVariantToProductService implements AddVariantToProductUseCase {
         try {
             listingIndexPort.index(
                     saved.getId(),
+                    command.productBaseId(),
                     saved.getSlug(),
                     base.getName(),
                     base.getCategory(),

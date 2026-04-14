@@ -66,7 +66,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         // ---- ListingIndexPort (write) ----
 
         @Override
-        public void index(Long variantId, String slug, String name, String category,
+        public void index(Long variantId, Long productBaseId, String slug, String name, String category,
                         String colorKey, String colorHexCode,
                         String description, List<String> images,
                         Double price, Integer totalStock,
@@ -79,7 +79,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                         images, price, totalStock,
                                         lastSyncAt,
                                         productCode,
-                                        skuCodes != null ? skuCodes : List.of());
+                                        skuCodes != null ? skuCodes : List.of(),
+                                        productBaseId);
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
                 } catch (Exception e) {
@@ -209,7 +210,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         private ListingVariantDto toDto(ListingDocument doc) {
                 BigDecimal price = doc.getPrice() != null ? BigDecimal.valueOf(doc.getPrice()) : null;
                 return new ListingVariantDto(
-                                null,    // productBaseId - not available in ListingDocument
+                                doc.getProductBaseId(),
                                 doc.getId(),
                                 doc.getSlug(),
                                 doc.getName(),           // colorDisplayName

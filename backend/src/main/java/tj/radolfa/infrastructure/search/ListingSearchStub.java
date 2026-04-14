@@ -25,7 +25,7 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     private static final Logger LOG = LoggerFactory.getLogger(ListingSearchStub.class);
 
     @Override
-    public void index(Long variantId, String slug, String name, String category,
+    public void index(Long variantId, Long productBaseId, String slug, String name, String category,
                       String colorKey, String colorHexCode,
                       String description, List<String> images,
                       Double price, Integer totalStock,

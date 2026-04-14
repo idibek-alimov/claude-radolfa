@@ -220,9 +220,10 @@ class AddVariantToProductServiceTest {
         boolean throwOnIndex;
 
         @Override
-        public void index(Long variantId, String slug, String name, String category,
-                          String colorKey, String colorHexCode, String description,
-                          List<String> images, Double price, Integer totalStock,
+        public void index(Long variantId, Long productBaseId, String slug, String name,
+                          String category, String colorKey, String colorHexCode,
+                          String description, List<String> images,
+                          Double price, Integer totalStock,
                           Instant lastSyncAt, String productCode, List<String> skuCodes) {
             if (throwOnIndex) throw new RuntimeException("ES unavailable");
             indexCallCount++;

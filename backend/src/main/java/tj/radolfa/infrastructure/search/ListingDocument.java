@@ -68,6 +68,10 @@ public class ListingDocument {
     @Field(type = FieldType.Keyword)
     private List<String> skuCodes;
 
+    /** The owning ProductBase id — stored so ES search results can build Edit navigation URLs. */
+    @Field(type = FieldType.Long)
+    private Long productBaseId;
+
     public ListingDocument() {}
 
     public ListingDocument(Long id, String slug, String name, String category,
@@ -75,7 +79,8 @@ public class ListingDocument {
                            String webDescription, List<String> images,
                            Double price, Integer totalStock,
                            Instant lastSyncAt,
-                           String productCode, List<String> skuCodes) {
+                           String productCode, List<String> skuCodes,
+                           Long productBaseId) {
         this.id             = id;
         this.slug           = slug;
         this.name           = name;
@@ -89,6 +94,7 @@ public class ListingDocument {
         this.lastSyncAt     = lastSyncAt;
         this.productCode    = productCode;
         this.skuCodes       = skuCodes;
+        this.productBaseId  = productBaseId;
     }
 
     public Long         getId()             { return id; }
@@ -104,4 +110,5 @@ public class ListingDocument {
     public Instant      getLastSyncAt()     { return lastSyncAt; }
     public String       getProductCode()    { return productCode; }
     public List<String> getSkuCodes()       { return skuCodes; }
+    public Long         getProductBaseId()  { return productBaseId; }
 }

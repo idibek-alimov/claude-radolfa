@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useWizardState } from "../model/useWizardState";
@@ -40,6 +40,7 @@ const slideVariants = {
 
 export function ProductCreationWizard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { state, update, hydrated } = useWizardState();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -58,6 +59,7 @@ export function ProductCreationWizard() {
     mutationFn: () => createProduct(state),
     onSuccess: () => {
       localStorage.removeItem(WIZARD_DRAFT_KEY);
+      queryClient.invalidateQueries({ queryKey: ["listings"] });
       toast.success("Product created successfully!");
       router.push("/manage");
     },

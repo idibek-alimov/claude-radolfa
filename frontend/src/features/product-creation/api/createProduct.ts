@@ -13,7 +13,11 @@ export function buildPayload(state: WizardState) {
     variants: state.variants.map((v) => ({
       colorId: v.colorId,
       webDescription: state.webDescription || undefined,
-      attributes: state.attributes,
+      attributes: state.attributes.map(({ key, value, sortOrder }) => ({
+        key,
+        values: [value],
+        sortOrder,
+      })),
       images: v.images,
       skus: v.skus.map(({ sizeLabel, price, stockQuantity, weightKg, widthCm, heightCm, depthCm }) => ({
         sizeLabel,
