@@ -1,1 +1,1 @@
-export { createCategory, deleteCategory } from "./api/admin";
+export { createCategory, updateCategory, deleteCategory } from "./api/admin";

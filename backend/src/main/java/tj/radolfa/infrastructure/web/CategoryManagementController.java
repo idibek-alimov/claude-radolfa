@@ -11,8 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.product.CreateCategoryUseCase;
 import tj.radolfa.application.ports.in.product.DeleteCategoryUseCase;
+import tj.radolfa.application.ports.in.product.UpdateCategoryUseCase;
 import tj.radolfa.infrastructure.web.dto.CreateCategoryRequestDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
+import tj.radolfa.infrastructure.web.dto.UpdateCategoryRequestDto;
 
 import java.util.Map;
 
@@ -25,11 +27,14 @@ import java.util.Map;
 public class CategoryManagementController {
 
     private final CreateCategoryUseCase createCategoryUseCase;
+    private final UpdateCategoryUseCase updateCategoryUseCase;
     private final DeleteCategoryUseCase deleteCategoryUseCase;
 
     public CategoryManagementController(CreateCategoryUseCase createCategoryUseCase,
+                                        UpdateCategoryUseCase updateCategoryUseCase,
                                         DeleteCategoryUseCase deleteCategoryUseCase) {
         this.createCategoryUseCase = createCategoryUseCase;
+        this.updateCategoryUseCase = updateCategoryUseCase;
         this.deleteCategoryUseCase = deleteCategoryUseCase;
     }
 
@@ -52,6 +57,28 @@ public class CategoryManagementController {
 
         Long id = createCategoryUseCase.execute(request.name(), request.parentId());
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("categoryId", id));
+    }
+
+    /**
+     * PATCH /api/v1/admin/categories/{id}
+     * Update category name and/or parent. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Update category",
+               description = "Updates the name and/or parent of an existing category. Slug is immutable. Circular parentage is rejected. MANAGER + ADMIN.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Category updated"),
+        @ApiResponse(responseCode = "400", description = "Validation failed, parent not found, or circular parentage"),
+        @ApiResponse(responseCode = "403", description = "Insufficient role"),
+        @ApiResponse(responseCode = "404", description = "Category not found")
+    })
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<MessageResponseDto> updateCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateCategoryRequestDto request) {
+
+        updateCategoryUseCase.execute(id, request.name(), request.parentId());
+        return ResponseEntity.ok(MessageResponseDto.success("Category updated successfully."));
     }
 
     /**

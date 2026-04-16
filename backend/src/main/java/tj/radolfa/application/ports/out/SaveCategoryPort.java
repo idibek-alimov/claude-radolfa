@@ -8,4 +8,6 @@ import tj.radolfa.application.readmodel.CategoryView;
 public interface SaveCategoryPort {
 
     CategoryView save(String name, String slug, Long parentId);
+
+    CategoryView update(Long id, String name, Long parentId);
 }

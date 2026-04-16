@@ -96,6 +96,20 @@ Logic (hooks, TanStack Query calls) lives in `features/` or `entities/`. The `ap
 
 ## Critical Constraints
 
+### Data Queries — Server-Side Only (Non-Negotiable)
+
+**Rule:** All search, filter, sort, and pagination on *any* list — products, orders, users, categories, blueprints, discounts, reviews, anything — must execute on the backend. The frontend sends `search`, `sort`, `page`, `size` as query params; the backend returns the already-filtered, already-sorted page.
+
+**Forbidden:** Calling `.filter()`, `.sort()`, `.slice()`, or `.find()` on a paginated API response's `content[]` to implement user-facing search, sort, or pagination. Even if the screen currently shows only a handful of rows, this is wrong because matches on other pages become invisiblesilently.
+
+**Why this matters:** Client-side filtering on a paginated response silently under-reports results. The user types a query, sees "no results", and believes the record does not exist — when it is actually on page 4. This is a **correctness bug**, not a performance concern.
+
+**No size exemption.** The rule holds even for a 10-item list today. "There are only 20 rows now" is not a valid reason — there will be 2000 rows later and the bug will surface silently in production.
+
+**Before writing any list UI:** verify the backend endpoint already accepts `search`, `sort`, `page`, `size` query params. If it does not, add them to the backend first (add a Flyway migration for an index if needed), then wire the frontend. Never wire the frontend first and compensate with client-side filtering.
+
+---
+
 ### Field Ownership
 
 | Fields | Owner | Consequence |

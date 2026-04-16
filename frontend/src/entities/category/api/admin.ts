@@ -12,6 +12,13 @@ export async function createCategory(
   return data;
 }
 
+export async function updateCategory(
+  id: number,
+  body: { name: string; parentId: number | null }
+): Promise<void> {
+  await apiClient.patch(`/api/v1/admin/categories/${id}`, body);
+}
+
 export async function deleteCategory(categoryId: number): Promise<void> {
   await apiClient.delete(`/api/v1/admin/categories/${categoryId}`);
 }

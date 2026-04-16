@@ -69,6 +69,15 @@ public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort, Dele
     }
 
     @Override
+    public CategoryView update(Long id, String name, Long parentId) {
+        CategoryEntity entity = categoryRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found: id=" + id));
+        entity.setName(name);
+        entity.setParent(parentId != null ? categoryRepo.getReferenceById(parentId) : null);
+        return toView(categoryRepo.save(entity));
+    }
+
+    @Override
     public void deleteById(Long categoryId) {
         boolean inUse = categoryRepo.existsProductBasesByCategoryId(categoryId);
         if (inUse) {

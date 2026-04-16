@@ -15,6 +15,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tj.radolfa.application.ports.in.CreateCategoryBlueprintUseCase;
 import tj.radolfa.application.ports.in.CreateCategoryBlueprintUseCase.Command;
 import tj.radolfa.application.ports.in.DeleteCategoryBlueprintUseCase;
+import tj.radolfa.application.ports.in.UpdateCategoryBlueprintUseCase;
 import tj.radolfa.domain.model.AttributeType;
 
 import java.net.URI;
@@ -27,13 +28,24 @@ import java.util.List;
 public class CategoryBlueprintManagementController {
 
     private final CreateCategoryBlueprintUseCase createBlueprintUseCase;
+    private final UpdateCategoryBlueprintUseCase updateBlueprintUseCase;
     private final DeleteCategoryBlueprintUseCase deleteBlueprintUseCase;
 
     public CategoryBlueprintManagementController(CreateCategoryBlueprintUseCase createBlueprintUseCase,
+                                                 UpdateCategoryBlueprintUseCase updateBlueprintUseCase,
                                                  DeleteCategoryBlueprintUseCase deleteBlueprintUseCase) {
         this.createBlueprintUseCase = createBlueprintUseCase;
+        this.updateBlueprintUseCase = updateBlueprintUseCase;
         this.deleteBlueprintUseCase = deleteBlueprintUseCase;
     }
+
+    record UpdateBlueprintRequest(
+            @NotBlank @Size(max = 128) String attributeKey,
+            @Size(max = 64) String unitName,
+            List<@NotBlank @Size(max = 256) String> allowedValues,
+            boolean required,
+            int sortOrder
+    ) {}
 
     record CreateBlueprintRequest(
             @NotBlank @Size(max = 128) String attributeKey,
@@ -68,6 +80,29 @@ public class CategoryBlueprintManagementController {
                 .toUri();
 
         return ResponseEntity.created(location).build();
+    }
+
+    @Operation(summary = "Update blueprint entry",
+               description = "Updates an existing blueprint entry. Type is immutable. ADMIN only.")
+    @ApiResponse(responseCode = "200", description = "Blueprint entry updated")
+    @ApiResponse(responseCode = "400", description = "Validation failed or attribute key conflict")
+    @ApiResponse(responseCode = "404", description = "Blueprint entry not found for this category")
+    @PatchMapping("/{blueprintId}")
+    public ResponseEntity<Void> updateBlueprint(
+            @Parameter(description = "Category ID") @PathVariable Long categoryId,
+            @Parameter(description = "Blueprint entry ID") @PathVariable Long blueprintId,
+            @Valid @RequestBody UpdateBlueprintRequest request) {
+
+        updateBlueprintUseCase.execute(new UpdateCategoryBlueprintUseCase.Command(
+                categoryId,
+                blueprintId,
+                request.attributeKey(),
+                request.unitName(),
+                request.allowedValues() != null ? request.allowedValues() : List.of(),
+                request.required(),
+                request.sortOrder()));
+
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Delete blueprint entry",

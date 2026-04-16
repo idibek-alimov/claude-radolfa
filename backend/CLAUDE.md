@@ -9,3 +9,7 @@
   - Use Java 21 `record` for DTOs. Domain models may be mutable classes when they have business behaviour (e.g. `Cart`, `Sku`).
   - Constructor injection only — no `@Autowired` on fields.
   - `@Transactional` belongs on the service layer, not on adapters (except `SaveCartPort`, `SaveProductHierarchyPort` which are called from multiple services).
+  - **List endpoints:** Every endpoint returning a list MUST accept `page`, `size`, `search`, and `sort` as query params and apply them inside the JPA Specification / Elasticsearch query — never return an unfiltered `List<T>` and let the caller trim it. Return Spring `Page<T>` (fields: `content`, `totalElements`, `totalPages`, `number`, `size`, `first`, `last`).
+  - **Search:** Apply case-insensitive `LIKE` / Elasticsearch `match` on the fields the UI exposes as searchable. Add a Flyway migration for a DB index if the column is not already indexed.
+  - **Sort:** Accept `sort=field,asc|desc` (Spring `Sort` convention). **Whitelist** sortable field names in the controller — never interpolate raw user input into JPQL or native SQL `ORDER BY` (SQL injection risk).
+  - **Why:** The frontend is forbidden from filtering `content[]` locally (see root `CLAUDE.md` and `frontend/CLAUDE.md`). If the backend does not implement search/sort, the feature is broken, not degraded.

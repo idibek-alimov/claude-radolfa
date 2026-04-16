@@ -3,6 +3,7 @@ import type {
   AdminBlueprintEntry,
   BlueprintEntryDto,
   CreateBlueprintEntryRequest,
+  UpdateBlueprintEntryRequest,
 } from "../model/types";
 
 export async function fetchBlueprint(
@@ -37,6 +38,21 @@ export async function createBlueprintEntry(
 ): Promise<void> {
   await apiClient.post(
     `/api/v1/admin/categories/${categoryId}/blueprint`,
+    body
+  );
+}
+
+/**
+ * PATCH /api/v1/admin/categories/{categoryId}/blueprint/{blueprintId} — ADMIN only.
+ * Type is immutable and must not be included in the request body.
+ */
+export async function updateBlueprintEntry(
+  categoryId: number,
+  blueprintId: number,
+  body: UpdateBlueprintEntryRequest
+): Promise<void> {
+  await apiClient.patch(
+    `/api/v1/admin/categories/${categoryId}/blueprint/${blueprintId}`,
     body
   );
 }

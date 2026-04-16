@@ -72,6 +72,8 @@ export interface CreateBlueprintEntryRequest {
   sortOrder: number;
 }
 
+export type UpdateBlueprintEntryRequest = Omit<CreateBlueprintEntryRequest, "type">;
+
 export interface Step1Errors {
   name?: string;
   categoryId?: string;

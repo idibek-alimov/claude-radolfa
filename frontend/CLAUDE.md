@@ -44,6 +44,29 @@ Logic (hooks, mutations, API calls) lives in `features/` or `entities/`, never i
   ```
   Read `err.response.data.message` for user-facing error toasts via `getErrorMessage()`.
 
+### Search, Sort, Filter — Never On The Client
+
+**Rule:** Do not call `.filter()`, `.sort()`, or `.slice()` on a paginated API response's `content[]` to implement search, sort, or filtering that the user controls. This applies to every list screen without exception — products, users, orders, categories, blueprints, discounts, reviews.
+
+**Correct pattern:** keep `search`, `sort`, and `page` in component state, pass them into the TanStack Query `queryKey` *and* the request params. The backend returns the already-filtered, already-sorted page:
+
+```ts
+const { data } = useQuery({
+  queryKey: ["users", page, search, sort],
+  queryFn: () => api.get("/admin/users", { params: { page, size, search, sort } }),
+});
+```
+
+Debounce text inputs (300 ms) before the value enters the query key. Reset `page` to 1 whenever `search` or `sort` changes.
+
+**Forbidden, even for "small" lists:** If data comes from a paginated endpoint, treat it as paginated — full stop. "There are only 20 rows" is not an exemption.
+
+**Render-only transforms are fine:** `content.map(...)` to render rows, or `content.find(r => r.id === selectedId)` to look up a row the user already clicked are not search/filter. The test: if the user *typed* something or *clicked a sort header*, it must produce a new backend request.
+
+**Why:** Filtering `response.content[]` on the client silently misses every match on pages 2+. The user sees "no results" when the record exists. This has already shipped as a bug once and must not ship again.
+
+---
+
 ### Pagination
 Backend is **1-based**. Frontend page state is also 1-based. Send page as-is (no subtraction):
 ```ts

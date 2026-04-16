@@ -1,73 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
-import { createBlueprintEntry } from "@/features/product-creation/api/blueprint";
-import type { CreateBlueprintEntryRequest } from "@/features/product-creation/model/types";
+import { updateBlueprintEntry } from "@/features/product-creation/api/blueprint";
+import type {
+  AdminBlueprintEntry,
+  UpdateBlueprintEntryRequest,
+} from "@/features/product-creation/model/types";
 import { getErrorMessage } from "@/shared/lib";
 import { BlueprintEntryForm, type BlueprintFormValue } from "./BlueprintEntryForm";
 
 interface Props {
+  entry: AdminBlueprintEntry;
   categoryId: number;
-  nextSortOrder: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const ENUM_TYPES = ["ENUM_SINGLE", "ENUM_MULTI"] as const;
 
-export function CreateBlueprintEntryDialog({ categoryId, nextSortOrder }: Props) {
-  const [open, setOpen] = useState(false);
+export function EditBlueprintEntryDialog({ entry, categoryId, open, onOpenChange }: Props) {
   const [formValue, setFormValue] = useState<BlueprintFormValue>({
-    attributeKey: "",
-    type: "TEXT",
-    unitName: "",
-    allowedValues: [],
-    required: false,
-    sortOrder: String(nextSortOrder),
+    attributeKey: entry.attributeKey,
+    type: entry.type,
+    unitName: entry.unitName ?? "",
+    allowedValues: entry.allowedValues,
+    required: entry.required,
+    sortOrder: String(entry.sortOrder),
   });
   const [newValueInput, setNewValueInput] = useState("");
   const qc = useQueryClient();
 
-  const isEnum = ENUM_TYPES.includes(formValue.type as (typeof ENUM_TYPES)[number]);
+  // Sync form when the entry prop changes (e.g. user opens edit for a different row)
+  useEffect(() => {
+    if (open) {
+      setFormValue({
+        attributeKey: entry.attributeKey,
+        type: entry.type,
+        unitName: entry.unitName ?? "",
+        allowedValues: entry.allowedValues,
+        required: entry.required,
+        sortOrder: String(entry.sortOrder),
+      });
+      setNewValueInput("");
+    }
+  }, [open, entry]);
 
-  function resetForm() {
-    setFormValue({
-      attributeKey: "",
-      type: "TEXT",
-      unitName: "",
-      allowedValues: [],
-      required: false,
-      sortOrder: String(nextSortOrder),
-    });
-    setNewValueInput("");
-  }
+  const isEnum = ENUM_TYPES.includes(formValue.type as (typeof ENUM_TYPES)[number]);
 
   const mutation = useMutation({
     mutationFn: () => {
-      const body: CreateBlueprintEntryRequest = {
+      const body: UpdateBlueprintEntryRequest = {
         attributeKey: formValue.attributeKey.trim(),
-        type: formValue.type,
         required: formValue.required,
-        sortOrder: parseInt(formValue.sortOrder, 10) || nextSortOrder,
+        sortOrder: parseInt(formValue.sortOrder, 10) || entry.sortOrder,
         ...(formValue.unitName.trim() && { unitName: formValue.unitName.trim() }),
-        ...(isEnum && formValue.allowedValues.length > 0 && { allowedValues: formValue.allowedValues }),
+        ...(isEnum && { allowedValues: formValue.allowedValues }),
       };
-      return createBlueprintEntry(categoryId, body);
+      return updateBlueprintEntry(categoryId, entry.id, body);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["blueprint-admin", categoryId] });
-      setOpen(false);
-      resetForm();
-      toast.success("Blueprint entry created");
+      onOpenChange(false);
+      toast.success(`"${formValue.attributeKey.trim()}" updated`);
     },
     onError: (err: unknown) => toast.error(getErrorMessage(err)),
   });
@@ -78,26 +81,14 @@ export function CreateBlueprintEntryDialog({ categoryId, nextSortOrder }: Props)
     !mutation.isPending;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        setOpen(v);
-        if (!v) resetForm();
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Add Entry
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New Blueprint Entry</DialogTitle>
+          <DialogTitle>Edit Blueprint Entry</DialogTitle>
         </DialogHeader>
 
         <BlueprintEntryForm
-          mode="create"
+          mode="edit"
           value={formValue}
           onChange={(patch) => setFormValue((prev) => ({ ...prev, ...patch }))}
           newValueInput={newValueInput}
@@ -109,7 +100,7 @@ export function CreateBlueprintEntryDialog({ categoryId, nextSortOrder }: Props)
           disabled={!canSubmit}
           onClick={() => mutation.mutate()}
         >
-          {mutation.isPending ? "Creating…" : "Create Entry"}
+          {mutation.isPending ? "Saving…" : "Save Changes"}
         </Button>
       </DialogContent>
     </Dialog>
