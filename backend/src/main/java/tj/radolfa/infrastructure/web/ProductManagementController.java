@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
+import tj.radolfa.application.ports.in.discount.FindCampaignsByProductUseCase;
 import tj.radolfa.application.ports.in.product.AddSkuToVariantUseCase;
 import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
@@ -62,6 +63,7 @@ public class ProductManagementController {
     private final UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase;
     private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
     private final GenericUploadImageUseCase genericUploadImageUseCase;
+    private final FindCampaignsByProductUseCase findCampaignsByProductUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
             GetProductCardUseCase getProductCardUseCase,
@@ -73,7 +75,8 @@ public class ProductManagementController {
             UpdateProductNameUseCase updateProductNameUseCase,
             UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
             UpdateProductCategoryUseCase updateProductCategoryUseCase,
-            GenericUploadImageUseCase genericUploadImageUseCase) {
+            GenericUploadImageUseCase genericUploadImageUseCase,
+            FindCampaignsByProductUseCase findCampaignsByProductUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.getProductCardUseCase = getProductCardUseCase;
         this.reorderVariantImagesUseCase = reorderVariantImagesUseCase;
@@ -85,6 +88,7 @@ public class ProductManagementController {
         this.updateSkuSizeLabelUseCase = updateSkuSizeLabelUseCase;
         this.updateProductCategoryUseCase = updateProductCategoryUseCase;
         this.genericUploadImageUseCase = genericUploadImageUseCase;
+        this.findCampaignsByProductUseCase = findCampaignsByProductUseCase;
     }
 
     /**
@@ -377,5 +381,21 @@ public class ProductManagementController {
 
         updateProductCategoryUseCase.execute(productBaseId, request.categoryId());
         return ResponseEntity.ok(MessageResponseDto.success("Product category updated successfully."));
+    }
+
+    @Operation(summary = "Get active campaigns for a product")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Campaign list returned"),
+            @ApiResponse(responseCode = "403", description = "Insufficient role")
+    })
+    @GetMapping("/products/{productBaseId}/campaigns")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<List<tj.radolfa.infrastructure.web.dto.CampaignSummaryResponse>> getProductCampaigns(
+            @PathVariable Long productBaseId) {
+        return ResponseEntity.ok(
+                findCampaignsByProductUseCase.execute(productBaseId).stream()
+                        .map(tj.radolfa.infrastructure.web.dto.CampaignSummaryResponse::fromDomain)
+                        .toList()
+        );
     }
 }

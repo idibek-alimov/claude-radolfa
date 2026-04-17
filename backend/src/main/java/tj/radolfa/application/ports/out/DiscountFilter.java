@@ -8,9 +8,9 @@ import java.time.LocalDate;
  *
  * <p>status values: ACTIVE, SCHEDULED, EXPIRED, DISABLED
  */
-public record DiscountFilter(Long typeId, String status, LocalDate from, LocalDate to) {
+public record DiscountFilter(Long typeId, String status, LocalDate from, LocalDate to, String search) {
 
     public static DiscountFilter empty() {
-        return new DiscountFilter(null, null, null, null);
+        return new DiscountFilter(null, null, null, null, null);
     }
 }

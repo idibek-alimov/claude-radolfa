@@ -1,6 +1,9 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,7 +22,10 @@ import tj.radolfa.infrastructure.persistence.repository.DiscountTypeRepository;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -49,6 +55,17 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
         return repository.findActiveDiscountsByItemCode(itemCode).stream()
                 .map(row -> mapper.toDomain((DiscountEntity) row[0]))
                 .toList();
+    }
+
+    @Override
+    public List<Discount> findActiveByItemCodes(Collection<String> itemCodes) {
+        if (itemCodes.isEmpty()) return List.of();
+        Map<Long, Discount> deduped = new LinkedHashMap<>();
+        for (Object[] row : repository.findActiveDiscountsByItemCodes(itemCodes)) {
+            DiscountEntity entity = (DiscountEntity) row[0];
+            deduped.putIfAbsent(entity.getId(), mapper.toDomain(entity));
+        }
+        return List.copyOf(deduped.values());
     }
 
     @Override
@@ -97,6 +114,11 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
         return mapper.toDomain(repository.save(entity));
     }
 
+    @Override
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
+
     // ---- Specification builder ----
 
     private Specification<DiscountEntity> buildSpec(DiscountFilter filter) {
@@ -115,6 +137,22 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
             if (filter.to() != null) {
                 Instant toInstant = filter.to().atTime(23, 59, 59).atOffset(ZoneOffset.UTC).toInstant();
                 predicates.add(cb.lessThanOrEqualTo(root.get("validUpto"), toInstant));
+            }
+
+            if (filter.search() != null && !filter.search().isBlank()) {
+                String pattern = "%" + filter.search().toLowerCase() + "%";
+                Predicate titlePred = cb.like(cb.lower(root.get("title")), pattern);
+
+                Subquery<Long> sub = query.subquery(Long.class);
+                Root<DiscountEntity> subRoot = sub.from(DiscountEntity.class);
+                Join<DiscountEntity, String> codeJoin = subRoot.join("itemCodes");
+                sub.select(subRoot.get("id"))
+                        .where(cb.and(
+                                cb.equal(subRoot.get("id"), root.get("id")),
+                                cb.like(cb.lower(codeJoin), pattern)
+                        ));
+                Predicate codePred = cb.exists(sub);
+                predicates.add(cb.or(titlePred, codePred));
             }
 
             if (filter.status() != null) {

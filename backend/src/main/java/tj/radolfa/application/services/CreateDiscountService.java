@@ -63,7 +63,7 @@ public class CreateDiscountService implements CreateDiscountUseCase {
 
     void validateNoConflict(Long typeId, List<String> itemCodes,
                             Instant validFrom, Instant validUpto, Long excludeId) {
-        DiscountFilter filter = new DiscountFilter(typeId, null, null, null);
+        DiscountFilter filter = new DiscountFilter(typeId, null, null, null, null);
         loadDiscountPort.findAll(filter, Pageable.unpaged())
                 .forEach(existing -> {
                     if (excludeId != null && excludeId.equals(existing.id())) return;
