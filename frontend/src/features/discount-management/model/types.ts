@@ -32,9 +32,11 @@ export interface DiscountFormValues {
 /** Filters for the paginated discount list */
 export interface DiscountListFilters {
   typeId?: number;
-  status?: "active" | "disabled" | "all";
+  status?: "active" | "scheduled" | "expired" | "disabled" | "all";
   from?: string;
   to?: string;
+  search?: string;
+  sort?: string; // Spring convention: "field,asc" | "field,desc"
   page: number;
   size: number;
 }

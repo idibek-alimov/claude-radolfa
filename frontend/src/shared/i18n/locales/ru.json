@@ -418,5 +418,30 @@
       "reviews": "Оценки",
       "questions": "Вопросы"
     }
+  },
+  "discount": {
+    "status": {
+      "active": "Активна",
+      "scheduled": "Запланирована",
+      "expired": "Истекла",
+      "disabled": "Отключена"
+    },
+    "bulk": {
+      "selected": "{count} выбрано",
+      "enable": "Включить",
+      "disable": "Отключить",
+      "duplicate": "Дублировать",
+      "delete": "Удалить",
+      "enabled": "Включено {count} акций",
+      "disabled": "Отключено {count} акций",
+      "duplicated": "Дублировано {count} акций",
+      "deleted": "Удалено {count} акций",
+      "confirmDelete": {
+        "title": "Удалить {count} акций?",
+        "body": "Это действие нельзя отменить. Акции: {titles}",
+        "confirm": "Удалить",
+        "cancel": "Отмена"
+      }
+    }
   }
 }

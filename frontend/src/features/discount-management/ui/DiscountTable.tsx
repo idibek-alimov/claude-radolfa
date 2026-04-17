@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Table,
@@ -13,6 +13,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Checkbox } from "@/shared/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -27,7 +28,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { fetchDiscounts, fetchDiscountTypes, enableDiscount, disableDiscount } from "../api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/ui/alert-dialog";
+import {
+  fetchDiscounts,
+  fetchDiscountTypes,
+  enableDiscount,
+  disableDiscount,
+  bulkEnableDiscounts,
+  bulkDisableDiscounts,
+  bulkDeleteDiscounts,
+  bulkDuplicateDiscounts,
+} from "../api";
 import type { DiscountListFilters, DiscountResponse } from "../model/types";
 import { getErrorMessage, useDynamicPageSize } from "@/shared/lib";
 import { toast } from "sonner";
@@ -48,20 +68,14 @@ import {
   CheckCircle2,
   XCircle,
   Calendar,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/shared/lib";
 
 
-// ── Status derivation ─────────────────────────────────────────────
+// ── Status derivation (badge rendering only — no filtering) ───────────────────
 
 type DerivedStatus = "active" | "scheduled" | "expired" | "disabled";
-
-const STATUS_ORDER: Record<DerivedStatus, number> = {
-  active: 0,
-  scheduled: 1,
-  expired: 2,
-  disabled: 3,
-};
 
 function getStatus(d: DiscountResponse): DerivedStatus {
   if (d.disabled) return "disabled";
@@ -71,56 +85,16 @@ function getStatus(d: DiscountResponse): DerivedStatus {
   return "active";
 }
 
-// ── Sort ──────────────────────────────────────────────────────────
+// ── Sort (server-side keys only — title, discountValue, validFrom, validUpto) ──
 
-type SortKey =
-  | "title"
-  | "type"
-  | "discountValue"
-  | "validFrom"
-  | "validUpto"
-  | "itemCodes"
-  | "status";
+type SortKey = "title" | "discountValue" | "validFrom" | "validUpto";
 
 interface Sort {
   key: SortKey;
   dir: "asc" | "desc";
 }
 
-function sortItems(items: DiscountResponse[], sort: Sort | null): DiscountResponse[] {
-  if (!sort) return items;
-  const { key, dir } = sort;
-  const mul = dir === "asc" ? 1 : -1;
-  return [...items].sort((a, b) => {
-    let cmp = 0;
-    switch (key) {
-      case "title":
-        cmp = a.title.localeCompare(b.title);
-        break;
-      case "type":
-        cmp = a.type.name.localeCompare(b.type.name);
-        break;
-      case "discountValue":
-        cmp = a.discountValue - b.discountValue;
-        break;
-      case "validFrom":
-        cmp = new Date(a.validFrom).getTime() - new Date(b.validFrom).getTime();
-        break;
-      case "validUpto":
-        cmp = new Date(a.validUpto).getTime() - new Date(b.validUpto).getTime();
-        break;
-      case "itemCodes":
-        cmp = a.itemCodes.length - b.itemCodes.length;
-        break;
-      case "status":
-        cmp = STATUS_ORDER[getStatus(a)] - STATUS_ORDER[getStatus(b)];
-        break;
-    }
-    return cmp * mul;
-  });
-}
-
-// ── SortableHeader ────────────────────────────────────────────────
+// ── SortableHeader ────────────────────────────────────────────────────────────
 
 function SortableHeader({
   label,
@@ -167,35 +141,31 @@ function SortableHeader({
   );
 }
 
-// ── StatusBadge ───────────────────────────────────────────────────
+// ── StatusBadge ───────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<
   DerivedStatus,
-  { label: string; dotClass: string; textClass: string; Icon: React.ElementType }
+  { label: string; dotClass: string; textClass: string }
 > = {
   active: {
     label: "Active",
     dotClass: "bg-green-500",
     textClass: "text-green-600 dark:text-green-400",
-    Icon: CheckCircle2,
   },
   scheduled: {
     label: "Scheduled",
     dotClass: "bg-blue-500",
     textClass: "text-blue-600 dark:text-blue-400",
-    Icon: Calendar,
   },
   expired: {
     label: "Expired",
     dotClass: "bg-orange-500",
     textClass: "text-orange-600 dark:text-orange-400",
-    Icon: Clock,
   },
   disabled: {
     label: "Disabled",
     dotClass: "bg-muted-foreground/50",
     textClass: "text-muted-foreground",
-    Icon: XCircle,
   },
 };
 
@@ -210,7 +180,7 @@ function StatusBadge({ discount }: { discount: DiscountResponse }) {
   );
 }
 
-// ── SkuCodesPopover ───────────────────────────────────────────────
+// ── SkuCodesPopover ───────────────────────────────────────────────────────────
 
 function SkuCodesPopover({ codes }: { codes: string[] }) {
   const [open, setOpen] = useState(false);
@@ -245,7 +215,7 @@ function SkuCodesPopover({ codes }: { codes: string[] }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────────
 
 interface DiscountTableProps {
   onEdit: (discount: DiscountResponse) => void;
@@ -265,11 +235,18 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sort, setSort] = useState<Sort | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     setFilters((f) => ({ ...f, page: 1, size: pageSize }));
   }, [pageSize]);
+
+  // Clear selection on any filter/search/sort change to avoid stale IDs
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [filters, debouncedSearch, sort]);
 
   const qc = useQueryClient();
 
@@ -279,7 +256,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     debounceRef.current = setTimeout(() => {
       setDebouncedSearch(value.trim());
       setFilters((f) => ({ ...f, page: 1 }));
-    }, 250);
+    }, 300);
   }, []);
 
   const handleSort = useCallback((key: SortKey) => {
@@ -288,7 +265,10 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
         ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
         : { key, dir: "asc" }
     );
+    setFilters((f) => ({ ...f, page: 1 }));
   }, []);
+
+  const sortParam = sort ? `${sort.key},${sort.dir}` : undefined;
 
   const { data: types = [] } = useQuery({
     queryKey: ["discount-types"],
@@ -296,10 +276,17 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
   });
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["discounts", filters],
-    queryFn: () => fetchDiscounts(filters),
+    queryKey: ["discounts", filters, debouncedSearch, sortParam],
+    queryFn: () =>
+      fetchDiscounts({
+        ...filters,
+        search: debouncedSearch || undefined,
+        sort: sortParam,
+      }),
     placeholderData: keepPreviousData,
   });
+
+  const rows = data?.content ?? [];
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, disabled }: { id: number; disabled: boolean }) =>
@@ -307,6 +294,87 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     onSuccess: () => qc.invalidateQueries({ queryKey: ["discounts"] }),
     onError: (err) => toast.error(getErrorMessage(err)),
   });
+
+  // ── Selection helpers ─────────────────────────────────────────────
+
+  const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const someSelected = !allSelected && rows.some((r) => selectedIds.has(r.id));
+
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) {
+        rows.forEach((r) => next.delete(r.id));
+      } else {
+        rows.forEach((r) => next.add(r.id));
+      }
+      return next;
+    });
+  };
+
+  const toggleRow = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // ── Bulk action handlers ──────────────────────────────────────────
+
+  const selectedList = Array.from(selectedIds);
+
+  const handleBulkEnable = async () => {
+    try {
+      const { affected } = await bulkEnableDiscounts(selectedList);
+      toast.success(`Enabled ${affected} campaign${affected !== 1 ? "s" : ""}`);
+      qc.invalidateQueries({ queryKey: ["discounts"] });
+      setSelectedIds(new Set());
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  const handleBulkDisable = async () => {
+    try {
+      const { affected } = await bulkDisableDiscounts(selectedList);
+      toast.success(`Disabled ${affected} campaign${affected !== 1 ? "s" : ""}`);
+      qc.invalidateQueries({ queryKey: ["discounts"] });
+      setSelectedIds(new Set());
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const { affected } = await bulkDeleteDiscounts(selectedList);
+      toast.success(`Deleted ${affected} campaign${affected !== 1 ? "s" : ""}`);
+      qc.invalidateQueries({ queryKey: ["discounts"] });
+      setSelectedIds(new Set());
+      setDeleteDialogOpen(false);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  const handleBulkDuplicate = async () => {
+    try {
+      const result = await bulkDuplicateDiscounts(selectedList);
+      toast.success(`Duplicated ${result.length} campaign${result.length !== 1 ? "s" : ""}`);
+      qc.invalidateQueries({ queryKey: ["discounts"] });
+      setSelectedIds(new Set());
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  // Titles of selected rows on the current page (for delete confirmation)
+  const selectedTitles = rows.filter((r) => selectedIds.has(r.id)).map((r) => r.title);
+  const deletePreview =
+    selectedTitles.slice(0, 3).map((t) => `"${t}"`).join(", ") +
+    (selectedTitles.length > 3 ? ` +${selectedTitles.length - 3} more` : "");
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString(undefined, {
@@ -322,21 +390,11 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     return days > 0 ? `${days}d` : "—";
   };
 
-  const visible = useMemo(() => {
-    const items = data?.content ?? [];
-    const filtered = debouncedSearch
-      ? items.filter((d) =>
-          d.title.toLowerCase().includes(debouncedSearch.toLowerCase())
-        )
-      : items;
-    return sortItems(filtered, sort);
-  }, [data?.content, debouncedSearch, sort]);
-
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-4">
-      {/* Toolbar */}
+      {/* Filters toolbar */}
       <div className="flex flex-wrap items-end gap-3">
-        {/* Text search */}
+        {/* Text search — sent server-side after 300 ms debounce */}
         <div className="relative min-w-[180px] flex-1 max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
@@ -374,7 +432,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
           </Select>
         </div>
 
-        {/* Status filter */}
+        {/* Status filter — all four statuses resolved server-side */}
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Status</label>
           <Select
@@ -393,6 +451,8 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="expired">Expired</SelectItem>
               <SelectItem value="disabled">Disabled</SelectItem>
             </SelectContent>
           </Select>
@@ -403,6 +463,60 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
           New Campaign
         </Button>
       </div>
+
+      {/* Bulk actions toolbar — visible only when rows are selected */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-2">
+          <span className="text-sm text-muted-foreground">
+            {selectedIds.size} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleBulkEnable}>
+              <Power className="h-3.5 w-3.5 mr-1.5" />
+              Enable
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleBulkDisable}>
+              <PowerOff className="h-3.5 w-3.5 mr-1.5" />
+              Disable
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleBulkDuplicate}>
+              <Copy className="h-3.5 w-3.5 mr-1.5" />
+              Duplicate
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {selectedIds.size} campaign{selectedIds.size !== 1 ? "s" : ""}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This cannot be undone. Campaigns: {deletePreview}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleBulkDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Table */}
       <div
@@ -422,11 +536,19 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="pl-4 min-w-[180px]">
+                {/* Master select checkbox */}
+                <TableHead className="pl-4 w-10">
+                  <Checkbox
+                    checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                    onCheckedChange={toggleAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
+                <TableHead className="min-w-[180px]">
                   <SortableHeader label="Campaign" sortKey="title" sort={sort} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="min-w-[120px]">
-                  <SortableHeader label="Type" sortKey="type" sort={sort} onSort={handleSort} />
+                <TableHead className="min-w-[120px] text-xs font-medium text-muted-foreground whitespace-nowrap">
+                  Type
                 </TableHead>
                 <TableHead className="min-w-[90px]">
                   <SortableHeader label="Discount" sortKey="discountValue" sort={sort} onSort={handleSort} />
@@ -440,20 +562,29 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
                 <TableHead className="min-w-[80px] text-xs font-medium text-muted-foreground whitespace-nowrap">
                   Duration
                 </TableHead>
-                <TableHead className="min-w-[80px]">
-                  <SortableHeader label="SKUs" sortKey="itemCodes" sort={sort} onSort={handleSort} />
+                <TableHead className="min-w-[80px] text-xs font-medium text-muted-foreground">
+                  SKUs
                 </TableHead>
-                <TableHead className="min-w-[100px]">
-                  <SortableHeader label="Status" sortKey="status" sort={sort} onSort={handleSort} />
+                <TableHead className="min-w-[100px] text-xs font-medium text-muted-foreground">
+                  Status
                 </TableHead>
                 <TableHead className="pr-4 min-w-[52px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visible.map((d) => (
-                <TableRow key={d.id}>
-                  {/* Campaign — colored title pill */}
+              {rows.map((d) => (
+                <TableRow key={d.id} data-selected={selectedIds.has(d.id)}>
+                  {/* Row checkbox */}
                   <TableCell className="pl-4">
+                    <Checkbox
+                      checked={selectedIds.has(d.id)}
+                      onCheckedChange={() => toggleRow(d.id)}
+                      aria-label={`Select ${d.title}`}
+                    />
+                  </TableCell>
+
+                  {/* Campaign — colored title pill */}
+                  <TableCell>
                     <span
                       className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-white max-w-[180px] truncate"
                       style={{ backgroundColor: `#${d.colorHex}` }}
@@ -462,7 +593,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
                     </span>
                   </TableCell>
 
-                  {/* Type — muted chip */}
+                  {/* Type */}
                   <TableCell>
                     <span className="inline-block rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                       {d.type.name}
@@ -501,7 +632,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
                     <StatusBadge discount={d} />
                   </TableCell>
 
-                  {/* Actions */}
+                  {/* Row actions */}
                   <TableCell className="text-right pr-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -548,7 +679,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
           </Table>
         )}
 
-        {!isLoading && visible.length === 0 && (
+        {!isLoading && rows.length === 0 && (
           <div className="p-12 text-center text-muted-foreground">
             {debouncedSearch
               ? `No campaigns matching "${debouncedSearch}".`

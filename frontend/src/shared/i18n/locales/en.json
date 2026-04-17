@@ -418,5 +418,30 @@
       "reviews": "Reviews",
       "questions": "Questions"
     }
+  },
+  "discount": {
+    "status": {
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "expired": "Expired",
+      "disabled": "Disabled"
+    },
+    "bulk": {
+      "selected": "{count} selected",
+      "enable": "Enable",
+      "disable": "Disable",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "enabled": "Enabled {count} campaigns",
+      "disabled": "Disabled {count} campaigns",
+      "duplicated": "Duplicated {count} campaigns",
+      "deleted": "Deleted {count} campaigns",
+      "confirmDelete": {
+        "title": "Delete {count} campaigns?",
+        "body": "This cannot be undone. Campaigns: {titles}",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    }
   }
 }

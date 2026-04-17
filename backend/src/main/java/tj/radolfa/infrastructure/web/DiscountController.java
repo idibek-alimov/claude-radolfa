@@ -3,7 +3,9 @@ package tj.radolfa.infrastructure.web;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/admin/discounts")
@@ -55,6 +58,17 @@ public class DiscountController {
         this.bulkDuplicateDiscountUseCase = bulkDuplicateDiscountUseCase;
     }
 
+    private static final Set<String> ALLOWED_SORT = Set.of(
+            "id", "title", "discountValue", "validFrom", "validUpto");
+
+    private Pageable sanitize(Pageable pageable) {
+        Sort filtered = Sort.by(pageable.getSort().stream()
+                .filter(o -> ALLOWED_SORT.contains(o.getProperty()))
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                filtered.isEmpty() ? Sort.by("id") : filtered);
+    }
+
     // ---- Campaign list ----
 
     @GetMapping
@@ -68,7 +82,7 @@ public class DiscountController {
             @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
         DiscountFilter filter = new DiscountFilter(typeId, status, from, to, search);
-        return loadDiscountPort.findAll(filter, pageable).map(DiscountResponse::fromDomain);
+        return loadDiscountPort.findAll(filter, sanitize(pageable)).map(DiscountResponse::fromDomain);
     }
 
     @GetMapping("/{id}")

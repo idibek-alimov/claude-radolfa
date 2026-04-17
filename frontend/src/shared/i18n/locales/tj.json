@@ -418,5 +418,30 @@
       "reviews": "Баҳоҳо",
       "questions": "Саволҳо"
     }
+  },
+  "discount": {
+    "status": {
+      "active": "Фаъол",
+      "scheduled": "Барнома",
+      "expired": "Мӯҳлаташ гузашт",
+      "disabled": "Хомӯш"
+    },
+    "bulk": {
+      "selected": "{count} интихоб шуд",
+      "enable": "Фаъол кардан",
+      "disable": "Хомӯш кардан",
+      "duplicate": "Нусха бардоштан",
+      "delete": "Нест кардан",
+      "enabled": "{count} акция фаъол шуд",
+      "disabled": "{count} акция хомӯш шуд",
+      "duplicated": "{count} акция нусха шуд",
+      "deleted": "{count} акция нест шуд",
+      "confirmDelete": {
+        "title": "{count} акцияро нест кунем?",
+        "body": "Ин амалро лағв кардан мумкин нест. Акцияҳо: {titles}",
+        "confirm": "Нест кардан",
+        "cancel": "Бекор кардан"
+      }
+    }
   }
 }

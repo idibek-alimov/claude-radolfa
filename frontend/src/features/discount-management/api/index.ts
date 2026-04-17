@@ -51,7 +51,7 @@ export async function deleteDiscountType(id: number): Promise<void> {
 export async function fetchDiscounts(
   filters: DiscountListFilters
 ): Promise<PaginatedResponse<DiscountResponse>> {
-  const { typeId, status, from, to, page, size } = filters;
+  const { typeId, status, from, to, search, sort, page, size } = filters;
   const response = await apiClient.get<PaginatedResponse<DiscountResponse>>(
     "/api/v1/admin/discounts",
     {
@@ -60,6 +60,8 @@ export async function fetchDiscounts(
         ...(status && status !== "all" && { status: status.toUpperCase() }),
         ...(from && { from }),
         ...(to && { to }),
+        ...(search && { search }),
+        ...(sort && { sort }),
         page,
         size,
       },
@@ -102,4 +104,50 @@ export async function disableDiscount(id: number): Promise<void> {
 /** PATCH /api/v1/admin/discounts/{id}/enable — MANAGER+ */
 export async function enableDiscount(id: number): Promise<void> {
   await apiClient.patch(`/api/v1/admin/discounts/${id}/enable`);
+}
+
+// ── Bulk operations ───────────────────────────────────────────────
+
+/** PATCH /api/v1/admin/discounts/bulk/enable — MANAGER+ */
+export async function bulkEnableDiscounts(
+  ids: number[]
+): Promise<{ affected: number }> {
+  const response = await apiClient.patch<{ affected: number }>(
+    "/api/v1/admin/discounts/bulk/enable",
+    { ids }
+  );
+  return response.data;
+}
+
+/** PATCH /api/v1/admin/discounts/bulk/disable — MANAGER+ */
+export async function bulkDisableDiscounts(
+  ids: number[]
+): Promise<{ affected: number }> {
+  const response = await apiClient.patch<{ affected: number }>(
+    "/api/v1/admin/discounts/bulk/disable",
+    { ids }
+  );
+  return response.data;
+}
+
+/** DELETE /api/v1/admin/discounts/bulk — MANAGER+ (body: { ids }) */
+export async function bulkDeleteDiscounts(
+  ids: number[]
+): Promise<{ affected: number }> {
+  const response = await apiClient.delete<{ affected: number }>(
+    "/api/v1/admin/discounts/bulk",
+    { data: { ids } }
+  );
+  return response.data;
+}
+
+/** POST /api/v1/admin/discounts/bulk/duplicate — MANAGER+ */
+export async function bulkDuplicateDiscounts(
+  ids: number[]
+): Promise<DiscountResponse[]> {
+  const response = await apiClient.post<DiscountResponse[]>(
+    "/api/v1/admin/discounts/bulk/duplicate",
+    { ids }
+  );
+  return response.data;
 }
