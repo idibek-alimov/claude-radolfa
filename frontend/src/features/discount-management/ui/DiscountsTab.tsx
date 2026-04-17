@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { DiscountTable } from "./DiscountTable";
 import { DiscountTypesPanel } from "./DiscountTypesPanel";
+import { DiscountedProductsTable } from "./DiscountedProductsTable";
 import type { DiscountResponse } from "../model/types";
-import { LayoutGrid, Tag } from "lucide-react";
+import { LayoutGrid, Tag, Package } from "lucide-react";
 
 export function DiscountsTab() {
   const router = useRouter();
@@ -37,6 +38,13 @@ export function DiscountsTab() {
             <Tag className="h-3.5 w-3.5" />
             Types
           </TabsTrigger>
+          <TabsTrigger
+            value="products"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-2.5 pt-0.5 px-4 text-sm gap-1.5 -mb-px"
+          >
+            <Package className="h-3.5 w-3.5" />
+            Discounted Products
+          </TabsTrigger>
         </TabsList>
       </div>
 
@@ -50,6 +58,10 @@ export function DiscountsTab() {
 
       <TabsContent value="types" className="mt-0">
         <DiscountTypesPanel />
+      </TabsContent>
+
+      <TabsContent value="products" className="mt-0 flex flex-col flex-1 min-h-0">
+        <DiscountedProductsTable />
       </TabsContent>
     </Tabs>
   );

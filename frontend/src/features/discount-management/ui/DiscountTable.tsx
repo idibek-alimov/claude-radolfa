@@ -64,13 +64,10 @@ import {
   PowerOff,
   Power,
   Search,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Calendar,
   Trash2,
 } from "lucide-react";
 import { cn } from "@/shared/lib";
+import { CampaignSkuDrawer } from "./CampaignSkuDrawer";
 
 
 // ── Status derivation (badge rendering only — no filtering) ───────────────────
@@ -180,41 +177,6 @@ function StatusBadge({ discount }: { discount: DiscountResponse }) {
   );
 }
 
-// ── SkuCodesPopover ───────────────────────────────────────────────────────────
-
-function SkuCodesPopover({ codes }: { codes: string[] }) {
-  const [open, setOpen] = useState(false);
-  const preview = codes.slice(0, 5);
-  const remaining = codes.length - preview.length;
-
-  return (
-    <div className="relative">
-      <button
-        className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors tabular-nums"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {codes.length} SKU{codes.length !== 1 ? "s" : ""}
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute z-20 left-0 top-full mt-1 min-w-[180px] rounded-lg border border-border bg-popover shadow-md p-3 space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground mb-2">SKU codes</p>
-            {preview.map((code) => (
-              <p key={code} className="text-xs font-mono text-foreground">
-                {code}
-              </p>
-            ))}
-            {remaining > 0 && (
-              <p className="text-xs text-muted-foreground">+{remaining} more…</p>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface DiscountTableProps {
@@ -237,6 +199,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
   const [sort, setSort] = useState<Sort | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [drawerCampaignId, setDrawerCampaignId] = useState<number | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
@@ -622,9 +585,17 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
                     {getDuration(d.validFrom, d.validUpto)}
                   </TableCell>
 
-                  {/* SKUs */}
+                  {/* SKUs — opens side drawer */}
                   <TableCell>
-                    <SkuCodesPopover codes={d.itemCodes} />
+                    <button
+                      className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors tabular-nums"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDrawerCampaignId(d.id);
+                      }}
+                    >
+                      {d.itemCodes.length} SKU{d.itemCodes.length !== 1 ? "s" : ""}
+                    </button>
                   </TableCell>
 
                   {/* Status */}
@@ -717,6 +688,12 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
           </div>
         </div>
       )}
+
+      {/* SKU detail drawer — controlled by row chip clicks */}
+      <CampaignSkuDrawer
+        campaignId={drawerCampaignId}
+        onOpenChange={(open) => !open && setDrawerCampaignId(null)}
+      />
     </div>
   );
 }

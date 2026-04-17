@@ -442,6 +442,33 @@
         "confirm": "Удалить",
         "cancel": "Отмена"
       }
+    },
+    "tab": {
+      "products": "Акционные товары"
+    },
+    "drawer": {
+      "title": "SKU кампании",
+      "searchPlaceholder": "Поиск по SKU или товару…",
+      "empty": "В этой кампании нет SKU."
+    },
+    "products": {
+      "searchPlaceholder": "Поиск по SKU или товару…",
+      "campaignFilter": "Кампания",
+      "deltaMin": "Мин %",
+      "deltaMax": "Макс %",
+      "empty": "Акционные товары не найдены.",
+      "total": "{count} товаров со скидкой",
+      "columns": {
+        "image": "Изображение",
+        "product": "Товар",
+        "sku": "Код SKU",
+        "size": "Размер",
+        "price": "Цена",
+        "delta": "Δ%",
+        "winner": "Выигрышная кампания",
+        "other": "Другие кампании",
+        "stock": "Остаток"
+      }
     }
   }
 }

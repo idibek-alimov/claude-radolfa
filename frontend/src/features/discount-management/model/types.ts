@@ -46,3 +46,48 @@ export interface DiscountTypeFormValues {
   name: string;
   rank: number;
 }
+
+/** Lightweight campaign summary embedded in discounted-product rows. */
+export interface CampaignSummary {
+  id: number;
+  title: string;
+  colorHex: string;
+  discountValue: number;
+  type: DiscountType;
+}
+
+/** One row in the Discounted Products cross-campaign table. */
+export interface DiscountedProductRow {
+  skuId: number;
+  skuCode: string;
+  sizeLabel: string;
+  stockQuantity: number;
+  originalPrice: number;
+  finalPrice: number;
+  deltaPercent: number;
+  winningCampaign: CampaignSummary;
+  otherCampaigns: CampaignSummary[];
+  productBaseId: number;
+  productName: string;
+  variantId: number;
+  productCode: string;
+  imageUrl: string;
+}
+
+/** Filters for GET /api/v1/admin/discounts/products */
+export interface DiscountedProductFilters {
+  search?: string;
+  campaignId?: number;
+  minDeltaPercent?: number;
+  maxDeltaPercent?: number;
+  sort?: string;
+  page: number;
+  size: number;
+}
+
+/** Filters for GET /api/v1/admin/discounts/{id}/skus */
+export interface CampaignSkuFilters {
+  search?: string;
+  page: number;
+  size: number;
+}

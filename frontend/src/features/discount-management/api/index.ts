@@ -5,6 +5,9 @@ import type {
   DiscountListFilters,
   DiscountType,
   DiscountTypeFormValues,
+  DiscountedProductRow,
+  DiscountedProductFilters,
+  CampaignSkuFilters,
 } from "../model/types";
 import type { PaginatedResponse } from "@/shared/api/types";
 
@@ -148,6 +151,49 @@ export async function bulkDuplicateDiscounts(
   const response = await apiClient.post<DiscountResponse[]>(
     "/api/v1/admin/discounts/bulk/duplicate",
     { ids }
+  );
+  return response.data;
+}
+
+// ── Discounted products ───────────────────────────────────────────
+
+/** GET /api/v1/admin/discounts/products — paginated, server-side search/filter/sort */
+export async function fetchDiscountedProducts(
+  filters: DiscountedProductFilters
+): Promise<PaginatedResponse<DiscountedProductRow>> {
+  const { search, campaignId, minDeltaPercent, maxDeltaPercent, sort, page, size } = filters;
+  const response = await apiClient.get<PaginatedResponse<DiscountedProductRow>>(
+    "/api/v1/admin/discounts/products",
+    {
+      params: {
+        ...(search && { search }),
+        ...(campaignId !== undefined && { campaignId }),
+        ...(minDeltaPercent !== undefined && { minDeltaPercent }),
+        ...(maxDeltaPercent !== undefined && { maxDeltaPercent }),
+        ...(sort && { sort }),
+        page,
+        size,
+      },
+    }
+  );
+  return response.data;
+}
+
+/** GET /api/v1/admin/discounts/{id}/skus — paginated SKUs for one campaign, with search */
+export async function fetchCampaignSkus(
+  campaignId: number,
+  filters: CampaignSkuFilters
+): Promise<PaginatedResponse<DiscountedProductRow>> {
+  const { search, page, size } = filters;
+  const response = await apiClient.get<PaginatedResponse<DiscountedProductRow>>(
+    `/api/v1/admin/discounts/${campaignId}/skus`,
+    {
+      params: {
+        ...(search && { search }),
+        page,
+        size,
+      },
+    }
   );
   return response.data;
 }

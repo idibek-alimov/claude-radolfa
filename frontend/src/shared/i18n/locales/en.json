@@ -442,6 +442,33 @@
         "confirm": "Delete",
         "cancel": "Cancel"
       }
+    },
+    "tab": {
+      "products": "Discounted Products"
+    },
+    "drawer": {
+      "title": "Campaign SKUs",
+      "searchPlaceholder": "Search by SKU or product…",
+      "empty": "No SKUs in this campaign."
+    },
+    "products": {
+      "searchPlaceholder": "Search by SKU or product…",
+      "campaignFilter": "Campaign",
+      "deltaMin": "Min %",
+      "deltaMax": "Max %",
+      "empty": "No discounted products found.",
+      "total": "{count} products discounted",
+      "columns": {
+        "image": "Image",
+        "product": "Product",
+        "sku": "SKU code",
+        "size": "Size",
+        "price": "Price",
+        "delta": "Δ%",
+        "winner": "Winning campaign",
+        "other": "Other campaigns",
+        "stock": "Stock"
+      }
     }
   }
 }
