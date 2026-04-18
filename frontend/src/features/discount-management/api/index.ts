@@ -9,6 +9,7 @@ import type {
   DiscountedProductFilters,
   CampaignSkuFilters,
   DiscountOverlapRow,
+  CampaignSummary,
 } from "../model/types";
 import type { PaginatedResponse } from "@/shared/api/types";
 
@@ -203,4 +204,14 @@ export async function fetchCampaignSkus(
     }
   );
   return response.data;
+}
+
+/** GET /api/v1/admin/products/{productBaseId}/campaigns — MANAGER+ */
+export async function fetchProductCampaigns(
+  productBaseId: number
+): Promise<CampaignSummary[]> {
+  const { data } = await apiClient.get<CampaignSummary[]>(
+    `/api/v1/admin/products/${productBaseId}/campaigns`
+  );
+  return data;
 }

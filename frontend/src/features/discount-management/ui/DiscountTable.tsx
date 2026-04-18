@@ -73,6 +73,7 @@ import {
   Search,
   Trash2,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { CampaignSkuDrawer } from "./CampaignSkuDrawer";
@@ -191,9 +192,11 @@ interface DiscountTableProps {
   onEdit: (discount: DiscountResponse) => void;
   onNew: () => void;
   onDuplicate: (discount: DiscountResponse) => void;
+  externalDateFilter?: string | null; // "YYYY-MM-DD" — scopes list to that day
+  onClearDateFilter?: () => void;
 }
 
-export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps) {
+export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, onClearDateFilter }: DiscountTableProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const pageSize = useDynamicPageSize(cardRef, 49);
 
@@ -246,13 +249,21 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     queryFn: fetchDiscountTypes,
   });
 
+  // When an external date is selected by the calendar, scope the query to that day
+  const externalFrom = externalDateFilter ? `${externalDateFilter}T00:00:00.000Z` : undefined;
+  const externalTo = externalDateFilter
+    ? new Date(new Date(externalFrom!).getTime() + 86_400_000).toISOString()
+    : undefined;
+
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["discounts", filters, debouncedSearch, sortParam],
+    queryKey: ["discounts", filters, debouncedSearch, sortParam, externalDateFilter],
     queryFn: () =>
       fetchDiscounts({
         ...filters,
         search: debouncedSearch || undefined,
         sort: sortParam,
+        from: externalFrom ?? filters.from,
+        to: externalTo ?? filters.to,
       }),
     placeholderData: keepPreviousData,
   });
@@ -392,6 +403,27 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
   return (
     <TooltipProvider delayDuration={200}>
     <div className="flex flex-col flex-1 min-h-0 gap-4">
+      {/* External date filter chip */}
+      {externalDateFilter && (
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+            Filtering by{" "}
+            {new Date(externalDateFilter + "T12:00:00").toLocaleDateString(undefined, {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
+            <button
+              onClick={onClearDateFilter}
+              className="ml-1 rounded-full hover:bg-primary/20 p-0.5 transition-colors"
+              aria-label="Clear date filter"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Filters toolbar */}
       <div className="flex flex-wrap items-end gap-3">
         {/* Text search — sent server-side after 300 ms debounce */}

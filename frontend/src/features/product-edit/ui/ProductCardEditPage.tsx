@@ -20,6 +20,7 @@ import { SharedHeaderCard } from "./SharedHeaderCard";
 import { VariantPanel } from "./VariantPanel";
 import { SaveBar } from "./SaveBar";
 import { DiscardChangesDialog } from "./DiscardChangesDialog";
+import { ProductCampaignsPanel } from "@/widgets/product-campaigns-panel";
 
 interface Props {
   productBaseId: number;
@@ -217,6 +218,14 @@ export function ProductCardEditPage({ productBaseId }: Props) {
           variant={activeVariant}
           isAdmin={isAdmin}
         />
+
+        {/* Active discount campaigns panel */}
+        <div className="px-8 pb-6">
+          <ProductCampaignsPanel
+            productBaseId={productBaseId}
+            allSkuCodes={card.variants.flatMap((v) => v.skus.map((s) => s.skuCode))}
+          />
+        </div>
 
         {/* Sticky save bar — rendered inside the provider */}
         <SaveBar

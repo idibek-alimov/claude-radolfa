@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { fetchDiscountTypes } from "../../api";
-import { DiscountStatusBadge } from "../DiscountStatusBadge";
+import { DiscountWizardPreview } from "../DiscountWizardPreview";
 import type { DiscountWizardState } from "../DiscountCreationWizard";
 import { cn } from "@/shared/lib/utils";
 import { Settings2, Palette, Tag } from "lucide-react";
@@ -267,28 +267,15 @@ export function Step1Details({ state, update, submitted }: Props) {
 
           {/* Right: live preview */}
           {showPreview && (
-            <div className="shrink-0 rounded-xl border border-border bg-muted/30 p-6 min-w-[220px]">
+            <div className="shrink-0">
               <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-                Live preview
+                Live Preview
               </p>
-              <div className="flex items-center gap-4">
-                <DiscountStatusBadge
-                  discount={{
-                    id: 0,
-                    type: { id: 0, name: "", rank: 0 },
-                    itemCodes: [],
-                    discountValue: state.discountValue,
-                    validFrom: "",
-                    validUpto: "",
-                    disabled: false,
-                    title: state.title,
-                    colorHex: state.colorHex,
-                  }}
-                />
-                <p className="text-sm text-muted-foreground">
-                  This badge appears on product cards during the campaign.
-                </p>
-              </div>
+              <DiscountWizardPreview
+                title={state.title}
+                colorHex={state.colorHex}
+                discountValue={state.discountValue}
+              />
             </div>
           )}
 

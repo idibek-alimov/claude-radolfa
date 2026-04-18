@@ -8,6 +8,7 @@ import { DiscountTable } from "./DiscountTable";
 import { DiscountTypesPanel } from "./DiscountTypesPanel";
 import { DiscountedProductsTable } from "./DiscountedProductsTable";
 import { DiscountTimeline } from "./DiscountTimeline";
+import { DiscountCalendar } from "./DiscountCalendar";
 import type { DiscountResponse } from "../model/types";
 import { LayoutGrid, Tag, Package, CalendarRange } from "lucide-react";
 
@@ -17,6 +18,7 @@ type CampaignView = "table" | "timeline";
 export function DiscountsTab() {
   const router = useRouter();
   const [view, setViewState] = useState<CampaignView>("table");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(VIEW_STORAGE_KEY);
@@ -66,6 +68,14 @@ export function DiscountsTab() {
       </div>
 
       <TabsContent value="campaigns" className="mt-0 flex flex-col flex-1 min-h-0 gap-3">
+        {/* Calendar — shown only in table view */}
+        {view === "table" && (
+          <DiscountCalendar
+            selectedDate={selectedDate}
+            onDayClick={setSelectedDate}
+          />
+        )}
+
         {/* View toggle */}
         <div className="flex items-center gap-1 border rounded-lg p-0.5 bg-muted/40 w-fit shrink-0">
           <Button
@@ -93,6 +103,8 @@ export function DiscountsTab() {
             onEdit={openEdit}
             onNew={openCreate}
             onDuplicate={openDuplicate}
+            externalDateFilter={selectedDate}
+            onClearDateFilter={() => setSelectedDate(null)}
           />
         ) : (
           <DiscountTimeline onEdit={openEdit} />

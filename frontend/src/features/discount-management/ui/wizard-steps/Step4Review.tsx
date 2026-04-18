@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchDiscountTypes } from "../../api";
-import { DiscountStatusBadge } from "../DiscountStatusBadge";
+import { DiscountWizardPreview } from "../DiscountWizardPreview";
 import type { DiscountWizardState } from "../DiscountCreationWizard";
 import {
   Settings2,
@@ -68,18 +68,6 @@ export function Step4Review({ state, isEdit }: Props) {
   const typeName = types.find((t) => t.id === state.typeId)?.name ?? "—";
   const duration = getDurationLabel(state.validFrom, state.validUpto);
 
-  const previewDiscount = {
-    id: 0,
-    type: { id: 0, name: "", rank: 0 },
-    itemCodes: [],
-    discountValue: state.discountValue,
-    validFrom: "",
-    validUpto: "",
-    disabled: false,
-    title: state.title,
-    colorHex: state.colorHex,
-  };
-
   return (
     <div className="flex-1 flex flex-col space-y-10">
       {/* Heading */}
@@ -93,20 +81,21 @@ export function Step4Review({ state, isEdit }: Props) {
         </p>
       </div>
 
-      {/* Badge preview */}
+      {/* Shopper preview */}
       {state.title && state.colorHex.length === 6 && (
         <div className="rounded-xl border border-border bg-muted/30 p-6">
           <p className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wide">
-            Badge Preview
+            Shopper Preview
           </p>
-          <div className="flex items-center gap-6">
-            <DiscountStatusBadge discount={previewDiscount} />
-            <div>
-              <p className="text-base font-semibold text-foreground">{state.title}</p>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Appears on product cards during this campaign
-              </p>
-            </div>
+          <div className="flex items-start gap-6">
+            <DiscountWizardPreview
+              title={state.title}
+              colorHex={state.colorHex}
+              discountValue={state.discountValue}
+            />
+            <p className="text-sm text-muted-foreground max-w-sm pt-2">
+              This is how the product card looks to shoppers during the campaign.
+            </p>
           </div>
         </div>
       )}
