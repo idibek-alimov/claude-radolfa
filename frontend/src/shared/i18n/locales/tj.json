@@ -469,6 +469,20 @@
         "other": "Кампанияҳои дигар",
         "stock": "Захира"
       }
+    },
+    "overlap": {
+      "column": "Низоъҳо",
+      "tooltip": {
+        "title": "Низоъ дар {count} SKU",
+        "line": "{skuCode} → ғолиб: {campaignTitle}",
+        "more": "…ва {count} дигар"
+      },
+      "warning": {
+        "title": "{count} SKU бо кампанияи дигари фаъол мутобиқанд",
+        "win": "{skuCode} — аллакай дар {campaignTitle} (ранг {otherRank}). Шумо (ранг {myRank}) ғолиб мешавед.",
+        "lose": "{skuCode} — аллакай дар {campaignTitle} (ранг {otherRank}). Шумо (ранг {myRank}) бой медиҳед.",
+        "more": "+{count} дигар"
+      }
     }
   }
 }

@@ -278,6 +278,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
                   state={state}
                   update={update}
                   submitted={step3Submitted}
+                  editId={editId}
                 />
               )}
               {currentStep === 4 && (

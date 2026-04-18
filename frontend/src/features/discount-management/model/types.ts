@@ -91,3 +91,10 @@ export interface CampaignSkuFilters {
   page: number;
   size: number;
 }
+
+/** One SKU code that is covered by two or more active campaigns simultaneously. */
+export interface DiscountOverlapRow {
+  skuCode: string;
+  winningCampaign: CampaignSummary;
+  losingCampaigns: CampaignSummary[];
+}

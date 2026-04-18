@@ -469,6 +469,20 @@
         "other": "Другие кампании",
         "stock": "Остаток"
       }
+    },
+    "overlap": {
+      "column": "Конфликты",
+      "tooltip": {
+        "title": "Конфликты на {count} SKU",
+        "line": "{skuCode} → победитель: {campaignTitle}",
+        "more": "…и ещё {count}"
+      },
+      "warning": {
+        "title": "{count} SKU пересекаются с другой активной кампанией",
+        "win": "{skuCode} — уже в {campaignTitle} (ранг {otherRank}). Ваша (ранг {myRank}) победит.",
+        "lose": "{skuCode} — уже в {campaignTitle} (ранг {otherRank}). Ваша (ранг {myRank}) проиграет.",
+        "more": "+{count} ещё"
+      }
     }
   }
 }

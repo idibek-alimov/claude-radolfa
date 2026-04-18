@@ -469,6 +469,20 @@
         "other": "Other campaigns",
         "stock": "Stock"
       }
+    },
+    "overlap": {
+      "column": "Conflicts",
+      "tooltip": {
+        "title": "Conflicts on {count} SKU(s)",
+        "line": "{skuCode} → winner: {campaignTitle}",
+        "more": "…and {count} more"
+      },
+      "warning": {
+        "title": "{count} SKU(s) overlap with another active campaign",
+        "win": "{skuCode} — already in {campaignTitle} (rank {otherRank}). Yours (rank {myRank}) would win.",
+        "lose": "{skuCode} — already in {campaignTitle} (rank {otherRank}). Yours (rank {myRank}) would lose.",
+        "more": "+{count} more"
+      }
     }
   }
 }

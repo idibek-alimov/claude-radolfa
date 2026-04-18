@@ -8,6 +8,7 @@ import type {
   DiscountedProductRow,
   DiscountedProductFilters,
   CampaignSkuFilters,
+  DiscountOverlapRow,
 } from "../model/types";
 import type { PaginatedResponse } from "@/shared/api/types";
 
@@ -177,6 +178,12 @@ export async function fetchDiscountedProducts(
     }
   );
   return response.data;
+}
+
+/** GET /api/v1/admin/discounts/overlaps — unpaginated list of SKUs covered by 2+ active campaigns */
+export async function fetchDiscountOverlaps(): Promise<DiscountOverlapRow[]> {
+  const { data } = await apiClient.get<DiscountOverlapRow[]>("/api/v1/admin/discounts/overlaps");
+  return data;
 }
 
 /** GET /api/v1/admin/discounts/{id}/skus — paginated SKUs for one campaign, with search */

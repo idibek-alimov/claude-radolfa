@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Table,
@@ -41,6 +41,7 @@ import {
 import {
   fetchDiscounts,
   fetchDiscountTypes,
+  fetchDiscountOverlaps,
   enableDiscount,
   disableDiscount,
   bulkEnableDiscounts,
@@ -48,7 +49,13 @@ import {
   bulkDeleteDiscounts,
   bulkDuplicateDiscounts,
 } from "../api";
-import type { DiscountListFilters, DiscountResponse } from "../model/types";
+import type { DiscountListFilters, DiscountResponse, DiscountOverlapRow } from "../model/types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { getErrorMessage, useDynamicPageSize } from "@/shared/lib";
 import { toast } from "sonner";
 import {
@@ -65,6 +72,7 @@ import {
   Power,
   Search,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { CampaignSkuDrawer } from "./CampaignSkuDrawer";
@@ -249,12 +257,35 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     placeholderData: keepPreviousData,
   });
 
+  const { data: overlaps } = useQuery({
+    queryKey: ["discount-overlaps"],
+    queryFn: fetchDiscountOverlaps,
+    staleTime: 60_000,
+  });
+
+  // Map campaignId → list of { skuCode, winnerTitle } for the Conflicts column
+  const overlapMap = useMemo(() => {
+    const map = new Map<number, { skuCode: string; winnerTitle: string }[]>();
+    if (!overlaps) return map;
+    for (const row of overlaps) {
+      const entry = { skuCode: row.skuCode, winnerTitle: row.winningCampaign.title };
+      [row.winningCampaign, ...row.losingCampaigns].forEach((c) => {
+        if (!map.has(c.id)) map.set(c.id, []);
+        map.get(c.id)!.push(entry);
+      });
+    }
+    return map;
+  }, [overlaps]);
+
   const rows = data?.content ?? [];
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, disabled }: { id: number; disabled: boolean }) =>
       disabled ? enableDiscount(id) : disableDiscount(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["discounts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["discounts"] });
+      qc.invalidateQueries({ queryKey: ["discount-overlaps"] });
+    },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
@@ -288,11 +319,16 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
 
   const selectedList = Array.from(selectedIds);
 
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["discounts"] });
+    qc.invalidateQueries({ queryKey: ["discount-overlaps"] });
+  };
+
   const handleBulkEnable = async () => {
     try {
       const { affected } = await bulkEnableDiscounts(selectedList);
       toast.success(`Enabled ${affected} campaign${affected !== 1 ? "s" : ""}`);
-      qc.invalidateQueries({ queryKey: ["discounts"] });
+      invalidateAll();
       setSelectedIds(new Set());
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -303,7 +339,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     try {
       const { affected } = await bulkDisableDiscounts(selectedList);
       toast.success(`Disabled ${affected} campaign${affected !== 1 ? "s" : ""}`);
-      qc.invalidateQueries({ queryKey: ["discounts"] });
+      invalidateAll();
       setSelectedIds(new Set());
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -314,7 +350,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     try {
       const { affected } = await bulkDeleteDiscounts(selectedList);
       toast.success(`Deleted ${affected} campaign${affected !== 1 ? "s" : ""}`);
-      qc.invalidateQueries({ queryKey: ["discounts"] });
+      invalidateAll();
       setSelectedIds(new Set());
       setDeleteDialogOpen(false);
     } catch (err) {
@@ -326,7 +362,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
     try {
       const result = await bulkDuplicateDiscounts(selectedList);
       toast.success(`Duplicated ${result.length} campaign${result.length !== 1 ? "s" : ""}`);
-      qc.invalidateQueries({ queryKey: ["discounts"] });
+      invalidateAll();
       setSelectedIds(new Set());
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -354,6 +390,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
   };
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="flex flex-col flex-1 min-h-0 gap-4">
       {/* Filters toolbar */}
       <div className="flex flex-wrap items-end gap-3">
@@ -528,6 +565,9 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
                 <TableHead className="min-w-[80px] text-xs font-medium text-muted-foreground">
                   SKUs
                 </TableHead>
+                <TableHead className="w-[96px] text-xs font-medium text-muted-foreground whitespace-nowrap">
+                  Conflicts
+                </TableHead>
                 <TableHead className="min-w-[100px] text-xs font-medium text-muted-foreground">
                   Status
                 </TableHead>
@@ -596,6 +636,43 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
                     >
                       {d.itemCodes.length} SKU{d.itemCodes.length !== 1 ? "s" : ""}
                     </button>
+                  </TableCell>
+
+                  {/* Conflicts — ⚠ badge with tooltip listing affected SKUs */}
+                  <TableCell>
+                    {(() => {
+                      const items = overlapMap.get(d.id);
+                      if (!items || items.length === 0) {
+                        return (
+                          <span className="text-muted-foreground/40 text-xs select-none">—</span>
+                        );
+                      }
+                      const visible = items.slice(0, 10);
+                      const extra = items.length - visible.length;
+                      return (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center gap-1 cursor-default rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 select-none">
+                              <AlertTriangle className="h-3 w-3 shrink-0" />
+                              {items.length}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[260px] space-y-1 text-xs">
+                            <p className="font-semibold mb-1">
+                              Conflicts on {items.length} SKU{items.length !== 1 ? "s" : ""}
+                            </p>
+                            {visible.map((item, i) => (
+                              <p key={i} className="text-muted-foreground truncate">
+                                {item.skuCode} → winner: {item.winnerTitle}
+                              </p>
+                            ))}
+                            {extra > 0 && (
+                              <p className="text-muted-foreground/70">…and {extra} more</p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })()}
                   </TableCell>
 
                   {/* Status */}
@@ -695,5 +772,6 @@ export function DiscountTable({ onEdit, onNew, onDuplicate }: DiscountTableProps
         onOpenChange={(open) => !open && setDrawerCampaignId(null)}
       />
     </div>
+    </TooltipProvider>
   );
 }
