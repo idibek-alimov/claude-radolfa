@@ -1,15 +1,32 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
+import { Button } from "@/shared/ui/button";
 import { DiscountTable } from "./DiscountTable";
 import { DiscountTypesPanel } from "./DiscountTypesPanel";
 import { DiscountedProductsTable } from "./DiscountedProductsTable";
+import { DiscountTimeline } from "./DiscountTimeline";
 import type { DiscountResponse } from "../model/types";
-import { LayoutGrid, Tag, Package } from "lucide-react";
+import { LayoutGrid, Tag, Package, CalendarRange } from "lucide-react";
+
+const VIEW_STORAGE_KEY = "discount.campaigns.view";
+type CampaignView = "table" | "timeline";
 
 export function DiscountsTab() {
   const router = useRouter();
+  const [view, setViewState] = useState<CampaignView>("table");
+
+  useEffect(() => {
+    const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+    if (stored === "table" || stored === "timeline") setViewState(stored);
+  }, []);
+
+  function setView(v: CampaignView) {
+    setViewState(v);
+    localStorage.setItem(VIEW_STORAGE_KEY, v);
+  }
 
   const openCreate = () => router.push("/manage/discounts/create");
 
@@ -48,12 +65,38 @@ export function DiscountsTab() {
         </TabsList>
       </div>
 
-      <TabsContent value="campaigns" className="mt-0 flex flex-col flex-1 min-h-0">
-        <DiscountTable
-          onEdit={openEdit}
-          onNew={openCreate}
-          onDuplicate={openDuplicate}
-        />
+      <TabsContent value="campaigns" className="mt-0 flex flex-col flex-1 min-h-0 gap-3">
+        {/* View toggle */}
+        <div className="flex items-center gap-1 border rounded-lg p-0.5 bg-muted/40 w-fit shrink-0">
+          <Button
+            variant={view === "table" ? "default" : "ghost"}
+            size="sm"
+            className="h-7 px-3 gap-1.5 text-xs"
+            onClick={() => setView("table")}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            Table
+          </Button>
+          <Button
+            variant={view === "timeline" ? "default" : "ghost"}
+            size="sm"
+            className="h-7 px-3 gap-1.5 text-xs"
+            onClick={() => setView("timeline")}
+          >
+            <CalendarRange className="h-3.5 w-3.5" />
+            Timeline
+          </Button>
+        </div>
+
+        {view === "table" ? (
+          <DiscountTable
+            onEdit={openEdit}
+            onNew={openCreate}
+            onDuplicate={openDuplicate}
+          />
+        ) : (
+          <DiscountTimeline onEdit={openEdit} />
+        )}
       </TabsContent>
 
       <TabsContent value="types" className="mt-0">
