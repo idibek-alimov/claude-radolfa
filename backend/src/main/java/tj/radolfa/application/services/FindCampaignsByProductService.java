@@ -59,7 +59,7 @@ public class FindCampaignsByProductService implements FindCampaignsByProductUseC
         return deduped.values().stream()
                 .sorted(Comparator.comparingInt((Discount d) -> d.type().rank())
                         .thenComparingLong(Discount::id))
-                .map(d -> new DiscountSummary(d.id(), d.title(), d.colorHex(), d.discountValue(), d.type()))
+                .map(d -> new DiscountSummary(d.id(), d.title(), d.colorHex(), d.amountValue(), d.amountType(), d.type()))
                 .toList();
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import tj.radolfa.application.ports.out.DiscountedProductFilter;
 import tj.radolfa.application.ports.out.ListDiscountedProductsPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.DiscountSummary;
 import tj.radolfa.domain.model.DiscountType;
 import tj.radolfa.domain.model.DiscountedProductRow;
@@ -33,7 +34,7 @@ class ListDiscountedProductsServiceTest {
     @DisplayName("Delegates call with filter and pageable to port; returns page unchanged")
     void execute_delegatesToPort() {
         DiscountType type = new DiscountType(1L, "FLASH_SALE", 1);
-        DiscountSummary winner = new DiscountSummary(10L, "Flash", "#FF0000", new BigDecimal("20.00"), type);
+        DiscountSummary winner = new DiscountSummary(10L, "Flash", "#FF0000", new BigDecimal("20.00"), AmountType.PERCENT, type);
         DiscountedProductRow row = new DiscountedProductRow(
                 1L, "SKU-001", "M", 50,
                 new BigDecimal("100.00"), new BigDecimal("80.00"), new BigDecimal("20.00"),

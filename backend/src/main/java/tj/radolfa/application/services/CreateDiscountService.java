@@ -9,7 +9,9 @@ import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountTypePort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
+import tj.radolfa.domain.model.SkuTarget;
 
 import java.time.Instant;
 import java.util.List;
@@ -35,43 +37,51 @@ public class CreateDiscountService implements CreateDiscountUseCase {
         DiscountType type = loadDiscountTypePort.findById(command.typeId())
                 .orElseThrow(() -> new IllegalArgumentException("Discount type not found: " + command.typeId()));
 
-        validateNoConflict(command.typeId(), command.itemCodes(), command.validFrom(), command.validUpto(), null);
+        List<String> skuCodes = extractSkuCodes(command.targets());
+        validateNoConflict(command.typeId(), skuCodes, command.validFrom(), command.validUpto(), null);
 
         Discount discount = new Discount(
                 null,
                 type,
-                List.copyOf(command.itemCodes()),
-                command.discountValue(),
+                List.copyOf(command.targets()),
+                command.amountType(),
+                command.amountValue(),
                 command.validFrom(),
                 command.validUpto(),
                 false,
                 command.title(),
-                normalizeColorHex(command.colorHex())
+                normalizeColorHex(command.colorHex()),
+                command.minBasketAmount(),
+                command.usageCapTotal(),
+                command.usageCapPerCustomer(),
+                command.couponCode()
         );
         return saveDiscountPort.save(discount);
     }
 
-    /**
-     * Rejects if another non-disabled discount of the same type already covers any of the
-     * target item codes with an overlapping date range.
-     *
-     * @param excludeId the discount being updated (null on create)
-     */
     static String normalizeColorHex(String hex) {
         return hex != null && hex.startsWith("#") ? hex.substring(1) : hex;
     }
 
-    void validateNoConflict(Long typeId, List<String> itemCodes,
+    static List<String> extractSkuCodes(List<DiscountTarget> targets) {
+        return targets.stream()
+                .filter(t -> t instanceof SkuTarget)
+                .map(t -> ((SkuTarget) t).itemCode())
+                .toList();
+    }
+
+    void validateNoConflict(Long typeId, List<String> skuCodes,
                             Instant validFrom, Instant validUpto, Long excludeId) {
+        if (skuCodes.isEmpty()) return;
         DiscountFilter filter = new DiscountFilter(typeId, null, null, null, null);
         loadDiscountPort.findAll(filter, Pageable.unpaged())
                 .forEach(existing -> {
                     if (excludeId != null && excludeId.equals(existing.id())) return;
-                    if (existing.disabled()) return; // disabled discounts do not block new ones
+                    if (existing.disabled()) return;
                     boolean datesOverlap = !existing.validUpto().isBefore(validFrom)
                             && !existing.validFrom().isAfter(validUpto);
-                    if (!datesOverlap) return; // non-overlapping date ranges are always allowed
-                    boolean coversItem = existing.itemCodes().stream().anyMatch(itemCodes::contains);
+                    if (!datesOverlap) return;
+                    boolean coversItem = existing.itemCodes().stream().anyMatch(skuCodes::contains);
                     if (coversItem) {
                         throw new IllegalStateException(
                                 "A discount of the same type already covers one or more of the target SKUs " +

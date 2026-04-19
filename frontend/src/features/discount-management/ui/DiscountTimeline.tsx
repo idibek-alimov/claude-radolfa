@@ -440,7 +440,7 @@ export function DiscountTimeline({ onEdit }: Props) {
                       fontSize={10}
                       fill="rgba(0,0,0,0.38)"
                     >
-                      {campaign.itemCodes.length}
+                      {campaign.targets.length}
                     </text>
 
                     {/* Gantt bar */}
@@ -539,8 +539,8 @@ export function DiscountTimeline({ onEdit }: Props) {
                           {fmtDate(fromDate)} – {fmtDate(toDate)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {campaign.itemCodes.length} SKU
-                          {campaign.itemCodes.length !== 1 ? "s" : ""} · −{campaign.discountValue}%
+                          {campaign.targets.length} SKU
+                          {campaign.targets.length !== 1 ? "s" : ""} · −{campaign.amountValue}{campaign.amountType === "FIXED" ? " TJS" : "%"}
                         </p>
                         {overlapsCount > 0 && (
                           <p className="text-xs text-amber-600 flex items-center gap-1">

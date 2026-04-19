@@ -88,7 +88,7 @@ export function CampaignSkuDrawer({ campaignId, onOpenChange }: CampaignSkuDrawe
               </span>
             )}
             <SheetTitle className="text-base font-semibold truncate">
-              {campaign ? `${campaign.discountValue}% off — SKUs` : "Campaign SKUs"}
+              {campaign ? `${campaign.amountValue}${campaign.amountType === "FIXED" ? " TJS" : "%"} off — SKUs` : "Campaign SKUs"}
             </SheetTitle>
           </div>
         </SheetHeader>

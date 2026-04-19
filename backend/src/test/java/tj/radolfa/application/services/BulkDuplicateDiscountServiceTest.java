@@ -10,8 +10,11 @@ import tj.radolfa.application.ports.in.discount.BulkDuplicateDiscountUseCase;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
+import tj.radolfa.domain.model.SkuTarget;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -55,7 +58,7 @@ class BulkDuplicateDiscountServiceTest {
         assertTrue(saved.disabled(), "Copy must be disabled");
         assertEquals("Copy of Summer Sale", saved.title());
         assertEquals(original.itemCodes(), saved.itemCodes());
-        assertEquals(original.discountValue(), saved.discountValue());
+        assertEquals(original.amountValue(), saved.amountValue());
         assertEquals(original.validFrom(), saved.validFrom());
         assertEquals(original.validUpto(), saved.validUpto());
         assertEquals(original.colorHex(), saved.colorHex());
@@ -88,8 +91,9 @@ class BulkDuplicateDiscountServiceTest {
     // ---- Helpers ----
 
     private static Discount discount(Long id, String title, boolean disabled) {
-        return new Discount(id, FLASH, new ArrayList<>(List.of("SKU-" + id)),
-                new BigDecimal("15.00"), FROM, UPTO, disabled, title, "#AABBCC");
+        List<DiscountTarget> targets = new ArrayList<>(List.of(new SkuTarget("SKU-" + id)));
+        return new Discount(id, FLASH, targets, AmountType.PERCENT,
+                new BigDecimal("15.00"), FROM, UPTO, disabled, title, "#AABBCC", null, null, null, null);
     }
 
     // ---- Fakes ----
@@ -118,8 +122,9 @@ class BulkDuplicateDiscountServiceTest {
             if (d.id() == null) savedWithNullId.add(d);
             return new Discount(
                     d.id() != null ? d.id() : idGen.getAndIncrement(),
-                    d.type(), d.itemCodes(), d.discountValue(),
-                    d.validFrom(), d.validUpto(), d.disabled(), d.title(), d.colorHex()
+                    d.type(), d.targets(), d.amountType(), d.amountValue(),
+                    d.validFrom(), d.validUpto(), d.disabled(), d.title(), d.colorHex(),
+                    d.minBasketAmount(), d.usageCapTotal(), d.usageCapPerCustomer(), d.couponCode()
             );
         }
 

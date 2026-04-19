@@ -5,6 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.QueryDiscountMetricsPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.DailyMetric;
 import tj.radolfa.domain.model.DiscountMetrics;
 import tj.radolfa.domain.model.DiscountSummary;
@@ -31,7 +32,6 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
 
     @Override
     public DiscountMetrics findMetrics(Long discountId, LocalDate from, LocalDate to) {
-        // Summary KPIs
         String kpiSql = """
                 SELECT COUNT(DISTINCT da.order_id),
                        COALESCE(SUM(da.quantity), 0),
@@ -54,7 +54,6 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
                 ? BigDecimal.ZERO
                 : uplift.divide(BigDecimal.valueOf(ordersUsing), 2, java.math.RoundingMode.HALF_UP);
 
-        // Daily series with zero-fill via generate_series
         String dailySql = """
                 WITH series AS (
                   SELECT generate_series(:from::date, :to::date, '1 day'::interval)::date AS day
@@ -104,7 +103,8 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
                 SELECT d.id,
                        d.title,
                        d.color_hex,
-                       d.discount_value,
+                       d.amount_value,
+                       d.amount_type,
                        dt.id   AS type_id,
                        dt.name AS type_name,
                        dt.rank AS type_rank,
@@ -115,7 +115,7 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
                 JOIN discount_types dt ON dt.id = d.discount_type_id
                 LEFT JOIN discount_application da ON da.discount_id = d.id
                   AND da.applied_at::date BETWEEN :from AND :to
-                GROUP BY d.id, d.title, d.color_hex, d.discount_value,
+                GROUP BY d.id, d.title, d.color_hex, d.amount_value, d.amount_type,
                          dt.id, dt.name, dt.rank
                 ORDER BY """ + orderExpr + " DESC, d.id ASC LIMIT :limit";
 
@@ -132,14 +132,15 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
             String title       = (String) r[1];
             String colorHex    = (String) r[2];
             BigDecimal dv      = (BigDecimal) r[3];
-            Long typeId        = ((Number) r[4]).longValue();
-            String typeName    = (String) r[5];
-            int typeRank       = ((Number) r[6]).intValue();
-            long orders        = ((Number) r[7]).longValue();
-            long units         = ((Number) r[8]).longValue();
-            BigDecimal revenue = (BigDecimal) r[9];
+            AmountType amt     = AmountType.valueOf((String) r[4]);
+            Long typeId        = ((Number) r[5]).longValue();
+            String typeName    = (String) r[6];
+            int typeRank       = ((Number) r[7]).intValue();
+            long orders        = ((Number) r[8]).longValue();
+            long units         = ((Number) r[9]).longValue();
+            BigDecimal revenue = (BigDecimal) r[10];
             DiscountSummary summary = new DiscountSummary(
-                    id, title, colorHex, dv, new DiscountType(typeId, typeName, typeRank));
+                    id, title, colorHex, dv, amt, new DiscountType(typeId, typeName, typeRank));
             result.add(new TopCampaignRow(summary, orders, units, revenue));
         }
         return result;

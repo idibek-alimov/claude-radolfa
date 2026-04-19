@@ -91,9 +91,9 @@ function getStatus(d: DiscountResponse): DerivedStatus {
   return "active";
 }
 
-// ── Sort (server-side keys only — title, discountValue, validFrom, validUpto) ──
+// ── Sort (server-side keys only — title, amountValue, validFrom, validUpto) ──
 
-type SortKey = "title" | "discountValue" | "validFrom" | "validUpto";
+type SortKey = "title" | "amountValue" | "validFrom" | "validUpto";
 
 interface Sort {
   key: SortKey;
@@ -583,7 +583,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
                   Type
                 </TableHead>
                 <TableHead className="min-w-[90px]">
-                  <SortableHeader label="Discount" sortKey="discountValue" sort={sort} onSort={handleSort} />
+                  <SortableHeader label="Discount" sortKey="amountValue" sort={sort} onSort={handleSort} />
                 </TableHead>
                 <TableHead className="min-w-[110px]">
                   <SortableHeader label="Valid from" sortKey="validFrom" sort={sort} onSort={handleSort} />
@@ -635,10 +635,10 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
                     </span>
                   </TableCell>
 
-                  {/* Discount % */}
+                  {/* Discount amount */}
                   <TableCell>
                     <span className="text-sm font-bold tabular-nums text-rose-600 dark:text-rose-400">
-                      −{d.discountValue}%
+                      −{d.amountValue}{d.amountType === "FIXED" ? " TJS" : "%"}
                     </span>
                   </TableCell>
 
@@ -666,7 +666,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
                         setDrawerCampaignId(d.id);
                       }}
                     >
-                      {d.itemCodes.length} SKU{d.itemCodes.length !== 1 ? "s" : ""}
+                      {d.targets.length} SKU{d.targets.length !== 1 ? "s" : ""}
                     </button>
                   </TableCell>
 

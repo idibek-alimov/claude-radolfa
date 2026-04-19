@@ -69,7 +69,7 @@ public class DiscountController {
     }
 
     private static final Set<String> ALLOWED_SORT = Set.of(
-            "id", "title", "discountValue", "validFrom", "validUpto");
+            "id", "title", "amountValue", "validFrom", "validUpto");
 
     private Pageable sanitize(Pageable pageable) {
         Sort filtered = Sort.by(pageable.getSort().stream()
@@ -109,8 +109,13 @@ public class DiscountController {
     public DiscountResponse create(@Valid @RequestBody CreateDiscountRequest request) {
         return DiscountResponse.fromDomain(
                 createDiscountUseCase.execute(new CreateDiscountUseCase.Command(
-                        request.typeId(), request.itemCodes(), request.discountValue(),
-                        request.validFrom(), request.validUpto(), request.title(), request.colorHex()
+                        request.typeId(),
+                        request.targets().stream().map(DiscountTargetInput::toDomain).toList(),
+                        request.amountType(), request.amountValue(),
+                        request.validFrom(), request.validUpto(),
+                        request.title(), request.colorHex(),
+                        request.minBasketAmount(), request.usageCapTotal(),
+                        request.usageCapPerCustomer(), request.couponCode()
                 )));
     }
 
@@ -120,8 +125,13 @@ public class DiscountController {
                                    @Valid @RequestBody UpdateDiscountRequest request) {
         return DiscountResponse.fromDomain(
                 updateDiscountUseCase.execute(new UpdateDiscountUseCase.Command(
-                        id, request.typeId(), request.itemCodes(), request.discountValue(),
-                        request.validFrom(), request.validUpto(), request.title(), request.colorHex()
+                        id, request.typeId(),
+                        request.targets().stream().map(DiscountTargetInput::toDomain).toList(),
+                        request.amountType(), request.amountValue(),
+                        request.validFrom(), request.validUpto(),
+                        request.title(), request.colorHex(),
+                        request.minBasketAmount(), request.usageCapTotal(),
+                        request.usageCapPerCustomer(), request.couponCode()
                 )));
     }
 

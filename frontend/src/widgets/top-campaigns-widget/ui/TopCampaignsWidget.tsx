@@ -126,7 +126,7 @@ export function TopCampaignsWidget() {
                     style={{ backgroundColor: `#${row.campaign.colorHex}` }}
                   />
                   <p className="text-sm font-semibold text-zinc-800 truncate">{row.campaign.title}</p>
-                  <span className="text-xs text-zinc-400 shrink-0">−{row.campaign.discountValue}%</span>
+                  <span className="text-xs text-zinc-400 shrink-0">−{row.campaign.amountValue}{row.campaign.amountType === "FIXED" ? " TJS" : "%"}</span>
                 </div>
 
                 {/* Primary stat */}

@@ -6,6 +6,7 @@ public record DiscountSummary(
         Long id,
         String title,
         String colorHex,
-        BigDecimal discountValue,
+        BigDecimal amountValue,
+        AmountType amountType,
         DiscountType type
 ) {}

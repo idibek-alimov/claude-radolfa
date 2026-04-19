@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.DiscountedProductFilter;
 import tj.radolfa.application.ports.out.ListDiscountedProductsPort;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountSummary;
 import tj.radolfa.domain.model.DiscountType;
@@ -32,7 +33,7 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
             "productName",   "pb.name",
             "originalPrice", "s.original_price",
             "finalPrice",    "final_price",
-            "deltaPercent",  "w.discount_value",
+            "deltaPercent",  "w.amount_value",
             "stockQuantity", "s.stock_quantity"
     );
 
@@ -55,7 +56,7 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
                 JOIN listing_variants lv ON lv.id = s.listing_variant_id
                 JOIN product_bases pb ON pb.id = lv.product_base_id
                 JOIN LATERAL (
-                    SELECT d.id, d.discount_value, dt.rank,
+                    SELECT d.id, d.amount_value, dt.rank,
                            d.title, d.color_hex, dt.id AS type_id, dt.name AS type_name
                     FROM discounts d
                     JOIN discount_types dt ON dt.id = d.discount_type_id
@@ -64,6 +65,7 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
                       AND d.is_disabled = FALSE
                       AND d.valid_from <= NOW()
                       AND d.valid_upto >= NOW()
+                      AND d.amount_type = 'PERCENT'
                     ORDER BY dt.rank ASC, d.id ASC
                     LIMIT 1
                 ) w ON TRUE
@@ -75,10 +77,10 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
                        s.size_label,
                        s.stock_quantity,
                        s.original_price,
-                       s.original_price * (100 - w.discount_value) / 100 AS final_price,
-                       w.discount_value AS delta_percent,
+                       s.original_price * (100 - w.amount_value) / 100 AS final_price,
+                       w.amount_value AS delta_percent,
                        w.id AS winner_id,
-                       w.discount_value AS winner_value,
+                       w.amount_value AS winner_value,
                        w.title AS winner_title,
                        w.color_hex AS winner_color_hex,
                        w.rank AS winner_rank,
@@ -110,18 +112,15 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
 
         if (rows.isEmpty()) return new PageImpl<>(List.of(), pageable, 0);
 
-        // Collect all sku codes for batch-fetching other campaigns
         List<String> allSkuCodes = rows.stream()
                 .map(r -> (String) r[1])
                 .distinct()
                 .toList();
 
-        // winnerIds so we can exclude them from otherCampaigns
         Set<Long> winnerIds = rows.stream()
                 .map(r -> ((Number) r[7]).longValue())
                 .collect(Collectors.toSet());
 
-        // batch-load all active campaigns for these skuCodes, grouped by skuCode
         List<Discount> allActive = loadDiscountPort.findActiveByItemCodes(allSkuCodes);
         Map<String, List<DiscountSummary>> othersBySkuCode = buildOthersMap(allActive, winnerIds, allSkuCodes);
 
@@ -142,7 +141,7 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
         for (Discount d : allActive) {
             if (winnerIds.contains(d.id())) continue;
             DiscountSummary summary = new DiscountSummary(
-                    d.id(), d.title(), d.colorHex(), d.discountValue(), d.type());
+                    d.id(), d.title(), d.colorHex(), d.amountValue(), d.amountType(), d.type());
             for (String code : d.itemCodes()) {
                 if (result.containsKey(code)) {
                     result.get(code).add(summary);
@@ -173,8 +172,9 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
         String productName  = (String) r[17];
         String imageUrl     = (String) r[18];
 
+        // Winner is always PERCENT-type in Phase 9 (LATERAL WHERE filters amount_type='PERCENT')
         DiscountSummary winner = new DiscountSummary(
-                winnerId, winnerTitle, winnerColorHex, winnerVal,
+                winnerId, winnerTitle, winnerColorHex, winnerVal, AmountType.PERCENT,
                 new DiscountType(winnerTypeId, winnerTypeName, winnerRank)
         );
 
@@ -198,10 +198,10 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
             conditions.add("EXISTS (SELECT 1 FROM discount_items di2 WHERE di2.item_code = s.sku_code AND di2.discount_id = :campaignId)");
         }
         if (filter.minDeltaPercent() != null) {
-            conditions.add("w.discount_value >= :minDelta");
+            conditions.add("w.amount_value >= :minDelta");
         }
         if (filter.maxDeltaPercent() != null) {
-            conditions.add("w.discount_value <= :maxDelta");
+            conditions.add("w.amount_value <= :maxDelta");
         }
 
         return conditions.isEmpty() ? "" : "WHERE " + String.join(" AND ", conditions);
@@ -214,7 +214,7 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
         List<String> parts = new ArrayList<>();
         for (Sort.Order order : pageable.getSort()) {
             String col = SORT_COLUMN_WHITELIST.get(order.getProperty());
-            if (col == null) continue; // skip unknown fields
+            if (col == null) continue;
             parts.add(col + (order.isAscending() ? " ASC" : " DESC"));
         }
         return parts.isEmpty() ? "ORDER BY s.sku_code ASC" : "ORDER BY " + String.join(", ", parts);

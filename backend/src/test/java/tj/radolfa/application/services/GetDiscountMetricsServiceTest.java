@@ -66,10 +66,10 @@ class GetDiscountMetricsServiceTest {
     }
 
     private Discount discount(Long id, LocalDate from, LocalDate to) {
-        return new Discount(id, TYPE, List.of("SKU-1"), new BigDecimal("15"),
+        return new Discount(id, TYPE, List.of(new SkuTarget("SKU-1")), AmountType.PERCENT, new BigDecimal("15"),
                 from.atStartOfDay().toInstant(java.time.ZoneOffset.UTC),
                 to.atStartOfDay().toInstant(java.time.ZoneOffset.UTC),
-                false, "Summer Sale", "#FF0000");
+                false, "Summer Sale", "#FF0000", null, null, null, null);
     }
 
     // ---- Tests ----

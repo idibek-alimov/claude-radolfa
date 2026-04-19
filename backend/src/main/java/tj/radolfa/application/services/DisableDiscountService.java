@@ -27,13 +27,18 @@ public class DisableDiscountService implements DisableDiscountUseCase {
         Discount updated = new Discount(
                 existing.id(),
                 existing.type(),
-                existing.itemCodes(),
-                existing.discountValue(),
+                existing.targets(),
+                existing.amountType(),
+                existing.amountValue(),
                 existing.validFrom(),
                 existing.validUpto(),
                 command.disable(),
                 existing.title(),
-                existing.colorHex()
+                existing.colorHex(),
+                existing.minBasketAmount(),
+                existing.usageCapTotal(),
+                existing.usageCapPerCustomer(),
+                existing.couponCode()
         );
         return saveDiscountPort.save(updated);
     }

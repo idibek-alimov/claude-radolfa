@@ -35,8 +35,11 @@ public class DiscountEntity extends BaseAuditEntity {
     @Column(name = "item_code", length = 64)
     private List<String> itemCodes = new ArrayList<>();
 
-    @Column(name = "discount_value", nullable = false, precision = 5, scale = 2)
-    private BigDecimal discountValue;
+    @Column(name = "amount_value", nullable = false, precision = 12, scale = 2)
+    private BigDecimal amountValue;
+
+    @Column(name = "amount_type", nullable = false, length = 16)
+    private String amountType;
 
     @Column(name = "valid_from", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -54,4 +57,19 @@ public class DiscountEntity extends BaseAuditEntity {
 
     @Column(name = "color_hex", length = 7)
     private String colorHex;
+
+    @Column(name = "min_basket_amount", precision = 12, scale = 2)
+    private BigDecimal minBasketAmount;
+
+    @Column(name = "usage_cap_total")
+    private Integer usageCapTotal;
+
+    @Column(name = "usage_cap_per_customer")
+    private Integer usageCapPerCustomer;
+
+    @Column(name = "coupon_code", length = 64)
+    private String couponCode;
+
+    @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<DiscountTargetEntity> targets = new ArrayList<>();
 }

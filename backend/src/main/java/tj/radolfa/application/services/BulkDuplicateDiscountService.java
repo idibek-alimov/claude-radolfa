@@ -31,13 +31,18 @@ public class BulkDuplicateDiscountService implements BulkDuplicateDiscountUseCas
                 Discount copy = new Discount(
                         null,
                         original.type(),
-                        new ArrayList<>(original.itemCodes()),
-                        original.discountValue(),
+                        List.copyOf(original.targets()),
+                        original.amountType(),
+                        original.amountValue(),
                         original.validFrom(),
                         original.validUpto(),
                         true,
                         "Copy of " + original.title(),
-                        original.colorHex()
+                        original.colorHex(),
+                        original.minBasketAmount(),
+                        original.usageCapTotal(),
+                        original.usageCapPerCustomer(),
+                        original.couponCode()
                 );
                 created.add(saveDiscountPort.save(copy));
             });

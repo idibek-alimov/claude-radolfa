@@ -139,7 +139,7 @@ public class ListingReadAdapter implements LoadListingPort {
                         if (sku.getOriginalPrice() == null) continue;
                         DiscountEntity d = discountsBySkuCode.get(sku.getSkuCode());
                         BigDecimal effective = d != null
-                                        ? computeDiscountedPrice(sku.getOriginalPrice(), d.getDiscountValue())
+                                        ? computeDiscountedPrice(sku.getOriginalPrice(), d.getAmountValue())
                                         : sku.getOriginalPrice();
                         if (winningEffectivePrice == null || effective.compareTo(winningEffectivePrice) < 0) {
                                 winningEffectivePrice = effective;
@@ -151,9 +151,9 @@ public class ListingReadAdapter implements LoadListingPort {
                 DiscountEntity winningDiscount = winningSku != null
                                 ? discountsBySkuCode.get(winningSku.getSkuCode()) : null;
                 BigDecimal discountPrice = winningDiscount != null && originalPrice != null
-                                ? computeDiscountedPrice(originalPrice, winningDiscount.getDiscountValue()) : null;
+                                ? computeDiscountedPrice(originalPrice, winningDiscount.getAmountValue()) : null;
                 Integer discountPercentage = winningDiscount != null
-                                ? winningDiscount.getDiscountValue().intValue() : null;
+                                ? winningDiscount.getAmountValue().intValue() : null;
                 String discountName = winningDiscount != null ? winningDiscount.getTitle() : null;
                 String discountColorHex = winningDiscount != null ? winningDiscount.getColorHex() : null;
 
@@ -244,8 +244,8 @@ public class ListingReadAdapter implements LoadListingPort {
                 String discountColorHex = null;
 
                 if (discount != null && originalPrice != null) {
-                        discountPrice = computeDiscountedPrice(originalPrice, discount.getDiscountValue());
-                        discountPercentage = discount.getDiscountValue().intValue();
+                        discountPrice = computeDiscountedPrice(originalPrice, discount.getAmountValue());
+                        discountPercentage = discount.getAmountValue().intValue();
                         discountName = discount.getTitle();
                         discountColorHex = discount.getColorHex();
                 }

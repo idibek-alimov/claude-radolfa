@@ -216,7 +216,7 @@ public class CheckoutService implements CheckoutUseCase {
         Optional<Discount> best = loadBestActiveDiscountPort.findBestActiveForItemCode(sku.getSkuCode());
 
         BigDecimal salePrice = best
-                .map(Discount::discountValue)
+                .map(Discount::amountValue)
                 .map(pct -> original.multiply(BigDecimal.ONE.subtract(
                         pct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
                         .setScale(2, RoundingMode.HALF_UP))

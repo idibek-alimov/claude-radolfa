@@ -38,19 +38,25 @@ public class UpdateDiscountService implements UpdateDiscountUseCase {
         DiscountType type = loadDiscountTypePort.findById(command.typeId())
                 .orElseThrow(() -> new IllegalArgumentException("Discount type not found: " + command.typeId()));
 
-        createDiscountService.validateNoConflict(command.typeId(), command.itemCodes(),
+        List<String> skuCodes = CreateDiscountService.extractSkuCodes(command.targets());
+        createDiscountService.validateNoConflict(command.typeId(), skuCodes,
                 command.validFrom(), command.validUpto(), command.id());
 
         Discount updated = new Discount(
                 command.id(),
                 type,
-                List.copyOf(command.itemCodes()),
-                command.discountValue(),
+                List.copyOf(command.targets()),
+                command.amountType(),
+                command.amountValue(),
                 command.validFrom(),
                 command.validUpto(),
                 existing.disabled(),
                 command.title(),
-                CreateDiscountService.normalizeColorHex(command.colorHex())
+                CreateDiscountService.normalizeColorHex(command.colorHex()),
+                command.minBasketAmount(),
+                command.usageCapTotal(),
+                command.usageCapPerCustomer(),
+                command.couponCode()
         );
         return saveDiscountPort.save(updated);
     }

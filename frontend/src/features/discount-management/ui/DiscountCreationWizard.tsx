@@ -131,11 +131,13 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
     setState({
       title: isDuplicate ? `Copy of ${sourceDiscount.title}` : sourceDiscount.title,
       typeId: sourceDiscount.type.id,
-      discountValue: sourceDiscount.discountValue,
+      discountValue: sourceDiscount.amountValue,
       colorHex: sourceDiscount.colorHex.replace(/^#/, ""),
       validFrom: isDuplicate ? "" : toLocalInput(sourceDiscount.validFrom),
       validUpto: isDuplicate ? "" : toLocalInput(sourceDiscount.validUpto),
-      selectedCodes: sourceDiscount.itemCodes,
+      selectedCodes: sourceDiscount.targets
+        .filter((t) => t.targetType === "SKU")
+        .map((t) => t.referenceId),
     });
     setInitialized(true);
   }, [sourceDiscount, initialized, isDuplicate]);
@@ -146,8 +148,9 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
     mutationFn: () => {
       const payload = {
         typeId: state.typeId,
-        itemCodes: state.selectedCodes,
-        discountValue: state.discountValue,
+        targets: state.selectedCodes.map((code) => ({ targetType: "SKU" as const, referenceId: code })),
+        amountType: "PERCENT" as const,
+        amountValue: state.discountValue,
         validFrom: toIso(state.validFrom),
         validUpto: toIso(state.validUpto),
         title: state.title.trim(),

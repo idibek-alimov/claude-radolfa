@@ -60,12 +60,12 @@ function DiscountRow({ discount }: { discount: DiscountResponse }) {
           color: `#${discount.colorHex}`,
         }}
       >
-        −{discount.discountValue}%
+        −{discount.amountValue}{discount.amountType === "FIXED" ? " TJS" : "%"}
       </div>
 
       {/* SKU count */}
       <div className="shrink-0 text-xs text-zinc-400 tabular-nums w-16 text-right">
-        {discount.itemCodes.length} SKU{discount.itemCodes.length !== 1 ? "s" : ""}
+        {discount.targets.length} SKU{discount.targets.length !== 1 ? "s" : ""}
       </div>
 
       {/* Expiry */}

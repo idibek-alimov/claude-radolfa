@@ -81,13 +81,13 @@ public class DiscountEnrichmentAdapter {
 
                 discountedCount++;
                 BigDecimal discountedPrice = computeDiscountedPrice(
-                        sku.getOriginalPrice(), discount.getDiscountValue());
+                        sku.getOriginalPrice(), discount.getAmountValue());
 
                 if (best == null || discountedPrice.compareTo(best.discountedPrice()) < 0) {
                     best = new DiscountInfo(
                             sku.getOriginalPrice(),
                             discountedPrice,
-                            discount.getDiscountValue(),
+                            discount.getAmountValue(),
                             discount.getValidUpto(),
                             discount.getTitle(),
                             discount.getColorHex(),

@@ -54,12 +54,12 @@ public class FindDiscountOverlapsService implements FindDiscountOverlapsUseCase 
 
             List<DiscountSummary> losers = campaigns.stream()
                     .filter(d -> !d.id().equals(winner.id()))
-                    .map(d -> new DiscountSummary(d.id(), d.title(), d.colorHex(), d.discountValue(), d.type()))
+                    .map(d -> new DiscountSummary(d.id(), d.title(), d.colorHex(), d.amountValue(), d.amountType(), d.type()))
                     .toList();
 
             overlaps.add(new DiscountOverlapRow(
                     entry.getKey(),
-                    new DiscountSummary(winner.id(), winner.title(), winner.colorHex(), winner.discountValue(), winner.type()),
+                    new DiscountSummary(winner.id(), winner.title(), winner.colorHex(), winner.amountValue(), winner.amountType(), winner.type()),
                     losers
             ));
         }

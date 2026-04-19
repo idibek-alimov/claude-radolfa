@@ -121,8 +121,9 @@ class FindCampaignsByProductServiceTest {
     }
 
     private static Discount discount(Long id, DiscountType type, List<String> codes) {
-        return new Discount(id, type, new ArrayList<>(codes), new BigDecimal("10.00"),
-                FROM, UPTO, false, "Camp-" + id, "#FFFFFF");
+        List<DiscountTarget> targets = codes.stream().<DiscountTarget>map(SkuTarget::new).toList();
+        return new Discount(id, type, targets, AmountType.PERCENT, new BigDecimal("10.00"),
+                FROM, UPTO, false, "Camp-" + id, "#FFFFFF", null, null, null, null);
     }
 
     // ---- Fakes ----

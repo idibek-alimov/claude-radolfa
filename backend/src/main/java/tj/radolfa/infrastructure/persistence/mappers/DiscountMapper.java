@@ -11,8 +11,8 @@ public interface DiscountMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "itemCodes", ignore = true) // managed manually in DiscountAdapter.save()
+    @Mapping(target = "itemCodes", ignore = true)
+    @Mapping(target = "targets", ignore = true)
+    @Mapping(target = "amountType", expression = "java(domain.amountType().name())")
     DiscountEntity toEntity(Discount domain);
-
-    Discount toDomain(DiscountEntity entity);
 }

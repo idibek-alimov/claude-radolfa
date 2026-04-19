@@ -8,9 +8,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountOverlapRow;
+import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
+import tj.radolfa.domain.model.SkuTarget;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -118,8 +121,9 @@ class FindDiscountOverlapsServiceTest {
     // ---- Helpers ----
 
     private static Discount discount(Long id, DiscountType type, List<String> codes) {
-        return new Discount(id, type, new ArrayList<>(codes), new BigDecimal("10.00"),
-                FROM, UPTO, false, "Camp-" + id, "#FFFFFF");
+        List<DiscountTarget> targets = codes.stream().<DiscountTarget>map(SkuTarget::new).toList();
+        return new Discount(id, type, targets, AmountType.PERCENT, new BigDecimal("10.00"),
+                FROM, UPTO, false, "Camp-" + id, "#FFFFFF", null, null, null, null);
     }
 
     // ---- Fake ----

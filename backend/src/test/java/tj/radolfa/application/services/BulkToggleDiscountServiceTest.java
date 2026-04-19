@@ -10,8 +10,11 @@ import tj.radolfa.application.ports.in.discount.BulkToggleDiscountUseCase;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
+import tj.radolfa.domain.model.SkuTarget;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -82,8 +85,9 @@ class BulkToggleDiscountServiceTest {
     // ---- Helpers ----
 
     private static Discount discount(Long id, boolean disabled) {
-        return new Discount(id, FLASH, List.of("SKU-" + id), new BigDecimal("10.00"),
-                FROM, UPTO, disabled, "Camp-" + id, "#FFFFFF");
+        List<DiscountTarget> targets = List.of(new SkuTarget("SKU-" + id));
+        return new Discount(id, FLASH, targets, AmountType.PERCENT, new BigDecimal("10.00"),
+                FROM, UPTO, disabled, "Camp-" + id, "#FFFFFF", null, null, null, null);
     }
 
     // ---- Fakes ----
@@ -112,8 +116,10 @@ class BulkToggleDiscountServiceTest {
         @Override
         public Discount save(Discount d) {
             Discount persisted = d.id() != null ? d
-                    : new Discount(idGen.getAndIncrement(), d.type(), d.itemCodes(),
-                    d.discountValue(), d.validFrom(), d.validUpto(), d.disabled(), d.title(), d.colorHex());
+                    : new Discount(idGen.getAndIncrement(), d.type(), d.targets(),
+                    d.amountType(), d.amountValue(), d.validFrom(), d.validUpto(),
+                    d.disabled(), d.title(), d.colorHex(),
+                    d.minBasketAmount(), d.usageCapTotal(), d.usageCapPerCustomer(), d.couponCode());
             savedDiscounts.add(persisted);
             return persisted;
         }

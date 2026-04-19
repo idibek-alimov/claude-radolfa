@@ -46,18 +46,24 @@ export function ProductCampaignsPanel({ productBaseId, allSkuCodes }: Props) {
   const removeMutation = useMutation({
     mutationFn: async (campaignId: number) => {
       const full = await fetchDiscountById(campaignId);
-      const newItemCodes = full.itemCodes.filter(
-        (code) => !allSkuCodes.includes(code)
-      );
-      if (newItemCodes.length === 0) {
+      const remainingSkuCodes = full.targets
+        .filter((t) => t.targetType === "SKU")
+        .map((t) => t.referenceId)
+        .filter((code) => !allSkuCodes.includes(code));
+      const newTargets = [
+        ...remainingSkuCodes.map((code) => ({ targetType: "SKU" as const, referenceId: code })),
+        ...full.targets.filter((t) => t.targetType !== "SKU"),
+      ];
+      if (newTargets.length === 0) {
         throw new Error(
-          "Cannot remove — campaign would have zero SKUs. Delete the campaign instead."
+          "Cannot remove — campaign would have zero targets. Delete the campaign instead."
         );
       }
       return updateDiscount(campaignId, {
         typeId: full.type.id,
-        itemCodes: newItemCodes,
-        discountValue: full.discountValue,
+        targets: newTargets,
+        amountType: full.amountType,
+        amountValue: full.amountValue,
         validFrom: full.validFrom,
         validUpto: full.validUpto,
         title: full.title,
@@ -196,7 +202,7 @@ function CampaignRow({
             {campaign.title}
           </span>
           <span className="text-sm font-bold text-rose-600 tabular-nums shrink-0">
-            −{campaign.discountValue}%
+            −{campaign.amountValue}{campaign.amountType === "FIXED" ? " TJS" : "%"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">

@@ -28,9 +28,12 @@ public class BulkToggleDiscountService implements BulkToggleDiscountUseCase {
             if (opt.isEmpty()) continue;
             Discount original = opt.get();
             Discount updated = new Discount(
-                    original.id(), original.type(), original.itemCodes(),
-                    original.discountValue(), original.validFrom(), original.validUpto(),
-                    command.disabled(), original.title(), original.colorHex()
+                    original.id(), original.type(), original.targets(),
+                    original.amountType(), original.amountValue(),
+                    original.validFrom(), original.validUpto(),
+                    command.disabled(), original.title(), original.colorHex(),
+                    original.minBasketAmount(), original.usageCapTotal(),
+                    original.usageCapPerCustomer(), original.couponCode()
             );
             saveDiscountPort.save(updated);
             affected++;

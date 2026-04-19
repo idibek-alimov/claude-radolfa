@@ -12,10 +12,14 @@ import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadBestActiveDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
+import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 import tj.radolfa.infrastructure.persistence.entity.DiscountTypeEntity;
 import tj.radolfa.infrastructure.persistence.mappers.DiscountMapper;
+import tj.radolfa.infrastructure.persistence.mappers.DiscountTargetMapper;
+import tj.radolfa.infrastructure.persistence.mappers.DiscountTypeMapper;
 import tj.radolfa.infrastructure.persistence.repository.DiscountRepository;
 import tj.radolfa.infrastructure.persistence.repository.DiscountTypeRepository;
 
@@ -34,26 +38,32 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
     private final DiscountRepository repository;
     private final DiscountTypeRepository typeRepository;
     private final DiscountMapper mapper;
+    private final DiscountTypeMapper discountTypeMapper;
+    private final DiscountTargetMapper discountTargetMapper;
 
     public DiscountAdapter(DiscountRepository repository,
                            DiscountTypeRepository typeRepository,
-                           DiscountMapper mapper) {
+                           DiscountMapper mapper,
+                           DiscountTypeMapper discountTypeMapper,
+                           DiscountTargetMapper discountTargetMapper) {
         this.repository = repository;
         this.typeRepository = typeRepository;
         this.mapper = mapper;
+        this.discountTypeMapper = discountTypeMapper;
+        this.discountTargetMapper = discountTargetMapper;
     }
 
     // ---- LoadDiscountPort ----
 
     @Override
     public Optional<Discount> findById(Long id) {
-        return repository.findById(id).map(mapper::toDomain);
+        return repository.findById(id).map(this::toDomain);
     }
 
     @Override
     public List<Discount> findActiveByItemCode(String itemCode) {
         return repository.findActiveDiscountsByItemCode(itemCode).stream()
-                .map(row -> mapper.toDomain((DiscountEntity) row[0]))
+                .map(row -> toDomain((DiscountEntity) row[0]))
                 .toList();
     }
 
@@ -63,7 +73,7 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
         Map<Long, Discount> deduped = new LinkedHashMap<>();
         for (Object[] row : repository.findActiveDiscountsByItemCodes(itemCodes)) {
             DiscountEntity entity = (DiscountEntity) row[0];
-            deduped.putIfAbsent(entity.getId(), mapper.toDomain(entity));
+            deduped.putIfAbsent(entity.getId(), toDomain(entity));
         }
         return List.copyOf(deduped.values());
     }
@@ -71,7 +81,7 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
     @Override
     public Page<Discount> findAll(DiscountFilter filter, Pageable pageable) {
         Specification<DiscountEntity> spec = buildSpec(filter);
-        return repository.findAll(spec, pageable).map(mapper::toDomain);
+        return repository.findAll(spec, pageable).map(this::toDomain);
     }
 
     // ---- LoadBestActiveDiscountPort ----
@@ -79,8 +89,8 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
     @Override
     public Optional<Discount> findBestActiveForItemCode(String itemCode) {
         return repository.findActiveDiscountsByItemCode(itemCode).stream()
-                .findFirst() // already ordered by type.rank ASC — first is highest priority
-                .map(row -> mapper.toDomain((DiscountEntity) row[0]));
+                .findFirst()
+                .map(row -> toDomain((DiscountEntity) row[0]));
     }
 
     // ---- SaveDiscountPort ----
@@ -97,21 +107,33 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
                     .orElseThrow(() -> new IllegalStateException(
                             "Discount not found: " + discount.id()));
             entity.setType(typeEntity);
-            entity.setDiscountValue(discount.discountValue());
+            entity.setAmountValue(discount.amountValue());
+            entity.setAmountType(discount.amountType().name());
             entity.setValidFrom(discount.validFrom());
             entity.setValidUpto(discount.validUpto());
             entity.setDisabled(discount.disabled());
             entity.setTitle(discount.title());
             entity.setColorHex(discount.colorHex());
-            entity.getItemCodes().clear();
-            entity.getItemCodes().addAll(discount.itemCodes());
+            entity.setMinBasketAmount(discount.minBasketAmount());
+            entity.setUsageCapTotal(discount.usageCapTotal());
+            entity.setUsageCapPerCustomer(discount.usageCapPerCustomer());
+            entity.setCouponCode(discount.couponCode());
         } else {
             entity = mapper.toEntity(discount);
             entity.setType(typeEntity);
-            entity.getItemCodes().addAll(discount.itemCodes());
         }
 
-        return mapper.toDomain(repository.save(entity));
+        // Sync discount_target rows (authoritative going forward)
+        entity.getTargets().clear();
+        for (DiscountTarget t : discount.targets()) {
+            entity.getTargets().add(discountTargetMapper.toEntity(t, entity));
+        }
+
+        // Dual-write: keep discount_items in sync (SKU targets only)
+        entity.getItemCodes().clear();
+        entity.getItemCodes().addAll(discount.itemCodes());
+
+        return toDomain(repository.save(entity));
     }
 
     @Override
@@ -119,7 +141,29 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
         repository.deleteById(id);
     }
 
-    // ---- Specification builder ----
+    // ---- Private helpers ----
+
+    private Discount toDomain(DiscountEntity entity) {
+        List<DiscountTarget> targets = entity.getTargets().stream()
+                .map(discountTargetMapper::toDomain)
+                .toList();
+        return new Discount(
+                entity.getId(),
+                discountTypeMapper.toDomain(entity.getType()),
+                targets,
+                AmountType.valueOf(entity.getAmountType()),
+                entity.getAmountValue(),
+                entity.getValidFrom(),
+                entity.getValidUpto(),
+                entity.isDisabled(),
+                entity.getTitle(),
+                entity.getColorHex(),
+                entity.getMinBasketAmount(),
+                entity.getUsageCapTotal(),
+                entity.getUsageCapPerCustomer(),
+                entity.getCouponCode()
+        );
+    }
 
     private Specification<DiscountEntity> buildSpec(DiscountFilter filter) {
         return (root, query, cb) -> {

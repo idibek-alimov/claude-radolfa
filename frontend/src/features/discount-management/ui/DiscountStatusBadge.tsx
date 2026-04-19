@@ -6,7 +6,7 @@ export function DiscountStatusBadge({ discount }: { discount: DiscountResponse }
       className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
       style={{ backgroundColor: `#${discount.colorHex}` }}
     >
-      {discount.title} −{discount.discountValue}%
+      {discount.title} −{discount.amountValue}{discount.amountType === "FIXED" ? " TJS" : "%"}
     </span>
   );
 }
