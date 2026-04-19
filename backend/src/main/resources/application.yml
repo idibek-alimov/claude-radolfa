@@ -114,5 +114,7 @@ radolfa:
       secret: ${WEBHOOK_SECRET:}
     cors:
       allowed-origins: []
+  analytics:
+    start-date: 2026-04-19
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026

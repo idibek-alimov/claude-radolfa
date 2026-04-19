@@ -483,6 +483,35 @@
         "lose": "{skuCode} — уже в {campaignTitle} (ранг {otherRank}). Ваша (ранг {myRank}) проиграет.",
         "more": "+{count} ещё"
       }
+    },
+    "metrics": {
+      "title": "Аналитика кампании",
+      "ordersUsing": "Заказов с акцией",
+      "unitsMoved": "Продано единиц",
+      "revenueUplift": "Скидка в деньгах",
+      "avgDiscountPerOrder": "Ср. скидка / заказ",
+      "sparkline": {
+        "orders": "Заказы",
+        "units": "Единицы",
+        "uplift": "Скидка"
+      },
+      "cutoffBanner": "Эта кампания создана до начала аналитики ({date}). Данные ниже — с {startDate}.",
+      "editCampaign": "Редактировать",
+      "window": "Период: {from} – {to}",
+      "loading": "Загрузка метрик…",
+      "empty": "Данных пока нет. Они появятся после первого заказа по этой акции."
+    },
+    "topCampaigns": {
+      "title": "Топ кампании",
+      "byRevenue": "По скидке",
+      "byUnits": "По единицам",
+      "period7d": "7д",
+      "period30d": "30д",
+      "period90d": "90д",
+      "rank": "Место",
+      "units": "Единиц",
+      "uplift": "Скидка",
+      "empty": "Нет данных."
     }
   }
 }

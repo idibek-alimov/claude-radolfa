@@ -10,6 +10,9 @@ import type {
   CampaignSkuFilters,
   DiscountOverlapRow,
   CampaignSummary,
+  DiscountMetrics,
+  TopCampaignRow,
+  AnalyticsConfig,
 } from "../model/types";
 import type { PaginatedResponse } from "@/shared/api/types";
 
@@ -212,6 +215,36 @@ export async function fetchProductCampaigns(
 ): Promise<CampaignSummary[]> {
   const { data } = await apiClient.get<CampaignSummary[]>(
     `/api/v1/admin/products/${productBaseId}/campaigns`
+  );
+  return data;
+}
+
+// ── Analytics ─────────────────────────────────────────────────────
+
+/** GET /api/v1/admin/discounts/analytics-config — MANAGER+ */
+export async function fetchAnalyticsConfig(): Promise<AnalyticsConfig> {
+  const { data } = await apiClient.get<AnalyticsConfig>(
+    "/api/v1/admin/discounts/analytics-config"
+  );
+  return data;
+}
+
+/** GET /api/v1/admin/discounts/{id}/metrics — MANAGER+ */
+export async function fetchDiscountMetrics(id: number): Promise<DiscountMetrics> {
+  const { data } = await apiClient.get<DiscountMetrics>(
+    `/api/v1/admin/discounts/${id}/metrics`
+  );
+  return data;
+}
+
+/** GET /api/v1/admin/discounts/top?by=&period= — MANAGER+ */
+export async function fetchTopCampaigns(params: {
+  by?: "revenue" | "units";
+  period?: "7d" | "30d" | "90d";
+}): Promise<TopCampaignRow[]> {
+  const { data } = await apiClient.get<TopCampaignRow[]>(
+    "/api/v1/admin/discounts/top",
+    { params }
   );
   return data;
 }

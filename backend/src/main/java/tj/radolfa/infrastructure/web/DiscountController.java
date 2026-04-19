@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.web;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,9 @@ public class DiscountController {
     private final BulkToggleDiscountUseCase bulkToggleDiscountUseCase;
     private final BulkDeleteDiscountUseCase bulkDeleteDiscountUseCase;
     private final BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase;
+    private final GetDiscountMetricsUseCase getDiscountMetricsUseCase;
+    private final GetTopCampaignsUseCase getTopCampaignsUseCase;
+    private final LocalDate analyticsStartDate;
 
     public DiscountController(LoadDiscountPort loadDiscountPort,
                               CreateDiscountUseCase createDiscountUseCase,
@@ -46,7 +50,10 @@ public class DiscountController {
                               FindDiscountOverlapsUseCase findDiscountOverlapsUseCase,
                               BulkToggleDiscountUseCase bulkToggleDiscountUseCase,
                               BulkDeleteDiscountUseCase bulkDeleteDiscountUseCase,
-                              BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase) {
+                              BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase,
+                              GetDiscountMetricsUseCase getDiscountMetricsUseCase,
+                              GetTopCampaignsUseCase getTopCampaignsUseCase,
+                              @Value("${radolfa.analytics.start-date}") LocalDate analyticsStartDate) {
         this.loadDiscountPort = loadDiscountPort;
         this.createDiscountUseCase = createDiscountUseCase;
         this.updateDiscountUseCase = updateDiscountUseCase;
@@ -56,6 +63,9 @@ public class DiscountController {
         this.bulkToggleDiscountUseCase = bulkToggleDiscountUseCase;
         this.bulkDeleteDiscountUseCase = bulkDeleteDiscountUseCase;
         this.bulkDuplicateDiscountUseCase = bulkDuplicateDiscountUseCase;
+        this.getDiscountMetricsUseCase = getDiscountMetricsUseCase;
+        this.getTopCampaignsUseCase = getTopCampaignsUseCase;
+        this.analyticsStartDate = analyticsStartDate;
     }
 
     private static final Set<String> ALLOWED_SORT = Set.of(
@@ -201,6 +211,31 @@ public class DiscountController {
         return bulkDuplicateDiscountUseCase.execute(
                 new BulkDuplicateDiscountUseCase.Command(request.ids())).stream()
                 .map(DiscountResponse::fromDomain)
+                .toList();
+    }
+
+    // ---- Analytics ----
+
+    @GetMapping("/analytics-config")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public AnalyticsConfigResponse analyticsConfig() {
+        return new AnalyticsConfigResponse(analyticsStartDate);
+    }
+
+    @GetMapping("/{id}/metrics")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountMetricsResponse getMetrics(@PathVariable Long id) {
+        return DiscountMetricsResponse.fromDomain(getDiscountMetricsUseCase.execute(id));
+    }
+
+    @GetMapping("/top")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public List<TopCampaignResponse> getTopCampaigns(
+            @RequestParam(defaultValue = "revenue") String by,
+            @RequestParam(defaultValue = "30d") String period) {
+        return getTopCampaignsUseCase.execute(
+                new GetTopCampaignsUseCase.Command(by, period, 5)).stream()
+                .map(TopCampaignResponse::fromDomain)
                 .toList();
     }
 }

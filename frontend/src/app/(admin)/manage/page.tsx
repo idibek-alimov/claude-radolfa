@@ -11,6 +11,7 @@ import { getErrorMessage } from "@/shared/lib";
 import { RefreshCw, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DashboardKpiRow, ModerationAlertsRow, ActiveDiscountsWidget, OrderSummaryWidget } from "@/widgets/AdminDashboard";
+import { TopCampaignsWidget } from "@/widgets/top-campaigns-widget";
 
 export default function ManageDashboardPage() {
   const t = useTranslations("manage");
@@ -46,7 +47,10 @@ export default function ManageDashboardPage() {
       {/* Row 3 — Active discount campaigns */}
       <ActiveDiscountsWidget />
 
-      {/* Row 4 — Orders & Revenue (ADMIN only) */}
+      {/* Row 4 — Top campaigns by analytics */}
+      <TopCampaignsWidget />
+
+      {/* Row 5 — Orders & Revenue (ADMIN only) */}
       {isAdmin && <OrderSummaryWidget />}
 
       {/* Search Tools — ADMIN only */}

@@ -483,6 +483,35 @@
         "lose": "{skuCode} — already in {campaignTitle} (rank {otherRank}). Yours (rank {myRank}) would lose.",
         "more": "+{count} more"
       }
+    },
+    "metrics": {
+      "title": "Campaign Analytics",
+      "ordersUsing": "Orders Using",
+      "unitsMoved": "Units Moved",
+      "revenueUplift": "Revenue Uplift",
+      "avgDiscountPerOrder": "Avg Discount / Order",
+      "sparkline": {
+        "orders": "Orders",
+        "units": "Units",
+        "uplift": "Uplift"
+      },
+      "cutoffBanner": "This campaign predates analytics tracking (started {date}). KPIs below reflect data from {startDate} onward.",
+      "editCampaign": "Edit Campaign",
+      "window": "Period: {from} – {to}",
+      "loading": "Loading metrics…",
+      "empty": "No analytics data yet. Orders will appear here once this campaign is used at checkout."
+    },
+    "topCampaigns": {
+      "title": "Top Campaigns",
+      "byRevenue": "Revenue",
+      "byUnits": "Units",
+      "period7d": "7d",
+      "period30d": "30d",
+      "period90d": "90d",
+      "rank": "Rank",
+      "units": "Units",
+      "uplift": "Uplift",
+      "empty": "No campaign data yet."
     }
   }
 }

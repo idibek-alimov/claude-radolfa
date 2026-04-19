@@ -98,3 +98,33 @@ export interface DiscountOverlapRow {
   winningCampaign: CampaignSummary;
   losingCampaigns: CampaignSummary[];
 }
+
+// ── Analytics ─────────────────────────────────────────────────────
+
+export interface DailyMetric {
+  date: string; // ISO date yyyy-MM-dd
+  orders: number;
+  units: number;
+  uplift: number;
+}
+
+export interface DiscountMetrics {
+  ordersUsing: number;
+  unitsMoved: number;
+  revenueUplift: number;
+  avgDiscountPerOrder: number;
+  from: string;
+  to: string;
+  dailySeries: DailyMetric[];
+}
+
+export interface TopCampaignRow {
+  campaign: CampaignSummary;
+  ordersUsing: number;
+  unitsMoved: number;
+  revenueUplift: number;
+}
+
+export interface AnalyticsConfig {
+  startDate: string; // ISO date yyyy-MM-dd
+}

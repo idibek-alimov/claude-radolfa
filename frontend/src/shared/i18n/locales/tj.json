@@ -483,6 +483,35 @@
         "lose": "{skuCode} — аллакай дар {campaignTitle} (ранг {otherRank}). Шумо (ранг {myRank}) бой медиҳед.",
         "more": "+{count} дигар"
       }
+    },
+    "metrics": {
+      "title": "Аналитикаи кампания",
+      "ordersUsing": "Фармоишҳо",
+      "unitsMoved": "Воҳидҳои фурӯхташуда",
+      "revenueUplift": "Тахфиф дар пул",
+      "avgDiscountPerOrder": "Тахфифи мутавассит",
+      "sparkline": {
+        "orders": "Фармоишҳо",
+        "units": "Воҳидҳо",
+        "uplift": "Тахфиф"
+      },
+      "cutoffBanner": "Ин кампания пеш аз оғози аналитика ({date}) буд. Маълумот аз {startDate}.",
+      "editCampaign": "Таҳрир",
+      "window": "Давра: {from} – {to}",
+      "loading": "Бор шудан…",
+      "empty": "Маълумот ҳанӯз нест."
+    },
+    "topCampaigns": {
+      "title": "Беҳтарин кампанияҳо",
+      "byRevenue": "Тахфиф",
+      "byUnits": "Воҳидҳо",
+      "period7d": "7р",
+      "period30d": "30р",
+      "period90d": "90р",
+      "rank": "Ҷой",
+      "units": "Воҳидҳо",
+      "uplift": "Тахфиф",
+      "empty": "Маълумот нест."
     }
   }
 }
