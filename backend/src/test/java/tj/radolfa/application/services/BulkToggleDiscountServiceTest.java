@@ -109,6 +109,7 @@ class BulkToggleDiscountServiceTest {
         @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) {
             return new PageImpl<>(List.copyOf(store.values()), p, store.size());
         }
+        @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 
     static class FakeSaveDiscountPort implements SaveDiscountPort {

@@ -319,7 +319,20 @@
     "outOfStock": "Out of stock",
     "successTitle": "Order Placed!",
     "orderNumber": "Order #{id}",
-    "viewOrders": "View My Orders"
+    "viewOrders": "View My Orders",
+    "coupon": {
+      "label": "Coupon Code",
+      "placeholder": "e.g. SUMMER25",
+      "apply": "Apply",
+      "remove": "Remove",
+      "applied": "Coupon applied",
+      "affectedItems": "Applied to {count} item(s)",
+      "NOT_FOUND": "This coupon code does not exist",
+      "DISABLED": "This coupon is no longer active",
+      "NOT_ACTIVE": "This coupon is outside its validity period",
+      "CAP_EXHAUSTED": "This coupon has reached its usage limit",
+      "NO_ITEMS_AFFECTED": "This coupon does not apply to items in your cart"
+    }
   },
   "payment": {
     "pollingTitle": "Verifying payment...",

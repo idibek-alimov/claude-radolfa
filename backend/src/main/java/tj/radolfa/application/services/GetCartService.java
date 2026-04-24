@@ -46,7 +46,7 @@ public class GetCartService implements GetCartUseCase {
         List<CartView.ItemView> itemViews = cart.getItems().stream()
                 .map(this::enrichItem)
                 .toList();
-        return new CartView(cart.getId(), itemViews, cart.total(), cart.itemCount());
+        return new CartView(cart.getId(), itemViews, cart.total(), cart.itemCount(), cart.getCouponCode());
     }
 
     private CartView.ItemView enrichItem(CartItem item) {

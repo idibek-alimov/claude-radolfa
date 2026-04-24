@@ -2,13 +2,20 @@
 
 import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { isCouponsEnabled } from "@/shared/lib";
 
-const STEPS = [
+const BASE_STEPS = [
   { label: "Campaign Details", description: "Title, type, discount & color" },
-  { label: "Schedule", description: "Start & end dates" },
+  { label: "Schedule",          description: "Start & end dates" },
   { label: "Product Selection", description: "Choose SKUs" },
-  { label: "Review & Submit", description: "Confirm and save" },
+  { label: "Review & Submit",   description: "Confirm and save" },
 ];
+
+const COUPON_STEP = { label: "Coupon Code", description: "Optional promo code" };
+
+const STEPS = isCouponsEnabled
+  ? [BASE_STEPS[0], BASE_STEPS[1], COUPON_STEP, BASE_STEPS[2], BASE_STEPS[3]]
+  : BASE_STEPS;
 
 interface Props {
   currentStep: number; // 1-based

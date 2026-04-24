@@ -3,12 +3,15 @@ package tj.radolfa.infrastructure.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.cart.*;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.AddToCartRequestDto;
+import tj.radolfa.infrastructure.web.dto.ApplyCouponRequestDto;
+import tj.radolfa.infrastructure.web.dto.ApplyCouponResponseDto;
 import tj.radolfa.infrastructure.web.dto.CartDto;
 import tj.radolfa.infrastructure.web.dto.UpdateCartItemRequestDto;
 
@@ -22,17 +25,26 @@ public class CartController {
     private final UpdateCartItemQuantityUseCase   updateCartItemQuantityUseCase;
     private final RemoveFromCartUseCase           removeFromCartUseCase;
     private final ClearCartUseCase                clearCartUseCase;
+    private final ApplyCouponUseCase              applyCouponUseCase;
+    private final RemoveCouponUseCase             removeCouponUseCase;
+    private final boolean                         couponsEnabled;
 
     public CartController(GetCartUseCase getCartUseCase,
                           AddToCartUseCase addToCartUseCase,
                           UpdateCartItemQuantityUseCase updateCartItemQuantityUseCase,
                           RemoveFromCartUseCase removeFromCartUseCase,
-                          ClearCartUseCase clearCartUseCase) {
+                          ClearCartUseCase clearCartUseCase,
+                          ApplyCouponUseCase applyCouponUseCase,
+                          RemoveCouponUseCase removeCouponUseCase,
+                          @Value("${radolfa.discount.coupons.enabled:true}") boolean couponsEnabled) {
         this.getCartUseCase                = getCartUseCase;
         this.addToCartUseCase              = addToCartUseCase;
         this.updateCartItemQuantityUseCase = updateCartItemQuantityUseCase;
         this.removeFromCartUseCase         = removeFromCartUseCase;
         this.clearCartUseCase              = clearCartUseCase;
+        this.applyCouponUseCase            = applyCouponUseCase;
+        this.removeCouponUseCase           = removeCouponUseCase;
+        this.couponsEnabled                = couponsEnabled;
     }
 
     @GetMapping
@@ -74,5 +86,24 @@ public class CartController {
     public ResponseEntity<Void> clearCart(@AuthenticationPrincipal JwtAuthenticatedUser user) {
         clearCartUseCase.execute(user.userId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/apply-coupon")
+    @Operation(summary = "Apply a coupon code to the cart")
+    public ResponseEntity<ApplyCouponResponseDto> applyCoupon(
+            @AuthenticationPrincipal JwtAuthenticatedUser user,
+            @Valid @RequestBody ApplyCouponRequestDto request) {
+        if (!couponsEnabled) return ResponseEntity.notFound().build();
+        ApplyCouponUseCase.Result r = applyCouponUseCase.execute(user.userId(), request.couponCode());
+        return ResponseEntity.ok(new ApplyCouponResponseDto(
+                r.valid(), r.discountId(), r.affectedSkus(), r.invalidReason(),
+                r.cart() != null ? CartDto.fromView(r.cart()) : null));
+    }
+
+    @DeleteMapping("/coupon")
+    @Operation(summary = "Remove the applied coupon from the cart")
+    public ResponseEntity<CartDto> removeCoupon(@AuthenticationPrincipal JwtAuthenticatedUser user) {
+        if (!couponsEnabled) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(CartDto.fromView(removeCouponUseCase.execute(user.userId())));
     }
 }

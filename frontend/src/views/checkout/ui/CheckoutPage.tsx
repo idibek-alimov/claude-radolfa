@@ -5,20 +5,23 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import type { ApplyCouponResponse } from "@/entities/cart";
 import {
   ShoppingBag,
   AlertTriangle,
   Star,
   Loader2,
+  Tag,
+  X,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { useCartQuery } from "@/features/cart";
+import { useCartQuery, useApplyCoupon, useRemoveCoupon } from "@/features/cart";
 import { useAuth } from "@/features/auth";
 import { checkout } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage, isCouponsEnabled } from "@/shared/lib";
 
 export function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -31,6 +34,31 @@ export function CheckoutPage() {
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [notes, setNotes] = useState("");
   const [redirecting, setRedirecting] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [affectedCount, setAffectedCount] = useState<number | null>(null);
+
+  const applyCouponMutation = useApplyCoupon();
+  const removeCouponMutation = useRemoveCoupon();
+
+  function applyCoupon() {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponError(null);
+    applyCouponMutation.mutate(code, {
+      onSuccess: (data: ApplyCouponResponse) => {
+        if (data.valid) {
+          setCouponInput("");
+          setAffectedCount(data.affectedSkus.length);
+          toast.success(t("coupon.applied"));
+        } else {
+          const key = `coupon.${data.invalidReason}` as Parameters<typeof t>[0];
+          setCouponError(t(key));
+        }
+      },
+      onError: (err: unknown) => setCouponError(getErrorMessage(err)),
+    });
+  }
 
   const availablePoints = user?.loyalty?.points ?? 0;
   const hasOutOfStockItems = cart?.items.some((i) => !i.inStock) ?? false;
@@ -174,6 +202,81 @@ export function CheckoutPage() {
               {pointsToRedeem > 0 && `= ${pointsValue.toFixed(2)} TJS`}
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Coupon code */}
+      {isCouponsEnabled && (
+        <div className="rounded-xl border bg-card shadow-sm p-5">
+          <h2 className="font-semibold flex items-center gap-2 mb-3">
+            <Tag className="h-4 w-4" />
+            {t("coupon.label")}
+          </h2>
+
+          {cart.couponCode ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-mono font-medium px-3 py-1">
+                  <Tag className="h-3.5 w-3.5" />
+                  {cart.couponCode}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setAffectedCount(null);
+                    removeCouponMutation.mutate(undefined, {
+                      onError: (err) => toast.error(getErrorMessage(err)),
+                    });
+                  }}
+                  disabled={removeCouponMutation.isPending}
+                >
+                  <X className="h-4 w-4" />
+                  {t("coupon.remove")}
+                </Button>
+              </div>
+              {affectedCount !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {t("coupon.affectedItems", { count: affectedCount })}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                placeholder={t("coupon.placeholder")}
+                value={couponInput}
+                onChange={(e) => {
+                  setCouponInput(e.target.value.toUpperCase());
+                  setCouponError(null);
+                }}
+                className="font-mono tracking-widest max-w-xs h-9 text-sm"
+                maxLength={32}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    applyCoupon();
+                  }
+                }}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!couponInput.trim() || applyCouponMutation.isPending}
+                onClick={applyCoupon}
+              >
+                {applyCouponMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  t("coupon.apply")
+                )}
+              </Button>
+            </div>
+          )}
+
+          {couponError && (
+            <p className="text-xs text-destructive mt-2">{couponError}</p>
+          )}
         </div>
       )}
 

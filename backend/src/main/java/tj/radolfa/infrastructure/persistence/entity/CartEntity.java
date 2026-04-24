@@ -31,4 +31,7 @@ public class CartEntity extends BaseAuditEntity {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CartItemEntity> items = new ArrayList<>();
+
+    @Column(name = "coupon_code", length = 64)
+    private String couponCode;
 }

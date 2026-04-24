@@ -1,5 +1,5 @@
 import apiClient from "@/shared/api/axios";
-import type { Cart } from "../model/types";
+import type { ApplyCouponResponse, Cart } from "../model/types";
 
 export async function getCart(): Promise<Cart> {
   const { data } = await apiClient.get<Cart>("/api/v1/cart");
@@ -23,4 +23,14 @@ export async function removeCartItem(skuId: number): Promise<Cart> {
 
 export async function clearCart(): Promise<void> {
   await apiClient.delete("/api/v1/cart");
+}
+
+export async function applyCoupon(couponCode: string): Promise<ApplyCouponResponse> {
+  const { data } = await apiClient.post<ApplyCouponResponse>("/api/v1/cart/apply-coupon", { couponCode });
+  return data;
+}
+
+export async function removeCoupon(): Promise<Cart> {
+  const { data } = await apiClient.delete<Cart>("/api/v1/cart/coupon");
+  return data;
 }

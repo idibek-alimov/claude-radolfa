@@ -58,6 +58,7 @@ class ResolveDiscountsServiceLegacyEquivalenceTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         return new ResolveDiscountsService(port, NO_EXPAND, NO_USAGE, NO_SEGMENT);
     }
@@ -70,7 +71,7 @@ class ResolveDiscountsServiceLegacyEquivalenceTest {
         Discount d = skuDiscount(1L, 1, pct);
 
         Map<String, List<Discount>> result = build(List.of(d)).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-LEGACY"), null, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-LEGACY"), null, null, null));
 
         List<Discount> ordered = result.get("SKU-LEGACY");
         assertEquals(1, ordered.size());
@@ -93,7 +94,7 @@ class ResolveDiscountsServiceLegacyEquivalenceTest {
         Discount loser  = skuDiscount(2L, 2, new BigDecimal("25")); // higher % but lower priority
 
         Map<String, List<Discount>> result = build(List.of(winner, loser)).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-LEGACY"), null, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-LEGACY"), null, null, null));
 
         List<Discount> ordered = result.get("SKU-LEGACY");
         assertEquals(1, ordered.size(), "Only winner (rank=1) should survive");

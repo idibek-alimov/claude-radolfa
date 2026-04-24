@@ -22,26 +22,29 @@ public class Cart {
     private final List<CartItem> items;
     private final Instant    createdAt;
     private       Instant    updatedAt;
+    private       String     couponCode;
 
     public Cart(Long id,
                 Long userId,
                 CartStatus status,
                 List<CartItem> items,
                 Instant createdAt,
-                Instant updatedAt) {
+                Instant updatedAt,
+                String couponCode) {
         Objects.requireNonNull(userId, "userId must not be null");
-        this.id        = id;
-        this.userId    = userId;
-        this.status    = status    != null ? status    : CartStatus.ACTIVE;
-        this.items     = items     != null ? new ArrayList<>(items) : new ArrayList<>();
-        this.createdAt = createdAt != null ? createdAt : Instant.now();
-        this.updatedAt = updatedAt != null ? updatedAt : this.createdAt;
+        this.id         = id;
+        this.userId     = userId;
+        this.status     = status    != null ? status    : CartStatus.ACTIVE;
+        this.items      = items     != null ? new ArrayList<>(items) : new ArrayList<>();
+        this.createdAt  = createdAt != null ? createdAt : Instant.now();
+        this.updatedAt  = updatedAt != null ? updatedAt : this.createdAt;
+        this.couponCode = couponCode;
     }
 
     /** Factory — creates a brand-new active cart for a user. */
     public static Cart forUser(Long userId) {
         Instant now = Instant.now();
-        return new Cart(null, userId, CartStatus.ACTIVE, List.of(), now, now);
+        return new Cart(null, userId, CartStatus.ACTIVE, List.of(), now, now, null);
     }
 
     // ── Mutation ──────────────────────────────────────────────────────────────
@@ -128,13 +131,28 @@ public class Cart {
 
     // ── Getters ───────────────────────────────────────────────────────────────
 
-    public Long           getId()        { return id; }
-    public Long           getUserId()    { return userId; }
-    public CartStatus     getStatus()    { return status; }
+    /** Stamps a coupon code on this cart. */
+    public void applyCoupon(String code) {
+        requireActive();
+        this.couponCode = code;
+        touch();
+    }
+
+    /** Clears the applied coupon. */
+    public void removeCoupon() {
+        requireActive();
+        this.couponCode = null;
+        touch();
+    }
+
+    public Long           getId()          { return id; }
+    public Long           getUserId()      { return userId; }
+    public CartStatus     getStatus()      { return status; }
     /** Returns an unmodifiable snapshot of the items list. */
-    public List<CartItem> getItems()     { return List.copyOf(items); }
-    public Instant        getCreatedAt() { return createdAt; }
-    public Instant        getUpdatedAt() { return updatedAt; }
+    public List<CartItem> getItems()       { return List.copyOf(items); }
+    public Instant        getCreatedAt()   { return createdAt; }
+    public Instant        getUpdatedAt()   { return updatedAt; }
+    public String         getCouponCode()  { return couponCode; }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 

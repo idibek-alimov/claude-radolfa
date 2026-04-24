@@ -248,3 +248,14 @@ export async function fetchTopCampaigns(params: {
   );
   return data;
 }
+
+export async function fetchCouponAvailable(
+  code: string,
+  excludeId?: number
+): Promise<{ available: boolean }> {
+  const { data } = await apiClient.get<{ available: boolean }>(
+    "/api/v1/admin/discounts/coupon-available",
+    { params: { code, excludeId } }
+  );
+  return data;
+}

@@ -158,5 +158,8 @@ class FindDiscountOverlapsServiceTest {
         public Page<Discount> findAll(DiscountFilter filter, Pageable pageable) {
             return new PageImpl<>(activeDiscounts, pageable, activeDiscounts.size());
         }
+
+        @Override
+        public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 }

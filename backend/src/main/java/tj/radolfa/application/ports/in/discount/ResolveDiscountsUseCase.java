@@ -22,6 +22,7 @@ public interface ResolveDiscountsUseCase {
     record Query(
             List<String> itemCodes,
             Long userId,            // null for guests
-            BigDecimal cartSubtotal // null for listing-time (min-basket gate permissive)
+            BigDecimal cartSubtotal, // null for listing-time (min-basket gate permissive)
+            String couponCode        // null for listings; set at checkout when cart has a coupon
     ) {}
 }

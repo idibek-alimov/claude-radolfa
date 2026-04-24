@@ -319,7 +319,20 @@
     "outOfStock": "Нет в наличии",
     "successTitle": "Заказ оформлен!",
     "orderNumber": "Заказ #{id}",
-    "viewOrders": "Мои заказы"
+    "viewOrders": "Мои заказы",
+    "coupon": {
+      "label": "Купон",
+      "placeholder": "напр. SUMMER25",
+      "apply": "Применить",
+      "remove": "Убрать",
+      "applied": "Купон применён",
+      "affectedItems": "Применено к {count} товар(ам)",
+      "NOT_FOUND": "Такой купон не существует",
+      "DISABLED": "Этот купон больше не активен",
+      "NOT_ACTIVE": "Купон вне срока действия",
+      "CAP_EXHAUSTED": "Купон исчерпал лимит использований",
+      "NO_ITEMS_AFFECTED": "Купон не применяется к товарам в корзине"
+    }
   },
   "payment": {
     "pollingTitle": "Проверка оплаты...",

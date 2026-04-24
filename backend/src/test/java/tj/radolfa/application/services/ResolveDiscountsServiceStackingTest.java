@@ -58,6 +58,7 @@ class ResolveDiscountsServiceStackingTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         return new ResolveDiscountsService(port, NO_EXPAND, NO_USAGE, NO_SEGMENT);
     }
@@ -71,7 +72,7 @@ class ResolveDiscountsServiceStackingTest {
         Discount stacker = disc(2L, 2, new BigDecimal("10"), StackingPolicy.STACKABLE);  // rank=2
 
         Map<String, List<Discount>> result = build(List.of(winner, stacker))
-                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null));
+                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null, null));
 
         List<Discount> ordered = result.get("SKU-A");
         assertEquals(2, ordered.size(), "winner + 1 stackable");
@@ -91,7 +92,7 @@ class ResolveDiscountsServiceStackingTest {
         Discount lowPriority  = disc(2L, 3, new BigDecimal("30"), StackingPolicy.BEST_WINS); // rank=3
 
         Map<String, List<Discount>> result = build(List.of(lowPriority, highPriority))
-                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null));
+                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null, null));
 
         List<Discount> ordered = result.get("SKU-A");
         assertEquals(1, ordered.size(), "Only the BEST_WINS winner");
@@ -105,7 +106,7 @@ class ResolveDiscountsServiceStackingTest {
         Discount second = disc(20L, 1, new BigDecimal("20"), StackingPolicy.BEST_WINS);
 
         Map<String, List<Discount>> result = build(List.of(second, first))
-                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null));
+                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null, null));
 
         assertEquals(first, result.get("SKU-A").get(0), "id=10 beats id=20 on tie");
     }
@@ -117,7 +118,7 @@ class ResolveDiscountsServiceStackingTest {
         Discount s2 = disc(2L, 2, new BigDecimal("5"),  StackingPolicy.STACKABLE);
 
         Map<String, List<Discount>> result = build(List.of(s2, s1))
-                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null));
+                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null, null));
 
         List<Discount> ordered = result.get("SKU-A");
         assertEquals(2, ordered.size());
@@ -131,7 +132,7 @@ class ResolveDiscountsServiceStackingTest {
         Discount d = disc(1L, 1, new BigDecimal("20"), StackingPolicy.BEST_WINS);
 
         Map<String, List<Discount>> result = build(List.of(d))
-                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-OTHER"), null, null));
+                .resolve(new ResolveDiscountsUseCase.Query(List.of("SKU-OTHER"), null, null, null));
 
         assertEquals(0, result.size());
     }

@@ -74,6 +74,7 @@ public class ResolveDiscountsService implements ResolveDiscountsUseCase {
         for (String code : q.itemCodes()) eligibleByCode.put(code, new ArrayList<>());
 
         for (Discount d : candidates) {
+            if (!passesCouponGate(d, q.couponCode())) continue;
             if (!passesUsageCap(d, totalUsage, userUsage)) continue;
             if (!passesMinBasket(d, q.cartSubtotal())) continue;
             if (!passesSegmentGate(d, userCtx)) continue;
@@ -163,6 +164,11 @@ public class ResolveDiscountsService implements ResolveDiscountsUseCase {
     private boolean passesMinBasket(Discount d, BigDecimal cartSubtotal) {
         if (d.minBasketAmount() == null || cartSubtotal == null) return true;
         return cartSubtotal.compareTo(d.minBasketAmount()) >= 0;
+    }
+
+    private boolean passesCouponGate(Discount d, String provided) {
+        if (d.couponCode() == null) return true;
+        return provided != null && d.couponCode().equalsIgnoreCase(provided);
     }
 
     private boolean passesSegmentGate(Discount d, Optional<UserSegmentContext> userCtx) {

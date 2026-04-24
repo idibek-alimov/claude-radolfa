@@ -56,7 +56,7 @@ public class DiscountResolutionContext {
                                                                    BigDecimal cartSubtotal) {
         Long userId = resolveUserId();
         Map<String, List<Discount>> ordered = resolveDiscountsUseCase.resolve(
-                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal));
+                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal, null));
         return foldWithPrices(ordered, itemCodes);
     }
 
@@ -68,7 +68,7 @@ public class DiscountResolutionContext {
         }
         Long userId = resolveUserId();
         Map<String, List<Discount>> ordered = resolveDiscountsUseCase.resolve(
-                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal));
+                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal, null));
         Map<String, List<AppliedDiscount>> result = foldWithPrices(ordered, itemCodes);
         cachedItemCodes = itemCodes;
         cachedResult = result;

@@ -116,5 +116,8 @@ radolfa:
       allowed-origins: []
   analytics:
     start-date: 2026-04-19
+  discount:
+    coupons:
+      enabled: ${DISCOUNT_COUPONS_ENABLED:true}
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026

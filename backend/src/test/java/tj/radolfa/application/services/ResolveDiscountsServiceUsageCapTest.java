@@ -53,6 +53,7 @@ class ResolveDiscountsServiceUsageCapTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         QueryDiscountUsagePort usagePort = new QueryDiscountUsagePort() {
             @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return totalUsage; }
@@ -70,7 +71,7 @@ class ResolveDiscountsServiceUsageCapTest {
         ResolveDiscountsService service = build(d, Map.of(1L, 2L), Map.of());
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), 99L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), 99L, null, null));
 
         assertFalse(result.containsKey("SKU-A"));
     }
@@ -82,7 +83,7 @@ class ResolveDiscountsServiceUsageCapTest {
         ResolveDiscountsService service = build(d, Map.of(1L, 1L), Map.of());
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), 99L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), 99L, null, null));
 
         assertTrue(result.containsKey("SKU-A"));
     }
@@ -94,7 +95,7 @@ class ResolveDiscountsServiceUsageCapTest {
         ResolveDiscountsService service = build(d, Map.of(), Map.of(1L, 1L));
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-B"), 5L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-B"), 5L, null, null));
 
         assertFalse(result.containsKey("SKU-B"));
     }
@@ -107,7 +108,7 @@ class ResolveDiscountsServiceUsageCapTest {
         ResolveDiscountsService service = build(d, Map.of(), Map.of());  // empty per-user map for user 6
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-B"), 6L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-B"), 6L, null, null));
 
         assertTrue(result.containsKey("SKU-B"));
     }
@@ -120,7 +121,7 @@ class ResolveDiscountsServiceUsageCapTest {
         ResolveDiscountsService service = build(d, Map.of(1L, 0L), Map.of(1L, 999L));
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-C"), null, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-C"), null, null, null));
 
         // Guest: per-user map is not consulted (userId=null branch)
         assertTrue(result.containsKey("SKU-C"));
@@ -133,7 +134,7 @@ class ResolveDiscountsServiceUsageCapTest {
         ResolveDiscountsService service = build(d, Map.of(1L, 9999L), Map.of(1L, 9999L));
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-D"), 1L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-D"), 1L, null, null));
 
         assertTrue(result.containsKey("SKU-D"));
     }

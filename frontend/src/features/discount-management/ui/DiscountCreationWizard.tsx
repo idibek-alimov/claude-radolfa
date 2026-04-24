@@ -13,8 +13,10 @@ import { DiscountWizardStepper } from "./DiscountWizardStepper";
 import { WizardFooter } from "@/features/product-creation/ui/WizardFooter";
 import { Step1Details } from "./wizard-steps/Step1Details";
 import { Step2Schedule } from "./wizard-steps/Step2Schedule";
+import { Step2bCoupon } from "./wizard-steps/Step2bCoupon";
 import { Step3Products } from "./wizard-steps/Step3Products";
 import { Step4Review } from "./wizard-steps/Step4Review";
+import { isCouponsEnabled } from "@/shared/lib";
 
 export interface DiscountWizardState {
   title: string;
@@ -24,6 +26,7 @@ export interface DiscountWizardState {
   validFrom: string;
   validUpto: string;
   selectedCodes: string[];
+  couponCode: string;
 }
 
 const DEFAULT_STATE: DiscountWizardState = {
@@ -34,9 +37,10 @@ const DEFAULT_STATE: DiscountWizardState = {
   validFrom: "",
   validUpto: "",
   selectedCodes: [],
+  couponCode: "",
 };
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = isCouponsEnabled ? 5 : 4;
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -110,6 +114,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
   const [direction, setDirection] = useState(1);
   const [step1Submitted, setStep1Submitted] = useState(false);
   const [step2Submitted, setStep2Submitted] = useState(false);
+  const [step2bSubmitted, setStep2bSubmitted] = useState(false);
   const [step3Submitted, setStep3Submitted] = useState(false);
 
   const update = useCallback((patch: Partial<DiscountWizardState>) => {
@@ -138,6 +143,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
       selectedCodes: sourceDiscount.targets
         .filter((t) => t.targetType === "SKU")
         .map((t) => t.referenceId),
+      couponCode: isDuplicate ? "" : (sourceDiscount.couponCode ?? ""),
     });
     setInitialized(true);
   }, [sourceDiscount, initialized, isDuplicate]);
@@ -155,6 +161,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
         validUpto: toIso(state.validUpto),
         title: state.title.trim(),
         colorHex: state.colorHex,
+        couponCode: state.couponCode?.trim().toUpperCase() || undefined,
       };
       return isEdit
         ? updateDiscount(editId!, payload)
@@ -170,6 +177,8 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
 
   // ── Navigation ────────────────────────────────────────────────
 
+  const productsStep = isCouponsEnabled ? 4 : 3;
+
   function goNext() {
     if (currentStep === 1) {
       setStep1Submitted(true);
@@ -179,7 +188,13 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
       setStep2Submitted(true);
       if (!isStep2Valid(state)) return;
     }
-    if (currentStep === 3) {
+    if (isCouponsEnabled && currentStep === 3) {
+      setStep2bSubmitted(true);
+      // Coupon field is optional; only block if non-empty but invalid format
+      const code = state.couponCode?.trim();
+      if (code && !/^[A-Z0-9]{3,32}$/.test(code)) return;
+    }
+    if (currentStep === productsStep) {
       setStep3Submitted(true);
       if (!isStep3Valid(state)) return;
     }
@@ -276,7 +291,15 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
                   submitted={step2Submitted}
                 />
               )}
-              {currentStep === 3 && (
+              {isCouponsEnabled && currentStep === 3 && (
+                <Step2bCoupon
+                  state={state}
+                  update={update}
+                  sourceId={sourceId}
+                  submitted={step2bSubmitted}
+                />
+              )}
+              {currentStep === productsStep && (
                 <Step3Products
                   state={state}
                   update={update}
@@ -284,7 +307,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
                   editId={editId}
                 />
               )}
-              {currentStep === 4 && (
+              {currentStep === TOTAL_STEPS && (
                 <Step4Review state={state} isEdit={isEdit} />
               )}
             </motion.div>

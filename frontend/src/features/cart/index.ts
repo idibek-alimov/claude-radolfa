@@ -5,4 +5,6 @@ export {
   useUpdateCartItem,
   useRemoveCartItem,
   useClearCart,
+  useApplyCoupon,
+  useRemoveCoupon,
 } from "./hooks/useCart";

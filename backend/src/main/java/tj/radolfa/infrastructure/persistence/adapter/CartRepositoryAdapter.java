@@ -49,10 +49,12 @@ public class CartRepositoryAdapter implements LoadCartPort, SaveCartPort {
             entity = cartRepo.findById(cart.getId())
                     .orElseThrow(() -> new IllegalStateException("Cart not found: " + cart.getId()));
             entity.setStatus(cart.getStatus());
+            entity.setCouponCode(cart.getCouponCode());
         } else {
             entity = new CartEntity();
             entity.setUserId(cart.getUserId());
             entity.setStatus(cart.getStatus());
+            entity.setCouponCode(cart.getCouponCode());
         }
 
         // Sync items: clear + rebuild from domain state

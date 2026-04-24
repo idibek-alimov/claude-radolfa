@@ -13,12 +13,13 @@ public record CartView(
         Long           cartId,       // null when the user has no active cart
         List<ItemView> items,
         Money          total,
-        int            itemCount
+        int            itemCount,
+        String         couponCode    // null when no coupon applied
 ) {
 
     /** An empty view for users with no active cart. */
     public static CartView empty() {
-        return new CartView(null, List.of(), Money.ZERO, 0);
+        return new CartView(null, List.of(), Money.ZERO, 0, null);
     }
 
     public record ItemView(

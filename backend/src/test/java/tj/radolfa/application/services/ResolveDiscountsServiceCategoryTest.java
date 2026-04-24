@@ -44,6 +44,7 @@ class ResolveDiscountsServiceCategoryTest {
         @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
         @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
         @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+        @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 
     static class FakeExpandCategoryTargetPort implements ExpandCategoryTargetPort {
@@ -105,7 +106,7 @@ class ResolveDiscountsServiceCategoryTest {
 
         Map<String, List<Discount>> result = service.resolve(
                 new tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase.Query(
-                        List.of("SKU-A", "SKU-C"), null, null));
+                        List.of("SKU-A", "SKU-C"), null, null, null));
 
         assertTrue(result.containsKey("SKU-A"), "SKU-A is in category, should be included");
         assertFalse(result.containsKey("SKU-B"), "SKU-B not requested, should be absent");
@@ -126,7 +127,7 @@ class ResolveDiscountsServiceCategoryTest {
 
         Map<String, List<Discount>> result = service.resolve(
                 new tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase.Query(
-                        List.of("SKU-X", "SKU-Y"), null, null));
+                        List.of("SKU-X", "SKU-Y"), null, null, null));
 
         assertTrue(result.containsKey("SKU-X"));
         assertFalse(result.containsKey("SKU-Y"));
@@ -143,7 +144,7 @@ class ResolveDiscountsServiceCategoryTest {
 
         Map<String, List<Discount>> result = service.resolve(
                 new tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase.Query(
-                        List.of("SKU-A"), null, null));
+                        List.of("SKU-A"), null, null, null));
 
         assertTrue(result.isEmpty());
     }
@@ -172,6 +173,7 @@ class ResolveDiscountsServiceCategoryTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
 
         ResolveDiscountsService service = new ResolveDiscountsService(
@@ -183,7 +185,7 @@ class ResolveDiscountsServiceCategoryTest {
 
         Map<String, List<Discount>> result = service.resolve(
                 new tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase.Query(
-                        List.of("SKU-A"), null, null));
+                        List.of("SKU-A"), null, null, null));
 
         // Both are BEST_WINS; catDisc has rank=1 (lower = higher priority), so it wins
         assertEquals(1, result.get("SKU-A").size(), "Only BEST_WINS winner should be returned");

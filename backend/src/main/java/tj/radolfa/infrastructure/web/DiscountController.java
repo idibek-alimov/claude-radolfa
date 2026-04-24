@@ -40,7 +40,9 @@ public class DiscountController {
     private final BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase;
     private final GetDiscountMetricsUseCase getDiscountMetricsUseCase;
     private final GetTopCampaignsUseCase getTopCampaignsUseCase;
+    private final CheckCouponAvailabilityUseCase checkCouponAvailabilityUseCase;
     private final LocalDate analyticsStartDate;
+    private final boolean couponsEnabled;
 
     public DiscountController(LoadDiscountPort loadDiscountPort,
                               CreateDiscountUseCase createDiscountUseCase,
@@ -53,7 +55,9 @@ public class DiscountController {
                               BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase,
                               GetDiscountMetricsUseCase getDiscountMetricsUseCase,
                               GetTopCampaignsUseCase getTopCampaignsUseCase,
-                              @Value("${radolfa.analytics.start-date}") LocalDate analyticsStartDate) {
+                              CheckCouponAvailabilityUseCase checkCouponAvailabilityUseCase,
+                              @Value("${radolfa.analytics.start-date}") LocalDate analyticsStartDate,
+                              @Value("${radolfa.discount.coupons.enabled:true}") boolean couponsEnabled) {
         this.loadDiscountPort = loadDiscountPort;
         this.createDiscountUseCase = createDiscountUseCase;
         this.updateDiscountUseCase = updateDiscountUseCase;
@@ -65,7 +69,9 @@ public class DiscountController {
         this.bulkDuplicateDiscountUseCase = bulkDuplicateDiscountUseCase;
         this.getDiscountMetricsUseCase = getDiscountMetricsUseCase;
         this.getTopCampaignsUseCase = getTopCampaignsUseCase;
+        this.checkCouponAvailabilityUseCase = checkCouponAvailabilityUseCase;
         this.analyticsStartDate = analyticsStartDate;
+        this.couponsEnabled = couponsEnabled;
     }
 
     private static final Set<String> ALLOWED_SORT = Set.of(
@@ -247,5 +253,15 @@ public class DiscountController {
                 new GetTopCampaignsUseCase.Command(by, period, 5)).stream()
                 .map(TopCampaignResponse::fromDomain)
                 .toList();
+    }
+
+    @GetMapping("/coupon-available")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public org.springframework.http.ResponseEntity<CouponAvailabilityResponse> couponAvailable(
+            @RequestParam String code,
+            @RequestParam(required = false) Long excludeId) {
+        if (!couponsEnabled) return org.springframework.http.ResponseEntity.notFound().build();
+        return org.springframework.http.ResponseEntity.ok(
+                new CouponAvailabilityResponse(checkCouponAvailabilityUseCase.isAvailable(code, excludeId)));
     }
 }

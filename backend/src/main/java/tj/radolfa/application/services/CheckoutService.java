@@ -117,7 +117,7 @@ public class CheckoutService implements CheckoutUseCase {
                 .distinct()
                 .toList();
         Map<String, List<Discount>> resolvedDiscounts = resolveDiscountsUseCase.resolve(
-                new ResolveDiscountsUseCase.Query(itemCodes, command.userId(), cart.total().amount()));
+                new ResolveDiscountsUseCase.Query(itemCodes, command.userId(), cart.total().amount(), cart.getCouponCode()));
 
         // 5. Compute per-line pricing: best-of (stacked sale vs loyalty)
         LoyaltyProfile profile = user.loyalty();

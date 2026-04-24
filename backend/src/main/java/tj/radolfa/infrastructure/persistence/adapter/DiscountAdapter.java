@@ -91,6 +91,11 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
                 .toList();
     }
 
+    @Override
+    public Optional<Discount> findByCouponCode(String code) {
+        return repository.findByCouponCodeIgnoreCase(code).map(this::toDomain);
+    }
+
     // ---- LoadBestActiveDiscountPort ----
 
     @Override

@@ -50,6 +50,7 @@ class ResolveDiscountsServiceSegmentTest {
         @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
         @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
         @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+        @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 
     static final ExpandCategoryTargetPort NO_EXPAND = cats -> List.of();
@@ -88,6 +89,7 @@ class ResolveDiscountsServiceSegmentTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         return new ResolveDiscountsService(port, NO_EXPAND, NO_USAGE, new FakeSegmentCtx(ctx));
     }
@@ -102,7 +104,7 @@ class ResolveDiscountsServiceSegmentTest {
                 new UserSegmentContext(1L, 5L, false));
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-T"), 1L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-T"), 1L, null, null));
 
         assertTrue(result.containsKey("SKU-T"));
     }
@@ -115,7 +117,7 @@ class ResolveDiscountsServiceSegmentTest {
                 new UserSegmentContext(1L, 7L, false)); // tier=7, not 5
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-T"), 1L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-T"), 1L, null, null));
 
         assertFalse(result.containsKey("SKU-T"));
     }
@@ -133,12 +135,13 @@ class ResolveDiscountsServiceSegmentTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         ResolveDiscountsService service = new ResolveDiscountsService(
                 port, NO_EXPAND, NO_USAGE, new FakeSegmentCtx(null));
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-T"), null, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-T"), null, null, null));
 
         assertFalse(result.containsKey("SKU-T"));
     }
@@ -151,7 +154,7 @@ class ResolveDiscountsServiceSegmentTest {
                 new UserSegmentContext(2L, null, true)); // isNewCustomer=true
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-N"), 2L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-N"), 2L, null, null));
 
         assertTrue(result.containsKey("SKU-N"));
     }
@@ -164,7 +167,7 @@ class ResolveDiscountsServiceSegmentTest {
                 new UserSegmentContext(2L, null, false)); // isNewCustomer=false
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-N"), 2L, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-N"), 2L, null, null));
 
         assertFalse(result.containsKey("SKU-N"));
     }
@@ -181,12 +184,13 @@ class ResolveDiscountsServiceSegmentTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         ResolveDiscountsService service = new ResolveDiscountsService(
                 port, NO_EXPAND, NO_USAGE, new FakeSegmentCtx(null));
 
         Map<String, List<Discount>> result = service.resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-N"), null, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-N"), null, null, null));
 
         assertTrue(result.containsKey("SKU-N"));
     }

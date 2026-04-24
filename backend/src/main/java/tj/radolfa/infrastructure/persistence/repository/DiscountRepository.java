@@ -8,6 +8,7 @@ import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface DiscountRepository extends JpaRepository<DiscountEntity, Long>,
         JpaSpecificationExecutor<DiscountEntity> {
@@ -65,4 +66,7 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long>,
           AND t.targetType <> 'SKU'
     """)
     List<DiscountEntity> findActiveWithAnyNonSkuTarget();
+
+    @Query("SELECT d FROM DiscountEntity d WHERE LOWER(d.couponCode) = LOWER(:code)")
+    Optional<DiscountEntity> findByCouponCodeIgnoreCase(@Param("code") String code);
 }

@@ -31,6 +31,7 @@ class GetDiscountMetricsServiceTest {
         @Override public org.springframework.data.domain.Page<Discount> findAll(
                 tj.radolfa.application.ports.out.DiscountFilter f,
                 org.springframework.data.domain.Pageable p) { return org.springframework.data.domain.Page.empty(); }
+        @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 
     static class FakeQueryDiscountMetricsPort implements QueryDiscountMetricsPort {

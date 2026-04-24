@@ -69,7 +69,7 @@ class CheckoutServiceStackingTest {
 
     static final LoadCartPort FAKE_CART = new LoadCartPort() {
         @Override public Optional<Cart> findActiveByUserId(Long userId) {
-            Cart cart = new Cart(1L, userId, CartStatus.ACTIVE, List.of(), Instant.now(), Instant.now());
+            Cart cart = new Cart(1L, userId, CartStatus.ACTIVE, List.of(), Instant.now(), Instant.now(), null);
             cart.addItem(SKU_ID, 1, new Money(ORIGINAL));
             return Optional.of(cart);
         }

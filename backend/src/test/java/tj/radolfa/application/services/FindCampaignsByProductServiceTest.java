@@ -189,5 +189,8 @@ class FindCampaignsByProductServiceTest {
         public Page<Discount> findAll(DiscountFilter filter, Pageable pageable) {
             return new PageImpl<>(discounts, pageable, discounts.size());
         }
+
+        @Override
+        public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 }

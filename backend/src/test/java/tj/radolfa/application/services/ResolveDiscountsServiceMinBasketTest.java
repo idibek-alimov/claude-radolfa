@@ -57,6 +57,7 @@ class ResolveDiscountsServiceMinBasketTest {
             @Override public Optional<Discount> findById(Long id) { return Optional.empty(); }
             @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
             @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) { return Page.empty(); }
+            @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
         };
         return new ResolveDiscountsService(port, NO_EXPAND, NO_USAGE, NO_SEGMENT);
     }
@@ -68,7 +69,7 @@ class ResolveDiscountsServiceMinBasketTest {
     void subtotalBelowMin_filtered() {
         Discount d = discountWithMinBasket(new BigDecimal("500"));
         Map<String, List<Discount>> result = build(d).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("400")));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("400"), null));
 
         assertFalse(result.containsKey("SKU-A"));
     }
@@ -78,7 +79,7 @@ class ResolveDiscountsServiceMinBasketTest {
     void subtotalAtMin_included() {
         Discount d = discountWithMinBasket(new BigDecimal("500"));
         Map<String, List<Discount>> result = build(d).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("500")));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("500"), null));
 
         assertTrue(result.containsKey("SKU-A"));
     }
@@ -88,7 +89,7 @@ class ResolveDiscountsServiceMinBasketTest {
     void subtotalAboveMin_included() {
         Discount d = discountWithMinBasket(new BigDecimal("500"));
         Map<String, List<Discount>> result = build(d).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("600")));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("600"), null));
 
         assertTrue(result.containsKey("SKU-A"));
     }
@@ -98,7 +99,7 @@ class ResolveDiscountsServiceMinBasketTest {
     void subtotalNull_listingTime_included() {
         Discount d = discountWithMinBasket(new BigDecimal("500"));
         Map<String, List<Discount>> result = build(d).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, null, null));
 
         assertTrue(result.containsKey("SKU-A"));
     }
@@ -108,7 +109,7 @@ class ResolveDiscountsServiceMinBasketTest {
     void noMinBasket_alwaysIncluded() {
         Discount d = discountWithMinBasket(null);
         Map<String, List<Discount>> result = build(d).resolve(
-                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("1")));
+                new ResolveDiscountsUseCase.Query(List.of("SKU-A"), null, new BigDecimal("1"), null));
 
         assertTrue(result.containsKey("SKU-A"));
     }

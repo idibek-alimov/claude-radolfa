@@ -23,7 +23,8 @@ public class CartMapper {
                 entity.getStatus(),
                 items,
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                entity.getCouponCode()
         );
     }
 
