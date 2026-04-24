@@ -49,4 +49,20 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long>,
           AND d.validUpto >= CURRENT_TIMESTAMP
     """)
     List<String> findActiveItemCodes();
+
+    /**
+     * Returns all active PERCENT discounts that have at least one non-SKU target
+     * (i.e., CategoryTarget or SegmentTarget). Bounded set — used for enrichment
+     * of the segment/category resolution path.
+     */
+    @Query("""
+        SELECT DISTINCT d FROM DiscountEntity d
+        JOIN d.targets t
+        WHERE d.disabled = false
+          AND d.validFrom <= CURRENT_TIMESTAMP
+          AND d.validUpto >= CURRENT_TIMESTAMP
+          AND d.amountType = 'PERCENT'
+          AND t.targetType <> 'SKU'
+    """)
+    List<DiscountEntity> findActiveWithAnyNonSkuTarget();
 }

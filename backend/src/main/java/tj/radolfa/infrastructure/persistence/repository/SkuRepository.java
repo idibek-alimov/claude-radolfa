@@ -14,6 +14,8 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
 
     Optional<SkuEntity> findBySkuCode(String skuCode);
 
+    List<SkuEntity> findBySkuCodeIn(Collection<String> skuCodes);
+
     List<SkuEntity> findByListingVariantId(Long listingVariantId);
 
     List<SkuEntity> findByListingVariantIdIn(List<Long> variantIds);

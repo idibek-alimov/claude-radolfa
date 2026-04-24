@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 
+import java.util.Collection;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -35,6 +37,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     @Query("SELECT o FROM OrderEntity o JOIN FETCH o.user ORDER BY o.createdAt DESC")
     List<OrderEntity> findMostRecent(Pageable pageable);
+
+    // ── New-customer detection ────────────────────────────────────────────────
+
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.user.id = :userId AND o.status NOT IN :excluded")
+    long countConfirmedOrdersByUserId(@Param("userId") Long userId,
+                                     @Param("excluded") Collection<OrderStatus> excluded);
 
     // ── Purchase verification ──────────────────────────────────────────────────
 

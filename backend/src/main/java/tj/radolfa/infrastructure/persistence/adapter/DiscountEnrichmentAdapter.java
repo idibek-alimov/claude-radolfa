@@ -1,10 +1,14 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
+import tj.radolfa.domain.model.AppliedDiscount;
+import tj.radolfa.domain.model.Discount;
 import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.DiscountRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
+import tj.radolfa.infrastructure.web.DiscountResolutionContext;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,25 +22,28 @@ import java.util.stream.Collectors;
 /**
  * Encapsulates discount resolution logic for listing/home adapters.
  *
- * <p>Resolves active discounts from the {@code discounts} table and computes
- * effective discounted prices per variant or per item code.
- * When multiple discounts are active on the same SKU, the one with the
- * lowest type rank (highest priority) wins — enforced by the DB query ORDER BY.
+ * <p>{@link #resolveForVariants} delegates to {@link DiscountResolutionContext} so that
+ * category targets, segment targets, stacking, and usage caps all apply on product grids.
+ * {@link #resolveForItemCodes} remains on the legacy direct-DB path for detail views.
  */
 @Component
 public class DiscountEnrichmentAdapter {
 
     private final SkuRepository skuRepo;
     private final DiscountRepository discountRepo;
+    private final ObjectProvider<DiscountResolutionContext> resolutionCtx;
 
-    public DiscountEnrichmentAdapter(SkuRepository skuRepo, DiscountRepository discountRepo) {
-        this.skuRepo = skuRepo;
-        this.discountRepo = discountRepo;
+    public DiscountEnrichmentAdapter(SkuRepository skuRepo,
+                                     DiscountRepository discountRepo,
+                                     ObjectProvider<DiscountResolutionContext> resolutionCtx) {
+        this.skuRepo       = skuRepo;
+        this.discountRepo  = discountRepo;
+        this.resolutionCtx = resolutionCtx;
     }
 
     /**
-     * For grid/card views: resolves the best discount for each variant.
-     * Picks the SKU with the cheapest effective discounted price per variant.
+     * For grid/card views: resolves the best (stacked) discount for each variant.
+     * Picks the SKU with the cheapest final price per variant.
      *
      * @return map of variantId → DiscountInfo (only variants with active discounts)
      */
@@ -51,10 +58,10 @@ public class DiscountEnrichmentAdapter {
                 .distinct()
                 .toList();
 
-        Map<String, DiscountEntity> bestByItemCode = bestDiscountByItemCode(itemCodes);
-        if (bestByItemCode.isEmpty()) return Map.of();
+        Map<String, List<AppliedDiscount>> resolved =
+                resolutionCtx.getObject().resolveForListing(itemCodes);
+        if (resolved.isEmpty()) return Map.of();
 
-        // Group SKUs by variant
         Map<Long, List<SkuEntity>> skusByVariant = allSkus.stream()
                 .collect(Collectors.groupingBy(s -> s.getListingVariant().getId()));
 
@@ -62,42 +69,37 @@ public class DiscountEnrichmentAdapter {
         for (var entry : skusByVariant.entrySet()) {
             Long variantId = entry.getKey();
             List<SkuEntity> variantSkus = entry.getValue();
-            DiscountInfo best = null;
 
-            long discountedCount = 0;
             List<SkuEntity> pricedSkus = variantSkus.stream()
                     .filter(s -> s.getOriginalPrice() != null)
                     .toList();
-            long distinctDiscountIds = pricedSkus.stream()
-                    .map(s -> bestByItemCode.get(s.getSkuCode()))
-                    .filter(d -> d != null)
-                    .map(DiscountEntity::getId)
-                    .distinct()
+            long discountedCount = pricedSkus.stream()
+                    .filter(s -> resolved.containsKey(s.getSkuCode()))
                     .count();
 
+            DiscountInfo best = null;
             for (SkuEntity sku : variantSkus) {
-                DiscountEntity discount = bestByItemCode.get(sku.getSkuCode());
-                if (discount == null || sku.getOriginalPrice() == null) continue;
+                List<AppliedDiscount> applied = resolved.get(sku.getSkuCode());
+                BigDecimal original = sku.getOriginalPrice();
+                if (applied == null || original == null) continue;
 
-                discountedCount++;
-                BigDecimal discountedPrice = computeDiscountedPrice(
-                        sku.getOriginalPrice(), discount.getAmountValue());
+                BigDecimal finalPrice = applied.get(applied.size() - 1).reducedUnitPrice();
+                Discount winner = applied.get(0).discount();
 
-                if (best == null || discountedPrice.compareTo(best.discountedPrice()) < 0) {
+                if (best == null || finalPrice.compareTo(best.discountedPrice()) < 0) {
+                    BigDecimal stackedPct = BigDecimal.ONE
+                            .subtract(finalPrice.divide(original, 4, RoundingMode.HALF_UP))
+                            .multiply(BigDecimal.valueOf(100))
+                            .setScale(2, RoundingMode.HALF_UP);
                     best = new DiscountInfo(
-                            sku.getOriginalPrice(),
-                            discountedPrice,
-                            discount.getAmountValue(),
-                            discount.getValidUpto(),
-                            discount.getTitle(),
-                            discount.getColorHex(),
-                            discount.getType().getName(),
-                            false); // placeholder; corrected below
+                            original, finalPrice, stackedPct,
+                            winner.validUpto(), winner.title(), winner.colorHex(),
+                            winner.type().name(), false);
                 }
             }
 
             if (best != null) {
-                boolean isPartial = discountedCount < pricedSkus.size() || distinctDiscountIds > 1;
+                boolean isPartial = discountedCount < pricedSkus.size();
                 result.put(variantId, new DiscountInfo(
                         best.originalPrice(), best.discountedPrice(), best.discountPercentage(),
                         best.validUpto(), best.saleTitle(), best.saleColorHex(), best.typeName(),
@@ -109,7 +111,8 @@ public class DiscountEnrichmentAdapter {
     }
 
     /**
-     * For detail views: resolves the best discount per item code.
+     * For detail views: resolves the best discount per item code (legacy direct-DB path).
+     * Does not apply category/segment expansion or stacking — winner by type rank only.
      *
      * @return map of itemCode → best DiscountEntity (only items with active discounts)
      */
@@ -120,34 +123,23 @@ public class DiscountEnrichmentAdapter {
 
     /**
      * Returns variant IDs that have at least one SKU with an active discount.
-     * Uses indexed DB queries — no full table scans.
      */
     public List<Long> findVariantIdsWithActiveDiscounts() {
         List<String> activeItemCodes = discountRepo.findActiveItemCodes();
         if (activeItemCodes.isEmpty()) return List.of();
-
         return skuRepo.findVariantIdsByItemCodes(activeItemCodes);
     }
 
-    // ---- Internal ----
+    // ---- Internal (legacy path) ----
 
     private Map<String, DiscountEntity> bestDiscountByItemCode(Collection<String> itemCodes) {
         List<Object[]> pairs = discountRepo.findActiveDiscountsByItemCodes(itemCodes);
-
-        // Each row: [0]=DiscountEntity, [1]=matchedItemCode
-        // Already ordered by type.rank ASC — lowest rank (highest priority type) wins per item code
         Map<String, DiscountEntity> best = new HashMap<>();
         for (Object[] row : pairs) {
             String itemCode = (String) row[1];
             best.putIfAbsent(itemCode, (DiscountEntity) row[0]);
         }
         return best;
-    }
-
-    private BigDecimal computeDiscountedPrice(BigDecimal originalPrice, BigDecimal discountPct) {
-        BigDecimal multiplier = BigDecimal.ONE.subtract(
-                discountPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
-        return originalPrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
     }
 
     public record DiscountInfo(

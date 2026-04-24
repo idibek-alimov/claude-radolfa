@@ -47,7 +47,7 @@ public class DiscountTypeController {
     public DiscountTypeResponse create(@Valid @RequestBody CreateDiscountTypeRequest request) {
         return DiscountTypeResponse.fromDomain(
                 createDiscountTypeUseCase.execute(
-                        new CreateDiscountTypeUseCase.Command(request.name(), request.rank())));
+                        new CreateDiscountTypeUseCase.Command(request.name(), request.rank(), request.stackingPolicy())));
     }
 
     @PutMapping("/{id}")
@@ -55,7 +55,7 @@ public class DiscountTypeController {
                                        @Valid @RequestBody UpdateDiscountTypeRequest request) {
         return DiscountTypeResponse.fromDomain(
                 updateDiscountTypeUseCase.execute(
-                        new UpdateDiscountTypeUseCase.Command(id, request.name(), request.rank())));
+                        new UpdateDiscountTypeUseCase.Command(id, request.name(), request.rank(), request.stackingPolicy())));
     }
 
     @DeleteMapping("/{id}")

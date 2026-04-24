@@ -18,6 +18,6 @@ public class CreateDiscountTypeService implements CreateDiscountTypeUseCase {
 
     @Override
     public DiscountType execute(Command command) {
-        return saveDiscountTypePort.save(new DiscountType(null, command.name(), command.rank()));
+        return saveDiscountTypePort.save(new DiscountType(null, command.name(), command.rank(), command.stackingPolicy()));
     }
 }

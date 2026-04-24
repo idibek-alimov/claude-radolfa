@@ -84,6 +84,13 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
         return repository.findAll(spec, pageable).map(this::toDomain);
     }
 
+    @Override
+    public List<Discount> findActiveWithAnyNonSkuTarget() {
+        return repository.findActiveWithAnyNonSkuTarget().stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
     // ---- LoadBestActiveDiscountPort ----
 
     @Override

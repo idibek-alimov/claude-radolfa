@@ -33,7 +33,7 @@ class ListDiscountedProductsServiceTest {
     @Test
     @DisplayName("Delegates call with filter and pageable to port; returns page unchanged")
     void execute_delegatesToPort() {
-        DiscountType type = new DiscountType(1L, "FLASH_SALE", 1);
+        DiscountType type = new DiscountType(1L, "FLASH_SALE", 1, tj.radolfa.domain.model.StackingPolicy.BEST_WINS);
         DiscountSummary winner = new DiscountSummary(10L, "Flash", "#FF0000", new BigDecimal("20.00"), AmountType.PERCENT, type);
         DiscountedProductRow row = new DiscountedProductRow(
                 1L, "SKU-001", "M", 50,

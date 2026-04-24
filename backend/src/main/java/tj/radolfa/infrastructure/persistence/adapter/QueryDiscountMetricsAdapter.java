@@ -140,7 +140,7 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
             long units         = ((Number) r[9]).longValue();
             BigDecimal revenue = (BigDecimal) r[10];
             DiscountSummary summary = new DiscountSummary(
-                    id, title, colorHex, dv, amt, new DiscountType(typeId, typeName, typeRank));
+                    id, title, colorHex, dv, amt, new DiscountType(typeId, typeName, typeRank, null));
             result.add(new TopCampaignRow(summary, orders, units, revenue));
         }
         return result;

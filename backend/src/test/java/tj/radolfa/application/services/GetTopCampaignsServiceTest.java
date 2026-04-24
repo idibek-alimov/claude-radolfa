@@ -106,7 +106,7 @@ class GetTopCampaignsServiceTest {
     @DisplayName("execute: port result is passed through")
     void execute_resultPassthrough() {
         DiscountSummary summary = new DiscountSummary(
-                1L, "Flash", "#FFF", new BigDecimal("15"), AmountType.PERCENT, new DiscountType(1L, "Flash", 1));
+                1L, "Flash", "#FFF", new BigDecimal("15"), AmountType.PERCENT, new DiscountType(1L, "Flash", 1, tj.radolfa.domain.model.StackingPolicy.BEST_WINS));
         fakePort.stubResult = List.of(new TopCampaignRow(summary, 3L, 10L, new BigDecimal("150.00")));
 
         List<TopCampaignRow> result = service.execute(new GetTopCampaignsUseCase.Command("revenue", "30d", 5));

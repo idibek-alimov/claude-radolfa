@@ -15,6 +15,7 @@ import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
 import tj.radolfa.domain.model.SkuTarget;
+import tj.radolfa.domain.model.StackingPolicy;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,7 +30,7 @@ class BulkToggleDiscountServiceTest {
     private FakeSaveDiscountPort fakeSave;
     private BulkToggleDiscountService service;
 
-    private static final DiscountType FLASH = new DiscountType(1L, "FLASH_SALE", 1);
+    private static final DiscountType FLASH = new DiscountType(1L, "FLASH_SALE", 1, StackingPolicy.BEST_WINS);
     private static final Instant FROM = Instant.parse("2024-01-01T00:00:00Z");
     private static final Instant UPTO = Instant.parse("2099-12-31T00:00:00Z");
 
@@ -104,6 +105,7 @@ class BulkToggleDiscountServiceTest {
 
         @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
         @Override public List<Discount> findActiveByItemCodes(Collection<String> c) { return List.of(); }
+        @Override public List<Discount> findActiveWithAnyNonSkuTarget() { return List.of(); }
         @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) {
             return new PageImpl<>(List.copyOf(store.values()), p, store.size());
         }

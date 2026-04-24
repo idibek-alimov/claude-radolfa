@@ -172,10 +172,10 @@ public class ListDiscountedProductsAdapter implements ListDiscountedProductsPort
         String productName  = (String) r[17];
         String imageUrl     = (String) r[18];
 
-        // Winner is always PERCENT-type in Phase 9 (LATERAL WHERE filters amount_type='PERCENT')
+        // Winner is always PERCENT-type (LATERAL WHERE filters amount_type='PERCENT')
         DiscountSummary winner = new DiscountSummary(
                 winnerId, winnerTitle, winnerColorHex, winnerVal, AmountType.PERCENT,
-                new DiscountType(winnerTypeId, winnerTypeName, winnerRank)
+                new DiscountType(winnerTypeId, winnerTypeName, winnerRank, null)
         );
 
         List<DiscountSummary> others = othersBySkuCode.getOrDefault(skuCode, List.of());

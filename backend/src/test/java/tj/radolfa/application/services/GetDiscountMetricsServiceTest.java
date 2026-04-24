@@ -27,6 +27,7 @@ class GetDiscountMetricsServiceTest {
         @Override public Optional<Discount> findById(Long id) { return Optional.ofNullable(store.get(id)); }
         @Override public List<Discount> findActiveByItemCode(String itemCode) { return List.of(); }
         @Override public List<Discount> findActiveByItemCodes(Collection<String> itemCodes) { return List.of(); }
+        @Override public List<Discount> findActiveWithAnyNonSkuTarget() { return List.of(); }
         @Override public org.springframework.data.domain.Page<Discount> findAll(
                 tj.radolfa.application.ports.out.DiscountFilter f,
                 org.springframework.data.domain.Pageable p) { return org.springframework.data.domain.Page.empty(); }
@@ -52,7 +53,7 @@ class GetDiscountMetricsServiceTest {
     // ---- Fixtures ----
 
     private static final LocalDate ANALYTICS_START = LocalDate.of(2026, 3, 1);
-    private static final DiscountType TYPE = new DiscountType(1L, "Flash", 1);
+    private static final DiscountType TYPE = new DiscountType(1L, "Flash", 1, tj.radolfa.domain.model.StackingPolicy.BEST_WINS);
 
     private FakeLoadDiscountPort fakeLoad;
     private FakeQueryDiscountMetricsPort fakeQuery;

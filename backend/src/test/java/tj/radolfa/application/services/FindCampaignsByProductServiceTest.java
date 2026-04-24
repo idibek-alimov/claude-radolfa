@@ -25,8 +25,8 @@ class FindCampaignsByProductServiceTest {
     private FakeLoadDiscountPort fakeDiscounts;
     private FindCampaignsByProductService service;
 
-    private static final DiscountType FLASH  = new DiscountType(1L, "FLASH_SALE", 1);
-    private static final DiscountType SEASON = new DiscountType(2L, "SEASONAL", 3);
+    private static final DiscountType FLASH  = new DiscountType(1L, "FLASH_SALE", 1, tj.radolfa.domain.model.StackingPolicy.BEST_WINS);
+    private static final DiscountType SEASON = new DiscountType(2L, "SEASONAL", 3, tj.radolfa.domain.model.StackingPolicy.BEST_WINS);
     private static final Instant FROM = Instant.parse("2024-01-01T00:00:00Z");
     private static final Instant UPTO = Instant.parse("2099-12-31T00:00:00Z");
 
@@ -181,6 +181,9 @@ class FindCampaignsByProductServiceTest {
                     .filter(d -> d.itemCodes().stream().anyMatch(itemCodes::contains))
                     .toList();
         }
+
+        @Override
+        public List<Discount> findActiveWithAnyNonSkuTarget() { return List.of(); }
 
         @Override
         public Page<Discount> findAll(DiscountFilter filter, Pageable pageable) {

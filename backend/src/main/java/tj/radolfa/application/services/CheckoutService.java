@@ -3,9 +3,9 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.discount.RecordDiscountApplicationUseCase;
+import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
 import tj.radolfa.application.ports.in.loyalty.RedeemLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
-import tj.radolfa.application.ports.out.LoadBestActiveDiscountPort;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
@@ -14,6 +14,7 @@ import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
+import tj.radolfa.domain.model.AppliedDiscount;
 import tj.radolfa.domain.model.Cart;
 import tj.radolfa.domain.model.CartItem;
 import tj.radolfa.domain.model.Discount;
@@ -33,24 +34,23 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class CheckoutService implements CheckoutUseCase {
 
-    private final LoadCartPort                    loadCartPort;
-    private final SaveCartPort                    saveCartPort;
-    private final LoadSkuPort                     loadSkuPort;
-    private final LoadListingVariantPort          loadListingVariantPort;
-    private final LoadProductBasePort             loadProductBasePort;
-    private final LoadUserPort                    loadUserPort;
-    private final SaveOrderPort                   saveOrderPort;
-    private final StockAdjustmentPort             stockAdjustmentPort;
-    private final LoyaltyCalculator               loyaltyCalculator;
-    private final RedeemLoyaltyPointsUseCase      redeemLoyaltyPointsUseCase;
-    private final LoadBestActiveDiscountPort       loadBestActiveDiscountPort;
+    private final LoadCartPort                     loadCartPort;
+    private final SaveCartPort                     saveCartPort;
+    private final LoadSkuPort                      loadSkuPort;
+    private final LoadListingVariantPort           loadListingVariantPort;
+    private final LoadProductBasePort              loadProductBasePort;
+    private final LoadUserPort                     loadUserPort;
+    private final SaveOrderPort                    saveOrderPort;
+    private final StockAdjustmentPort              stockAdjustmentPort;
+    private final LoyaltyCalculator                loyaltyCalculator;
+    private final RedeemLoyaltyPointsUseCase       redeemLoyaltyPointsUseCase;
+    private final ResolveDiscountsUseCase          resolveDiscountsUseCase;
     private final RecordDiscountApplicationUseCase recordDiscountApplicationUseCase;
 
     public CheckoutService(LoadCartPort loadCartPort,
@@ -63,7 +63,7 @@ public class CheckoutService implements CheckoutUseCase {
                            StockAdjustmentPort stockAdjustmentPort,
                            LoyaltyCalculator loyaltyCalculator,
                            RedeemLoyaltyPointsUseCase redeemLoyaltyPointsUseCase,
-                           LoadBestActiveDiscountPort loadBestActiveDiscountPort,
+                           ResolveDiscountsUseCase resolveDiscountsUseCase,
                            RecordDiscountApplicationUseCase recordDiscountApplicationUseCase) {
         this.loadCartPort                    = loadCartPort;
         this.saveCartPort                    = saveCartPort;
@@ -75,7 +75,7 @@ public class CheckoutService implements CheckoutUseCase {
         this.stockAdjustmentPort             = stockAdjustmentPort;
         this.loyaltyCalculator               = loyaltyCalculator;
         this.redeemLoyaltyPointsUseCase      = redeemLoyaltyPointsUseCase;
-        this.loadBestActiveDiscountPort      = loadBestActiveDiscountPort;
+        this.resolveDiscountsUseCase         = resolveDiscountsUseCase;
         this.recordDiscountApplicationUseCase = recordDiscountApplicationUseCase;
     }
 
@@ -111,28 +111,34 @@ public class CheckoutService implements CheckoutUseCase {
             }
         }
 
-        // 4. Compute subtotal using best-of (sale vs loyalty) per item, capturing the winning discount
-        LoyaltyProfile profile = user.loyalty();
-        BigDecimal tierPct = loyaltyCalculator.resolveTierPercentage(profile); // 0 if no tier
+        // 4. Resolve all applicable discounts once for the whole cart (batched, no N+1)
+        List<String> itemCodes = skuById.values().stream()
+                .map(Sku::getSkuCode)
+                .distinct()
+                .toList();
+        Map<String, List<Discount>> resolvedDiscounts = resolveDiscountsUseCase.resolve(
+                new ResolveDiscountsUseCase.Query(itemCodes, command.userId(), cart.total().amount()));
 
-        List<LinePricing> pricings = cart.getItems().stream()
-                .map(item -> resolveLinePricing(item, tierPct, skuById))
+        // 5. Compute per-line pricing: best-of (stacked sale vs loyalty)
+        LoyaltyProfile profile = user.loyalty();
+        BigDecimal tierPct = loyaltyCalculator.resolveTierPercentage(profile);
+
+        List<LineResolution> lineResolutions = cart.getItems().stream()
+                .map(item -> resolveLineResolution(item, tierPct, skuById, resolvedDiscounts))
                 .toList();
 
         BigDecimal subtotalRaw = BigDecimal.ZERO;
         for (int i = 0; i < cart.getItems().size(); i++) {
             subtotalRaw = subtotalRaw.add(
-                    pricings.get(i).appliedPrice()
+                    lineResolutions.get(i).finalUnitPrice()
                             .multiply(BigDecimal.valueOf(cart.getItems().get(i).getQuantity())));
         }
 
         Money subtotal = new Money(subtotalRaw);
-
-        // Tier discount is the difference between cart.total() (original snapshots) and best-of subtotal
         Money tierDiscount = new Money(cart.total().amount().subtract(subtotalRaw).max(BigDecimal.ZERO));
         Money afterTierDiscount = subtotal;
 
-        // 6. Apply points redemption (pessimistic deduct before order commit)
+        // 6. Apply points redemption
         Money pointsDiscount = Money.ZERO;
         int pointsToRedeem = command.loyaltyPointsToRedeem();
         if (pointsToRedeem > 0) {
@@ -144,44 +150,46 @@ public class CheckoutService implements CheckoutUseCase {
             pointsDiscount = redeemLoyaltyPointsUseCase.execute(command.userId(), pointsToRedeem);
         }
 
-        // 7. Final total (floor at 0 — cannot go negative from discounts)
+        // 7. Final total
         BigDecimal totalRaw = afterTierDiscount.amount()
                 .subtract(pointsDiscount.amount())
                 .max(BigDecimal.ZERO);
         Money total = new Money(totalRaw);
 
-        // 8. Build order items enriched with skuCode and productName
+        // 8. Build order items
         List<OrderItem> orderItems = cart.getItems().stream()
                 .map(item -> enrichToOrderItem(item, skuById))
                 .toList();
 
-        // 9. Persist order with PENDING status, recording points redeemed for later reversal
+        // 9. Persist order
         Order newOrder = new Order(null, command.userId(), null,
                 OrderStatus.PENDING, total, orderItems, Instant.now(),
                 pointsToRedeem, 0);
         Order saved = saveOrderPort.save(newOrder);
 
-        // 10. Record discount applications for each winning-discount line (same transaction)
+        // 10. Record one discount_application row per stacked discount layer per line
         List<OrderItem> savedItems = saved.items();
         for (int i = 0; i < savedItems.size(); i++) {
-            LinePricing lp = pricings.get(i);
-            if (lp.winningDiscount() == null) continue;
+            LineResolution lr = lineResolutions.get(i);
+            if (lr.applied().isEmpty()) continue;
             OrderItem savedItem = savedItems.get(i);
-            CartItem  cartItem  = cart.getItems().get(i);
-            recordDiscountApplicationUseCase.execute(
-                    new RecordDiscountApplicationUseCase.Command(
-                            lp.winningDiscount().id(),
-                            saved.id(),
-                            savedItem.getId(),
-                            savedItem.getSkuCode(),
-                            savedItem.getQuantity(),
-                            cartItem.getUnitPriceSnapshot().amount(),
-                            lp.appliedPrice()
-                    )
-            );
+            BigDecimal originalPrice = cart.getItems().get(i).getUnitPriceSnapshot().amount();
+            for (AppliedDiscount ad : lr.applied()) {
+                recordDiscountApplicationUseCase.execute(
+                        new RecordDiscountApplicationUseCase.Command(
+                                ad.discount().id(),
+                                saved.id(),
+                                savedItem.getId(),
+                                savedItem.getSkuCode(),
+                                savedItem.getQuantity(),
+                                originalPrice,
+                                ad.reducedUnitPrice()
+                        )
+                );
+            }
         }
 
-        // 11. Decrement stock for each item
+        // 11. Decrement stock
         for (CartItem item : cart.getItems()) {
             stockAdjustmentPort.decrement(item.getSkuId(), item.getQuantity());
         }
@@ -193,15 +201,16 @@ public class CheckoutService implements CheckoutUseCase {
         return new Result(saved.id(), subtotal, tierDiscount, pointsDiscount, total);
     }
 
-    private record LinePricing(BigDecimal appliedPrice, Discount winningDiscount) {}
+    private record LineResolution(BigDecimal finalUnitPrice, List<AppliedDiscount> applied) {}
 
     /**
-     * Returns the effective unit price and the winning discount (if a campaign beat loyalty).
-     * Discount wins only when it is present, ties or beats the loyalty price, and strictly
-     * beats the original snapshot price — loyaltyPrice alone pushing the price down must NOT
-     * be recorded as a discount application.
+     * Returns the effective unit price and winning applied discounts.
+     * Stacked discount wins only when the final stacked price ties or beats loyalty price
+     * and strictly beats the original snapshot — loyalty alone is not recorded as a discount.
      */
-    private LinePricing resolveLinePricing(CartItem item, BigDecimal tierPct, Map<Long, Sku> skuById) {
+    private LineResolution resolveLineResolution(CartItem item, BigDecimal tierPct,
+                                                  Map<Long, Sku> skuById,
+                                                  Map<String, List<Discount>> resolvedDiscounts) {
         BigDecimal original = item.getUnitPriceSnapshot().amount();
 
         BigDecimal loyaltyPrice = tierPct.compareTo(BigDecimal.ZERO) > 0
@@ -213,24 +222,20 @@ public class CheckoutService implements CheckoutUseCase {
         Sku sku = skuById.get(item.getSkuId());
         if (sku == null) throw new IllegalStateException("SKU not found: " + item.getSkuId());
 
-        Optional<Discount> best = loadBestActiveDiscountPort.findBestActiveForItemCode(sku.getSkuCode());
+        List<Discount> discounts = resolvedDiscounts.getOrDefault(sku.getSkuCode(), List.of());
+        if (!discounts.isEmpty()) {
+            List<AppliedDiscount> applied = AppliedDiscount.fold(discounts, original);
+            BigDecimal stackedPrice = applied.get(applied.size() - 1).reducedUnitPrice();
 
-        BigDecimal salePrice = best
-                .map(Discount::amountValue)
-                .map(pct -> original.multiply(BigDecimal.ONE.subtract(
-                        pct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
-                        .setScale(2, RoundingMode.HALF_UP))
-                .orElse(original);
+            boolean discountWins = stackedPrice.compareTo(loyaltyPrice) <= 0
+                    && stackedPrice.compareTo(original) < 0;
 
-        // Discount wins if: it exists, its price ties or beats loyalty, and strictly beats original
-        boolean discountWins = best.isPresent()
-                && salePrice.compareTo(loyaltyPrice) <= 0
-                && salePrice.compareTo(original) < 0;
-
-        if (discountWins) {
-            return new LinePricing(salePrice, best.get());
+            if (discountWins) {
+                return new LineResolution(stackedPrice, applied);
+            }
         }
-        return new LinePricing(loyaltyPrice.min(original), null);
+
+        return new LineResolution(loyaltyPrice.min(original), List.of());
     }
 
     private OrderItem enrichToOrderItem(CartItem cartItem, Map<Long, Sku> skuById) {

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import tj.radolfa.domain.model.StackingPolicy;
+
 import java.time.Instant;
 
 @Entity
@@ -23,6 +25,10 @@ public class DiscountTypeEntity {
 
     @Column(name = "rank", nullable = false, unique = true)
     private int rank;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "stacking_policy", nullable = false, length = 16)
+    private StackingPolicy stackingPolicy = StackingPolicy.BEST_WINS;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

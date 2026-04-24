@@ -25,6 +25,6 @@ public class UpdateDiscountTypeService implements UpdateDiscountTypeUseCase {
         loadDiscountTypePort.findById(command.id())
                 .orElseThrow(() -> new IllegalArgumentException("Discount type not found: " + command.id()));
 
-        return saveDiscountTypePort.save(new DiscountType(command.id(), command.name(), command.rank()));
+        return saveDiscountTypePort.save(new DiscountType(command.id(), command.name(), command.rank(), command.stackingPolicy()));
     }
 }

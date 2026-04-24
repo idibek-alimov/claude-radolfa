@@ -2,8 +2,10 @@ package tj.radolfa.infrastructure.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import tj.radolfa.domain.model.StackingPolicy;
 
 public record CreateDiscountTypeRequest(
         @NotBlank String name,
-        @Positive int rank
+        @Positive int rank,
+        StackingPolicy stackingPolicy
 ) {}

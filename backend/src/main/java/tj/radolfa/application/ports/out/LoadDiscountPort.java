@@ -17,4 +17,6 @@ public interface LoadDiscountPort {
     List<Discount> findActiveByItemCodes(Collection<String> itemCodes);
 
     Page<Discount> findAll(DiscountFilter filter, Pageable pageable);
+
+    List<Discount> findActiveWithAnyNonSkuTarget();
 }
