@@ -12,6 +12,10 @@ import {
   Percent,
   Palette,
   Clock,
+  List,
+  Users,
+  Layers,
+  SlidersHorizontal,
 } from "lucide-react";
 
 function ReviewCell({
@@ -65,8 +69,41 @@ export function Step4Review({ state, isEdit }: Props) {
     queryFn: fetchDiscountTypes,
   });
 
-  const typeName = types.find((t) => t.id === state.typeId)?.name ?? "—";
+  const selectedType = types.find((t) => t.id === state.typeId);
+  const typeName = selectedType?.name ?? "—";
+  const stackingPolicy = selectedType?.stackingPolicy ?? "BEST_WINS";
   const duration = getDurationLabel(state.validFrom, state.validUpto);
+
+  const targetSummary = (() => {
+    if (state.targetMode === "SKU") {
+      return state.selectedCodes.length > 0 ? (
+        <span>
+          <span className="font-bold">{state.selectedCodes.length}</span>{" "}
+          SKU{state.selectedCodes.length !== 1 ? "s" : ""}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">None</span>
+      );
+    }
+    if (state.targetMode === "CATEGORY") {
+      return state.selectedCategoryIds.length > 0 ? (
+        <span>
+          <span className="font-bold">{state.selectedCategoryIds.length}</span>{" "}
+          {state.selectedCategoryIds.length !== 1 ? "categories" : "category"}
+          {state.includeDescendants ? " + subcategories" : ""}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">None</span>
+      );
+    }
+    // SEGMENT
+    if (!state.selectedSegment) return <span className="text-muted-foreground">None</span>;
+    if (state.selectedSegment.type === "NEW_CUSTOMER") return <span>New customers</span>;
+    return <span>Loyalty tier (ID {state.selectedSegment.tierId})</span>;
+  })();
+
+  const TargetIcon =
+    state.targetMode === "CATEGORY" ? Tag : state.targetMode === "SEGMENT" ? Users : List;
 
   return (
     <div className="flex-1 flex flex-col space-y-10">
@@ -92,6 +129,7 @@ export function Step4Review({ state, isEdit }: Props) {
               title={state.title}
               colorHex={state.colorHex}
               discountValue={state.discountValue}
+              amountType={state.amountType}
             />
             <p className="text-sm text-muted-foreground max-w-sm pt-2">
               This is how the product card looks to shoppers during the campaign.
@@ -141,7 +179,7 @@ export function Step4Review({ state, isEdit }: Props) {
               label="Discount"
               value={
                 <span className="text-rose-600 dark:text-rose-400 font-bold tabular-nums">
-                  −{state.discountValue}%
+                  −{state.discountValue}{state.amountType === "FIXED" ? " TJS" : "%"}
                 </span>
               }
             />
@@ -180,17 +218,51 @@ export function Step4Review({ state, isEdit }: Props) {
               value={duration ?? "—"}
             />
             <ReviewCell
+              icon={TargetIcon}
+              label="Target"
+              value={targetSummary}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 divide-x divide-border">
+            <ReviewCell
+              icon={SlidersHorizontal}
+              label="Min basket"
+              value={state.minBasketAmount ? `${Number(state.minBasketAmount).toLocaleString()} TJS` : "—"}
+            />
+            <ReviewCell
               icon={ShoppingBag}
-              label="Selected SKUs"
+              label="Usage cap"
               value={
-                state.selectedCodes.length > 0 ? (
-                  <span>
-                    <span className="font-bold">{state.selectedCodes.length}</span>{" "}
-                    SKU{state.selectedCodes.length !== 1 ? "s" : ""}
+                state.usageCapTotal || state.usageCapPerCustomer ? (
+                  <span className="space-x-2">
+                    {state.usageCapTotal && <span>Total: {state.usageCapTotal}</span>}
+                    {state.usageCapPerCustomer && <span>Per customer: {state.usageCapPerCustomer}</span>}
                   </span>
-                ) : (
-                  <span className="text-muted-foreground">None</span>
-                )
+                ) : "—"
+              }
+            />
+          </div>
+
+          <div className="grid grid-cols-2 divide-x divide-border">
+            <ReviewCell
+              icon={Tag}
+              label="Coupon code"
+              value={
+                state.couponCode ? (
+                  <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">
+                    {state.couponCode}
+                  </span>
+                ) : "—"
+              }
+            />
+            <ReviewCell
+              icon={Layers}
+              label="Stacking policy"
+              value={
+                <span className="text-xs font-medium">
+                  {stackingPolicy === "STACKABLE" ? "Stackable" : "Best wins"}
+                </span>
               }
             />
           </div>

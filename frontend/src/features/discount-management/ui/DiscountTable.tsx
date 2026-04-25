@@ -74,6 +74,10 @@ import {
   Trash2,
   AlertTriangle,
   X,
+  List,
+  Tag,
+  Users,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { CampaignSkuDrawer } from "./CampaignSkuDrawer";
@@ -618,14 +622,22 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
                     />
                   </TableCell>
 
-                  {/* Campaign — colored title pill */}
+                  {/* Campaign — colored title pill + optional coupon chip */}
                   <TableCell>
-                    <span
-                      className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-white max-w-[180px] truncate"
-                      style={{ backgroundColor: `#${d.colorHex}` }}
-                    >
-                      {d.title}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span
+                        className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-white max-w-[180px] truncate"
+                        style={{ backgroundColor: `#${d.colorHex}` }}
+                      >
+                        {d.title}
+                      </span>
+                      {d.couponCode && (
+                        <span className="inline-flex items-center gap-1 rounded-full border bg-primary/5 px-1.5 py-0.5 text-[10px] font-mono uppercase text-primary">
+                          <Ticket className="h-2.5 w-2.5" />
+                          {d.couponCode}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
 
                   {/* Type */}
@@ -657,17 +669,24 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
                     {getDuration(d.validFrom, d.validUpto)}
                   </TableCell>
 
-                  {/* SKUs — opens side drawer */}
+                  {/* SKUs — opens side drawer + target-type icon */}
                   <TableCell>
-                    <button
-                      className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors tabular-nums"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDrawerCampaignId(d.id);
-                      }}
-                    >
-                      {d.targets.length} SKU{d.targets.length !== 1 ? "s" : ""}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {(() => {
+                        const primaryType = d.targets[0]?.targetType ?? "SKU";
+                        const Icon = primaryType === "CATEGORY" ? Tag : primaryType === "SEGMENT" ? Users : List;
+                        return <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />;
+                      })()}
+                      <button
+                        className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors tabular-nums"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDrawerCampaignId(d.id);
+                        }}
+                      >
+                        {d.targets.length} {d.targets[0]?.targetType === "CATEGORY" ? "cat." : d.targets[0]?.targetType === "SEGMENT" ? "seg." : `SKU${d.targets.length !== 1 ? "s" : ""}`}
+                      </button>
+                    </div>
                   </TableCell>
 
                   {/* Conflicts — ⚠ badge with tooltip listing affected SKUs */}

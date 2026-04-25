@@ -1,17 +1,27 @@
 "use client";
 
 import { ImageOff } from "lucide-react";
+import type { AmountType } from "../model/types";
 
 interface Props {
   title: string;
   colorHex: string;    // 6-char, no #
-  discountValue: number; // 1–99
+  discountValue: number;
+  amountType: AmountType;
 }
 
 const SAMPLE_PRICE = 1000;
 
-export function DiscountWizardPreview({ title, colorHex, discountValue }: Props) {
-  const discountedPrice = Math.round(SAMPLE_PRICE * (1 - discountValue / 100));
+export function DiscountWizardPreview({ title, colorHex, discountValue, amountType }: Props) {
+  const discountedPrice =
+    amountType === "PERCENT"
+      ? Math.round(SAMPLE_PRICE * (1 - discountValue / 100))
+      : Math.max(0, SAMPLE_PRICE - discountValue);
+
+  const badgeLabel =
+    amountType === "PERCENT"
+      ? `${title} −${discountValue}%`
+      : `${title} −${discountValue.toLocaleString()} TJS`;
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden max-w-[240px] shadow-sm">
@@ -23,7 +33,7 @@ export function DiscountWizardPreview({ title, colorHex, discountValue }: Props)
           className="absolute top-2 left-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-white leading-tight"
           style={{ backgroundColor: `#${colorHex}` }}
         >
-          {title} −{discountValue}%
+          {badgeLabel}
         </span>
       </div>
 

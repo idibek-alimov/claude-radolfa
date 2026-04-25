@@ -12,10 +12,12 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { createDiscountType, updateDiscountType } from "../api";
-import type { DiscountType } from "../model/types";
+import type { DiscountType, StackingPolicy } from "../model/types";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
-import { Loader2, Tag, ListOrdered } from "lucide-react";
+import { Loader2, Tag, ListOrdered, Layers } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { cn } from "@/shared/lib/utils";
 
 const ACCENT_COLORS = [
   "#F97316",
@@ -54,20 +56,22 @@ export function DiscountTypeCreateDialog({
 }: DiscountTypeCreateDialogProps) {
   const [name, setName] = useState("");
   const [rank, setRank] = useState(0);
+  const [stackingPolicy, setStackingPolicy] = useState<StackingPolicy>("BEST_WINS");
   const qc = useQueryClient();
 
   useEffect(() => {
     if (open) {
       setName(editTarget?.name ?? "");
       setRank(editTarget?.rank ?? 0);
+      setStackingPolicy(editTarget?.stackingPolicy ?? "BEST_WINS");
     }
   }, [open, editTarget]);
 
   const mutation = useMutation({
     mutationFn: () =>
       editTarget
-        ? updateDiscountType(editTarget.id, { name: name.trim(), rank })
-        : createDiscountType({ name: name.trim(), rank }),
+        ? updateDiscountType(editTarget.id, { name: name.trim(), rank, stackingPolicy })
+        : createDiscountType({ name: name.trim(), rank, stackingPolicy }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["discount-types"] });
       toast.success(editTarget ? "Type updated" : "Discount type created");
@@ -82,7 +86,7 @@ export function DiscountTypeCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[540px]">
+      <DialogContent className="sm:max-w-[620px]">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Edit Discount Type" : "New Discount Type"}
@@ -128,6 +132,51 @@ export function DiscountTypeCreateDialog({
                 className="w-28 h-11"
               />
             </div>
+          </section>
+
+          {/* ─── Stacking Policy ─── */}
+          <section className="space-y-4">
+            <SectionHeading icon={Layers} title="Stacking Policy" />
+            <p className="text-xs text-muted-foreground -mt-2">
+              Controls what happens when multiple discounts of this type apply to the same SKU.
+            </p>
+            <RadioGroup
+              value={stackingPolicy}
+              onValueChange={(v) => setStackingPolicy(v as StackingPolicy)}
+              className="grid grid-cols-2 gap-3"
+            >
+              {(
+                [
+                  {
+                    value: "BEST_WINS" as const,
+                    title: "Best wins",
+                    body: "Only the highest-ranked discount of this type applies; others are evicted.",
+                  },
+                  {
+                    value: "STACKABLE" as const,
+                    title: "Stackable",
+                    body: "Combines multiplicatively with other STACKABLE discounts on the same SKU.",
+                  },
+                ] as const
+              ).map(({ value, title, body }) => (
+                <label
+                  key={value}
+                  htmlFor={`stacking-${value}`}
+                  className={cn(
+                    "flex flex-col gap-1.5 rounded-xl border p-4 cursor-pointer transition-colors",
+                    stackingPolicy === value
+                      ? "border-primary/40 bg-primary/5"
+                      : "border-border bg-muted/30 hover:bg-muted/50"
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value={value} id={`stacking-${value}`} />
+                    <span className="text-sm font-medium">{title}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground pl-6">{body}</p>
+                </label>
+              ))}
+            </RadioGroup>
           </section>
 
           {/* ─── Live preview chip ─── */}

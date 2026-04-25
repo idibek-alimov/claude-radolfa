@@ -70,7 +70,9 @@ export function Step1Details({ state, update, submitted }: Props) {
   const titleError = submitted && state.title.trim().length === 0;
   const typeError = submitted && state.typeId === 0;
   const valueError =
-    submitted && (state.discountValue < 1 || state.discountValue > 99);
+    submitted &&
+    (state.discountValue < 1 ||
+      (state.amountType === "PERCENT" ? state.discountValue > 99 : state.discountValue > 999999));
   const colorError = submitted && state.colorHex.length !== 6;
 
   return (
@@ -148,45 +150,105 @@ export function Step1Details({ state, update, submitted }: Props) {
           </div>
         </section>
 
-        {/* RIGHT — Discount % */}
+        {/* RIGHT — Discount Amount */}
         <section className="space-y-6">
-          <SectionHeading icon={Tag} title="Discount %" />
+          <SectionHeading icon={Tag} title="Discount Amount" />
+
+          {/* Amount-type toggle */}
+          <div className="inline-flex rounded-lg border bg-background p-0.5">
+            <button
+              type="button"
+              onClick={() => update({ amountType: "PERCENT", discountValue: 10 })}
+              className={cn(
+                "px-4 h-8 text-sm rounded-md font-medium transition-colors",
+                state.amountType === "PERCENT"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              % Percent
+            </button>
+            <button
+              type="button"
+              onClick={() => update({ amountType: "FIXED", discountValue: 100 })}
+              className={cn(
+                "px-4 h-8 text-sm rounded-md font-medium transition-colors",
+                state.amountType === "FIXED"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              TJS Fixed
+            </button>
+          </div>
 
           <div className="space-y-1.5">
-            <div className="rounded-xl border border-border bg-muted/30 p-6 space-y-4">
-              <div className="flex items-end gap-4">
-                <span
-                  className={cn(
-                    "text-5xl font-black tabular-nums leading-none",
-                    valueError ? "text-destructive" : "text-rose-600 dark:text-rose-400"
-                  )}
-                >
-                  {state.discountValue}%
-                </span>
-                <Input
-                  id="discountValue"
-                  type="number"
+            {state.amountType === "PERCENT" ? (
+              <div className="rounded-xl border border-border bg-muted/30 p-6 space-y-4">
+                <div className="flex items-end gap-4">
+                  <span
+                    className={cn(
+                      "text-5xl font-black tabular-nums leading-none",
+                      valueError ? "text-destructive" : "text-rose-600 dark:text-rose-400"
+                    )}
+                  >
+                    {state.discountValue}%
+                  </span>
+                  <Input
+                    id="discountValue"
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={state.discountValue}
+                    onChange={(e) => update({ discountValue: Number(e.target.value) })}
+                    className={cn(
+                      "w-20 h-9 font-mono text-sm mb-0.5",
+                      valueError ? "border-destructive focus-visible:ring-destructive" : ""
+                    )}
+                  />
+                </div>
+                <input
+                  type="range"
                   min={1}
                   max={99}
                   value={state.discountValue}
                   onChange={(e) => update({ discountValue: Number(e.target.value) })}
+                  className="w-full h-2 accent-rose-600 cursor-pointer rounded-full"
+                />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-muted/30 p-6 space-y-4">
+                <div className="flex items-end gap-3">
+                  <span
+                    className={cn(
+                      "text-5xl font-black tabular-nums leading-none",
+                      valueError ? "text-destructive" : "text-rose-600 dark:text-rose-400"
+                    )}
+                  >
+                    −{state.discountValue.toLocaleString()}
+                  </span>
+                  <span className="text-2xl font-semibold text-muted-foreground pb-1">TJS</span>
+                </div>
+                <Input
+                  id="discountValue"
+                  type="number"
+                  min={1}
+                  max={999999}
+                  value={state.discountValue}
+                  onChange={(e) => update({ discountValue: Number(e.target.value) })}
                   className={cn(
-                    "w-20 h-9 font-mono text-sm mb-0.5",
+                    "w-40 h-9 font-mono text-sm",
                     valueError ? "border-destructive focus-visible:ring-destructive" : ""
                   )}
                 />
               </div>
-              <input
-                type="range"
-                min={1}
-                max={99}
-                value={state.discountValue}
-                onChange={(e) => update({ discountValue: Number(e.target.value) })}
-                className="w-full h-2 accent-rose-600 cursor-pointer rounded-full"
-              />
-            </div>
+            )}
             {valueError && (
-              <p className="text-xs text-destructive">Must be between 1 and 99.</p>
+              <p className="text-xs text-destructive">
+                {state.amountType === "PERCENT"
+                  ? "Must be between 1 and 99."
+                  : "Must be at least 1 TJS."}
+              </p>
             )}
           </div>
         </section>
@@ -275,6 +337,7 @@ export function Step1Details({ state, update, submitted }: Props) {
                 title={state.title}
                 colorHex={state.colorHex}
                 discountValue={state.discountValue}
+                amountType={state.amountType}
               />
             </div>
           )}

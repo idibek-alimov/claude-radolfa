@@ -13,11 +13,14 @@ export interface DiscountTargetInput {
   includeDescendants?: boolean;
 }
 
+export type StackingPolicy = "BEST_WINS" | "STACKABLE";
+
 /** A discount type (tier/rank of discount — e.g. "Flash Sale", "Seasonal"). */
 export interface DiscountType {
   id: number;
   name: string;
   rank: number; // lower = higher priority when multiple discounts apply
+  stackingPolicy: StackingPolicy;
 }
 
 /** Full discount response from the backend. */
@@ -70,6 +73,7 @@ export interface DiscountListFilters {
 export interface DiscountTypeFormValues {
   name: string;
   rank: number;
+  stackingPolicy: StackingPolicy;
 }
 
 /** Lightweight campaign summary embedded in discounted-product rows. */

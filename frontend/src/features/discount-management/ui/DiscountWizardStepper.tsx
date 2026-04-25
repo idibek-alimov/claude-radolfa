@@ -7,11 +7,11 @@ import { isCouponsEnabled } from "@/shared/lib";
 const BASE_STEPS = [
   { label: "Campaign Details", description: "Title, type, discount & color" },
   { label: "Schedule",          description: "Start & end dates" },
-  { label: "Product Selection", description: "Choose SKUs" },
+  { label: "Product Selection", description: "SKUs, category, or segment" },
   { label: "Review & Submit",   description: "Confirm and save" },
 ];
 
-const COUPON_STEP = { label: "Coupon Code", description: "Optional promo code" };
+const COUPON_STEP = { label: "Limits & Coupon", description: "Caps, min basket, optional code" };
 
 const STEPS = isCouponsEnabled
   ? [BASE_STEPS[0], BASE_STEPS[1], COUPON_STEP, BASE_STEPS[2], BASE_STEPS[3]]

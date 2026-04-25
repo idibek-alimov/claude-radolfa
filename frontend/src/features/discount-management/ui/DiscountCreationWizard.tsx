@@ -8,35 +8,58 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchDiscountById, createDiscount, updateDiscount } from "../api";
+import type { AmountType } from "../model/types";
 import { getErrorMessage } from "@/shared/lib/utils";
 import { DiscountWizardStepper } from "./DiscountWizardStepper";
 import { WizardFooter } from "@/features/product-creation/ui/WizardFooter";
 import { Step1Details } from "./wizard-steps/Step1Details";
 import { Step2Schedule } from "./wizard-steps/Step2Schedule";
-import { Step2bCoupon } from "./wizard-steps/Step2bCoupon";
-import { Step3Products } from "./wizard-steps/Step3Products";
+import { Step2bLimitsCoupon } from "./wizard-steps/Step2bLimitsCoupon";
+import { Step3Targets } from "./wizard-steps/Step3Targets";
 import { Step4Review } from "./wizard-steps/Step4Review";
 import { isCouponsEnabled } from "@/shared/lib";
+
+export type SegmentSelection =
+  | { type: "LOYALTY_TIER"; tierId: number }
+  | { type: "NEW_CUSTOMER" };
 
 export interface DiscountWizardState {
   title: string;
   typeId: number;
+  amountType: AmountType;
   discountValue: number;
   colorHex: string;
   validFrom: string;
   validUpto: string;
+  // target mode — exclusive
+  targetMode: "SKU" | "CATEGORY" | "SEGMENT";
   selectedCodes: string[];
+  selectedCategoryIds: number[];
+  includeDescendants: boolean;
+  selectedSegment: SegmentSelection | null;
+  // limits
+  minBasketAmount: string;
+  usageCapTotal: string;
+  usageCapPerCustomer: string;
   couponCode: string;
 }
 
 const DEFAULT_STATE: DiscountWizardState = {
   title: "",
   typeId: 0,
+  amountType: "PERCENT",
   discountValue: 10,
   colorHex: "E74C3C",
   validFrom: "",
   validUpto: "",
+  targetMode: "SKU",
   selectedCodes: [],
+  selectedCategoryIds: [],
+  includeDescendants: true,
+  selectedSegment: null,
+  minBasketAmount: "",
+  usageCapTotal: "",
+  usageCapPerCustomer: "",
   couponCode: "",
 };
 
@@ -72,13 +95,11 @@ function toIso(local: string): string {
 }
 
 function isStep1Valid(s: DiscountWizardState): boolean {
-  return (
-    s.title.trim().length > 0 &&
-    s.typeId > 0 &&
-    s.discountValue >= 1 &&
-    s.discountValue <= 99 &&
-    s.colorHex.length === 6
-  );
+  const valueOk =
+    s.amountType === "PERCENT"
+      ? s.discountValue >= 1 && s.discountValue <= 99
+      : s.discountValue >= 1 && s.discountValue <= 999999;
+  return s.title.trim().length > 0 && s.typeId > 0 && valueOk && s.colorHex.length === 6;
 }
 
 function isStep2Valid(s: DiscountWizardState): boolean {
@@ -87,7 +108,12 @@ function isStep2Valid(s: DiscountWizardState): boolean {
 }
 
 function isStep3Valid(s: DiscountWizardState): boolean {
-  return s.selectedCodes.length > 0;
+  if (s.targetMode === "SKU") return s.selectedCodes.length > 0;
+  if (s.targetMode === "CATEGORY") return s.selectedCategoryIds.length > 0;
+  // SEGMENT
+  if (!s.selectedSegment) return false;
+  if (s.selectedSegment.type === "LOYALTY_TIER") return s.selectedSegment.tierId > 0;
+  return true;
 }
 
 // ── Props ──────────────────────────────────────────────────────────
@@ -133,16 +159,42 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
 
   useEffect(() => {
     if (!sourceDiscount || initialized) return;
+
+    const targets = sourceDiscount.targets;
+    const hasCategory = targets.some((t) => t.targetType === "CATEGORY");
+    const hasSegment = targets.some((t) => t.targetType === "SEGMENT");
+    const targetMode: DiscountWizardState["targetMode"] = hasCategory
+      ? "CATEGORY"
+      : hasSegment
+      ? "SEGMENT"
+      : "SKU";
+
+    const firstCat = targets.find((t) => t.targetType === "CATEGORY");
+    const firstSeg = targets.find((t) => t.targetType === "SEGMENT");
+    const selectedSegment: SegmentSelection | null = firstSeg
+      ? firstSeg.referenceId === "NEW"
+        ? { type: "NEW_CUSTOMER" }
+        : { type: "LOYALTY_TIER", tierId: Number(firstSeg.referenceId) }
+      : null;
+
     setState({
       title: isDuplicate ? `Copy of ${sourceDiscount.title}` : sourceDiscount.title,
       typeId: sourceDiscount.type.id,
+      amountType: sourceDiscount.amountType,
       discountValue: sourceDiscount.amountValue,
       colorHex: sourceDiscount.colorHex.replace(/^#/, ""),
       validFrom: isDuplicate ? "" : toLocalInput(sourceDiscount.validFrom),
       validUpto: isDuplicate ? "" : toLocalInput(sourceDiscount.validUpto),
-      selectedCodes: sourceDiscount.targets
-        .filter((t) => t.targetType === "SKU")
-        .map((t) => t.referenceId),
+      targetMode,
+      selectedCodes: targets.filter((t) => t.targetType === "SKU").map((t) => t.referenceId),
+      selectedCategoryIds: targets
+        .filter((t) => t.targetType === "CATEGORY")
+        .map((t) => Number(t.referenceId)),
+      includeDescendants: firstCat?.includeDescendants ?? true,
+      selectedSegment,
+      minBasketAmount: sourceDiscount.minBasketAmount != null ? String(sourceDiscount.minBasketAmount) : "",
+      usageCapTotal: sourceDiscount.usageCapTotal != null ? String(sourceDiscount.usageCapTotal) : "",
+      usageCapPerCustomer: sourceDiscount.usageCapPerCustomer != null ? String(sourceDiscount.usageCapPerCustomer) : "",
       couponCode: isDuplicate ? "" : (sourceDiscount.couponCode ?? ""),
     });
     setInitialized(true);
@@ -150,17 +202,44 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
 
   // ── Submit mutation ────────────────────────────────────────────
 
+  const parseOptionalNumber = (s: string) => (s.trim() ? Number(s) : undefined);
+  const parseOptionalInt = (s: string) => (s.trim() ? parseInt(s, 10) : undefined);
+
   const submitMutation = useMutation({
     mutationFn: () => {
+      const targets =
+        state.targetMode === "SKU"
+          ? state.selectedCodes.map((code) => ({ targetType: "SKU" as const, referenceId: code }))
+          : state.targetMode === "CATEGORY"
+          ? state.selectedCategoryIds.map((id) => ({
+              targetType: "CATEGORY" as const,
+              referenceId: String(id),
+              includeDescendants: state.includeDescendants,
+            }))
+          : state.selectedSegment
+          ? [
+              {
+                targetType: "SEGMENT" as const,
+                referenceId:
+                  state.selectedSegment.type === "LOYALTY_TIER"
+                    ? String(state.selectedSegment.tierId)
+                    : "NEW",
+              },
+            ]
+          : [];
+
       const payload = {
         typeId: state.typeId,
-        targets: state.selectedCodes.map((code) => ({ targetType: "SKU" as const, referenceId: code })),
-        amountType: "PERCENT" as const,
+        targets,
+        amountType: state.amountType,
         amountValue: state.discountValue,
         validFrom: toIso(state.validFrom),
         validUpto: toIso(state.validUpto),
         title: state.title.trim(),
         colorHex: state.colorHex,
+        minBasketAmount: parseOptionalNumber(state.minBasketAmount),
+        usageCapTotal: parseOptionalInt(state.usageCapTotal),
+        usageCapPerCustomer: parseOptionalInt(state.usageCapPerCustomer),
         couponCode: state.couponCode?.trim().toUpperCase() || undefined,
       };
       return isEdit
@@ -292,7 +371,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
                 />
               )}
               {isCouponsEnabled && currentStep === 3 && (
-                <Step2bCoupon
+                <Step2bLimitsCoupon
                   state={state}
                   update={update}
                   sourceId={sourceId}
@@ -300,7 +379,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
                 />
               )}
               {currentStep === productsStep && (
-                <Step3Products
+                <Step3Targets
                   state={state}
                   update={update}
                   submitted={step3Submitted}

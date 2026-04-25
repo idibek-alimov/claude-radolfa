@@ -525,6 +525,45 @@
       "units": "Units",
       "uplift": "Uplift",
       "empty": "No campaign data yet."
+    },
+    "amountType": {
+      "heading": "Discount Amount",
+      "percent": "Percent",
+      "fixed": "Fixed (TJS)"
+    },
+    "target": {
+      "sku": { "tab": "SKU list" },
+      "category": {
+        "tab": "Category",
+        "includeSubs": "Include subcategories",
+        "empty": "Select one or more categories."
+      },
+      "segment": {
+        "tab": "Segment",
+        "loyaltyTier": "Loyalty tier",
+        "newCustomer": "New customers"
+      }
+    },
+    "limits": {
+      "heading": "Usage Limits",
+      "description": "Optional gates evaluated at checkout. Leave blank for unlimited.",
+      "minBasket": "Min basket amount",
+      "capTotal": "Max uses (total)",
+      "capPerCustomer": "Max uses per customer",
+      "unlimited": "Unlimited"
+    },
+    "stacking": {
+      "heading": "Stacking Policy",
+      "bestWins": {
+        "title": "Best wins",
+        "body": "Highest-ranked discount of this type wins; others are evicted on the same SKU.",
+        "short": "Best wins"
+      },
+      "stackable": {
+        "title": "Stackable",
+        "body": "Combines multiplicatively with other STACKABLE discounts on the same SKU.",
+        "short": "Stackable"
+      }
     }
   }
 }

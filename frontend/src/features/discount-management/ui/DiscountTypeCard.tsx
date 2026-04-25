@@ -2,7 +2,8 @@
 
 import { Button } from "@/shared/ui/button";
 import type { DiscountType } from "../model/types";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Layers } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 
 const ACCENT_COLORS = [
   "#F97316", // orange
@@ -70,14 +71,27 @@ export function DiscountTypeCard({
           {discountType.name}
         </p>
 
-        {/* Rank badge */}
-        <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+        {/* Badges row */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+            <span
+              className="h-1.5 w-1.5 rounded-full shrink-0"
+              style={{ backgroundColor: accentColor }}
+            />
+            Priority {discountType.rank}
+          </span>
           <span
-            className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{ backgroundColor: accentColor }}
-          />
-          Priority {discountType.rank}
-        </span>
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border",
+              discountType.stackingPolicy === "STACKABLE"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-slate-50 text-slate-600 border-slate-200"
+            )}
+          >
+            <Layers className="h-2.5 w-2.5" />
+            {discountType.stackingPolicy === "STACKABLE" ? "Stackable" : "Best wins"}
+          </span>
+        </div>
       </div>
     </div>
   );
