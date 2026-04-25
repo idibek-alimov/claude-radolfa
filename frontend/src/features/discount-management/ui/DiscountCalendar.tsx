@@ -45,9 +45,8 @@ export function DiscountCalendar({ selectedDate, onDayClick }: Props) {
   const today = startOfDay(new Date());
   const [month, setMonth] = useState<Date>(() => startOfMonth(new Date()));
 
-  const monthStartIso = month.toISOString();
-  const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59, 999);
-  const monthEndIso = monthEnd.toISOString();
+  const monthStartIso = toYMD(month);
+  const monthEndIso = toYMD(new Date(month.getFullYear(), month.getMonth() + 1, 0));
 
   const { data, isLoading } = useQuery({
     queryKey: ["discounts-calendar", monthStartIso],

@@ -46,6 +46,13 @@ function fmtDateShort(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function toYMD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -74,8 +81,8 @@ export function DiscountTimeline({ onEdit }: Props) {
     return () => obs.disconnect();
   }, []);
 
-  const windowStartISO = windowStart.toISOString();
-  const windowEndISO = windowEnd.toISOString();
+  const windowStartISO = toYMD(windowStart);
+  const windowEndISO = toYMD(windowEnd);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["discounts-timeline", windowStartISO, windowEndISO],

@@ -187,12 +187,12 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
 
             if (filter.from() != null) {
                 Instant fromInstant = filter.from().atStartOfDay(ZoneOffset.UTC).toInstant();
-                predicates.add(cb.greaterThanOrEqualTo(root.get("validFrom"), fromInstant));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("validUpto"), fromInstant));
             }
 
             if (filter.to() != null) {
                 Instant toInstant = filter.to().atTime(23, 59, 59).atOffset(ZoneOffset.UTC).toInstant();
-                predicates.add(cb.lessThanOrEqualTo(root.get("validUpto"), toInstant));
+                predicates.add(cb.lessThanOrEqualTo(root.get("validFrom"), toInstant));
             }
 
             if (filter.search() != null && !filter.search().isBlank()) {
