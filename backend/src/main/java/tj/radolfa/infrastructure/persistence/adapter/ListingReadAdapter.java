@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadListingPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
-import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
@@ -18,13 +17,14 @@ import tj.radolfa.application.readmodel.ListingVariantDetailDto.AttributeDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
+import tj.radolfa.domain.model.AppliedDiscount;
+import tj.radolfa.domain.model.Discount;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -121,12 +121,12 @@ public class ListingReadAdapter implements LoadListingPort {
 
                 List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
 
-                // Resolve discounts for all SKU codes in this variant
+                // Resolve discounts for all SKU codes — full pipeline (category, stacking, etc.)
                 List<String> skuCodes = skuEntities.stream()
                                 .map(SkuEntity::getSkuCode)
                                 .toList();
-                Map<String, DiscountEntity> discountsBySkuCode =
-                                discountEnrichment.resolveForItemCodes(skuCodes);
+                Map<String, List<AppliedDiscount>> discountsBySkuCode =
+                                discountEnrichment.resolveAppliedForItemCodes(skuCodes);
 
                 List<SkuDto> skus = skuEntities.stream()
                                 .map(sku -> toSkuDto(sku, discountsBySkuCode.get(sku.getSkuCode())))
@@ -137,9 +137,9 @@ public class ListingReadAdapter implements LoadListingPort {
                 BigDecimal winningEffectivePrice = null;
                 for (SkuEntity sku : skuEntities) {
                         if (sku.getOriginalPrice() == null) continue;
-                        DiscountEntity d = discountsBySkuCode.get(sku.getSkuCode());
-                        BigDecimal effective = d != null
-                                        ? computeDiscountedPrice(sku.getOriginalPrice(), d.getAmountValue())
+                        List<AppliedDiscount> applied = discountsBySkuCode.get(sku.getSkuCode());
+                        BigDecimal effective = applied != null
+                                        ? applied.get(applied.size() - 1).reducedUnitPrice()
                                         : sku.getOriginalPrice();
                         if (winningEffectivePrice == null || effective.compareTo(winningEffectivePrice) < 0) {
                                 winningEffectivePrice = effective;
@@ -148,26 +148,29 @@ public class ListingReadAdapter implements LoadListingPort {
                 }
 
                 BigDecimal originalPrice = winningSku != null ? winningSku.getOriginalPrice() : null;
-                DiscountEntity winningDiscount = winningSku != null
+                List<AppliedDiscount> winningApplied = winningSku != null
                                 ? discountsBySkuCode.get(winningSku.getSkuCode()) : null;
-                BigDecimal discountPrice = winningDiscount != null && originalPrice != null
-                                ? computeDiscountedPrice(originalPrice, winningDiscount.getAmountValue()) : null;
-                Integer discountPercentage = winningDiscount != null
-                                ? winningDiscount.getAmountValue().intValue() : null;
-                String discountName = winningDiscount != null ? winningDiscount.getTitle() : null;
-                String discountColorHex = winningDiscount != null ? winningDiscount.getColorHex() : null;
+                BigDecimal discountPrice = null;
+                Integer discountPercentage = null;
+                String discountName = null;
+                String discountColorHex = null;
+                if (winningApplied != null && originalPrice != null) {
+                        BigDecimal finalPrice = winningApplied.get(winningApplied.size() - 1).reducedUnitPrice();
+                        discountPrice = finalPrice;
+                        Discount winner = winningApplied.get(0).discount();
+                        discountName = winner.title();
+                        discountColorHex = winner.colorHex();
+                        discountPercentage = BigDecimal.ONE
+                                        .subtract(finalPrice.divide(originalPrice, 4, RoundingMode.HALF_UP))
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .setScale(0, RoundingMode.HALF_UP)
+                                        .intValue();
+                }
 
                 long discountedCount = skuEntities.stream()
                                 .filter(s -> discountsBySkuCode.containsKey(s.getSkuCode()))
                                 .count();
-                long distinctDiscountIds = skuEntities.stream()
-                                .map(s -> discountsBySkuCode.get(s.getSkuCode()))
-                                .filter(Objects::nonNull)
-                                .map(DiscountEntity::getId)
-                                .distinct()
-                                .count();
-                boolean isPartialDiscount = discountedCount > 0
-                                && (discountedCount < skuEntities.size() || distinctDiscountIds > 1);
+                boolean isPartialDiscount = discountedCount > 0 && discountedCount < skuEntities.size();
 
                 // Siblings: load slugs, colorKeys, hexCodes — then batch-load thumbnails
                 Long baseId = entity.getProductBase().getId();
@@ -236,18 +239,24 @@ public class ListingReadAdapter implements LoadListingPort {
 
         // ---- SKU helpers (detail-page only) ----
 
-        private SkuDto toSkuDto(SkuEntity entity, DiscountEntity discount) {
+        private SkuDto toSkuDto(SkuEntity entity, List<AppliedDiscount> applied) {
                 BigDecimal originalPrice = entity.getOriginalPrice();
                 BigDecimal discountPrice = null;
                 Integer discountPercentage = null;
                 String discountName = null;
                 String discountColorHex = null;
 
-                if (discount != null && originalPrice != null) {
-                        discountPrice = computeDiscountedPrice(originalPrice, discount.getAmountValue());
-                        discountPercentage = discount.getAmountValue().intValue();
-                        discountName = discount.getTitle();
-                        discountColorHex = discount.getColorHex();
+                if (applied != null && originalPrice != null) {
+                        BigDecimal finalPrice = applied.get(applied.size() - 1).reducedUnitPrice();
+                        discountPrice = finalPrice;
+                        Discount winner = applied.get(0).discount();
+                        discountName = winner.title();
+                        discountColorHex = winner.colorHex();
+                        discountPercentage = BigDecimal.ONE
+                                        .subtract(finalPrice.divide(originalPrice, 4, RoundingMode.HALF_UP))
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .setScale(0, RoundingMode.HALF_UP)
+                                        .intValue();
                 }
 
                 return new SkuDto(
@@ -261,11 +270,5 @@ public class ListingReadAdapter implements LoadListingPort {
                                 discountName,
                                 discountColorHex,
                                 null); // loyaltyPrice — stamped by TierPricingEnricher via withLoyalty cascade
-        }
-
-        private BigDecimal computeDiscountedPrice(BigDecimal originalPrice, BigDecimal discountPct) {
-                BigDecimal multiplier = BigDecimal.ONE.subtract(
-                                discountPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
-                return originalPrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
         }
 }

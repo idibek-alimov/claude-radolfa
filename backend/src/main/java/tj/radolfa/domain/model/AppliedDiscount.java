@@ -14,15 +14,22 @@ public record AppliedDiscount(Discount discount, BigDecimal reducedUnitPrice) {
 
     /**
      * Folds an ordered discount list into applied discounts with cumulative prices.
-     * Each entry's reducedUnitPrice = originalPrice × product of (1 - pct/100) up to that entry.
+     * PERCENT: running = running × (1 − value/100)
+     * FIXED:   running = max(0, running − value)
      */
     public static List<AppliedDiscount> fold(List<Discount> ordered, BigDecimal originalPrice) {
         List<AppliedDiscount> result = new ArrayList<>(ordered.size());
         BigDecimal running = originalPrice;
         for (Discount d : ordered) {
-            BigDecimal multiplier = BigDecimal.ONE.subtract(
-                    d.amountValue().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
-            running = running.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+            if (d.amountType() == AmountType.FIXED) {
+                running = running.subtract(d.amountValue())
+                        .max(BigDecimal.ZERO)
+                        .setScale(2, RoundingMode.HALF_UP);
+            } else {
+                BigDecimal multiplier = BigDecimal.ONE.subtract(
+                        d.amountValue().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
+                running = running.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
+            }
             result.add(new AppliedDiscount(d, running));
         }
         return result;

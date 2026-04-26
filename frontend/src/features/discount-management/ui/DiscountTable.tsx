@@ -56,11 +56,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
-import { getErrorMessage, useDynamicPageSize } from "@/shared/lib";
+import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
 import {
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
@@ -201,12 +199,9 @@ interface DiscountTableProps {
 }
 
 export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, onClearDateFilter }: DiscountTableProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const pageSize = useDynamicPageSize(cardRef, 49);
-
   const [filters, setFilters] = useState<DiscountListFilters>({
     page: 1,
-    size: pageSize,
+    size: 200,
     status: "all",
   });
   const [search, setSearch] = useState("");
@@ -216,10 +211,6 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [drawerCampaignId, setDrawerCampaignId] = useState<number | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
-
-  useEffect(() => {
-    setFilters((f) => ({ ...f, page: 1, size: pageSize }));
-  }, [pageSize]);
 
   // Clear selection on any filter/search/sort change to avoid stale IDs
   useEffect(() => {
@@ -556,7 +547,6 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
 
       {/* Table */}
       <div
-        ref={cardRef}
         className={cn(
           "flex-1 min-h-0 overflow-auto bg-card rounded-xl border shadow-sm transition-opacity",
           isFetching && !isLoading && "opacity-60"
@@ -570,7 +560,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
           </div>
         ) : (
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-card">
               <TableRow className="hover:bg-transparent">
                 {/* Master select checkbox */}
                 <TableHead className="pl-4 w-10">
@@ -787,35 +777,6 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
         )}
       </div>
 
-      {/* Pagination */}
-      {data && data.totalElements > 0 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {data.totalElements} campaign{data.totalElements !== 1 ? "s" : ""} total
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={filters.page <= 1}
-              onClick={() => setFilters((f) => ({ ...f, page: f.page - 1 }))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {filters.page} / {data.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={data.last}
-              onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* SKU detail drawer — controlled by row chip clicks */}
       <CampaignSkuDrawer

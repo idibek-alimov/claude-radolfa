@@ -11,7 +11,7 @@ function AdminShellInner({ children }: { children: React.ReactNode }) {
   const { collapsed } = useAdminShell();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F7F9]">
+    <div className="h-screen overflow-hidden flex flex-col bg-[#F7F7F9]">
       <AdminTopBar />
       <AdminSidebar />
       <main

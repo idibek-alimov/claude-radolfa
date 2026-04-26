@@ -41,7 +41,7 @@ export function DiscountsTab() {
   return (
     <Tabs defaultValue="campaigns" className="flex flex-col flex-1 min-h-0 gap-6">
       {/* Underline-style sub-tab bar — visually distinct from the outer pill tabs */}
-      <div className="border-b">
+      <div className="border-b shrink-0">
         <TabsList className="h-auto p-0 bg-transparent rounded-none gap-0">
           <TabsTrigger
             value="campaigns"
@@ -67,56 +67,60 @@ export function DiscountsTab() {
         </TabsList>
       </div>
 
-      <TabsContent value="campaigns" className="mt-0 flex flex-col flex-1 min-h-0 gap-3">
-        {/* Calendar — shown only in table view */}
-        {view === "table" && (
-          <DiscountCalendar
-            selectedDate={selectedDate}
-            onDayClick={setSelectedDate}
-          />
-        )}
+      <TabsContent value="campaigns" className="mt-0 flex-1 min-h-0 flex flex-col">
+        <div className="flex flex-col flex-1 min-h-0 gap-3">
+          {/* Calendar — shown only in table view */}
+          {view === "table" && (
+            <DiscountCalendar
+              selectedDate={selectedDate}
+              onDayClick={setSelectedDate}
+            />
+          )}
 
-        {/* View toggle */}
-        <div className="flex items-center gap-1 border rounded-lg p-0.5 bg-muted/40 w-fit shrink-0">
-          <Button
-            variant={view === "table" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 px-3 gap-1.5 text-xs"
-            onClick={() => setView("table")}
-          >
-            <LayoutGrid className="h-3.5 w-3.5" />
-            Table
-          </Button>
-          <Button
-            variant={view === "timeline" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 px-3 gap-1.5 text-xs"
-            onClick={() => setView("timeline")}
-          >
-            <CalendarRange className="h-3.5 w-3.5" />
-            Timeline
-          </Button>
+          {/* View toggle */}
+          <div className="flex items-center gap-1 border rounded-lg p-0.5 bg-muted/40 w-fit shrink-0">
+            <Button
+              variant={view === "table" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 px-3 gap-1.5 text-xs"
+              onClick={() => setView("table")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Table
+            </Button>
+            <Button
+              variant={view === "timeline" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 px-3 gap-1.5 text-xs"
+              onClick={() => setView("timeline")}
+            >
+              <CalendarRange className="h-3.5 w-3.5" />
+              Timeline
+            </Button>
+          </div>
+
+          {view === "table" ? (
+            <DiscountTable
+              onEdit={openEdit}
+              onNew={openCreate}
+              onDuplicate={openDuplicate}
+              externalDateFilter={selectedDate}
+              onClearDateFilter={() => setSelectedDate(null)}
+            />
+          ) : (
+            <DiscountTimeline onEdit={openEdit} />
+          )}
         </div>
-
-        {view === "table" ? (
-          <DiscountTable
-            onEdit={openEdit}
-            onNew={openCreate}
-            onDuplicate={openDuplicate}
-            externalDateFilter={selectedDate}
-            onClearDateFilter={() => setSelectedDate(null)}
-          />
-        ) : (
-          <DiscountTimeline onEdit={openEdit} />
-        )}
       </TabsContent>
 
       <TabsContent value="types" className="mt-0">
         <DiscountTypesPanel />
       </TabsContent>
 
-      <TabsContent value="products" className="mt-0 flex flex-col flex-1 min-h-0">
-        <DiscountedProductsTable />
+      <TabsContent value="products" className="mt-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex flex-col flex-1 min-h-0">
+          <DiscountedProductsTable />
+        </div>
       </TabsContent>
     </Tabs>
   );

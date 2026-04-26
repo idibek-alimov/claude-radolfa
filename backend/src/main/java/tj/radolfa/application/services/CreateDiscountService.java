@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountTypePort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
+import tj.radolfa.domain.exception.DiscountConflictException;
 import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
@@ -15,6 +16,7 @@ import tj.radolfa.domain.model.SkuTarget;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -81,12 +83,21 @@ public class CreateDiscountService implements CreateDiscountUseCase {
                     boolean datesOverlap = !existing.validUpto().isBefore(validFrom)
                             && !existing.validFrom().isAfter(validUpto);
                     if (!datesOverlap) return;
-                    boolean coversItem = existing.itemCodes().stream().anyMatch(skuCodes::contains);
-                    if (coversItem) {
-                        throw new IllegalStateException(
-                                "A discount of the same type already covers one or more of the target SKUs " +
-                                "in an overlapping date range. Resolve the conflict before creating a new " +
-                                "discount (existing id=" + existing.id() + ")");
+                    List<String> conflicting = existing.itemCodes().stream()
+                            .filter(skuCodes::contains)
+                            .toList();
+                    if (!conflicting.isEmpty()) {
+                        String campaignName = existing.title() != null && !existing.title().isBlank()
+                                ? "\"" + existing.title() + "\""
+                                : "campaign #" + existing.id();
+                        String skuSample = conflicting.stream().limit(3)
+                                .collect(Collectors.joining(", "));
+                        String suffix = conflicting.size() > 3
+                                ? " and " + (conflicting.size() - 3) + " more"
+                                : "";
+                        throw new DiscountConflictException(
+                                "Conflict with " + campaignName + ": SKU(s) [" + skuSample + suffix +
+                                "] are already covered by an overlapping campaign of the same type.");
                     }
                 });
     }

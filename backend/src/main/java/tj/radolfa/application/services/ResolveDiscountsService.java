@@ -87,8 +87,12 @@ public class ResolveDiscountsService implements ResolveDiscountsUseCase {
 
         // 6. For each item code: pick BEST_WINS winner, then append STACKABLE
         Map<String, List<Discount>> result = new HashMap<>();
+        // 1st: lower rank wins. 2nd: larger amountValue wins (Best Price Wins — works for
+        // both PERCENT and FIXED; cross-type comparison uses raw value as a reasonable proxy).
+        // 3rd: lower ID wins as the final deterministic tiebreaker.
         Comparator<Discount> priority = Comparator
                 .comparingInt((Discount d) -> d.type().rank())
+                .thenComparing(Comparator.comparing(Discount::amountValue).reversed())
                 .thenComparingLong(Discount::id);
 
         for (String code : q.itemCodes()) {

@@ -78,12 +78,14 @@ function SkuTab({
     const myType = types.find((t) => t.id === state.typeId);
     if (!myType) return [];
     const myRank = myType.rank;
+    const myAmount = state.discountValue;
 
     const result: {
       skuCode: string;
       otherCampaign: CampaignSummary;
       willWin: boolean;
       myRank: number;
+      rankTied: boolean;
     }[] = [];
 
     for (const code of state.selectedCodes) {
@@ -93,15 +95,41 @@ function SkuTab({
       const others =
         editId !== undefined ? allCampaigns.filter((c) => c.id !== editId) : allCampaigns;
       if (others.length === 0) continue;
+
+      // Mirror backend: rank ASC → amountValue DESC → id ASC
       const strongest = others.reduce((best, c) => {
         if (c.type.rank < best.type.rank) return c;
-        if (c.type.rank === best.type.rank && c.id < best.id) return c;
-        return best;
+        if (c.type.rank > best.type.rank) return best;
+        if (c.amountValue > best.amountValue) return c;
+        if (c.amountValue < best.amountValue) return best;
+        return c.id < best.id ? c : best;
       });
-      result.push({ skuCode: code, otherCampaign: strongest, willWin: myRank < strongest.type.rank, myRank });
+
+      // Predict whether the campaign being created would beat `strongest`
+      let willWin: boolean;
+      if (myRank < strongest.type.rank) {
+        willWin = true;
+      } else if (myRank > strongest.type.rank) {
+        willWin = false;
+      } else if (myAmount > strongest.amountValue) {
+        willWin = true;
+      } else if (myAmount < strongest.amountValue) {
+        willWin = false;
+      } else {
+        // Equal rank and equal amount — new campaign always gets a higher ID → loses
+        willWin = false;
+      }
+
+      result.push({
+        skuCode: code,
+        otherCampaign: strongest,
+        willWin,
+        myRank,
+        rankTied: myRank === strongest.type.rank,
+      });
     }
     return result;
-  }, [overlaps, types, state.selectedCodes, state.typeId, editId]);
+  }, [overlaps, types, state.selectedCodes, state.typeId, state.discountValue, editId]);
 
   const visibleWarnings = warnings.slice(0, MAX_VISIBLE_WARNINGS);
   const extraWarnings = warnings.length - visibleWarnings.length;
@@ -161,22 +189,29 @@ function SkuTab({
             </p>
           </div>
           <div className="space-y-1 pl-6">
-            {visibleWarnings.map((w) => (
-              <p key={w.skuCode} className="text-xs text-amber-700">
-                <span className="font-mono font-medium">{w.skuCode}</span>
-                {" — already in "}
-                <span className="font-medium">{w.otherCampaign.title}</span>
-                {` (rank ${w.otherCampaign.type.rank}). Yours (rank ${w.myRank}) would `}
-                <span
-                  className={
-                    w.willWin ? "font-semibold text-green-700" : "font-semibold text-red-700"
-                  }
-                >
-                  {w.willWin ? "win" : "lose"}
-                </span>
-                {"."}
-              </p>
-            ))}
+            {visibleWarnings.map((w) => {
+              const theirAmt = `${w.otherCampaign.amountValue}${w.otherCampaign.amountType === "PERCENT" ? "%" : " fixed"}`;
+              const myAmt = `${state.discountValue}${state.amountType === "PERCENT" ? "%" : " fixed"}`;
+              const reason = w.rankTied
+                ? ` (rank ${w.myRank} tie — ${myAmt} vs their ${theirAmt})`
+                : ` (rank ${w.myRank} vs ${w.otherCampaign.type.rank})`;
+              return (
+                <p key={w.skuCode} className="text-xs text-amber-700">
+                  <span className="font-mono font-medium">{w.skuCode}</span>
+                  {" — already in "}
+                  <span className="font-medium">{w.otherCampaign.title}</span>
+                  {`${reason} → yours would `}
+                  <span
+                    className={
+                      w.willWin ? "font-semibold text-green-700" : "font-semibold text-red-700"
+                    }
+                  >
+                    {w.willWin ? "win" : "lose"}
+                  </span>
+                  {"."}
+                </p>
+              );
+            })}
             {extraWarnings > 0 && (
               <p className="text-xs text-amber-600/70">+{extraWarnings} more</p>
             )}
@@ -448,8 +483,10 @@ export function Step3Targets({ state, update, submitted, editId }: Props) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="SKU" className="flex-1 flex flex-col mt-6">
-          <SkuTab state={state} update={update} submitted={submitted} editId={editId} />
+        <TabsContent value="SKU" className="flex-1 min-h-0 mt-6">
+          <div className="flex flex-col h-full">
+            <SkuTab state={state} update={update} submitted={submitted} editId={editId} />
+          </div>
         </TabsContent>
 
         <TabsContent value="CATEGORY" className="mt-6">
