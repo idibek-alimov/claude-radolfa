@@ -113,8 +113,10 @@ export function DiscountsTab() {
         </div>
       </TabsContent>
 
-      <TabsContent value="types" className="mt-0">
-        <DiscountTypesPanel />
+      <TabsContent value="types" className="mt-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex flex-col flex-1 min-h-0">
+          <DiscountTypesPanel />
+        </div>
       </TabsContent>
 
       <TabsContent value="products" className="mt-0 flex-1 min-h-0 flex flex-col overflow-hidden">

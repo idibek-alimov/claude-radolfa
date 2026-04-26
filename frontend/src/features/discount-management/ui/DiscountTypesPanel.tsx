@@ -66,9 +66,9 @@ export function DiscountTypesPanel() {
   };
 
   return (
-    <>
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header row */}
-      <div className="flex items-start justify-between mb-5">
+      <div className="flex items-start justify-between mb-5 shrink-0">
         <div>
           <h2 className="text-base font-semibold">Discount Types</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -89,17 +89,17 @@ export function DiscountTypesPanel() {
 
       {/* Card grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 min-h-0 overflow-auto content-start">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-[88px] rounded-xl" />
           ))}
         </div>
       ) : sorted.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-card p-12 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed bg-card p-12 text-center text-sm text-muted-foreground flex-1 min-h-0 flex items-center justify-center">
           No discount types yet. Create your first one.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 min-h-0 overflow-auto content-start pb-4">
           {sorted.map((type, index) => (
             <DiscountTypeCard
               key={type.id}
@@ -154,6 +154,6 @@ export function DiscountTypesPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

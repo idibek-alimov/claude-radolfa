@@ -400,7 +400,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
     <div className="flex flex-col flex-1 min-h-0 gap-4">
       {/* External date filter chip */}
       {externalDateFilter && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="inline-flex items-center gap-1.5 rounded-full border bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
             Filtering by{" "}
             {new Date(externalDateFilter + "T12:00:00").toLocaleDateString(undefined, {
@@ -420,7 +420,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
       )}
 
       {/* Filters toolbar */}
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-end gap-3 shrink-0">
         {/* Text search — sent server-side after 300 ms debounce */}
         <div className="relative min-w-[180px] flex-1 max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -493,7 +493,7 @@ export function DiscountTable({ onEdit, onNew, onDuplicate, externalDateFilter, 
 
       {/* Bulk actions toolbar — visible only when rows are selected */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-2">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-2 shrink-0">
           <span className="text-sm text-muted-foreground">
             {selectedIds.size} selected
           </span>
