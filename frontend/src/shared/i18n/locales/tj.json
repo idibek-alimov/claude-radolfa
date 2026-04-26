@@ -300,6 +300,26 @@
     "loyaltyHowEarn": "Бо ҳар хариди шумо баллҳо худкор ҷамъ мешаванд.",
     "loyaltyHowRedeem": "Баллҳоро метавонед ҳамчун тахфиф дар фармоишҳои оянда истифода баред."
   },
+  "cart": {
+    "title": "Сабади шумо",
+    "cartHeading": "Сабади харид",
+    "itemCount": "{count, plural, one {# мол} other {# мол}}",
+    "empty": "Сабади шумо холӣ аст",
+    "emptyDescription": "Аз каталог истифода баред ва молҳоро ба сабад илова кунед",
+    "browseProducts": "Дидани молҳо",
+    "subtotal": "Зерҷамъ",
+    "orderSummary": "Таркиби фармоиш",
+    "proceedToCheckout": "Ба расмият даровардан",
+    "clearCart": "Тоза кардани сабад",
+    "continueShopping": "Идомаи харид",
+    "remove": "Нест кардан",
+    "quantity": "Миқдор",
+    "outOfStock": "Мавҷуд нест",
+    "outOfStockWarning": "Баъзе молҳо дастрас нестанд. Лутфан онҳоро аз сабад хориҷ кунед.",
+    "viewCart": "Дидани сабад",
+    "openCart": "Кушодани сабад",
+    "noImage": "Расм нест"
+  },
   "checkout": {
     "title": "Ба расмият даровардан",
     "orderSummary": "Таркиби фармоиш",

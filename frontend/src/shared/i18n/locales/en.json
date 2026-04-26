@@ -300,6 +300,26 @@
     "loyaltyHowEarn": "You earn points automatically with every purchase.",
     "loyaltyHowRedeem": "Points can be used as a discount on future orders."
   },
+  "cart": {
+    "title": "Your Cart",
+    "cartHeading": "Shopping Cart",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "empty": "Your cart is empty",
+    "emptyDescription": "Browse our catalog and add items to your cart",
+    "browseProducts": "Browse Products",
+    "subtotal": "Subtotal",
+    "orderSummary": "Order Summary",
+    "proceedToCheckout": "Proceed to Checkout",
+    "clearCart": "Clear cart",
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "outOfStock": "Out of stock",
+    "outOfStockWarning": "Some items are out of stock. Remove them to continue.",
+    "viewCart": "View Cart",
+    "openCart": "Open cart",
+    "noImage": "No image"
+  },
   "checkout": {
     "title": "Checkout",
     "orderSummary": "Order Summary",

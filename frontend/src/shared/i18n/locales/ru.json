@@ -300,6 +300,26 @@
     "loyaltyHowEarn": "Баллы начисляются автоматически с каждой покупкой.",
     "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов."
   },
+  "cart": {
+    "title": "Ваша корзина",
+    "cartHeading": "Корзина",
+    "itemCount": "{count, plural, one {# товар} few {# товара} many {# товаров} other {# товара}}",
+    "empty": "Ваша корзина пуста",
+    "emptyDescription": "Откройте каталог и добавьте товары в корзину",
+    "browseProducts": "Перейти к товарам",
+    "subtotal": "Промежуточный итог",
+    "orderSummary": "Сводка заказа",
+    "proceedToCheckout": "Перейти к оформлению",
+    "clearCart": "Очистить корзину",
+    "continueShopping": "Продолжить покупки",
+    "remove": "Удалить",
+    "quantity": "Количество",
+    "outOfStock": "Нет в наличии",
+    "outOfStockWarning": "Некоторые товары отсутствуют на складе. Удалите их, чтобы продолжить.",
+    "viewCart": "Перейти в корзину",
+    "openCart": "Открыть корзину",
+    "noImage": "Нет изображения"
+  },
   "checkout": {
     "title": "Оформление заказа",
     "orderSummary": "Состав заказа",
