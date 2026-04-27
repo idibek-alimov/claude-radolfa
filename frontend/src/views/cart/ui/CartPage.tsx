@@ -9,6 +9,7 @@ import { formatPrice } from "@/shared/lib/format";
 import { CartPageSkeleton } from "./CartPageSkeleton";
 import { CartItemList } from "./CartItemList";
 import { OrderSummary } from "./OrderSummary";
+import { RelatedProducts } from "./RelatedProducts";
 
 export function CartPage() {
   const t = useTranslations("cart");
@@ -36,9 +37,12 @@ export function CartPage() {
           const hasOutOfStock = cart.items.some((i) => !i.inStock);
           return (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 pb-24 lg:pb-0">
-                <CartItemList items={cart.items} hasOutOfStock={hasOutOfStock} />
-                <OrderSummary cart={cart} hasOutOfStock={hasOutOfStock} />
+              <div className="pb-24 lg:pb-0">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12">
+                  <CartItemList items={cart.items} hasOutOfStock={hasOutOfStock} />
+                  <OrderSummary cart={cart} hasOutOfStock={hasOutOfStock} />
+                </div>
+                <RelatedProducts />
               </div>
 
               {/* Mobile-only sticky checkout bar */}
