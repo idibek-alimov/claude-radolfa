@@ -318,7 +318,10 @@
     "outOfStockWarning": "Some items are out of stock. Remove them to continue.",
     "viewCart": "View Cart",
     "openCart": "Open cart",
-    "noImage": "No image"
+    "noImage": "No image",
+    "securePayment": "Secure Payment",
+    "easyReturns": "Easy Returns",
+    "qualityGuarantee": "Quality Guarantee"
   },
   "checkout": {
     "title": "Checkout",

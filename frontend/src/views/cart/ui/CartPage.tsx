@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { useCartQuery } from "@/features/cart";
+import { formatPrice } from "@/shared/lib/format";
 import { CartPageSkeleton } from "./CartPageSkeleton";
 import { CartItemList } from "./CartItemList";
 import { OrderSummary } from "./OrderSummary";
@@ -34,10 +35,25 @@ export function CartPage() {
         (() => {
           const hasOutOfStock = cart.items.some((i) => !i.inStock);
           return (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12">
-              <CartItemList items={cart.items} hasOutOfStock={hasOutOfStock} />
-              <OrderSummary cart={cart} hasOutOfStock={hasOutOfStock} />
-            </div>
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 pb-24 lg:pb-0">
+                <CartItemList items={cart.items} hasOutOfStock={hasOutOfStock} />
+                <OrderSummary cart={cart} hasOutOfStock={hasOutOfStock} />
+              </div>
+
+              {/* Mobile-only sticky checkout bar */}
+              <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t shadow-lg p-4 flex items-center justify-between lg:hidden">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">{t("subtotal")}</span>
+                  <span className="text-lg font-bold tabular-nums">
+                    {formatPrice(cart.totalAmount)}
+                  </span>
+                </div>
+                <Button asChild size="lg" disabled={hasOutOfStock}>
+                  <Link href="/checkout">{t("proceedToCheckout")}</Link>
+                </Button>
+              </div>
+            </>
           );
         })()
       )}

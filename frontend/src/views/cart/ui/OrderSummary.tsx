@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2, BadgeCheck } from "lucide-react";
+import { Trash2, BadgeCheck, ShieldCheck, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { useClearCart } from "@/features/cart";
@@ -45,6 +45,21 @@ export function OrderSummary({ cart, hasOutOfStock }: OrderSummaryProps) {
         <Button asChild className="w-full" disabled={hasOutOfStock}>
           <Link href="/checkout">{t("proceedToCheckout")}</Link>
         </Button>
+
+        <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-green-600 shrink-0" />
+            <span>{t("securePayment")}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <RotateCcw className="h-4 w-4 text-blue-600 shrink-0" />
+            <span>{t("easyReturns")}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <BadgeCheck className="h-4 w-4 text-amber-500 shrink-0" />
+            <span>{t("qualityGuarantee")}</span>
+          </div>
+        </div>
 
         <button
           onClick={() => clearCart.mutate()}
