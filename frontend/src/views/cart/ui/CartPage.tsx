@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { useCartQuery } from "@/features/cart";
 import { CartPageSkeleton } from "./CartPageSkeleton";
+import { CartItemList } from "./CartItemList";
+import { OrderSummary } from "./OrderSummary";
 
 export function CartPage() {
   const t = useTranslations("cart");
@@ -29,40 +31,15 @@ export function CartPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12">
-          {/* Left column — Phase 3 replaces this block with <CartItemList items={cart.items} /> */}
-          <ul className="divide-y rounded-xl border bg-card">
-            {cart.items.map((item) => (
-              <li key={item.skuId} className="p-4 flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{item.productName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {item.colorName} · {item.sizeLabel} · ×{item.quantity}
-                  </p>
-                </div>
-                <p className="font-semibold tabular-nums flex-shrink-0">
-                  {item.lineTotal.toLocaleString()} TJS
-                </p>
-              </li>
-            ))}
-          </ul>
-
-          {/* Right column — Phase 3 replaces this block with <OrderSummary cart={cart} /> */}
-          <div className="lg:sticky lg:top-24">
-            <div className="rounded-xl border bg-card p-6 space-y-4">
-              <h2 className="text-base font-semibold">{t("orderSummary")}</h2>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{t("subtotal")}</span>
-                <span className="font-semibold tabular-nums">
-                  {cart.totalAmount.toLocaleString()} TJS
-                </span>
-              </div>
-              <Button asChild className="w-full">
-                <Link href="/checkout">{t("proceedToCheckout")}</Link>
-              </Button>
+        (() => {
+          const hasOutOfStock = cart.items.some((i) => !i.inStock);
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12">
+              <CartItemList items={cart.items} hasOutOfStock={hasOutOfStock} />
+              <OrderSummary cart={cart} hasOutOfStock={hasOutOfStock} />
             </div>
-          </div>
-        </div>
+          );
+        })()
       )}
     </div>
   );

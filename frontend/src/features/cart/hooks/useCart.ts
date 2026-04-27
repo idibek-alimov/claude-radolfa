@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth";
 import { getCart, addToCart, updateCartItem, removeCartItem, clearCart, applyCoupon, removeCoupon } from "@/entities/cart";
+import type { Cart } from "@/entities/cart";
 
 export function useCartQuery() {
   const { isAuthenticated } = useAuth();
@@ -30,7 +31,26 @@ export function useUpdateCartItem() {
   return useMutation({
     mutationFn: ({ skuId, quantity }: { skuId: number; quantity: number }) =>
       updateCartItem(skuId, quantity),
-    onSuccess: () => {
+    onMutate: async ({ skuId, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["cart"] });
+      const snapshot = queryClient.getQueryData<Cart>(["cart"]);
+      queryClient.setQueryData<Cart>(["cart"], (old) => {
+        if (!old) return old;
+        const items = old.items.map((i) =>
+          i.skuId === skuId
+            ? { ...i, quantity, lineTotal: i.unitPrice * quantity }
+            : i,
+        );
+        const totalAmount = items.reduce((s, i) => s + i.lineTotal, 0);
+        const itemCount = items.reduce((s, i) => s + i.quantity, 0);
+        return { ...old, items, totalAmount, itemCount };
+      });
+      return { snapshot };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot) queryClient.setQueryData(["cart"], ctx.snapshot);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
   });
