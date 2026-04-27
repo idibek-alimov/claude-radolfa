@@ -340,6 +340,7 @@
     "placing": "Placing Order...",
     "outOfStockWarning": "Some items in your cart are out of stock. Please remove them before checking out.",
     "outOfStock": "Out of stock",
+    "editCart": "Edit cart",
     "successTitle": "Order Placed!",
     "orderNumber": "Order #{id}",
     "viewOrders": "View My Orders",

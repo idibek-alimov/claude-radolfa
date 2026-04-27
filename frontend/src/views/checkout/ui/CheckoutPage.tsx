@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -128,11 +129,14 @@ export function CheckoutPage() {
 
       {/* Order summary */}
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b bg-muted/30">
+        <div className="px-5 py-4 border-b bg-muted/30 flex items-center justify-between gap-2">
           <h2 className="font-semibold flex items-center gap-2">
             <ShoppingBag className="h-4 w-4" />
             {t("orderSummary")}
           </h2>
+          <Link href="/cart" className="text-xs text-primary hover:underline">
+            {t("editCart")}
+          </Link>
         </div>
         <ul className="divide-y">
           {cart.items.map((item) => (
@@ -142,18 +146,6 @@ export function CheckoutPage() {
                 !item.inStock ? "opacity-60" : ""
               }`}
             >
-              {item.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.imageUrl}
-                  alt={item.productName}
-                  className="h-12 w-12 rounded-lg object-cover shrink-0"
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                  <ShoppingBag className="h-5 w-5 text-muted-foreground" />
-                </div>
-              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.productName}</p>
                 <p className="text-xs text-muted-foreground">
