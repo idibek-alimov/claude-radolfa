@@ -586,12 +586,12 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                     { skuId: selectedSku.skuId, quantity },
                     {
                       onSuccess: () => {
-                        toast.success(t("addedToCart"), {
-                          action: {
-                            label: tCart("viewCart"),
-                            onClick: () => router.push("/cart"),
-                          },
-                        });
+                        // toast.success(t("addedToCart"), {
+                        //   action: {
+                        //     label: tCart("viewCart"),
+                        //     onClick: () => router.push("/cart"),
+                        //   },
+                        // });
                       },
                       onError: (err) => {
                         toast.error(getErrorMessage(err));
