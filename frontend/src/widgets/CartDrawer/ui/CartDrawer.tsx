@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import {
   Sheet,
@@ -13,24 +15,31 @@ import { Button } from "@/shared/ui/button";
 import { useCartQuery, useClearCart, CartItemRow } from "@/features/cart";
 import { formatPrice } from "@/shared/lib/format";
 
-/** Standalone trigger button — renders the cart icon with item-count badge. */
+/** Standalone trigger — renders the cart icon as a Link to /cart with an animated item-count badge. */
 export function CartIconButton() {
   const { data: cart } = useCartQuery();
   const itemCount = cart?.itemCount ?? 0;
+  const t = useTranslations("cart");
 
   return (
-    <button
+    <Link
+      href="/cart"
       className="relative p-2 rounded-lg hover:bg-accent transition-colors"
-      onClick={() => window.dispatchEvent(new CustomEvent("cart:open"))}
-      aria-label="Open cart"
+      aria-label={t("openCart")}
     >
       <ShoppingCart className="h-5 w-5" />
       {itemCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
+        <motion.span
+          key={itemCount}
+          initial={{ scale: 1.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none"
+        >
           {itemCount > 99 ? "99+" : itemCount}
-        </span>
+        </motion.span>
       )}
-    </button>
+    </Link>
   );
 }
 

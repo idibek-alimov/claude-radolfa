@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -93,6 +93,8 @@ interface ProductDetailProps {
 export default function ProductDetail({ slug }: ProductDetailProps) {
   const t = useTranslations("productDetail");
   const tc = useTranslations("common");
+  const tCart = useTranslations("cart");
+  const router = useRouter();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -583,8 +585,12 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                     { skuId: selectedSku.skuId, quantity },
                     {
                       onSuccess: () => {
-                        toast.success(t("addedToCart"));
-                        window.dispatchEvent(new CustomEvent("cart:open"));
+                        toast.success(t("addedToCart"), {
+                          action: {
+                            label: tCart("viewCart"),
+                            onClick: () => router.push("/cart"),
+                          },
+                        });
                       },
                       onError: () => {
                         toast.error(t("outOfStockError"));
