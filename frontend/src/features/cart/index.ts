@@ -1,4 +1,5 @@
 export { CartItemRow } from "./ui/CartItemRow";
+export { CartIconButton } from "./ui/CartIconButton";
 export {
   useCartQuery,
   useAddToCart,
