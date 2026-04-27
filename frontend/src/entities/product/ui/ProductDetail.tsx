@@ -24,6 +24,7 @@ import { useAuth } from "@/features/auth";
 import { ReviewsAndQuestionsSection } from "@/widgets/reviews-questions";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -592,8 +593,8 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                           },
                         });
                       },
-                      onError: () => {
-                        toast.error(t("outOfStockError"));
+                      onError: (err) => {
+                        toast.error(getErrorMessage(err));
                       },
                     },
                   );

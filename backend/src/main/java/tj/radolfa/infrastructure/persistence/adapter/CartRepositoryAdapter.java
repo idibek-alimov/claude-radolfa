@@ -12,7 +12,11 @@ import tj.radolfa.infrastructure.persistence.entity.CartItemEntity;
 import tj.radolfa.infrastructure.persistence.mappers.CartMapper;
 import tj.radolfa.infrastructure.persistence.repository.CartRepository;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class CartRepositoryAdapter implements LoadCartPort, SaveCartPort {
@@ -57,15 +61,31 @@ public class CartRepositoryAdapter implements LoadCartPort, SaveCartPort {
             entity.setCouponCode(cart.getCouponCode());
         }
 
-        // Sync items: clear + rebuild from domain state
-        entity.getItems().clear();
+        // Merge items: update existing rows in-place, remove stale, insert new.
+        // Never clear+rebuild — Hibernate flushes inserts before deletes, which would
+        // violate the UNIQUE(cart_id, sku_id) constraint when a SKU is already present.
+        Set<Long> domainSkuIds = cart.getItems().stream()
+                .map(CartItem::getSkuId)
+                .collect(Collectors.toSet());
+
+        entity.getItems().removeIf(e -> !domainSkuIds.contains(e.getSkuId()));
+
+        Map<Long, CartItemEntity> existingBySkuId = entity.getItems().stream()
+                .collect(Collectors.toMap(CartItemEntity::getSkuId, Function.identity()));
+
         for (CartItem item : cart.getItems()) {
-            CartItemEntity itemEntity = new CartItemEntity();
-            itemEntity.setCart(entity);
-            itemEntity.setSkuId(item.getSkuId());
-            itemEntity.setQuantity(item.getQuantity());
-            itemEntity.setUnitPriceSnapshot(item.getUnitPriceSnapshot().amount());
-            entity.getItems().add(itemEntity);
+            CartItemEntity itemEntity = existingBySkuId.get(item.getSkuId());
+            if (itemEntity != null) {
+                itemEntity.setQuantity(item.getQuantity());
+                itemEntity.setUnitPriceSnapshot(item.getUnitPriceSnapshot().amount());
+            } else {
+                CartItemEntity newItem = new CartItemEntity();
+                newItem.setCart(entity);
+                newItem.setSkuId(item.getSkuId());
+                newItem.setQuantity(item.getQuantity());
+                newItem.setUnitPriceSnapshot(item.getUnitPriceSnapshot().amount());
+                entity.getItems().add(newItem);
+            }
         }
 
         return mapper.toCart(cartRepo.save(entity));
