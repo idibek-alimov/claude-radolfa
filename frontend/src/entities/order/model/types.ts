@@ -6,6 +6,8 @@ export interface DeliveredOrderItem {
   skuId: number | null;
   listingVariantId: number | null;
   imageUrl: string | null;
+  skuCode: string | null;
+  sizeLabel: string | null;
 }
 
 /** Minimal order shape — only what the review form needs. */
@@ -15,4 +17,6 @@ export interface DeliveredOrder {
   totalAmount: number;
   createdAt: string;   // ISO instant
   items: DeliveredOrderItem[];
+  loyaltyPointsRedeemed: number;
+  loyaltyPointsAwarded: number;
 }

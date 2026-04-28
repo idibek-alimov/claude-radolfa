@@ -8,5 +8,7 @@ public record OrderItemDto(
         BigDecimal price,
         Long skuId,
         Long listingVariantId,
-        String imageUrl) {
+        String imageUrl,
+        String skuCode,
+        String sizeLabel) {
 }

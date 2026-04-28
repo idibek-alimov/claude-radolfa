@@ -10,10 +10,12 @@ import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CheckoutRequestDto;
 import tj.radolfa.infrastructure.web.dto.CheckoutResponseDto;
@@ -34,17 +36,20 @@ public class OrderController {
     private final CancelOrderUseCase       cancelOrderUseCase;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
     private final LoadListingVariantPort   loadListingVariantPort;
+    private final LoadSkuPort              loadSkuPort;
 
     public OrderController(GetMyOrdersUseCase getMyOrdersUseCase,
                            CheckoutUseCase checkoutUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
                            UpdateOrderStatusUseCase updateOrderStatusUseCase,
-                           LoadListingVariantPort loadListingVariantPort) {
+                           LoadListingVariantPort loadListingVariantPort,
+                           LoadSkuPort loadSkuPort) {
         this.getMyOrdersUseCase       = getMyOrdersUseCase;
         this.checkoutUseCase          = checkoutUseCase;
         this.cancelOrderUseCase       = cancelOrderUseCase;
         this.updateOrderStatusUseCase = updateOrderStatusUseCase;
         this.loadListingVariantPort   = loadListingVariantPort;
+        this.loadSkuPort              = loadSkuPort;
     }
 
     @GetMapping("/my-orders")
@@ -112,6 +117,16 @@ public class OrderController {
                 ? Map.of()
                 : loadListingVariantPort.findVariantsByIds(variantIds);
 
+        List<Long> skuIds = order.items().stream()
+                .map(OrderItem::getSkuId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, Sku> skuMap = skuIds.isEmpty()
+                ? Map.of()
+                : loadSkuPort.findAllByIdsAsMap(skuIds);
+
         return new OrderDto(
                 order.id(),
                 order.status().name(),
@@ -124,15 +139,21 @@ public class OrderController {
                             String imageUrl = (variant != null && !variant.getImages().isEmpty())
                                     ? variant.getImages().get(0)
                                     : null;
+                            Sku sku = item.getSkuId() != null ? skuMap.get(item.getSkuId()) : null;
+                            String sizeLabel = sku != null ? sku.getSizeLabel() : null;
                             return new OrderItemDto(
                                     item.getProductName(),
                                     item.getQuantity(),
                                     item.getPrice().amount(),
                                     item.getSkuId(),
                                     item.getListingVariantId(),
-                                    imageUrl);
+                                    imageUrl,
+                                    item.getSkuCode(),
+                                    sizeLabel);
                         })
                         .toList(),
-                order.createdAt());
+                order.createdAt(),
+                order.loyaltyPointsRedeemed(),
+                order.loyaltyPointsAwarded());
     }
 }

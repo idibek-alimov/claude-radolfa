@@ -9,5 +9,7 @@ public record OrderDto(
         String status,
         BigDecimal totalAmount,
         List<OrderItemDto> items,
-        Instant createdAt) {
+        Instant createdAt,
+        int loyaltyPointsRedeemed,
+        int loyaltyPointsAwarded) {
 }

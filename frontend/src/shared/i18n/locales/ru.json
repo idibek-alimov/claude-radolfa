@@ -300,7 +300,17 @@
     "loyaltyHowEarn": "Баллы начисляются автоматически с каждой покупкой.",
     "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов.",
     "itemCount": "{count, plural, one {# товар} few {# товара} other {# товаров}}",
-    "statusPaid": "Оплачен"
+    "statusPaid": "Оплачен",
+    "viewDetails": "Подробнее",
+    "hideDetails": "Скрыть",
+    "buyAgain": "Купить снова",
+    "buyAgainSuccess": "Добавлено в корзину",
+    "loyaltyUsed": "Использовано баллов",
+    "sizeLabel": "Размер",
+    "skuCode": "Артикул",
+    "product": "Товар",
+    "subtotal": "Подытог",
+    "quantity": "Кол-во"
   },
   "cart": {
     "title": "Ваша корзина",

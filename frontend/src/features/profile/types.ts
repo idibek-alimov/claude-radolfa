@@ -9,6 +9,8 @@ export interface OrderItem {
     skuId?: number | null;
     listingVariantId?: number | null;
     imageUrl?: string | null;
+    skuCode?: string | null;
+    sizeLabel?: string | null;
 }
 
 export interface Order {
@@ -17,6 +19,8 @@ export interface Order {
     totalAmount: number;
     items: OrderItem[];
     createdAt: string;
+    loyaltyPointsRedeemed: number;
+    loyaltyPointsAwarded: number;
 }
 
 export interface UpdateProfileRequest {

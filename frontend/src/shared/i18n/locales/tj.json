@@ -300,7 +300,17 @@
     "loyaltyHowEarn": "Бо ҳар хариди шумо баллҳо худкор ҷамъ мешаванд.",
     "loyaltyHowRedeem": "Баллҳоро метавонед ҳамчун тахфиф дар фармоишҳои оянда истифода баред.",
     "itemCount": "{count, plural, one {# молтор} other {# молтор}}",
-    "statusPaid": "Пардохт шуд"
+    "statusPaid": "Пардохт шуд",
+    "viewDetails": "Тафсилот",
+    "hideDetails": "Пинҳон кардан",
+    "buyAgain": "Дубора харидан",
+    "buyAgainSuccess": "Ба сабад илова шуд",
+    "loyaltyUsed": "Баллҳои истифодашуда",
+    "sizeLabel": "Андоза",
+    "skuCode": "Артикул",
+    "product": "Мол",
+    "subtotal": "Ҷамъи миёна",
+    "quantity": "Миқдор"
   },
   "cart": {
     "title": "Сабади шумо",
