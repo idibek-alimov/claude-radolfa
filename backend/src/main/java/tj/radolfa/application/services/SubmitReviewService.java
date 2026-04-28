@@ -60,7 +60,7 @@ public class SubmitReviewService implements SubmitReviewUseCase {
                     "You have already submitted a review for this product.");
         }
 
-        // 4. Build domain object — photos deferred until customer upload endpoint exists
+        // 4. Build domain object
         Review review = new Review(
                 null,
                 command.listingVariantId(),
@@ -74,7 +74,7 @@ public class SubmitReviewService implements SubmitReviewUseCase {
                 command.pros(),
                 command.cons(),
                 command.matchingSize(),
-                List.of(),             // photos ignored until upload endpoint exists
+                command.photoUrls() != null ? List.copyOf(command.photoUrls()) : List.of(),
                 ReviewStatus.PENDING,
                 null,
                 null,

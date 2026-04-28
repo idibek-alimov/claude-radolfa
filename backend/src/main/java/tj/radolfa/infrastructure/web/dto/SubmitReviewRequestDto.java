@@ -37,6 +37,6 @@ public record SubmitReviewRequestDto(
 
         MatchingSize matchingSize,
 
-        @Size(max = 10)
-        List<String> photoUrls   // deferred — silently ignored until customer upload endpoint exists
+        @Size(max = 5)
+        List<String> photoUrls
 ) {}

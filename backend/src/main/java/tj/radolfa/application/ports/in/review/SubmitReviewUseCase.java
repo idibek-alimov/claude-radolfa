@@ -20,6 +20,6 @@ public interface SubmitReviewUseCase {
             String pros,               // nullable
             String cons,               // nullable
             MatchingSize matchingSize, // nullable
-            List<String> photoUrls     // deferred — silently ignored until customer upload endpoint exists
+            List<String> photoUrls     // S3 URLs returned by POST /api/v1/reviews/upload-photos; max 5
     ) {}
 }
