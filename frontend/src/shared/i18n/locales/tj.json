@@ -310,7 +310,8 @@
     "skuCode": "Артикул",
     "product": "Мол",
     "subtotal": "Ҷамъи миёна",
-    "quantity": "Миқдор"
+    "quantity": "Миқдор",
+    "writeReview": "Шарҳ навиштан"
   },
   "cart": {
     "title": "Сабади шумо",

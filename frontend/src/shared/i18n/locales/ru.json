@@ -310,7 +310,8 @@
     "skuCode": "Артикул",
     "product": "Товар",
     "subtotal": "Подытог",
-    "quantity": "Кол-во"
+    "quantity": "Кол-во",
+    "writeReview": "Написать отзыв"
   },
   "cart": {
     "title": "Ваша корзина",

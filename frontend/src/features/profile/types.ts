@@ -11,6 +11,8 @@ export interface OrderItem {
     imageUrl?: string | null;
     skuCode?: string | null;
     sizeLabel?: string | null;
+    slug?: string | null;
+    hasReviewed: boolean;
 }
 
 export interface Order {

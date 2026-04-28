@@ -8,6 +8,8 @@ export interface DeliveredOrderItem {
   imageUrl: string | null;
   skuCode: string | null;
   sizeLabel: string | null;
+  slug: string | null;
+  hasReviewed: boolean;
 }
 
 /** Minimal order shape — only what the review form needs. */

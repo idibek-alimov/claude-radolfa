@@ -10,5 +10,7 @@ public record OrderItemDto(
         Long listingVariantId,
         String imageUrl,
         String skuCode,
-        String sizeLabel) {
+        String sizeLabel,
+        String slug,
+        boolean hasReviewed) {
 }

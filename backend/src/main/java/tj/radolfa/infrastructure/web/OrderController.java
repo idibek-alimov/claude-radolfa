@@ -10,6 +10,7 @@ import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
@@ -37,19 +38,22 @@ public class OrderController {
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
     private final LoadListingVariantPort   loadListingVariantPort;
     private final LoadSkuPort              loadSkuPort;
+    private final LoadReviewPort           loadReviewPort;
 
     public OrderController(GetMyOrdersUseCase getMyOrdersUseCase,
                            CheckoutUseCase checkoutUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
                            UpdateOrderStatusUseCase updateOrderStatusUseCase,
                            LoadListingVariantPort loadListingVariantPort,
-                           LoadSkuPort loadSkuPort) {
+                           LoadSkuPort loadSkuPort,
+                           LoadReviewPort loadReviewPort) {
         this.getMyOrdersUseCase       = getMyOrdersUseCase;
         this.checkoutUseCase          = checkoutUseCase;
         this.cancelOrderUseCase       = cancelOrderUseCase;
         this.updateOrderStatusUseCase = updateOrderStatusUseCase;
         this.loadListingVariantPort   = loadListingVariantPort;
         this.loadSkuPort              = loadSkuPort;
+        this.loadReviewPort           = loadReviewPort;
     }
 
     @GetMapping("/my-orders")
@@ -139,8 +143,11 @@ public class OrderController {
                             String imageUrl = (variant != null && !variant.getImages().isEmpty())
                                     ? variant.getImages().get(0)
                                     : null;
+                            String slug = variant != null ? variant.getSlug() : null;
                             Sku sku = item.getSkuId() != null ? skuMap.get(item.getSkuId()) : null;
                             String sizeLabel = sku != null ? sku.getSizeLabel() : null;
+                            boolean hasReviewed = item.getListingVariantId() != null
+                                    && loadReviewPort.existsByOrderAndVariant(order.id(), item.getListingVariantId());
                             return new OrderItemDto(
                                     item.getProductName(),
                                     item.getQuantity(),
@@ -149,7 +156,9 @@ public class OrderController {
                                     item.getListingVariantId(),
                                     imageUrl,
                                     item.getSkuCode(),
-                                    sizeLabel);
+                                    sizeLabel,
+                                    slug,
+                                    hasReviewed);
                         })
                         .toList(),
                 order.createdAt(),

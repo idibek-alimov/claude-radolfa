@@ -310,7 +310,8 @@
     "skuCode": "SKU",
     "product": "Product",
     "subtotal": "Subtotal",
-    "quantity": "Qty"
+    "quantity": "Qty",
+    "writeReview": "Write a Review"
   },
   "cart": {
     "title": "Your Cart",

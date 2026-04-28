@@ -12,6 +12,7 @@ import {
   CircleCheckBig,
   Clock,
   Package,
+  Pencil,
   RotateCcw,
   Truck,
   X,
@@ -19,8 +20,9 @@ import {
 import { Button } from "@/shared/ui/button";
 import { cancelOrder } from "@/features/profile/api";
 import { addToCart } from "@/entities/cart";
+import { SubmitReviewForm } from "@/features/review-submission";
 import { getErrorMessage } from "@/shared/lib";
-import type { Order } from "@/features/profile/types";
+import type { Order, OrderItem } from "@/features/profile/types";
 
 /* ── Status timeline constants ─────────────────────────────────── */
 
@@ -105,6 +107,43 @@ function OrderTimeline({ status }: { status: string }) {
   );
 }
 
+/* ── WriteReviewButton ─────────────────────────────────────────── */
+
+function WriteReviewButton({
+  orderId,
+  item,
+}: {
+  orderId: number;
+  item: OrderItem;
+}) {
+  const t = useTranslations("profile");
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  if (!item.skuId || !item.listingVariantId || !item.slug) return null;
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-6 text-[10px] px-1.5 gap-1 shrink-0"
+        onClick={() => setReviewOpen(true)}
+      >
+        <Pencil className="h-3 w-3" />
+        {t("writeReview")}
+      </Button>
+      <SubmitReviewForm
+        listingVariantId={item.listingVariantId}
+        slug={item.slug}
+        preselectedOrderId={orderId}
+        preselectedSkuId={item.skuId}
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+      />
+    </>
+  );
+}
+
 /* ── BuyAgainButton ────────────────────────────────────────────── */
 
 function BuyAgainButton({ skuId }: { skuId: number }) {
@@ -176,7 +215,12 @@ function OrderDetailsAccordion({ order }: { order: Order }) {
               </td>
               {isDelivered && (
                 <td className="px-3 py-2 text-right">
-                  {item.skuId != null && <BuyAgainButton skuId={item.skuId} />}
+                  <div className="flex gap-1.5 justify-end flex-wrap">
+                    {item.skuId != null && <BuyAgainButton skuId={item.skuId} />}
+                    {!item.hasReviewed && (
+                      <WriteReviewButton orderId={order.id} item={item} />
+                    )}
+                  </div>
                 </td>
               )}
             </tr>

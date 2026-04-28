@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -20,6 +20,12 @@ const MAX_PHOTOS = 5;
 interface SubmitReviewFormProps {
   listingVariantId: number;
   slug: string;
+  /** Preselected context — if both are provided, the order selector is hidden. */
+  preselectedOrderId?: number;
+  preselectedSkuId?: number;
+  /** External dialog control. If `open` is defined, the form does not render its own trigger. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const sizeFitOptions: { value: MatchingSize; label: string }[] = [
@@ -28,29 +34,50 @@ const sizeFitOptions: { value: MatchingSize; label: string }[] = [
   { value: "RUNS_LARGE", label: "Runs large" },
 ];
 
-export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormProps) {
+export function SubmitReviewForm({
+  listingVariantId,
+  slug,
+  preselectedOrderId,
+  preselectedSkuId,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+}: SubmitReviewFormProps) {
   const tForm = useTranslations("reviews.form");
 
-  const [open, setOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  const [selectedSkuId, setSelectedSkuId] = useState<number | null>(null);
-  const [rating, setRating] = useState(0);
+  const isControlled = externalOpen !== undefined;
+  const isPreselected = preselectedOrderId !== undefined && preselectedSkuId !== undefined;
+
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? externalOpen! : internalOpen;
+
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(preselectedOrderId ?? null);
+  const [selectedSkuId, setSelectedSkuId]     = useState<number | null>(preselectedSkuId ?? null);
+  const [rating, setRating]           = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [pros, setPros] = useState("");
-  const [cons, setCons] = useState("");
+  const [title, setTitle]             = useState("");
+  const [body, setBody]               = useState("");
+  const [pros, setPros]               = useState("");
+  const [cons, setCons]               = useState("");
   const [matchingSize, setMatchingSize] = useState<MatchingSize | null>(null);
-  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoFiles, setPhotoFiles]   = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const qc = useQueryClient();
 
+  // Sync preselected IDs if parent changes them (e.g. different item clicked)
+  useEffect(() => {
+    if (isPreselected) {
+      setSelectedOrderId(preselectedOrderId);
+      setSelectedSkuId(preselectedSkuId);
+    }
+  }, [preselectedOrderId, preselectedSkuId, isPreselected]);
+
   const { data: deliveredOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["my-delivered-orders"],
     queryFn: fetchMyDeliveredOrders,
-    enabled: open,
+    // Only fetch when needed: controlled dialogs are preselected, so skip query
+    enabled: open && !isPreselected,
   });
 
   const eligibleOrders = deliveredOrders.filter((o) =>
@@ -62,6 +89,8 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["rating", slug] });
       qc.invalidateQueries({ queryKey: ["reviews", slug] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["my-delivered-orders"] });
       handleClose();
       toast.success("Review submitted — it will appear after approval.");
     },
@@ -69,9 +98,15 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
   });
 
   function handleClose() {
-    setOpen(false);
-    setSelectedOrderId(null);
-    setSelectedSkuId(null);
+    if (isControlled) {
+      externalOnOpenChange?.(false);
+    } else {
+      setInternalOpen(false);
+    }
+    if (!isPreselected) {
+      setSelectedOrderId(null);
+      setSelectedSkuId(null);
+    }
     setRating(0);
     setHoverRating(0);
     setTitle("");
@@ -83,6 +118,14 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
     setPhotoFiles([]);
     setIsUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleDialogOpenChange(v: boolean) {
+    if (!v) {
+      handleClose();
+    } else if (!isControlled) {
+      setInternalOpen(true);
+    }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -143,32 +186,28 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
     });
   }
 
-  const noEligibleOrders = !ordersLoading && eligibleOrders.length === 0;
+  const noEligibleOrders = !isPreselected && !ordersLoading && eligibleOrders.length === 0;
 
-  return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true); }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">Write a Review</Button>
-      </DialogTrigger>
+  const formContent = (
+    <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Write a Review</DialogTitle>
+      </DialogHeader>
 
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Write a Review</DialogTitle>
-        </DialogHeader>
-
-        {ordersLoading ? (
-          <div className="space-y-3 animate-pulse">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-8 rounded bg-muted" />
-            ))}
-          </div>
-        ) : noEligibleOrders ? (
-          <p className="text-sm text-muted-foreground py-2">
-            You can only review products from a delivered order containing this item.
-          </p>
-        ) : (
-          <div className="space-y-4 pt-1">
-            {/* Order selector */}
+      {!isPreselected && ordersLoading ? (
+        <div className="space-y-3 animate-pulse">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-8 rounded bg-muted" />
+          ))}
+        </div>
+      ) : noEligibleOrders ? (
+        <p className="text-sm text-muted-foreground py-2">
+          You can only review products from a delivered order containing this item.
+        </p>
+      ) : (
+        <div className="space-y-4 pt-1">
+          {/* Order selector — hidden when preselected */}
+          {!isPreselected && (
             <div className="space-y-1.5">
               <Label htmlFor="review-order">Order</Label>
               <select
@@ -185,169 +224,180 @@ export function SubmitReviewForm({ listingVariantId, slug }: SubmitReviewFormPro
                 ))}
               </select>
             </div>
+          )}
 
-            {/* Star rating */}
-            <div className="space-y-1.5">
-              <Label>Rating *</Label>
-              <div
-                className="flex gap-1"
-                onMouseLeave={() => setHoverRating(0)}
-              >
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setRating(s)}
-                    onMouseEnter={() => setHoverRating(s)}
-                    className={`text-2xl transition-colors ${
-                      s <= (hoverRating || rating)
-                        ? "text-amber-400"
-                        : "text-muted-foreground"
-                    }`}
-                    aria-label={`${s} star${s > 1 ? "s" : ""}`}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="space-y-1.5">
-              <Label htmlFor="review-title">Title</Label>
-              <Input
-                id="review-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={255}
-                placeholder="Summarise your experience"
-              />
-            </div>
-
-            {/* Body */}
-            <div className="space-y-1.5">
-              <Label htmlFor="review-body">Review *</Label>
-              <Textarea
-                id="review-body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                maxLength={5000}
-                rows={4}
-                placeholder="Tell others what you think…"
-              />
-            </div>
-
-            {/* Pros */}
-            <div className="space-y-1.5">
-              <Label htmlFor="review-pros">Pros</Label>
-              <Input
-                id="review-pros"
-                value={pros}
-                onChange={(e) => setPros(e.target.value)}
-                maxLength={1000}
-                placeholder="What did you like?"
-              />
-            </div>
-
-            {/* Cons */}
-            <div className="space-y-1.5">
-              <Label htmlFor="review-cons">Cons</Label>
-              <Input
-                id="review-cons"
-                value={cons}
-                onChange={(e) => setCons(e.target.value)}
-                maxLength={1000}
-                placeholder="What could be better?"
-              />
-            </div>
-
-            {/* Size fit */}
-            <div className="space-y-1.5">
-              <Label>Size fit</Label>
-              <div className="flex gap-2 flex-wrap">
-                {sizeFitOptions.map(({ value, label }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setMatchingSize(matchingSize === value ? null : value)}
-                    className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-                      matchingSize === value
-                        ? "bg-foreground text-background border-foreground"
-                        : "border-border text-muted-foreground hover:border-foreground"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Photos */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Photos</Label>
-                <span className="text-xs text-muted-foreground">{tForm("photoLimit")}</span>
-              </div>
-
-              {photoFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {photoFiles.map((file, i) => (
-                    <div key={i} className="relative h-14 w-14 shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Photo ${i + 1}`}
-                        className="h-full w-full rounded-lg object-cover border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(i)}
-                        className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background shadow"
-                        aria-label="Remove photo"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {photoFiles.length < MAX_PHOTOS && (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {tForm("addPhotos")}
-                  </Button>
-                </>
-              )}
-            </div>
-
-            <Button
-              className="w-full"
-              disabled={!canSubmit}
-              onClick={handleSubmit}
+          {/* Star rating */}
+          <div className="space-y-1.5">
+            <Label>Rating *</Label>
+            <div
+              className="flex gap-1"
+              onMouseLeave={() => setHoverRating(0)}
             >
-              {isUploading
-                ? tForm("uploading")
-                : mutation.isPending
-                  ? "Submitting…"
-                  : "Submit Review"}
-            </Button>
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setRating(s)}
+                  onMouseEnter={() => setHoverRating(s)}
+                  className={`text-2xl transition-colors ${
+                    s <= (hoverRating || rating)
+                      ? "text-amber-400"
+                      : "text-muted-foreground"
+                  }`}
+                  aria-label={`${s} star${s > 1 ? "s" : ""}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-      </DialogContent>
+
+          {/* Title */}
+          <div className="space-y-1.5">
+            <Label htmlFor="review-title">Title</Label>
+            <Input
+              id="review-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={255}
+              placeholder="Summarise your experience"
+            />
+          </div>
+
+          {/* Body */}
+          <div className="space-y-1.5">
+            <Label htmlFor="review-body">Review *</Label>
+            <Textarea
+              id="review-body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              maxLength={5000}
+              rows={4}
+              placeholder="Tell others what you think…"
+            />
+          </div>
+
+          {/* Pros */}
+          <div className="space-y-1.5">
+            <Label htmlFor="review-pros">Pros</Label>
+            <Input
+              id="review-pros"
+              value={pros}
+              onChange={(e) => setPros(e.target.value)}
+              maxLength={1000}
+              placeholder="What did you like?"
+            />
+          </div>
+
+          {/* Cons */}
+          <div className="space-y-1.5">
+            <Label htmlFor="review-cons">Cons</Label>
+            <Input
+              id="review-cons"
+              value={cons}
+              onChange={(e) => setCons(e.target.value)}
+              maxLength={1000}
+              placeholder="What could be better?"
+            />
+          </div>
+
+          {/* Size fit */}
+          <div className="space-y-1.5">
+            <Label>Size fit</Label>
+            <div className="flex gap-2 flex-wrap">
+              {sizeFitOptions.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setMatchingSize(matchingSize === value ? null : value)}
+                  className={`text-sm px-3 py-1 rounded-full border transition-colors ${
+                    matchingSize === value
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-border text-muted-foreground hover:border-foreground"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Photos */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Photos</Label>
+              <span className="text-xs text-muted-foreground">{tForm("photoLimit")}</span>
+            </div>
+
+            {photoFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {photoFiles.map((file, i) => (
+                  <div key={i} className="relative h-14 w-14 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Photo ${i + 1}`}
+                      className="h-full w-full rounded-lg object-cover border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(i)}
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background shadow"
+                      aria-label="Remove photo"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {photoFiles.length < MAX_PHOTOS && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {tForm("addPhotos")}
+                </Button>
+              </>
+            )}
+          </div>
+
+          <Button
+            className="w-full"
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+          >
+            {isUploading
+              ? tForm("uploading")
+              : mutation.isPending
+                ? "Submitting…"
+                : "Submit Review"}
+          </Button>
+        </div>
+      )}
+    </DialogContent>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">Write a Review</Button>
+        </DialogTrigger>
+      )}
+      {formContent}
     </Dialog>
   );
 }
