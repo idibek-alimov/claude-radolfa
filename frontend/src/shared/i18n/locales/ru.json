@@ -298,7 +298,9 @@
     "recentEarnings": "Последние начисления",
     "loyaltyHowTitle": "Как это работает",
     "loyaltyHowEarn": "Баллы начисляются автоматически с каждой покупкой.",
-    "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов."
+    "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов.",
+    "itemCount": "{count, plural, one {# товар} few {# товара} other {# товаров}}",
+    "statusPaid": "Оплачен"
   },
   "cart": {
     "title": "Ваша корзина",

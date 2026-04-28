@@ -298,7 +298,9 @@
     "recentEarnings": "Recent Earnings",
     "loyaltyHowTitle": "How it works",
     "loyaltyHowEarn": "You earn points automatically with every purchase.",
-    "loyaltyHowRedeem": "Points can be used as a discount on future orders."
+    "loyaltyHowRedeem": "Points can be used as a discount on future orders.",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "statusPaid": "Paid"
   },
   "cart": {
     "title": "Your Cart",

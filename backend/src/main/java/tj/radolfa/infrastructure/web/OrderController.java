@@ -9,7 +9,10 @@ import tj.radolfa.application.ports.in.GetMyOrdersUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
+import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CheckoutRequestDto;
@@ -19,25 +22,29 @@ import tj.radolfa.infrastructure.web.dto.OrderItemDto;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/orders")
 @Tag(name = "Orders", description = "Order endpoints")
 public class OrderController {
 
-    private final GetMyOrdersUseCase      getMyOrdersUseCase;
-    private final CheckoutUseCase         checkoutUseCase;
-    private final CancelOrderUseCase      cancelOrderUseCase;
+    private final GetMyOrdersUseCase       getMyOrdersUseCase;
+    private final CheckoutUseCase          checkoutUseCase;
+    private final CancelOrderUseCase       cancelOrderUseCase;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
+    private final LoadListingVariantPort   loadListingVariantPort;
 
     public OrderController(GetMyOrdersUseCase getMyOrdersUseCase,
                            CheckoutUseCase checkoutUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
-                           UpdateOrderStatusUseCase updateOrderStatusUseCase) {
-        this.getMyOrdersUseCase      = getMyOrdersUseCase;
-        this.checkoutUseCase         = checkoutUseCase;
-        this.cancelOrderUseCase      = cancelOrderUseCase;
+                           UpdateOrderStatusUseCase updateOrderStatusUseCase,
+                           LoadListingVariantPort loadListingVariantPort) {
+        this.getMyOrdersUseCase       = getMyOrdersUseCase;
+        this.checkoutUseCase          = checkoutUseCase;
+        this.cancelOrderUseCase       = cancelOrderUseCase;
         this.updateOrderStatusUseCase = updateOrderStatusUseCase;
+        this.loadListingVariantPort   = loadListingVariantPort;
     }
 
     @GetMapping("/my-orders")
@@ -95,17 +102,36 @@ public class OrderController {
     }
 
     private OrderDto toDto(Order order) {
+        List<Long> variantIds = order.items().stream()
+                .map(OrderItem::getListingVariantId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, ListingVariant> variantMap = variantIds.isEmpty()
+                ? Map.of()
+                : loadListingVariantPort.findVariantsByIds(variantIds);
+
         return new OrderDto(
                 order.id(),
                 order.status().name(),
                 order.totalAmount().amount(),
                 order.items().stream()
-                        .map(item -> new OrderItemDto(
-                                item.getProductName(),
-                                item.getQuantity(),
-                                item.getPrice().amount(),
-                                item.getSkuId(),
-                                item.getListingVariantId()))
+                        .map(item -> {
+                            ListingVariant variant = item.getListingVariantId() != null
+                                    ? variantMap.get(item.getListingVariantId())
+                                    : null;
+                            String imageUrl = (variant != null && !variant.getImages().isEmpty())
+                                    ? variant.getImages().get(0)
+                                    : null;
+                            return new OrderItemDto(
+                                    item.getProductName(),
+                                    item.getQuantity(),
+                                    item.getPrice().amount(),
+                                    item.getSkuId(),
+                                    item.getListingVariantId(),
+                                    imageUrl);
+                        })
                         .toList(),
                 order.createdAt());
     }

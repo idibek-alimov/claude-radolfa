@@ -6,6 +6,9 @@ export interface OrderItem {
     productName: string;
     quantity: number;
     price: number;
+    skuId?: number | null;
+    listingVariantId?: number | null;
+    imageUrl?: string | null;
 }
 
 export interface Order {
