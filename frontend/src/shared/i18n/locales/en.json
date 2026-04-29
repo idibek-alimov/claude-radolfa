@@ -413,14 +413,15 @@
   },
   "reviews": {
     "card": {
-      "purchased": "Purchased",
+      "verifiedPurchase": "Verified Purchase",
       "pros": "Pros",
       "cons": "Cons",
       "comment": "Comment",
       "sellerReply": "Seller reply",
       "morePhotos": "more",
       "helpful": "Was this helpful?",
-      "report": "Report"
+      "report": "Report",
+      "imageLightbox": "Review photo"
     },
     "strip": {
       "photosAndVideos": "Photos & Videos",

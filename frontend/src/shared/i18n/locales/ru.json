@@ -413,14 +413,15 @@
   },
   "reviews": {
     "card": {
-      "purchased": "Выкупили",
+      "verifiedPurchase": "Подтвержденная покупка",
       "pros": "Достоинства",
       "cons": "Недостатки",
       "comment": "Комментарий",
       "sellerReply": "Ответ продавца",
       "morePhotos": "ещё",
       "helpful": "Помогло?",
-      "report": "Пожаловаться"
+      "report": "Пожаловаться",
+      "imageLightbox": "Фото отзыва"
     },
     "strip": {
       "photosAndVideos": "Фото и видео",

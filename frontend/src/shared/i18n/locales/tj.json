@@ -413,14 +413,15 @@
   },
   "reviews": {
     "card": {
-      "purchased": "Харидори",
+      "verifiedPurchase": "Хариди тасдиқшуда",
       "pros": "Бартариҳо",
       "cons": "Камбудиҳо",
       "comment": "Шарҳ",
       "sellerReply": "Ҷавоби фурӯшанда",
       "morePhotos": "боз",
       "helpful": "Кӯмак кард?",
-      "report": "Шикоят кардан"
+      "report": "Шикоят кардан",
+      "imageLightbox": "Сурати шарҳ"
     },
     "strip": {
       "photosAndVideos": "Акс ва видео",

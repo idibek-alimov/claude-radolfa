@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { StarRating } from "@/shared/ui/StarRating";
+import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
 import type { StorefrontReview, MatchingSize } from "../model/types";
 
 const MAX_VISIBLE_PHOTOS = 4;
@@ -34,6 +36,7 @@ interface ReviewCardProps {
 export function ReviewCard({ review, showSellerReply = false, variant = "card" }: ReviewCardProps) {
   const t = useTranslations("reviews.card");
   const tSummary = useTranslations("reviews.summary");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const visiblePhotos = review.photoUrls.slice(0, MAX_VISIBLE_PHOTOS);
   const extraCount = review.photoUrls.length - MAX_VISIBLE_PHOTOS;
@@ -67,8 +70,8 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
               {review.authorName}
             </p>
             <div className="flex flex-wrap gap-1">
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                ✓ {t("purchased")}
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
+                ✓ {t("verifiedPurchase")}
               </span>
               {review.matchingSize && (
                 <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
@@ -135,7 +138,12 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
       {visiblePhotos.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {visiblePhotos.map((url, i) => (
-            <div key={i} className="relative h-16 w-16 overflow-hidden rounded-lg border shrink-0">
+            <button
+              key={i}
+              type="button"
+              onClick={() => setLightboxIndex(i)}
+              className="relative h-16 w-16 overflow-hidden rounded-lg border shrink-0 cursor-zoom-in"
+            >
               <Image
                 src={url}
                 alt={`Review photo ${i + 1}`}
@@ -143,7 +151,7 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
                 className="object-cover"
                 unoptimized
               />
-            </div>
+            </button>
           ))}
           {extraCount > 0 && (
             <div className="h-16 w-16 rounded-lg border bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium shrink-0">
@@ -152,6 +160,31 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
           )}
         </div>
       )}
+
+      {/* Lightbox */}
+      <Dialog
+        open={lightboxIndex !== null}
+        onOpenChange={(o) => { if (!o) setLightboxIndex(null); }}
+      >
+        <DialogContent
+          className="max-w-none w-screen h-screen p-0 border-0 bg-black/95 rounded-none
+            left-0 top-0 translate-x-0 translate-y-0
+            [&>button]:text-white [&>button]:opacity-100 [&>button>svg]:h-6 [&>button>svg]:w-6"
+        >
+          <DialogTitle className="sr-only">{t("imageLightbox")}</DialogTitle>
+          {lightboxIndex !== null && (
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Image
+                src={review.photoUrls[lightboxIndex]}
+                alt={`Review photo ${lightboxIndex + 1}`}
+                fill
+                unoptimized
+                className="object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Seller reply */}
       {showSellerReply && review.sellerReply && (
