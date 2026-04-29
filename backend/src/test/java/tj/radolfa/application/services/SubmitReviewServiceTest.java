@@ -143,7 +143,7 @@ class SubmitReviewServiceTest {
         public boolean existsByOrderAndVariant(Long orderId, Long listingVariantId) { return duplicateExists; }
         @Override public Optional<Review> findById(Long id) { return Optional.empty(); }
         @Override public List<Review> findAllApprovedByVariant(Long listingVariantId) { return List.of(); }
-        @Override public Page<Review> findApprovedByVariant(Long listingVariantId, boolean hasPhotos, Pageable pageable) { return Page.empty(); }
+        @Override public Page<Review> findApprovedByVariant(Long listingVariantId, tj.radolfa.application.ports.out.ReviewFilter filter, Pageable pageable) { return Page.empty(); }
         @Override public List<Review> findPendingOldestFirst(int limit) { return List.of(); }
     }
 

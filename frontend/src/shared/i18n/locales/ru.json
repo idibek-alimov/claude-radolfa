@@ -454,6 +454,11 @@
     "banner": {
       "purchasedOn": "Вы приобрели этот товар {date}.",
       "writeReviewCta": "Написать отзыв"
+    },
+    "filter": {
+      "searchPlaceholder": "Поиск по отзывам...",
+      "clearFilters": "Сбросить фильтры",
+      "noResults": "Отзывы по вашим фильтрам не найдены."
     }
   },
   "questions": {

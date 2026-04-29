@@ -5,11 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { fetchReviews, fetchRatingSummary } from "../api";
 import { ReviewCard } from "./ReviewCard";
 import { ReviewPhotoStrip } from "./ReviewPhotoStrip";
 import type { ReviewSortOption } from "../model/types";
+import type { ReviewFilters } from "../model/filters";
+import { defaultReviewFilters } from "../model/filters";
+import { Input } from "@/shared/ui/input";
+import { useDebounce } from "@/shared/lib";
 
 const PREVIEW_SIZE = 6;
 const FULL_SIZE = 10;
@@ -18,17 +22,55 @@ const CARDS_PER_SLIDE = 3;
 interface ReviewListProps {
   slug: string;
   mode?: "preview" | "full";
+  filters?: ReviewFilters;
+  onFiltersChange?: (next: ReviewFilters) => void;
+  showSearch?: boolean;
 }
 
-export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
+export function ReviewList({
+  slug,
+  mode = "preview",
+  filters: externalFilters,
+  onFiltersChange,
+  showSearch = false,
+}: ReviewListProps) {
   const t = useTranslations("reviews");
   const tCommon = useTranslations("common");
   const router = useRouter();
 
-  const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<ReviewSortOption>("newest");
-  const [hasPhotos, setHasPhotos] = useState(false);
+  // Uncontrolled internal state (used when no external filters are wired)
+  const [internalSort, setInternalSort] = useState<ReviewSortOption>("newest");
+  const [internalHasPhotos, setInternalHasPhotos] = useState(false);
   const [carouselPage, setCarouselPage] = useState(0);
+  const [page, setPage] = useState(1);
+
+  const controlled = externalFilters != null && onFiltersChange != null;
+  const activeFilters: ReviewFilters = controlled ? externalFilters : defaultReviewFilters;
+
+  const sort = controlled ? activeFilters.sort : internalSort;
+  const hasPhotos = controlled ? activeFilters.hasPhotos : internalHasPhotos;
+  const rating = controlled ? activeFilters.rating : null;
+  const searchInput = controlled ? activeFilters.search : "";
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  const handleFilterChange = (partial: Partial<ReviewFilters>) => {
+    if (controlled) {
+      onFiltersChange({ ...activeFilters, ...partial });
+    } else {
+      if (partial.sort !== undefined) setInternalSort(partial.sort as ReviewSortOption);
+      if (partial.hasPhotos !== undefined) setInternalHasPhotos(partial.hasPhotos as boolean);
+    }
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    if (controlled) {
+      onFiltersChange({ ...activeFilters, rating: null, search: "", hasPhotos: false });
+    } else {
+      setInternalHasPhotos(false);
+    }
+    setPage(1);
+  };
 
   // Shares cache with RatingSummaryCard — no extra network request.
   const { data: ratingSummary } = useQuery({
@@ -42,10 +84,15 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
   const fetchSort = mode === "preview" ? "newest" : sort;
   const fetchSize = mode === "preview" ? PREVIEW_SIZE : FULL_SIZE;
   const fetchHasPhotos = mode === "preview" ? undefined : (hasPhotos || undefined);
+  const fetchRating = mode === "preview" ? undefined : (rating ?? undefined);
+  const fetchSearch = mode === "preview" ? undefined : (debouncedSearch || undefined);
+
+  const isAnyFilterActive =
+    mode === "full" && (rating != null || !!(debouncedSearch?.trim()) || hasPhotos);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["reviews", slug, fetchPage, fetchSort, fetchSize, fetchHasPhotos],
-    queryFn: () => fetchReviews(slug, fetchPage, fetchSize, fetchSort, fetchHasPhotos),
+    queryKey: ["reviews", slug, fetchPage, fetchSort, fetchSize, fetchHasPhotos, fetchRating, fetchSearch],
+    queryFn: () => fetchReviews(slug, fetchPage, fetchSize, fetchSort, fetchHasPhotos, fetchRating, fetchSearch),
     enabled: totalReviews > 0,
   });
 
@@ -134,11 +181,28 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
     <div className="space-y-4">
       <ReviewPhotoStrip photoUrls={allPhotos} />
 
+      {/* Search input */}
+      {showSearch && (
+        <Input
+          type="search"
+          placeholder={t("filter.searchPlaceholder")}
+          value={searchInput}
+          onChange={(e) => {
+            if (controlled) {
+              onFiltersChange({ ...activeFilters, search: e.target.value });
+              setPage(1);
+            }
+          }}
+          className="max-w-sm"
+        />
+      )}
+
+      {/* Sort + filter pills */}
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
         {sortOptions.map(({ value, label }) => (
           <button
             key={value}
-            onClick={() => { setSort(value); setPage(1); }}
+            onClick={() => handleFilterChange({ sort: value })}
             className={`text-sm px-3 py-1 rounded-full border transition-colors ${
               sort === value
                 ? "bg-foreground text-background border-foreground"
@@ -150,7 +214,7 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
         ))}
         <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
         <button
-          onClick={() => { setHasPhotos((v) => !v); setPage(1); }}
+          onClick={() => handleFilterChange({ hasPhotos: !hasPhotos })}
           className={`text-sm px-3 py-1 rounded-full border transition-colors ${
             hasPhotos
               ? "bg-primary text-primary-foreground border-primary"
@@ -159,6 +223,19 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
         >
           {t("sort.withPhoto")}
         </button>
+
+        {isAnyFilterActive && (
+          <>
+            <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 text-sm px-3 py-1 rounded-full border border-border text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+            >
+              <X className="h-3 w-3" />
+              {t("filter.clearFilters")}
+            </button>
+          </>
+        )}
       </div>
 
       <div className={`transition-opacity ${isFetching && !isLoading ? "opacity-50" : ""}`}>
@@ -167,7 +244,21 @@ export function ReviewList({ slug, mode = "preview" }: ReviewListProps) {
               <div key={i} className="rounded-xl border p-4 h-36 animate-pulse bg-muted" />
             ))
           : data?.content.length === 0
-            ? <p className="py-4 text-sm text-muted-foreground">{t("empty")}</p>
+            ? (
+              <div className="py-8 text-center space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  {isAnyFilterActive ? t("filter.noResults") : t("empty")}
+                </p>
+                {isAnyFilterActive && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {t("filter.clearFilters")}
+                  </button>
+                )}
+              </div>
+            )
             : data?.content.map((review) => (
                 <ReviewCard key={review.id} review={review} showSellerReply variant="list" />
               ))}

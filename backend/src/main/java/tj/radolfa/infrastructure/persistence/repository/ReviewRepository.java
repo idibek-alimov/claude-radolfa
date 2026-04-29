@@ -16,15 +16,24 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
     boolean existsByOrderIdAndListingVariantId(Long orderId, Long listingVariantId);
 
-    Page<ReviewEntity> findByListingVariantIdAndStatus(Long listingVariantId, ReviewStatus status, Pageable pageable);
-
     Page<ReviewEntity> findByStatusOrderByCreatedAtAsc(ReviewStatus status, Pageable pageable);
 
-    /** Approved reviews for a variant that have at least one photo attached. */
-    @Query("SELECT r FROM ReviewEntity r " +
-           "WHERE r.listingVariantId = :variantId AND r.status = :status AND SIZE(r.photos) > 0")
-    Page<ReviewEntity> findByListingVariantIdAndStatusWithPhotos(
+    /** Paginated approved reviews with optional hasPhotos, rating, and search filters. */
+    @Query("""
+            SELECT r FROM ReviewEntity r
+            WHERE r.listingVariantId = :variantId
+              AND r.status = :status
+              AND (:hasPhotos = false OR SIZE(r.photos) > 0)
+              AND (:rating IS NULL OR r.rating = :rating)
+              AND (:search IS NULL OR :search = ''
+                   OR LOWER(r.body) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')))
+            """)
+    Page<ReviewEntity> findApprovedFiltered(
             @Param("variantId") Long variantId,
             @Param("status") ReviewStatus status,
+            @Param("hasPhotos") boolean hasPhotos,
+            @Param("rating") Integer rating,
+            @Param("search") String search,
             Pageable pageable);
 }

@@ -22,12 +22,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.review.SubmitReviewUseCase;
 import tj.radolfa.application.ports.in.review.VoteReviewUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadReviewVoteCountsPort;
+import tj.radolfa.application.ports.out.ReviewFilter;
 import tj.radolfa.application.readmodel.ReviewStorefrontView;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Review;
@@ -136,7 +139,7 @@ public class ReviewController {
 
     @GetMapping("/listings/{slug}/reviews")
     @Operation(summary = "List approved reviews",
-               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest and hasPhotos filter.")
+               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest, hasPhotos, rating (1-5), and search filters.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Page of reviews"),
         @ApiResponse(responseCode = "404", description = "Listing not found")
@@ -146,15 +149,18 @@ public class ReviewController {
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Items per page (max 50)") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort order: newest | highest | lowest") @RequestParam(defaultValue = "newest") String sort,
-            @Parameter(description = "When true, only reviews with photos are returned") @RequestParam(defaultValue = "false") boolean hasPhotos) {
+            @Parameter(description = "When true, only reviews with photos are returned") @RequestParam(defaultValue = "false") boolean hasPhotos,
+            @Parameter(description = "Filter by star rating (1–5)") @RequestParam(required = false) @Min(1) @Max(5) Integer rating,
+            @Parameter(description = "Case-insensitive search in review body and title") @RequestParam(required = false) String search) {
 
         return loadListingVariantPort.findBySlug(slug)
                 .map(variant -> {
                     int effectiveSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
                     Sort sortOrder = toSort(sort);
+                    ReviewFilter filter = new ReviewFilter(hasPhotos, rating, search);
 
                     Page<Review> reviewPage = loadReviewPort.findApprovedByVariant(
-                            variant.getId(), hasPhotos, PageRequest.of(page, effectiveSize, sortOrder));
+                            variant.getId(), filter, PageRequest.of(page, effectiveSize, sortOrder));
 
                     List<Long> ids = reviewPage.getContent().stream().map(Review::getId).toList();
                     Map<Long, int[]> voteCounts = loadReviewVoteCountsPort.findVoteCountsByReviewIds(ids);

@@ -17,11 +17,20 @@ export const fetchReviews = (
   page: number,
   size: number,
   sort: ReviewSortOption,
-  hasPhotos?: boolean
+  hasPhotos?: boolean,
+  rating?: number | null,
+  search?: string,
 ): Promise<ReviewPage> =>
   apiClient
     .get(`/api/v1/listings/${slug}/reviews`, {
-      params: { page: page - 1, size, sort, ...(hasPhotos ? { hasPhotos: true } : {}) },
+      params: {
+        page: page - 1,
+        size,
+        sort,
+        ...(hasPhotos ? { hasPhotos: true } : {}),
+        ...(rating ? { rating } : {}),
+        ...(search && search.trim() ? { search: search.trim() } : {}),
+      },
     })
     .then((r) => r.data);
 

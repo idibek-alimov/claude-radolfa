@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadReviewPort;
+import tj.radolfa.application.ports.out.ReviewFilter;
 import tj.radolfa.application.ports.out.SaveReviewPort;
 import tj.radolfa.domain.model.Review;
 import tj.radolfa.domain.model.ReviewStatus;
@@ -49,14 +50,11 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
     }
 
     @Override
-    public Page<Review> findApprovedByVariant(Long listingVariantId, boolean hasPhotos, Pageable pageable) {
-        if (hasPhotos) {
-            return reviewRepository
-                    .findByListingVariantIdAndStatusWithPhotos(listingVariantId, ReviewStatus.APPROVED, pageable)
-                    .map(mapper::toReview);
-        }
+    public Page<Review> findApprovedByVariant(Long listingVariantId, ReviewFilter filter, Pageable pageable) {
+        String search = (filter.search() == null || filter.search().isBlank()) ? null : filter.search().trim();
         return reviewRepository
-                .findByListingVariantIdAndStatus(listingVariantId, ReviewStatus.APPROVED, pageable)
+                .findApprovedFiltered(listingVariantId, ReviewStatus.APPROVED,
+                        filter.hasPhotos(), filter.rating(), search, pageable)
                 .map(mapper::toReview);
     }
 

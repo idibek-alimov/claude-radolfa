@@ -8,6 +8,8 @@ export type {
   ReviewAdminView,
   ReviewStatus,
 } from "./model/types";
+export type { ReviewFilters } from "./model/filters";
+export { defaultReviewFilters } from "./model/filters";
 export {
   fetchRatingSummary,
   fetchReviews,

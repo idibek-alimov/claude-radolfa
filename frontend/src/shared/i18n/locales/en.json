@@ -454,6 +454,11 @@
     "banner": {
       "purchasedOn": "You purchased this on {date}.",
       "writeReviewCta": "Write a Review"
+    },
+    "filter": {
+      "searchPlaceholder": "Search reviews...",
+      "clearFilters": "Clear filters",
+      "noResults": "No reviews match your filters."
     }
   },
   "questions": {

@@ -8,9 +8,11 @@ import { StarRating } from "@/shared/ui/StarRating";
 interface RatingSummaryCardProps {
   slug: string;
   onWriteReview?: () => void;
+  activeRating?: number | null;
+  onRatingFilterChange?: (rating: number | null) => void;
 }
 
-export function RatingSummaryCard({ slug, onWriteReview }: RatingSummaryCardProps) {
+export function RatingSummaryCard({ slug, onWriteReview, activeRating, onRatingFilterChange }: RatingSummaryCardProps) {
   const t = useTranslations("reviews.summary");
 
   const { data, isLoading } = useQuery({
@@ -43,20 +45,34 @@ export function RatingSummaryCard({ slug, onWriteReview }: RatingSummaryCardProp
         {[5, 4, 3, 2, 1].map((star) => {
           const count = data.distribution[star] ?? 0;
           const pct = data.reviewCount > 0 ? (count / data.reviewCount) * 100 : 0;
+          const isActive = activeRating === star;
+          const isFiltering = activeRating != null;
+          const isClickable = !!onRatingFilterChange;
           return (
-            <div key={star} className="flex items-center gap-2 text-sm">
+            <button
+              key={star}
+              type="button"
+              disabled={!isClickable}
+              onClick={isClickable ? () => onRatingFilterChange(isActive ? null : star) : undefined}
+              className={`w-full flex items-center gap-2 text-sm rounded transition-opacity ${
+                isClickable ? "cursor-pointer hover:opacity-90" : "cursor-default"
+              } ${isFiltering && !isActive ? "opacity-40" : ""}`}
+            >
               <span className="w-3 shrink-0 text-right text-muted-foreground">{star}</span>
               <span className="text-amber-400 shrink-0">★</span>
               <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-amber-400 transition-all"
+                  className={`h-full rounded-full transition-all ${isActive ? "bg-amber-500" : "bg-amber-400"}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
+              {isActive && (
+                <span className="shrink-0 w-2 h-2 rounded-full bg-primary" />
+              )}
               <span className="w-8 shrink-0 text-right text-xs text-muted-foreground">
                 {pct.toFixed(0)}%
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

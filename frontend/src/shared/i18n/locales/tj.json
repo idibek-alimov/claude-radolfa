@@ -454,6 +454,11 @@
     "banner": {
       "purchasedOn": "Шумо ин маҳсулотро дар {date} харид кардаед.",
       "writeReviewCta": "Шарҳ навиштан"
+    },
+    "filter": {
+      "searchPlaceholder": "Ҷустуҷӯ дар шарҳҳо...",
+      "clearFilters": "Тоза кардани филтрҳо",
+      "noResults": "Бо филтрҳои шумо шарҳе ёфт нашуд."
     }
   },
   "questions": {

@@ -17,11 +17,11 @@ public interface LoadReviewPort {
     List<Review> findAllApprovedByVariant(Long listingVariantId);
 
     /** Paginated approved reviews for storefront display. */
-    Page<Review> findApprovedByVariant(Long listingVariantId, boolean hasPhotos, Pageable pageable);
+    Page<Review> findApprovedByVariant(Long listingVariantId, ReviewFilter filter, Pageable pageable);
 
-    /** Convenience overload — no photo filter applied. */
+    /** Convenience overload — no filters applied. */
     default Page<Review> findApprovedByVariant(Long listingVariantId, Pageable pageable) {
-        return findApprovedByVariant(listingVariantId, false, pageable);
+        return findApprovedByVariant(listingVariantId, ReviewFilter.empty(), pageable);
     }
 
     /** Returns the oldest pending reviews up to {@code limit} — used by the admin moderation queue. */

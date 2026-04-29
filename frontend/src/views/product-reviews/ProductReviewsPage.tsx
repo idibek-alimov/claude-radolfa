@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
 import { RatingSummaryCard, ReviewList, ReviewVariantFilterStrip } from "@/entities/review";
-import type { VariantPill } from "@/entities/review";
+import type { VariantPill, ReviewFilters } from "@/entities/review";
+import { defaultReviewFilters } from "@/entities/review";
 import { fetchListingBySlug } from "@/entities/product/api";
 
 function formatColorKey(key: string): string {
@@ -18,6 +20,7 @@ interface ProductReviewsPageProps {
 
 export function ProductReviewsPage({ slug }: ProductReviewsPageProps) {
   const t = useTranslations("reviews.page");
+  const [filters, setFilters] = useState<ReviewFilters>(defaultReviewFilters);
 
   const { data: listing } = useQuery({
     queryKey: ["listing", slug],
@@ -57,12 +60,22 @@ export function ProductReviewsPage({ slug }: ProductReviewsPageProps) {
         {/* Main column */}
         <div className="space-y-4">
           <ReviewVariantFilterStrip variants={variants} />
-          <ReviewList slug={slug} mode="full" />
+          <ReviewList
+            slug={slug}
+            mode="full"
+            filters={filters}
+            onFiltersChange={setFilters}
+            showSearch
+          />
         </div>
 
         {/* Sticky sidebar — stacks below reviews on mobile */}
         <aside className="mt-6 lg:mt-0 lg:sticky lg:top-6">
-          <RatingSummaryCard slug={slug} />
+          <RatingSummaryCard
+            slug={slug}
+            activeRating={filters.rating}
+            onRatingFilterChange={(rating) => setFilters((f) => ({ ...f, rating }))}
+          />
         </aside>
       </div>
     </div>
