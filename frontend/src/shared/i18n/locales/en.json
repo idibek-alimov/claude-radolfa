@@ -449,6 +449,10 @@
     },
     "page": {
       "back": "Back"
+    },
+    "banner": {
+      "purchasedOn": "You purchased this on {date}.",
+      "writeReviewCta": "Write a Review"
     }
   },
   "questions": {

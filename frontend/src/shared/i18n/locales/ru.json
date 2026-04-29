@@ -449,6 +449,10 @@
     },
     "page": {
       "back": "Назад"
+    },
+    "banner": {
+      "purchasedOn": "Вы приобрели этот товар {date}.",
+      "writeReviewCta": "Написать отзыв"
     }
   },
   "questions": {

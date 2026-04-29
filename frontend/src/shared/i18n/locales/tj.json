@@ -449,6 +449,10 @@
     },
     "page": {
       "back": "Бозгашт"
+    },
+    "banner": {
+      "purchasedOn": "Шумо ин маҳсулотро дар {date} харид кардаед.",
+      "writeReviewCta": "Шарҳ навиштан"
     }
   },
   "questions": {

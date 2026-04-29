@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { fetchRatingSummary } from "@/entities/review/api";
 import { RatingSummaryCard, ReviewList } from "@/entities/review";
-import { SubmitReviewForm } from "@/features/review-submission";
+import { PurchasedReviewBanner } from "@/features/review-submission/ui/PurchasedReviewBanner";
 import { fetchQuestions } from "@/entities/question/api";
 import { QuestionList } from "@/entities/question";
 import { AskQuestionDialog } from "@/features/ask-question";
@@ -79,9 +79,11 @@ export function ReviewsAndQuestionsSection({
       {activeTab === "reviews" && (
         <div className="space-y-6">
           {isAuthenticated && (
-            <div className="flex justify-end">
-              <SubmitReviewForm listingVariantId={listingVariantId} slug={slug} />
-            </div>
+            <PurchasedReviewBanner
+              listingVariantId={listingVariantId}
+              slug={slug}
+              isAuthenticated={isAuthenticated}
+            />
           )}
           <RatingSummaryCard slug={slug} />
           <ReviewList slug={slug} mode="preview" />
