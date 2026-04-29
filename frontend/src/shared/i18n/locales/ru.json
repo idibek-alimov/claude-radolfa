@@ -418,6 +418,7 @@
       "cons": "Недостатки",
       "comment": "Комментарий",
       "sellerReply": "Ответ продавца",
+      "officialResponse": "Официальный ответ магазина",
       "morePhotos": "ещё",
       "helpful": "Помогло?",
       "report": "Пожаловаться",
@@ -429,6 +430,7 @@
     },
     "sort": {
       "newest": "Новые",
+      "mostHelpful": "Самые полезные",
       "highestRated": "Высокий рейтинг",
       "lowestRated": "Низкий рейтинг",
       "withPhoto": "С фото"

@@ -68,6 +68,9 @@ public class ReviewEntity extends BaseAuditEntity {
     @Column(name = "seller_replied_at")
     private Instant sellerRepliedAt;
 
+    @Column(name = "upvotes", nullable = false)
+    private int upvotes;
+
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ReviewPhotoEntity> photos = new ArrayList<>();
 }

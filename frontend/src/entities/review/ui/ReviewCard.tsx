@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Store } from "lucide-react";
 import { StarRating } from "@/shared/ui/StarRating";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
 import type { StorefrontReview, MatchingSize } from "../model/types";
@@ -188,9 +188,14 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
 
       {/* Seller reply */}
       {showSellerReply && review.sellerReply && (
-        <div className="border-l-4 border-primary bg-muted/50 rounded-r-lg px-4 py-3 space-y-1">
-          <p className="text-xs font-semibold">{t("sellerReply")}</p>
-          <p className="text-sm">{review.sellerReply}</p>
+        <div className="border-l-4 border-primary bg-primary/5 rounded-r-lg px-4 py-3 space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Store className="h-3.5 w-3.5 text-primary shrink-0" />
+            <p className="text-xs font-bold uppercase tracking-wide text-primary">
+              {t("officialResponse")}
+            </p>
+          </div>
+          <p className="text-sm text-foreground">{review.sellerReply}</p>
         </div>
       )}
 

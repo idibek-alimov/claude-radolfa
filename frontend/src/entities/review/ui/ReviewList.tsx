@@ -102,9 +102,10 @@ export function ReviewList({
   const reviewsPageUrl = `/products/${slug}/reviews`;
 
   const sortOptions: { value: ReviewSortOption; label: string }[] = [
-    { value: "newest", label: t("sort.newest") },
+    { value: "newest",  label: t("sort.newest") },
+    { value: "helpful", label: t("sort.mostHelpful") },
     { value: "highest", label: t("sort.highestRated") },
-    { value: "lowest", label: t("sort.lowestRated") },
+    { value: "lowest",  label: t("sort.lowestRated") },
   ];
 
   // ── Preview mode ──────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.persistence.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tj.radolfa.domain.model.ReviewStatus;
@@ -17,6 +18,11 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
     boolean existsByOrderIdAndListingVariantId(Long orderId, Long listingVariantId);
 
     Page<ReviewEntity> findByStatusOrderByCreatedAtAsc(ReviewStatus status, Pageable pageable);
+
+    /** Atomically increments or decrements the upvotes counter by {@code delta}. */
+    @Modifying
+    @Query("UPDATE ReviewEntity r SET r.upvotes = r.upvotes + :delta WHERE r.id = :id")
+    void adjustUpvotes(@Param("id") Long id, @Param("delta") int delta);
 
     /** Paginated approved reviews with optional hasPhotos, rating, and search filters. */
     @Query("""

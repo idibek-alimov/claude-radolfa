@@ -418,6 +418,7 @@
       "cons": "Камбудиҳо",
       "comment": "Шарҳ",
       "sellerReply": "Ҷавоби фурӯшанда",
+      "officialResponse": "Ҷавоби расмии мағоза",
       "morePhotos": "боз",
       "helpful": "Кӯмак кард?",
       "report": "Шикоят кардан",
@@ -429,6 +430,7 @@
     },
     "sort": {
       "newest": "Навтарин",
+      "mostHelpful": "Аз ҳама фоидаовартарин",
       "highestRated": "Баҳои баланд",
       "lowestRated": "Баҳои паст",
       "withPhoto": "Бо акс"

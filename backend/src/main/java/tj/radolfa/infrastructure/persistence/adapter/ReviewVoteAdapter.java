@@ -11,6 +11,7 @@ import tj.radolfa.infrastructure.persistence.repository.ReviewVoteRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class ReviewVoteAdapter implements SaveReviewVotePort, LoadReviewVoteCountsPort {
@@ -25,12 +26,15 @@ public class ReviewVoteAdapter implements SaveReviewVotePort, LoadReviewVoteCoun
 
     @Override
     @Transactional
-    public void saveVote(Long reviewId, Long userId, VoteType vote) {
-        ReviewVoteEntity entity = reviewVoteRepository
-                .findByReviewIdAndUserId(reviewId, userId)
-                .orElse(new ReviewVoteEntity(null, reviewId, userId, vote, null));
+    public Optional<VoteType> saveVote(Long reviewId, Long userId, VoteType vote) {
+        Optional<ReviewVoteEntity> existing = reviewVoteRepository.findByReviewIdAndUserId(reviewId, userId);
+        Optional<VoteType> previous = existing.map(ReviewVoteEntity::getVote);
+
+        ReviewVoteEntity entity = existing.orElse(new ReviewVoteEntity(null, reviewId, userId, vote, null));
         entity.setVote(vote);
         reviewVoteRepository.save(entity);
+
+        return previous;
     }
 
     // ---- LoadReviewVoteCountsPort --------------------------------------

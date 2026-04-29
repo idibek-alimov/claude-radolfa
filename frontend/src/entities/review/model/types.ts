@@ -35,7 +35,7 @@ export interface ReviewPage {
   number: number;  // 0-based current page index (Spring Page field name)
 }
 
-export type ReviewSortOption = "newest" | "highest" | "lowest";
+export type ReviewSortOption = "newest" | "highest" | "lowest" | "helpful";
 
 export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
 

@@ -139,7 +139,7 @@ public class ReviewController {
 
     @GetMapping("/listings/{slug}/reviews")
     @Operation(summary = "List approved reviews",
-               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest, hasPhotos, rating (1-5), and search filters.")
+               description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest|helpful, hasPhotos, rating (1-5), and search filters.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Page of reviews"),
         @ApiResponse(responseCode = "404", description = "Listing not found")
@@ -209,6 +209,8 @@ public class ReviewController {
         return switch (sort) {
             case "highest" -> Sort.by(Sort.Direction.DESC, "rating");
             case "lowest"  -> Sort.by(Sort.Direction.ASC,  "rating");
+            case "helpful" -> Sort.by(Sort.Direction.DESC, "upvotes")
+                                   .and(Sort.by(Sort.Direction.DESC, "createdAt"));
             default        -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
     }

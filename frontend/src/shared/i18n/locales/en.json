@@ -418,6 +418,7 @@
       "cons": "Cons",
       "comment": "Comment",
       "sellerReply": "Seller reply",
+      "officialResponse": "Official Store Response",
       "morePhotos": "more",
       "helpful": "Was this helpful?",
       "report": "Report",
@@ -429,6 +430,7 @@
     },
     "sort": {
       "newest": "Newest",
+      "mostHelpful": "Most helpful",
       "highestRated": "Highest rated",
       "lowestRated": "Lowest rated",
       "withPhoto": "With photo"

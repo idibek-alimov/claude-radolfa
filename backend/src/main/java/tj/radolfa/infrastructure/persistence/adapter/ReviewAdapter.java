@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.AdjustReviewUpvotesPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.ReviewFilter;
 import tj.radolfa.application.ports.out.SaveReviewPort;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
+public class ReviewAdapter implements LoadReviewPort, SaveReviewPort, AdjustReviewUpvotesPort {
 
     private final ReviewRepository reviewRepository;
     private final ReviewMapper mapper;
@@ -66,6 +67,15 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort {
                 .stream()
                 .map(mapper::toReview)
                 .toList();
+    }
+
+    // ---- AdjustReviewUpvotesPort ---------------------------------------
+
+    @Override
+    public void adjust(Long reviewId, int delta) {
+        if (delta != 0) {
+            reviewRepository.adjustUpvotes(reviewId, delta);
+        }
     }
 
     // ---- SaveReviewPort ------------------------------------------------
