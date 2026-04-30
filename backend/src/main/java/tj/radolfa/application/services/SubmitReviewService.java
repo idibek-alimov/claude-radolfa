@@ -79,7 +79,8 @@ public class SubmitReviewService implements SubmitReviewUseCase {
                 null,
                 null,
                 null,
-                null
+                null,
+                null  // traitAnswers — populated in Phase 11
         );
 
         Review saved = saveReviewPort.save(review);

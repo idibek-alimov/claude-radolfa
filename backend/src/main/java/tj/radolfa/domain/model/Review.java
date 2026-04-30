@@ -2,7 +2,9 @@ package tj.radolfa.domain.model;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,9 +27,10 @@ public class Review {
     private final String        body;
     private final String        pros;            // nullable
     private final String        cons;            // nullable
-    private final MatchingSize  matchingSize;    // nullable
-    private final List<String>  photos;
-    private       ReviewStatus  status;
+    private final MatchingSize        matchingSize;    // nullable
+    private final List<String>        photos;
+    private final Map<String, Object> traitAnswers;    // nullable — keyed by trait key
+    private       ReviewStatus        status;
     private       String        sellerReply;     // nullable
     private       Instant       sellerRepliedAt; // nullable
     private final Instant       createdAt;
@@ -50,7 +53,8 @@ public class Review {
                   String sellerReply,
                   Instant sellerRepliedAt,
                   Instant createdAt,
-                  Instant updatedAt) {
+                  Instant updatedAt,
+                  Map<String, Object> traitAnswers) {
 
         Objects.requireNonNull(listingVariantId, "listingVariantId must not be null");
         Objects.requireNonNull(orderId,          "orderId must not be null");
@@ -63,25 +67,27 @@ public class Review {
             throw new IllegalArgumentException("body must not be blank");
         }
 
-        this.id              = id;
+        this.id               = id;
         this.listingVariantId = listingVariantId;
-        this.skuId           = skuId;
-        this.orderId         = orderId;
-        this.authorId        = authorId;
-        this.authorName      = authorName;
-        this.rating          = rating;
-        this.title           = title;
-        this.body            = body;
-        this.pros            = pros;
-        this.cons            = cons;
-        this.matchingSize    = matchingSize;
-        this.photos          = photos != null ? new ArrayList<>(photos) : new ArrayList<>();
-        this.status          = status != null ? status : ReviewStatus.PENDING;
-        this.sellerReply     = sellerReply;
-        this.sellerRepliedAt = sellerRepliedAt;
-        this.createdAt       = createdAt != null ? createdAt : Instant.now();
-        this.updatedAt       = updatedAt != null ? updatedAt : this.createdAt;
+        this.skuId            = skuId;
+        this.orderId          = orderId;
+        this.authorId         = authorId;
+        this.authorName       = authorName;
+        this.rating           = rating;
+        this.title            = title;
+        this.body             = body;
+        this.pros             = pros;
+        this.cons             = cons;
+        this.matchingSize     = matchingSize;
+        this.photos           = photos != null ? new ArrayList<>(photos) : new ArrayList<>();
+        this.traitAnswers     = traitAnswers != null ? new HashMap<>(traitAnswers) : new HashMap<>();
+        this.status           = status != null ? status : ReviewStatus.PENDING;
+        this.sellerReply      = sellerReply;
+        this.sellerRepliedAt  = sellerRepliedAt;
+        this.createdAt        = createdAt != null ? createdAt : Instant.now();
+        this.updatedAt        = updatedAt != null ? updatedAt : this.createdAt;
     }
+
 
     // ── Domain mutations ──────────────────────────────────────────────────────
 
@@ -123,10 +129,12 @@ public class Review {
     public String       getBody()            { return body; }
     public String       getPros()            { return pros; }
     public String       getCons()            { return cons; }
-    public MatchingSize getMatchingSize()    { return matchingSize; }
+    public MatchingSize        getMatchingSize()    { return matchingSize; }
     /** Returns an unmodifiable snapshot of photo URLs. */
-    public List<String> getPhotos()          { return List.copyOf(photos); }
-    public ReviewStatus getStatus()          { return status; }
+    public List<String>        getPhotos()          { return List.copyOf(photos); }
+    /** Returns an unmodifiable snapshot of trait answers. */
+    public Map<String, Object> getTraitAnswers()    { return Map.copyOf(traitAnswers); }
+    public ReviewStatus        getStatus()          { return status; }
     public String       getSellerReply()     { return sellerReply; }
     public Instant      getSellerRepliedAt() { return sellerRepliedAt; }
     public Instant      getCreatedAt()       { return createdAt; }

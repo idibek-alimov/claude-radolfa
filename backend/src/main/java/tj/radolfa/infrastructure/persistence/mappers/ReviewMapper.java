@@ -18,6 +18,7 @@ public interface ReviewMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "upvotes", ignore = true)  // managed by VoteReviewService independently
     ReviewEntity toEntity(Review review);
 
     // ---- Photo helpers -----------------------------------------------

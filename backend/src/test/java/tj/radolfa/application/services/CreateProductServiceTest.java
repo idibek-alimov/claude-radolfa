@@ -70,7 +70,7 @@ class CreateProductServiceTest {
                 fakeBlueprint, fakeSave, fakeIndex);
 
         // Default "happy path" fixtures
-        fakeCategory.store(new CategoryView(1L, "Clothing", "clothing", null));
+        fakeCategory.store(new CategoryView(1L, "Clothing", "clothing", null, List.of()));
         fakeColor.store(new ColorView(10L, "red", "Red", "#FF0000"));
     }
 

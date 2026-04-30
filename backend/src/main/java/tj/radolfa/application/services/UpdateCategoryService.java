@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.out.SaveCategoryPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UpdateCategoryService implements UpdateCategoryUseCase {
@@ -23,7 +24,7 @@ public class UpdateCategoryService implements UpdateCategoryUseCase {
 
     @Override
     @Transactional
-    public void execute(Long id, String name, Long parentId) {
+    public void execute(Long id, String name, Long parentId, Set<Long> traitIds) {
         loadCategoryPort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found: id=" + id));
 
@@ -57,6 +58,6 @@ public class UpdateCategoryService implements UpdateCategoryUseCase {
             }
         }
 
-        saveCategoryPort.update(id, name.trim(), parentId);
+        saveCategoryPort.update(id, name.trim(), parentId, traitIds);
     }
 }

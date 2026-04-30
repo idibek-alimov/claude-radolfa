@@ -1,7 +1,10 @@
 package tj.radolfa.infrastructure.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+
+import java.util.Set;
 
 public record UpdateCategoryRequestDto(
 
@@ -10,6 +13,9 @@ public record UpdateCategoryRequestDto(
         String name,
 
         /** New parent category ID, or null to promote to root. */
-        Long parentId
+        Long parentId,
+
+        /** IDs of review traits to link; null leaves existing links untouched. */
+        Set<@Positive Long> traitIds
 
 ) {}

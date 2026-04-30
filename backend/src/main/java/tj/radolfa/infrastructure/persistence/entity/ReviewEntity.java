@@ -5,12 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import tj.radolfa.domain.model.MatchingSize;
 import tj.radolfa.domain.model.ReviewStatus;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "reviews")
@@ -70,6 +73,10 @@ public class ReviewEntity extends BaseAuditEntity {
 
     @Column(name = "upvotes", nullable = false)
     private int upvotes;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "trait_answers", columnDefinition = "jsonb")
+    private Map<String, Object> traitAnswers;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ReviewPhotoEntity> photos = new ArrayList<>();

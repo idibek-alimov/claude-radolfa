@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,7 +36,7 @@ class UpdateCategoryServiceTest {
     // --- Setup helpers ---
 
     private CategoryView stored(Long id, String name, String slug, Long parentId) {
-        CategoryView view = new CategoryView(id, name, slug, parentId);
+        CategoryView view = new CategoryView(id, name, slug, parentId, List.of());
         fakeLoad.store(view);
         return view;
     }
@@ -46,7 +47,7 @@ class UpdateCategoryServiceTest {
     @DisplayName("execute() throws ResourceNotFoundException when category does not exist")
     void execute_unknownId_throws() {
         assertThrows(ResourceNotFoundException.class,
-                () -> service.execute(99L, "Shoes", null));
+                () -> service.execute(99L, "Shoes", null, null));
     }
 
     @Test
@@ -55,7 +56,7 @@ class UpdateCategoryServiceTest {
         stored(1L, "Shirts", "shirts", null);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.execute(1L, "  ", null));
+                () -> service.execute(1L, "  ", null, null));
     }
 
     @Test
@@ -65,7 +66,7 @@ class UpdateCategoryServiceTest {
         String longName = "A".repeat(129);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.execute(1L, longName, null));
+                () -> service.execute(1L, longName, null, null));
     }
 
     @Test
@@ -75,7 +76,7 @@ class UpdateCategoryServiceTest {
         stored(2L, "Pants", "pants", null);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.execute(1L, "Pants", null));
+                () -> service.execute(1L, "Pants", null, null));
     }
 
     @Test
@@ -83,7 +84,7 @@ class UpdateCategoryServiceTest {
     void execute_sameName_succeeds() {
         stored(1L, "Shirts", "shirts", null);
 
-        assertDoesNotThrow(() -> service.execute(1L, "Shirts", null));
+        assertDoesNotThrow(() -> service.execute(1L, "Shirts", null, null));
         assertEquals(1L, fakeSave.lastUpdatedId);
     }
 
@@ -93,7 +94,7 @@ class UpdateCategoryServiceTest {
         stored(1L, "Shirts", "shirts", null);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.execute(1L, "Shirts", 999L));
+                () -> service.execute(1L, "Shirts", 999L, null));
     }
 
     @Test
@@ -102,7 +103,7 @@ class UpdateCategoryServiceTest {
         stored(1L, "Shirts", "shirts", null);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.execute(1L, "Shirts", 1L));
+                () -> service.execute(1L, "Shirts", 1L, null));
     }
 
     @Test
@@ -116,7 +117,7 @@ class UpdateCategoryServiceTest {
         fakeLoad.addDescendant(1L, 3L);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.execute(1L, "Clothing", 2L));
+                () -> service.execute(1L, "Clothing", 2L, null));
     }
 
     @Test
@@ -124,7 +125,7 @@ class UpdateCategoryServiceTest {
     void execute_slugIsImmutable() {
         stored(1L, "Shirts", "shirts", null);
 
-        service.execute(1L, "Tshirts", null);
+        service.execute(1L, "Tshirts", null, null);
 
         // The service delegates slug=null implicitly — the adapter would preserve it.
         // We verify update was called with correct id and name.
@@ -138,10 +139,21 @@ class UpdateCategoryServiceTest {
         stored(1L, "Clothing", "clothing", null);
         stored(2L, "Shirts", "shirts", null);
 
-        assertDoesNotThrow(() -> service.execute(2L, "T-Shirts", 1L));
+        assertDoesNotThrow(() -> service.execute(2L, "T-Shirts", 1L, null));
         assertEquals(2L, fakeSave.lastUpdatedId);
         assertEquals("T-Shirts", fakeSave.lastUpdatedName);
         assertEquals(1L, fakeSave.lastUpdatedParentId);
+    }
+
+    @Test
+    @DisplayName("execute() forwards traitIds to the save port")
+    void execute_forwardsTraitIds() {
+        stored(1L, "Shoes", "shoes", null);
+        Set<Long> traitIds = Set.of(10L, 20L);
+
+        service.execute(1L, "Shoes", null, traitIds);
+
+        assertEquals(traitIds, fakeSave.lastUpdatedTraitIds);
     }
 
     // =========================================================
@@ -174,21 +186,23 @@ class UpdateCategoryServiceTest {
     }
 
     static class FakeSaveCategoryPort implements SaveCategoryPort {
-        Long lastUpdatedId;
-        String lastUpdatedName;
-        Long lastUpdatedParentId;
+        Long    lastUpdatedId;
+        String  lastUpdatedName;
+        Long    lastUpdatedParentId;
+        Set<Long> lastUpdatedTraitIds;
 
         @Override
-        public CategoryView save(String name, String slug, Long parentId) {
-            return new CategoryView(100L, name, slug, parentId);
+        public CategoryView save(String name, String slug, Long parentId, Set<Long> traitIds) {
+            return new CategoryView(100L, name, slug, parentId, List.of());
         }
 
         @Override
-        public CategoryView update(Long id, String name, Long parentId) {
-            lastUpdatedId = id;
-            lastUpdatedName = name;
+        public CategoryView update(Long id, String name, Long parentId, Set<Long> traitIds) {
+            lastUpdatedId       = id;
+            lastUpdatedName     = name;
             lastUpdatedParentId = parentId;
-            return new CategoryView(id, name, "unchanged-slug", parentId);
+            lastUpdatedTraitIds = traitIds;
+            return new CategoryView(id, name, "unchanged-slug", parentId, List.of());
         }
     }
 }

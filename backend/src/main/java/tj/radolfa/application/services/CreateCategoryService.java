@@ -7,6 +7,8 @@ import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.SaveCategoryPort;
 import tj.radolfa.application.readmodel.CategoryView;
 
+import java.util.Set;
+
 /**
  * Creates a product category natively.
  */
@@ -24,7 +26,7 @@ public class CreateCategoryService implements CreateCategoryUseCase {
 
     @Override
     @Transactional
-    public Long execute(String name, Long parentId) {
+    public Long execute(String name, Long parentId, Set<Long> traitIds) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Category name must not be blank");
         }
@@ -44,7 +46,7 @@ public class CreateCategoryService implements CreateCategoryUseCase {
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", "");
 
-        CategoryView saved = saveCategoryPort.save(name.trim(), slug, parentId);
+        CategoryView saved = saveCategoryPort.save(name.trim(), slug, parentId, traitIds);
         return saved.id();
     }
 }

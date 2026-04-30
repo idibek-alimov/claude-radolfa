@@ -55,7 +55,7 @@ public class CategoryManagementController {
     public ResponseEntity<Map<String, Long>> createCategory(
             @Valid @RequestBody CreateCategoryRequestDto request) {
 
-        Long id = createCategoryUseCase.execute(request.name(), request.parentId());
+        Long id = createCategoryUseCase.execute(request.name(), request.parentId(), request.traitIds());
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("categoryId", id));
     }
 
@@ -77,7 +77,7 @@ public class CategoryManagementController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateCategoryRequestDto request) {
 
-        updateCategoryUseCase.execute(id, request.name(), request.parentId());
+        updateCategoryUseCase.execute(id, request.name(), request.parentId(), request.traitIds());
         return ResponseEntity.ok(MessageResponseDto.success("Category updated successfully."));
     }
 
