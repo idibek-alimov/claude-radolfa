@@ -4,7 +4,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth";
-import { createCategory, updateCategory, deleteCategory } from "@/entities/category";
+import { createCategory, updateCategory, deleteCategory, fetchCategoryTraitIds } from "@/entities/category";
+import { fetchReviewTraits } from "@/entities/review-trait";
+import type { ReviewTrait } from "@/entities/review-trait";
 import { fetchCategoryTree } from "@/entities/product/api";
 import type { CategoryTree } from "@/entities/product/model/types";
 import { BlueprintManagementPanel } from "@/features/blueprint-management";
@@ -32,6 +34,7 @@ import {
   Pencil,
   ChevronRight,
   ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -66,17 +69,25 @@ export function CategoryManagementPanel() {
     queryFn: fetchCategoryTree,
   });
 
+  const { data: allTraits = [] } = useQuery({
+    queryKey: ["review-traits"],
+    queryFn: fetchReviewTraits,
+  });
+
   const flat = categories ? flattenTree(categories) : [];
 
   // --- Create form ---
   const [newName, setNewName] = useState("");
   const [newParentId, setNewParentId] = useState<number | "">("");
+  const [newTraitIds, setNewTraitIds] = useState<number[]>([]);
   const [formError, setFormError] = useState("");
 
   // --- Edit state ---
   const [editingCategory, setEditingCategory] = useState<CategoryTree | null>(null);
   const [editName, setEditName] = useState("");
   const [editParentId, setEditParentId] = useState<number | "">("");
+  const [editTraitIds, setEditTraitIds] = useState<number[]>([]);
+  const [editTraitsLoading, setEditTraitsLoading] = useState(false);
   const [editError, setEditError] = useState("");
 
   // --- Delete state ---
@@ -134,11 +145,12 @@ export function CategoryManagementPanel() {
   // --- Mutations ---
   const createMutation = useMutation({
     mutationFn: () =>
-      createCategory(newName.trim(), newParentId === "" ? null : Number(newParentId)),
+      createCategory(newName.trim(), newParentId === "" ? null : Number(newParentId), newTraitIds),
     onSuccess: () => {
       toast.success(t("categoryCreated"));
       setNewName("");
       setNewParentId("");
+      setNewTraitIds([]);
       setFormError("");
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
@@ -150,9 +162,11 @@ export function CategoryManagementPanel() {
       updateCategory(editingCategory!.id, {
         name: editName.trim(),
         parentId: editParentId === "" ? null : Number(editParentId),
+        traitIds: editTraitIds,
       }),
     onSuccess: () => {
       toast.success(t("categoryUpdated"));
+      queryClient.invalidateQueries({ queryKey: ["category-trait-ids", editingCategory!.id] });
       setEditingCategory(null);
       setEditError("");
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -178,6 +192,12 @@ export function CategoryManagementPanel() {
     },
   });
 
+  const toggleNewTrait = (id: number) =>
+    setNewTraitIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+
+  const toggleEditTrait = (id: number) =>
+    setEditTraitIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+
   const handleCreate = () => {
     if (!newName.trim()) { setFormError(t("fieldRequired")); return; }
     setFormError("");
@@ -188,7 +208,13 @@ export function CategoryManagementPanel() {
     setEditingCategory(node);
     setEditName(node.name);
     setEditParentId(node.parentId ?? "");
+    setEditTraitIds([]);
+    setEditTraitsLoading(true);
     setEditError("");
+    fetchCategoryTraitIds(node.id)
+      .then((ids) => setEditTraitIds(ids))
+      .catch(() => {/* leave empty — non-critical */})
+      .finally(() => setEditTraitsLoading(false));
   };
 
   const handleUpdate = () => {
@@ -329,6 +355,35 @@ export function CategoryManagementPanel() {
               )}
             </Button>
           </div>
+          {allTraits.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Linked traits</p>
+              <div className="flex flex-wrap gap-1.5">
+                {allTraits.map((trait: ReviewTrait) => (
+                  <button
+                    key={trait.id}
+                    type="button"
+                    onClick={() => toggleNewTrait(trait.id)}
+                    className={`px-2.5 py-0.5 rounded-full text-xs border transition-all ${
+                      newTraitIds.includes(trait.id)
+                        ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-1"
+                        : "bg-muted/40 text-muted-foreground border-border opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    {trait.labelI18n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {allTraits.length === 0 && (
+            <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1">
+              No traits available —{" "}
+              <a href="/manage/review-traits" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+                define some in Review Traits <ExternalLink className="h-3 w-3" />
+              </a>
+            </p>
+          )}
           {formError && (
             <p className="mt-2 text-sm text-destructive flex items-center gap-1.5">
               <AlertCircle className="h-3.5 w-3.5" />
@@ -383,6 +438,39 @@ export function CategoryManagementPanel() {
                 </option>
               ))}
             </select>
+            {allTraits.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">Linked traits</p>
+                {editTraitsLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading...</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {allTraits.map((trait: ReviewTrait) => (
+                      <button
+                        key={trait.id}
+                        type="button"
+                        onClick={() => toggleEditTrait(trait.id)}
+                        className={`px-2.5 py-0.5 rounded-full text-xs border transition-all ${
+                          editTraitIds.includes(trait.id)
+                            ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-1"
+                            : "bg-muted/40 text-muted-foreground border-border opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        {trait.labelI18n}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {allTraits.length === 0 && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                No traits available \u2014{" "}
+                <a href="/manage/review-traits" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+                  define some in Review Traits <ExternalLink className="h-3 w-3" />
+                </a>
+              </p>
+            )}
             {editError && (
               <p className="text-sm text-destructive flex items-center gap-1.5">
                 <AlertCircle className="h-3.5 w-3.5" />

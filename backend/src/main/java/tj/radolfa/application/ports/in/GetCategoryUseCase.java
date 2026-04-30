@@ -18,4 +18,7 @@ public interface GetCategoryUseCase {
 
     /** Returns the given category ID plus all transitive descendant IDs. */
     List<Long> getDescendantIds(Long categoryId);
+
+    /** Single category by ID. Empty if not found. */
+    Optional<CategoryView> findById(Long id);
 }

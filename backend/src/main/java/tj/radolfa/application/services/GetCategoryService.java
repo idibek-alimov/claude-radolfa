@@ -31,4 +31,9 @@ public class GetCategoryService implements GetCategoryUseCase {
     public List<Long> getDescendantIds(Long categoryId) {
         return loadCategoryPort.getAllDescendantIds(categoryId);
     }
+
+    @Override
+    public Optional<CategoryView> findById(Long id) {
+        return loadCategoryPort.findById(id);
+    }
 }

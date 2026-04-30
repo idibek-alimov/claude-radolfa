@@ -9,6 +9,7 @@ import {
   Users,
   Star,
   HelpCircle,
+  Sparkles,
 } from "lucide-react";
 import type { AdminNavGroup } from "./types";
 
@@ -47,10 +48,11 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    label: "Moderation",
+    label: "Reviews",
     items: [
       { href: "/manage/reviews", label: "Reviews", icon: Star },
       { href: "/manage/qa", label: "Q&A", icon: HelpCircle },
+      { href: "/manage/review-traits", label: "Review Traits", icon: Sparkles, adminOnly: true },
     ],
   },
 ];

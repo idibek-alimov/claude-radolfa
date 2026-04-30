@@ -9,13 +9,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.GetCategoryUseCase;
 import tj.radolfa.application.ports.in.product.CreateCategoryUseCase;
 import tj.radolfa.application.ports.in.product.DeleteCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateCategoryUseCase;
+import tj.radolfa.application.readmodel.CategoryView;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.infrastructure.web.dto.CreateCategoryRequestDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.UpdateCategoryRequestDto;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,13 +33,16 @@ public class CategoryManagementController {
     private final CreateCategoryUseCase createCategoryUseCase;
     private final UpdateCategoryUseCase updateCategoryUseCase;
     private final DeleteCategoryUseCase deleteCategoryUseCase;
+    private final GetCategoryUseCase getCategoryUseCase;
 
     public CategoryManagementController(CreateCategoryUseCase createCategoryUseCase,
                                         UpdateCategoryUseCase updateCategoryUseCase,
-                                        DeleteCategoryUseCase deleteCategoryUseCase) {
+                                        DeleteCategoryUseCase deleteCategoryUseCase,
+                                        GetCategoryUseCase getCategoryUseCase) {
         this.createCategoryUseCase = createCategoryUseCase;
         this.updateCategoryUseCase = updateCategoryUseCase;
         this.deleteCategoryUseCase = deleteCategoryUseCase;
+        this.getCategoryUseCase = getCategoryUseCase;
     }
 
     /**
@@ -98,5 +105,19 @@ public class CategoryManagementController {
     public ResponseEntity<MessageResponseDto> deleteCategory(@PathVariable Long id) {
         deleteCategoryUseCase.execute(id);
         return ResponseEntity.ok(MessageResponseDto.success("Category deleted successfully."));
+    }
+
+    /**
+     * GET /api/v1/admin/categories/{id}/traits
+     * Returns the list of review trait IDs linked to this category. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Get linked review trait IDs",
+               description = "Returns the IDs of all review traits currently linked to a category. MANAGER + ADMIN.")
+    @GetMapping("/{id}/traits")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<List<Long>> getCategoryTraitIds(@PathVariable Long id) {
+        CategoryView view = getCategoryUseCase.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found: id=" + id));
+        return ResponseEntity.ok(view.traitIds());
     }
 }
