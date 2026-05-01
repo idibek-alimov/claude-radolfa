@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { ProductDetail } from "@/entities/product";
+import { fetchListingBySlug } from "@/entities/product/api";
+import { fetchRatingSummary } from "@/entities/review/api";
+import { buildProductJsonLd } from "@/shared/seo";
 
 interface DetailPageProps {
     params: Promise<{
@@ -26,5 +29,27 @@ export async function generateMetadata({ params }: DetailPageProps): Promise<Met
  */
 export default async function DetailPage({ params }: DetailPageProps) {
     const { slug } = await params;
-    return <ProductDetail slug={slug} />;
+
+    let jsonLd: Record<string, unknown> | null = null;
+    try {
+        const [listing, rating] = await Promise.all([
+            fetchListingBySlug(slug),
+            fetchRatingSummary(slug),
+        ]);
+        jsonLd = buildProductJsonLd({ listing, rating });
+    } catch {
+        // Never block the page render on a JSON-LD pre-fetch failure.
+    }
+
+    return (
+        <>
+            {jsonLd && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+            )}
+            <ProductDetail slug={slug} />
+        </>
+    );
 }

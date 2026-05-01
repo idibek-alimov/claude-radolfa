@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
+import Link from "next/link";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -252,6 +253,21 @@ export function SubmitReviewForm({
               ))}
             </div>
           </div>
+
+          {/* Low-rating intervention */}
+          {rating > 0 && rating <= 2 && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 space-y-2">
+              <p className="text-sm font-medium text-destructive">
+                {tForm("lowRating.heading")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {tForm("lowRating.body")}
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/profile">{tForm("lowRating.cta")}</Link>
+              </Button>
+            </div>
+          )}
 
           {/* Title */}
           <div className="space-y-1.5">

@@ -463,6 +463,11 @@
         "heading": "Help others by rating these aspects",
         "scaleLow": "Poor",
         "scaleHigh": "Excellent"
+      },
+      "lowRating": {
+        "heading": "We're sorry you had a bad experience",
+        "body": "Would you prefer to contact support or request a return?",
+        "cta": "Visit your orders"
       }
     },
     "summary": {

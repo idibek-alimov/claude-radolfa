@@ -1,0 +1,1 @@
+export { buildProductJsonLd } from "./jsonLd";
