@@ -17,4 +17,12 @@ public interface LoadReviewTraitPort {
     List<ReviewTrait> findAllByIds(Collection<Long> ids);
 
     boolean existsByKey(String key);
+
+    /**
+     * Returns all traits applicable to the given listing variant, resolved
+     * by walking the product's category parent chain and collecting the union
+     * of traits from every ancestor (including the leaf category itself).
+     * Results are deduplicated by trait id.
+     */
+    List<ReviewTrait> findByVariantId(Long listingVariantId);
 }

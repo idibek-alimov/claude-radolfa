@@ -5,7 +5,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
+import tj.radolfa.application.readmodel.ReviewTraitView;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.ReviewTrait;
+import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
+import tj.radolfa.infrastructure.persistence.entity.ReviewTraitEntity;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
@@ -23,6 +27,8 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntit
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -208,6 +214,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .map(t -> new TagView(t.getId(), t.getName(), t.getColorHex()))
                                 .toList();
 
+                List<ReviewTraitView> reviewTraits = resolveTraits(
+                                entity.getProductBase() != null
+                                        ? entity.getProductBase().getCategory()
+                                        : null);
+
                 return new ListingVariantDetailDto(
                                 baseId,
                                 entity.getId(),
@@ -234,7 +245,29 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getWeightKg(),
                                 entity.getWidthCm(),
                                 entity.getHeightCm(),
-                                entity.getDepthCm());
+                                entity.getDepthCm(),
+                                reviewTraits);
+        }
+
+        // ---- Trait helpers (detail-page only) ----
+
+        /**
+         * Walks the category parent chain from the leaf up and collects the union
+         * of review traits from every ancestor, deduplicated by trait id.
+         */
+        private List<ReviewTraitView> resolveTraits(CategoryEntity leafCategory) {
+                if (leafCategory == null) return List.of();
+                Map<Long, ReviewTraitEntity> byId = new LinkedHashMap<>();
+                CategoryEntity current = leafCategory;
+                while (current != null) {
+                        for (ReviewTraitEntity trait : current.getReviewTraits()) {
+                                byId.putIfAbsent(trait.getId(), trait);
+                        }
+                        current = current.getParent();
+                }
+                return new ArrayList<>(byId.values()).stream()
+                        .map(t -> new ReviewTraitView(t.getTraitKey(), t.getLabelI18n(), t.getInputType()))
+                        .toList();
         }
 
         // ---- SKU helpers (detail-page only) ----

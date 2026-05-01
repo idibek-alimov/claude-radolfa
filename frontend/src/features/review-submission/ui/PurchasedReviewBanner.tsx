@@ -7,18 +7,21 @@ import { Pencil } from "lucide-react";
 import { fetchMyDeliveredOrders } from "@/entities/order";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/ui/card";
+import type { ReviewTrait } from "@/entities/review-trait";
 import { SubmitReviewForm } from "./SubmitReviewForm";
 
 interface PurchasedReviewBannerProps {
   listingVariantId: number;
   slug: string;
   isAuthenticated: boolean;
+  reviewTraits?: ReviewTrait[];
 }
 
 export function PurchasedReviewBanner({
   listingVariantId,
   slug,
   isAuthenticated,
+  reviewTraits = [],
 }: PurchasedReviewBannerProps) {
   const t = useTranslations("reviews.banner");
   const [open, setOpen] = useState(false);
@@ -67,6 +70,7 @@ export function PurchasedReviewBanner({
       <SubmitReviewForm
         listingVariantId={listingVariantId}
         slug={slug}
+        reviewTraits={reviewTraits}
         preselectedOrderId={matchedOrderId}
         preselectedSkuId={matchedSkuId}
         open={open}

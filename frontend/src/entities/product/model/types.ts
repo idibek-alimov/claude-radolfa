@@ -1,5 +1,6 @@
 import type { PaginatedResponse } from "@/shared/api/types";
 import type { Tag } from "@/entities/tag";
+import type { ReviewTrait } from "@/entities/review-trait";
 
 /**
  * A purchasable unit — one size of one colour variant.
@@ -86,6 +87,7 @@ export interface ListingVariantDetail extends ListingVariant {
   depthCm:       number | null;
   attributes:    Attribute[];
   siblingVariants: SiblingVariant[];
+  reviewTraits: ReviewTrait[];
 }
 
 /** Paginated response for listings — alias of the shared generic. */

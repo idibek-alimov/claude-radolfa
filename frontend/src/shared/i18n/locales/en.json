@@ -458,7 +458,12 @@
     "form": {
       "addPhotos": "Add photos",
       "photoLimit": "Up to 5 photos",
-      "uploading": "Uploading…"
+      "uploading": "Uploading…",
+      "traits": {
+        "heading": "Help others by rating these aspects",
+        "scaleLow": "Poor",
+        "scaleHigh": "Excellent"
+      }
     },
     "summary": {
       "reviews": "{count} reviews",
@@ -466,7 +471,10 @@
       "sizeFit": "Size fit",
       "runsSmall": "Runs small",
       "trueToSize": "True to size",
-      "runsLarge": "Runs large"
+      "runsLarge": "Runs large",
+      "traits": {
+        "heading": "Customer ratings by aspect"
+      }
     },
     "page": {
       "back": "Back"
@@ -599,7 +607,9 @@
       "fixed": "Fixed (TJS)"
     },
     "target": {
-      "sku": { "tab": "SKU list" },
+      "sku": {
+        "tab": "SKU list"
+      },
       "category": {
         "tab": "Category",
         "includeSubs": "Include subcategories",

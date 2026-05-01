@@ -458,7 +458,12 @@
     "form": {
       "addPhotos": "Добавить фото",
       "photoLimit": "До 5 фото",
-      "uploading": "Загрузка…"
+      "uploading": "Загрузка…",
+      "traits": {
+        "heading": "Помогите другим, оценив эти аспекты",
+        "scaleLow": "Плохо",
+        "scaleHigh": "Отлично"
+      }
     },
     "summary": {
       "reviews": "{count} отзывов",
@@ -466,7 +471,10 @@
       "sizeFit": "Размер",
       "runsSmall": "Маломерит",
       "trueToSize": "Соответствует",
-      "runsLarge": "Большемерит"
+      "runsLarge": "Большемерит",
+      "traits": {
+        "heading": "Оценки покупателей по аспектам"
+      }
     },
     "page": {
       "back": "Назад"
@@ -599,7 +607,9 @@
       "fixed": "Фиксированная (TJS)"
     },
     "target": {
-      "sku": { "tab": "Список SKU" },
+      "sku": {
+        "tab": "Список SKU"
+      },
       "category": {
         "tab": "Категория",
         "includeSubs": "Включить подкатегории",

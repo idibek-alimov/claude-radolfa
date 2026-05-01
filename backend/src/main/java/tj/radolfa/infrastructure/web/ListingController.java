@@ -119,7 +119,15 @@ public class ListingController {
                                 s.distribution(),
                                 s.sizeAccurate(),
                                 s.sizeRunsSmall(),
-                                s.sizeRunsLarge()))
+                                s.sizeRunsLarge(),
+                                s.traitAggregates().stream()
+                                        .map(t -> new RatingSummaryResponseDto.TraitAggregateDto(
+                                                t.traitKey(),
+                                                t.labelI18n(),
+                                                t.inputType(),
+                                                t.average(),
+                                                t.count()))
+                                        .toList()))
                         .orElse(RatingSummaryResponseDto.empty()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

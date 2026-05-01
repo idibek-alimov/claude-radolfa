@@ -9,12 +9,14 @@ import { PurchasedReviewBanner } from "@/features/review-submission/ui/Purchased
 import { fetchQuestions } from "@/entities/question/api";
 import { QuestionList } from "@/entities/question";
 import { AskQuestionDialog } from "@/features/ask-question";
+import type { ReviewTrait } from "@/entities/review-trait";
 
 interface ReviewsAndQuestionsSectionProps {
   slug: string;
   productBaseId: number;
   listingVariantId: number;
   isAuthenticated: boolean;
+  reviewTraits?: ReviewTrait[];
 }
 
 type ActiveTab = "reviews" | "questions";
@@ -24,6 +26,7 @@ export function ReviewsAndQuestionsSection({
   productBaseId,
   listingVariantId,
   isAuthenticated,
+  reviewTraits = [],
 }: ReviewsAndQuestionsSectionProps) {
   const t = useTranslations("section.tabs");
   const tQuestions = useTranslations("questions");
@@ -83,6 +86,7 @@ export function ReviewsAndQuestionsSection({
               listingVariantId={listingVariantId}
               slug={slug}
               isAuthenticated={isAuthenticated}
+              reviewTraits={reviewTraits}
             />
           )}
           <RatingSummaryCard slug={slug} />

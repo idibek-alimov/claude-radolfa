@@ -38,7 +38,8 @@ public record ListingVariantDetailDto(
         Double weightKg,
         Integer widthCm,
         Integer heightCm,
-        Integer depthCm
+        Integer depthCm,
+        List<ReviewTraitView> reviewTraits
 ) {
     /**
      * A single product attribute shown on the detail page.
@@ -97,6 +98,6 @@ public record ListingVariantDetailDto(
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
                 tags, loyaltySkus, siblingVariants, productCode,
-                weightKg, widthCm, heightCm, depthCm);
+                weightKg, widthCm, heightCm, depthCm, reviewTraits);
     }
 }

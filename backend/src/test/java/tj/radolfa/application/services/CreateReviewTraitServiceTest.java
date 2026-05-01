@@ -121,6 +121,7 @@ class CreateReviewTraitServiceTest {
             return ids.stream().map(byId::get).filter(java.util.Objects::nonNull).toList();
         }
         @Override public boolean existsByKey(String key) { return byKey.containsKey(key); }
+        @Override public List<ReviewTrait> findByVariantId(Long listingVariantId) { return List.of(); }
     }
 
     static class FakeSaveReviewTraitPort implements SaveReviewTraitPort {

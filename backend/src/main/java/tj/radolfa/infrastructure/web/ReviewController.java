@@ -95,7 +95,8 @@ public class ReviewController {
                 request.pros(),
                 request.cons(),
                 request.matchingSize(),
-                request.photoUrls()
+                request.photoUrls(),
+                request.traitAnswers()
         ));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("reviewId", reviewId));

@@ -10,9 +10,10 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { Label } from "@/shared/ui/label";
+import { Slider } from "@/shared/ui/slider";
 import { fetchMyDeliveredOrders } from "@/entities/order";
 import { submitReview, uploadReviewPhotos } from "@/entities/review";
-import type { MatchingSize } from "@/entities/review";
+import type { ReviewTrait } from "@/entities/review-trait";
 import { getErrorMessage } from "@/shared/lib";
 
 const MAX_PHOTOS = 5;
@@ -20,6 +21,8 @@ const MAX_PHOTOS = 5;
 interface SubmitReviewFormProps {
   listingVariantId: number;
   slug: string;
+  /** Review traits to render dynamic sliders. Pass from the product detail page. */
+  reviewTraits?: ReviewTrait[];
   /** Preselected context — if both are provided, the order selector is hidden. */
   preselectedOrderId?: number;
   preselectedSkuId?: number;
@@ -28,15 +31,10 @@ interface SubmitReviewFormProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const sizeFitOptions: { value: MatchingSize; label: string }[] = [
-  { value: "RUNS_SMALL", label: "Runs small" },
-  { value: "ACCURATE",   label: "True to size" },
-  { value: "RUNS_LARGE", label: "Runs large" },
-];
-
 export function SubmitReviewForm({
   listingVariantId,
   slug,
+  reviewTraits = [],
   preselectedOrderId,
   preselectedSkuId,
   open: externalOpen,
@@ -50,6 +48,8 @@ export function SubmitReviewForm({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isControlled ? externalOpen! : internalOpen;
 
+  const sliderTraits = reviewTraits.filter((t) => t.inputType === "SLIDER");
+
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(preselectedOrderId ?? null);
   const [selectedSkuId, setSelectedSkuId]     = useState<number | null>(preselectedSkuId ?? null);
   const [rating, setRating]           = useState(0);
@@ -58,7 +58,7 @@ export function SubmitReviewForm({
   const [body, setBody]               = useState("");
   const [pros, setPros]               = useState("");
   const [cons, setCons]               = useState("");
-  const [matchingSize, setMatchingSize] = useState<MatchingSize | null>(null);
+  const [traitAnswers, setTraitAnswers] = useState<Record<string, number>>({});
   const [photoFiles, setPhotoFiles]   = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,7 +113,7 @@ export function SubmitReviewForm({
     setBody("");
     setPros("");
     setCons("");
-    setMatchingSize(null);
+    setTraitAnswers({});
     photoFiles.forEach((f) => URL.revokeObjectURL(URL.createObjectURL(f)));
     setPhotoFiles([]);
     setIsUploading(false);
@@ -181,8 +181,9 @@ export function SubmitReviewForm({
       body: body.trim(),
       pros: pros.trim() || null,
       cons: cons.trim() || null,
-      matchingSize,
+      matchingSize: null,
       photoUrls,
+      ...(Object.keys(traitAnswers).length > 0 ? { traitAnswers } : {}),
     });
   }
 
@@ -301,26 +302,43 @@ export function SubmitReviewForm({
             />
           </div>
 
-          {/* Size fit */}
-          <div className="space-y-1.5">
-            <Label>Size fit</Label>
-            <div className="flex gap-2 flex-wrap">
-              {sizeFitOptions.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setMatchingSize(matchingSize === value ? null : value)}
-                  className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-                    matchingSize === value
-                      ? "bg-foreground text-background border-foreground"
-                      : "border-border text-muted-foreground hover:border-foreground"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+          {/* Dynamic trait sliders */}
+          {sliderTraits.length > 0 && (
+            <div className="space-y-3 border-t pt-3">
+              <p className="text-sm font-medium">{tForm("traits.heading")}</p>
+              {sliderTraits.map((trait) => {
+                const value = traitAnswers[trait.key] ?? 3;
+                return (
+                  <div key={trait.key} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label>{trait.labelI18n}</Label>
+                      <span className="text-sm font-medium tabular-nums text-primary">
+                        {value}/5
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10 shrink-0">
+                        {tForm("traits.scaleLow")}
+                      </span>
+                      <Slider
+                        min={1}
+                        max={5}
+                        step={1}
+                        value={[value]}
+                        onValueChange={([v]) =>
+                          setTraitAnswers((prev) => ({ ...prev, [trait.key]: v }))
+                        }
+                        className="flex-1"
+                      />
+                      <span className="text-xs text-muted-foreground w-14 shrink-0 text-right">
+                        {tForm("traits.scaleHigh")}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          )}
 
           {/* Photos */}
           <div className="space-y-2">

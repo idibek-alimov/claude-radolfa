@@ -458,7 +458,12 @@
     "form": {
       "addPhotos": "Акс илова кунед",
       "photoLimit": "То 5 акс",
-      "uploading": "Боргузорӣ…"
+      "uploading": "Боргузорӣ…",
+      "traits": {
+        "heading": "Ба дигарон бо арзёбии ин ҷанбаҳо кӯмак кунед",
+        "scaleLow": "Бад",
+        "scaleHigh": "Олӣ"
+      }
     },
     "summary": {
       "reviews": "{count} баҳо",
@@ -466,7 +471,10 @@
       "sizeFit": "Андоза",
       "runsSmall": "Хурдтар аст",
       "trueToSize": "Мувофиқ аст",
-      "runsLarge": "Калонтар аст"
+      "runsLarge": "Калонтар аст",
+      "traits": {
+        "heading": "Арзёбиҳои харидорон аз рӯи ҷанбаҳо"
+      }
     },
     "page": {
       "back": "Бозгашт"
@@ -599,7 +607,9 @@
       "fixed": "Фиксатсионӣ (TJS)"
     },
     "target": {
-      "sku": { "tab": "Рӯйхати SKU" },
+      "sku": {
+        "tab": "Рӯйхати SKU"
+      },
       "category": {
         "tab": "Категория",
         "includeSubs": "Зерсинфҳоро дохил кун",

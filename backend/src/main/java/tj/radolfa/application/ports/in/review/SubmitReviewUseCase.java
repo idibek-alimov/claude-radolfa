@@ -3,6 +3,7 @@ package tj.radolfa.application.ports.in.review;
 import tj.radolfa.domain.model.MatchingSize;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SubmitReviewUseCase {
 
@@ -20,6 +21,7 @@ public interface SubmitReviewUseCase {
             String pros,               // nullable
             String cons,               // nullable
             MatchingSize matchingSize, // nullable
-            List<String> photoUrls     // S3 URLs returned by POST /api/v1/reviews/upload-photos; max 5
+            List<String> photoUrls,    // S3 URLs returned by POST /api/v1/reviews/upload-photos; max 5
+            Map<String, Object> traitAnswers // nullable; keyed by trait.key
     ) {}
 }

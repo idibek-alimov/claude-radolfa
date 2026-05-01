@@ -3,11 +3,15 @@ package tj.radolfa.infrastructure.persistence.adapter;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadRatingSummaryPort;
 import tj.radolfa.application.ports.out.SaveRatingSummaryPort;
+import tj.radolfa.domain.model.ReviewTraitInputType;
 import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,7 +40,8 @@ public class RatingSummaryAdapter implements LoadRatingSummaryPort, SaveRatingSu
                        Map<Integer, Integer> distribution,
                        int sizeAccurate,
                        int sizeRunsSmall,
-                       int sizeRunsLarge) {
+                       int sizeRunsLarge,
+                       List<TraitAggregateView> traitAggregates) {
 
         ProductRatingSummaryEntity entity = repository.findById(listingVariantId)
                 .orElseGet(() -> {
@@ -55,6 +60,7 @@ public class RatingSummaryAdapter implements LoadRatingSummaryPort, SaveRatingSu
         entity.setSizeAccurate(sizeAccurate);
         entity.setSizeRunsSmall(sizeRunsSmall);
         entity.setSizeRunsLarge(sizeRunsLarge);
+        entity.setTraitAggregates(toRawMaps(traitAggregates));
         entity.setLastCalculatedAt(Instant.now());
 
         repository.saveAndFlush(entity);
@@ -77,7 +83,42 @@ public class RatingSummaryAdapter implements LoadRatingSummaryPort, SaveRatingSu
                 distribution,
                 e.getSizeAccurate(),
                 e.getSizeRunsSmall(),
-                e.getSizeRunsLarge()
+                e.getSizeRunsLarge(),
+                fromRawMaps(e.getTraitAggregates())
         );
+    }
+
+    private List<TraitAggregateView> fromRawMaps(List<Map<String, Object>> raw) {
+        if (raw == null) return List.of();
+        List<TraitAggregateView> result = new ArrayList<>(raw.size());
+        for (Map<String, Object> m : raw) {
+            try {
+                result.add(new TraitAggregateView(
+                        (String) m.get("traitKey"),
+                        (String) m.get("labelI18n"),
+                        ReviewTraitInputType.valueOf((String) m.get("inputType")),
+                        new BigDecimal(m.get("average").toString()),
+                        ((Number) m.get("count")).intValue()
+                ));
+            } catch (Exception ignored) {
+                // Skip malformed entries rather than failing a read
+            }
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> toRawMaps(List<TraitAggregateView> views) {
+        if (views == null) return List.of();
+        List<Map<String, Object>> result = new ArrayList<>(views.size());
+        for (TraitAggregateView v : views) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("traitKey",   v.traitKey());
+            m.put("labelI18n",  v.labelI18n());
+            m.put("inputType",  v.inputType().name());
+            m.put("average",    v.average());
+            m.put("count",      v.count());
+            result.add(m);
+        }
+        return result;
     }
 }

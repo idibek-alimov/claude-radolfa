@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import tj.radolfa.domain.model.MatchingSize;
 
 import java.util.List;
+import java.util.Map;
 
 public record SubmitReviewRequestDto(
 
@@ -38,5 +39,7 @@ public record SubmitReviewRequestDto(
         MatchingSize matchingSize,
 
         @Size(max = 5)
-        List<String> photoUrls
+        List<String> photoUrls,
+
+        Map<String, Object> traitAnswers
 ) {}

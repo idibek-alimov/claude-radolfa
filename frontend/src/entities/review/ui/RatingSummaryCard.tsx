@@ -23,7 +23,9 @@ export function RatingSummaryCard({ slug, onWriteReview, activeRating, onRatingF
   if (isLoading) return <RatingSummarySkeleton />;
   if (!data || data.reviewCount === 0) return null;
 
-  const totalSizeFeedback = data.sizeAccurate + data.sizeRunsSmall + data.sizeRunsLarge;
+  const sliderAggregates = (data.traitAggregates ?? []).filter(
+    (a) => a.inputType === "SLIDER"
+  );
 
   return (
     <div className="border rounded-xl p-5 space-y-5 bg-card">
@@ -77,20 +79,30 @@ export function RatingSummaryCard({ slug, onWriteReview, activeRating, onRatingF
         })}
       </div>
 
-      {/* Size fit */}
-      {totalSizeFeedback > 0 && (
+      {/* Trait aggregates */}
+      {sliderAggregates.length > 0 && (
         <div className="space-y-2 border-t pt-4">
-          <p className="text-sm font-medium">{t("sizeFit")}</p>
-          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span className="bg-muted rounded-full px-3 py-1">
-              {t("runsSmall")}: {data.sizeRunsSmall}
-            </span>
-            <span className="bg-muted rounded-full px-3 py-1">
-              {t("trueToSize")}: {data.sizeAccurate}
-            </span>
-            <span className="bg-muted rounded-full px-3 py-1">
-              {t("runsLarge")}: {data.sizeRunsLarge}
-            </span>
+          <p className="text-sm font-medium">{t("traits.heading")}</p>
+          <div className="space-y-2">
+            {sliderAggregates.map((agg) => {
+              const fillPct = (agg.average / 5) * 100;
+              return (
+                <div key={agg.traitKey} className="flex items-center gap-2 text-sm">
+                  <span className="w-28 shrink-0 text-muted-foreground truncate">
+                    {agg.labelI18n}
+                  </span>
+                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-amber-400"
+                      style={{ width: `${fillPct}%` }}
+                    />
+                  </div>
+                  <span className="w-16 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                    {agg.average.toFixed(1)} ({agg.count})
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

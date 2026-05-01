@@ -1,5 +1,16 @@
 export type MatchingSize = "RUNS_SMALL" | "RUNS_LARGE" | "ACCURATE";
 
+export type ReviewTraitInputType = "SLIDER" | "RADIO";
+
+/** Aggregated score for a single trait on a rating summary card. */
+export interface TraitAggregate {
+  traitKey:   string;
+  labelI18n:  string;
+  inputType:  ReviewTraitInputType;
+  average:    number;
+  count:      number;
+}
+
 /** Single approved review shown to storefront visitors. */
 export interface StorefrontReview {
   id: number;
@@ -25,6 +36,7 @@ export interface RatingSummary {
   sizeAccurate: number;
   sizeRunsSmall: number;
   sizeRunsLarge: number;
+  traitAggregates: TraitAggregate[];
 }
 
 /** Paginated reviews response */
@@ -68,5 +80,6 @@ export interface SubmitReviewRequest {
   pros: string | null;
   cons: string | null;
   matchingSize: MatchingSize | null;
-  photoUrls: string[];   // always [] until customer photo upload is implemented
+  photoUrls: string[];
+  traitAnswers?: Record<string, number | string>;
 }

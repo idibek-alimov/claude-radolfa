@@ -692,6 +692,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         productBaseId={listing.productBaseId}
         listingVariantId={listing.variantId}
         isAuthenticated={isAuthenticated}
+        reviewTraits={listing.reviewTraits ?? []}
       />
 
       {/* ── Related products — "You May Also Like" ────────────────── */}

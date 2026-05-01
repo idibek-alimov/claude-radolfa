@@ -4,9 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "product_rating_summaries")
@@ -51,4 +56,8 @@ public class ProductRatingSummaryEntity {
 
     @Column(name = "last_calculated_at", nullable = false)
     private Instant lastCalculatedAt;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "trait_aggregates", columnDefinition = "jsonb")
+    private List<Map<String, Object>> traitAggregates = new ArrayList<>();
 }
