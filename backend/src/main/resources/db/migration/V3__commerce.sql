@@ -52,10 +52,11 @@ CREATE INDEX idx_order_items_sku_id   ON order_items (sku_id);
 -- Discount types (ADMIN-managed, rank determines conflict priority)
 -- ----------------------------------------------------------------
 CREATE TABLE discount_types (
-    id         BIGSERIAL    PRIMARY KEY,
-    name       VARCHAR(64)  NOT NULL UNIQUE,
-    rank       INT          NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    id               BIGSERIAL    PRIMARY KEY,
+    name             VARCHAR(64)  NOT NULL UNIQUE,
+    rank             INT          NOT NULL UNIQUE,
+    stacking_policy  VARCHAR(16)  NOT NULL DEFAULT 'BEST_WINS',
+    created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 INSERT INTO discount_types (name, rank) VALUES
@@ -68,17 +69,22 @@ INSERT INTO discount_types (name, rank) VALUES
 -- Discounts
 -- ----------------------------------------------------------------
 CREATE TABLE discounts (
-    id               BIGSERIAL      PRIMARY KEY,
-    discount_type_id BIGINT         NOT NULL REFERENCES discount_types(id),
-    discount_value   NUMERIC(5,2)   NOT NULL,
-    valid_from       TIMESTAMPTZ    NOT NULL,
-    valid_upto       TIMESTAMPTZ    NOT NULL,
-    is_disabled      BOOLEAN        NOT NULL DEFAULT FALSE,
-    title            VARCHAR(255),
-    color_hex        VARCHAR(7),
-    version          BIGINT         NOT NULL DEFAULT 0,
-    created_at       TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    updated_at       TIMESTAMPTZ    NOT NULL DEFAULT NOW()
+    id                    BIGSERIAL      PRIMARY KEY,
+    discount_type_id      BIGINT         NOT NULL REFERENCES discount_types(id),
+    amount_type           VARCHAR(16)    NOT NULL DEFAULT 'PERCENT',
+    amount_value          NUMERIC(12,2)  NOT NULL,
+    valid_from            TIMESTAMPTZ    NOT NULL,
+    valid_upto            TIMESTAMPTZ    NOT NULL,
+    is_disabled           BOOLEAN        NOT NULL DEFAULT FALSE,
+    title                 VARCHAR(255),
+    color_hex             VARCHAR(7),
+    min_basket_amount     NUMERIC(12,2)  NULL,
+    usage_cap_total       INT            NULL,
+    usage_cap_per_customer INT           NULL,
+    coupon_code           VARCHAR(64)    NULL UNIQUE,
+    version               BIGINT         NOT NULL DEFAULT 0,
+    created_at            TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
+    updated_at            TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE discount_items (

@@ -20,6 +20,3 @@ CREATE TABLE category_review_traits (
 );
 
 CREATE INDEX idx_category_review_traits_trait_id ON category_review_traits (trait_id);
-
--- Review answers stored as JSONB keyed by trait_key
-ALTER TABLE reviews ADD COLUMN trait_answers JSONB;

@@ -1,12 +1,13 @@
 -- Phase 6: Cart lifecycle tables
 
 CREATE TABLE carts (
-    id         BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT       NOT NULL REFERENCES users(id),
-    status     VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
-    version    BIGINT,
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    id          BIGSERIAL    PRIMARY KEY,
+    user_id     BIGINT       NOT NULL REFERENCES users(id),
+    status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    coupon_code VARCHAR(64)  NULL,
+    version     BIGINT,
+    created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
 CREATE TABLE cart_items (

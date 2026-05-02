@@ -1,1 +1,0 @@
-ALTER TABLE reviews ADD COLUMN points_awarded_at TIMESTAMPTZ NULL;

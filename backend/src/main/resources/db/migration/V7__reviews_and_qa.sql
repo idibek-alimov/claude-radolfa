@@ -30,6 +30,9 @@ CREATE TABLE reviews (
                                         -- PENDING | APPROVED | REJECTED
     seller_reply         TEXT,
     seller_replied_at    TIMESTAMPTZ,
+    upvotes              INTEGER        NOT NULL DEFAULT 0,
+    trait_answers        JSONB,
+    points_awarded_at    TIMESTAMPTZ    NULL,
     version              BIGINT         NOT NULL DEFAULT 0,
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
@@ -41,6 +44,7 @@ CREATE TABLE reviews (
 CREATE INDEX idx_reviews_variant_id ON reviews (listing_variant_id);
 CREATE INDEX idx_reviews_author_id  ON reviews (author_id);
 CREATE INDEX idx_reviews_status     ON reviews (status);
+CREATE INDEX idx_reviews_upvotes    ON reviews (upvotes DESC);
 
 -- ----------------------------------------------------------------
 -- Review photos (buyer-uploaded, processed via existing S3 pipeline)
@@ -69,6 +73,7 @@ CREATE TABLE product_rating_summaries (
     size_accurate        INTEGER        NOT NULL DEFAULT 0,
     size_runs_small      INTEGER        NOT NULL DEFAULT 0,
     size_runs_large      INTEGER        NOT NULL DEFAULT 0,
+    trait_aggregates     JSONB          NOT NULL DEFAULT '[]'::jsonb,
     last_calculated_at   TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 

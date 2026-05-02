@@ -1,1 +1,0 @@
-ALTER TABLE carts ADD COLUMN coupon_code VARCHAR(64) NULL;

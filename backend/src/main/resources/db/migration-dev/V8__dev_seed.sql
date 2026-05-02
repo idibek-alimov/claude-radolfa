@@ -458,16 +458,16 @@ END $$;
 -- 8. ORDERS & ORDER ITEMS
 -- ================================================================
 
--- Orders for USER (+992901234567, id=1)
+-- Orders for USER (+992901234567)
 INSERT INTO orders (user_id, external_order_id, status, total_amount, version, created_at, updated_at) VALUES
-    (1, 'SO-2025-00101', 'DELIVERED', 149.98, 0, NOW() - INTERVAL '30 days', NOW() - INTERVAL '25 days'),
-    (1, 'SO-2025-00205', 'SHIPPED',    79.99, 0, NOW() - INTERVAL '5 days',  NOW() - INTERVAL '2 days'),
-    (1, 'SO-2025-00310', 'PENDING',    34.50, 0, NOW() - INTERVAL '1 day',   NOW() - INTERVAL '1 day');
+    ((SELECT id FROM users WHERE phone = '+992901234567'), 'SO-2025-00101', 'DELIVERED', 149.98, 0, NOW() - INTERVAL '30 days', NOW() - INTERVAL '25 days'),
+    ((SELECT id FROM users WHERE phone = '+992901234567'), 'SO-2025-00205', 'SHIPPED',    79.99, 0, NOW() - INTERVAL '5 days',  NOW() - INTERVAL '2 days'),
+    ((SELECT id FROM users WHERE phone = '+992901234567'), 'SO-2025-00310', 'PENDING',    34.50, 0, NOW() - INTERVAL '1 day',   NOW() - INTERVAL '1 day');
 
--- Orders for MANAGER (+992902345678, id=2)
+-- Orders for MANAGER (+992902345678)
 INSERT INTO orders (user_id, external_order_id, status, total_amount, version, created_at, updated_at) VALUES
-    (2, 'SO-2025-00150', 'PAID',      220.00, 0, NOW() - INTERVAL '10 days', NOW() - INTERVAL '8 days'),
-    (2, 'SO-2025-00280', 'CANCELLED',  45.00, 0, NOW() - INTERVAL '3 days',  NOW() - INTERVAL '3 days');
+    ((SELECT id FROM users WHERE phone = '+992902345678'), 'SO-2025-00150', 'PAID',      220.00, 0, NOW() - INTERVAL '10 days', NOW() - INTERVAL '8 days'),
+    ((SELECT id FROM users WHERE phone = '+992902345678'), 'SO-2025-00280', 'CANCELLED',  45.00, 0, NOW() - INTERVAL '3 days',  NOW() - INTERVAL '3 days');
 
 -- Order items for SO-2025-00101 (DELIVERED)
 INSERT INTO order_items (order_id, sku_code, product_name, quantity, price_at_purchase) VALUES
@@ -498,7 +498,7 @@ INSERT INTO order_items (order_id, sku_code, product_name, quantity, price_at_pu
 
 -- Group 1: 15% "Winter Collection" (SEASONAL) — active, no near expiry
 WITH ins AS (
-    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    INSERT INTO discounts (discount_type_id, amount_value, valid_from, valid_upto, is_disabled, title, color_hex)
     VALUES (
         (SELECT id FROM discount_types WHERE name = 'SEASONAL'),
         15.00,
@@ -524,7 +524,7 @@ ON CONFLICT DO NOTHING;
 
 -- Group 2: 25% "Flash Sale" (FLASH_SALE) — active, expires in 14 days
 WITH ins AS (
-    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    INSERT INTO discounts (discount_type_id, amount_value, valid_from, valid_upto, is_disabled, title, color_hex)
     VALUES (
         (SELECT id FROM discount_types WHERE name = 'FLASH_SALE'),
         25.00,
@@ -550,7 +550,7 @@ ON CONFLICT DO NOTHING;
 
 -- Group 3: 30% "End of Season" (CLEARANCE) — expired (tests expiry filtering)
 WITH ins AS (
-    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    INSERT INTO discounts (discount_type_id, amount_value, valid_from, valid_upto, is_disabled, title, color_hex)
     VALUES (
         (SELECT id FROM discount_types WHERE name = 'CLEARANCE'),
         30.00,
@@ -575,7 +575,7 @@ ON CONFLICT DO NOTHING;
 
 -- Group 4: 10% "New Members" (PROMOTIONAL) — active, no expiry
 WITH ins AS (
-    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    INSERT INTO discounts (discount_type_id, amount_value, valid_from, valid_upto, is_disabled, title, color_hex)
     VALUES (
         (SELECT id FROM discount_types WHERE name = 'PROMOTIONAL'),
         10.00,
@@ -600,7 +600,7 @@ ON CONFLICT DO NOTHING;
 
 -- Group 5: "New Season" 35% (CLEARANCE) — single discount covering 4 accessories
 WITH ins AS (
-    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    INSERT INTO discounts (discount_type_id, amount_value, valid_from, valid_upto, is_disabled, title, color_hex)
     VALUES (
         (SELECT id FROM discount_types WHERE name = 'CLEARANCE'),
         35.00,
@@ -623,7 +623,7 @@ ON CONFLICT DO NOTHING;
 
 -- Group 6: "Summer Bundle" 20% (PROMOTIONAL) — cross-category
 WITH ins AS (
-    INSERT INTO discounts (discount_type_id, discount_value, valid_from, valid_upto, is_disabled, title, color_hex)
+    INSERT INTO discounts (discount_type_id, amount_value, valid_from, valid_upto, is_disabled, title, color_hex)
     VALUES (
         (SELECT id FROM discount_types WHERE name = 'PROMOTIONAL'),
         20.00,
