@@ -71,6 +71,9 @@ public class ReviewEntity extends BaseAuditEntity {
     @Column(name = "seller_replied_at")
     private Instant sellerRepliedAt;
 
+    @Column(name = "points_awarded_at")
+    private Instant pointsAwardedAt;
+
     @Column(name = "upvotes", nullable = false)
     private int upvotes;
 

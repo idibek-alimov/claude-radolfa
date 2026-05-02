@@ -329,7 +329,11 @@
     "product": "Товар",
     "subtotal": "Подытог",
     "quantity": "Кол-во",
-    "writeReview": "Написать отзыв"
+    "writeReview": "Написать отзыв",
+    "reviewProgressTitle": "Прогресс отзывов",
+    "reviewProgressSubtitle": "Вы оценили {reviewed} из {total} товаров",
+    "earnPointsForNextReview": "Заработайте {points} баллов за следующий отзыв",
+    "reviewProgressAllDone": "Вы оценили все свои покупки — спасибо!"
   },
   "cart": {
     "title": "Ваша корзина",
@@ -440,7 +444,12 @@
       "morePhotos": "ещё",
       "helpful": "Помогло?",
       "report": "Пожаловаться",
-      "imageLightbox": "Фото отзыва"
+      "imageLightbox": "Фото отзыва",
+      "share": "Поделиться",
+      "shareTitle": "Отзыв {author} на Radolfa",
+      "shareText": "Посмотрите этот отзыв на Radolfa",
+      "shareDownloadFallback": "Изображение отзыва загружено.",
+      "shareFailed": "Не удалось поделиться отзывом"
     },
     "strip": {
       "photosAndVideos": "Фото и видео",

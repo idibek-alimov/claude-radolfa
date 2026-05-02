@@ -93,7 +93,8 @@ public class SubmitReviewService implements SubmitReviewUseCase {
                 null,
                 null,
                 null,
-                resolvedTraitAnswers
+                resolvedTraitAnswers,
+                null
         );
 
         Review saved = saveReviewPort.save(review);

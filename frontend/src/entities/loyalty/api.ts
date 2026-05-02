@@ -2,6 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
 import type { LoyaltyTier } from "./model/types";
 
+export function fetchReviewReward(): Promise<{ points: number }> {
+  return apiClient
+    .get<{ points: number }>("/api/v1/loyalty-tiers/review-reward")
+    .then((r) => r.data);
+}
+
 export function useLoyaltyTiers() {
   return useQuery({
     queryKey: ["loyalty-tiers"],

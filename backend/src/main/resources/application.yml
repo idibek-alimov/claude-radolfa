@@ -116,6 +116,8 @@ radolfa:
       allowed-origins: []
   analytics:
     start-date: 2026-04-19
+  loyalty:
+    review-reward-points: 50
   discount:
     coupons:
       enabled: ${DISCOUNT_COUPONS_ENABLED:true}

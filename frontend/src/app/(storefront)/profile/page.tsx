@@ -7,6 +7,7 @@ import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
 import { getMyOrders, updateProfile } from "@/features/profile/api";
 import { OrderHistoryCard } from "@/features/profile/ui/OrderHistoryCard";
+import { ReviewProgressCard } from "@/features/profile/ui/ReviewProgressCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -292,9 +293,10 @@ export default function ProfilePage() {
             {/* Orders Tab — with timeline */}
             <TabsContent value="orders">
               <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
-                <h2 className="text-lg font-semibold text-foreground mb-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4">
                   {t("orderHistory")}
                 </h2>
+                <ReviewProgressCard />
                 {loadingOrders ? (
                   <div className="space-y-4">
                     {Array.from({ length: 3 }).map((_, i) => (

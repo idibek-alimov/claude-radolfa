@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.GetLoyaltyTiersUseCase;
 import tj.radolfa.application.ports.in.UpdateLoyaltyTierUseCase;
 import tj.radolfa.application.ports.in.UpdateLoyaltyTierUseCase.UpdateTierColorCommand;
+import tj.radolfa.infrastructure.config.LoyaltyRewardProperties;
 import tj.radolfa.infrastructure.web.dto.LoyaltyTierDto;
 
 import java.util.List;
@@ -22,13 +23,23 @@ import java.util.List;
 @RequestMapping("/api/v1/loyalty-tiers")
 public class LoyaltyController {
 
-    private final GetLoyaltyTiersUseCase getLoyaltyTiersUseCase;
+    private final GetLoyaltyTiersUseCase   getLoyaltyTiersUseCase;
     private final UpdateLoyaltyTierUseCase updateLoyaltyTierUseCase;
+    private final LoyaltyRewardProperties  loyaltyRewardProperties;
 
     public LoyaltyController(GetLoyaltyTiersUseCase getLoyaltyTiersUseCase,
-                              UpdateLoyaltyTierUseCase updateLoyaltyTierUseCase) {
-        this.getLoyaltyTiersUseCase = getLoyaltyTiersUseCase;
+                              UpdateLoyaltyTierUseCase updateLoyaltyTierUseCase,
+                              LoyaltyRewardProperties loyaltyRewardProperties) {
+        this.getLoyaltyTiersUseCase   = getLoyaltyTiersUseCase;
         this.updateLoyaltyTierUseCase = updateLoyaltyTierUseCase;
+        this.loyaltyRewardProperties  = loyaltyRewardProperties;
+    }
+
+    record ReviewRewardResponse(int points) {}
+
+    @GetMapping("/review-reward")
+    public ResponseEntity<ReviewRewardResponse> getReviewReward() {
+        return ResponseEntity.ok(new ReviewRewardResponse(loyaltyRewardProperties.reviewRewardPoints()));
     }
 
     @GetMapping

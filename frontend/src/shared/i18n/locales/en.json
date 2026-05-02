@@ -329,7 +329,11 @@
     "product": "Product",
     "subtotal": "Subtotal",
     "quantity": "Qty",
-    "writeReview": "Write a Review"
+    "writeReview": "Write a Review",
+    "reviewProgressTitle": "Review Progress",
+    "reviewProgressSubtitle": "You've reviewed {reviewed} of {total} items",
+    "earnPointsForNextReview": "Earn {points} points for your next review",
+    "reviewProgressAllDone": "You've reviewed all your purchases — thank you!"
   },
   "cart": {
     "title": "Your Cart",
@@ -440,7 +444,12 @@
       "morePhotos": "more",
       "helpful": "Was this helpful?",
       "report": "Report",
-      "imageLightbox": "Review photo"
+      "imageLightbox": "Review photo",
+      "share": "Share",
+      "shareTitle": "{author}'s review on Radolfa",
+      "shareText": "Check out this review on Radolfa",
+      "shareDownloadFallback": "Your review image was downloaded.",
+      "shareFailed": "Couldn't share review"
     },
     "strip": {
       "photosAndVideos": "Photos & Videos",

@@ -164,6 +164,6 @@ class VoteReviewServiceTest {
                 "Test User", 5, "Great", "Good product",
                 null, null, MatchingSize.ACCURATE, List.of(),
                 ReviewStatus.APPROVED, null, null,
-                Instant.now(), Instant.now(), null);
+                Instant.now(), Instant.now(), null, null);
     }
 }

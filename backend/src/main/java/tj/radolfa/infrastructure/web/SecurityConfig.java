@@ -106,6 +106,7 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/colors").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/tags").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/loyalty-tiers/review-reward").permitAll()
                                                 .requestMatchers("/api/v1/webhooks/**").permitAll()
 
                                                 // Swagger / OpenAPI endpoints (ADMIN only)

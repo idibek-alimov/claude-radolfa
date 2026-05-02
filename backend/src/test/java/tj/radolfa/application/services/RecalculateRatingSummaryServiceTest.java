@@ -130,7 +130,7 @@ class RecalculateRatingSummaryServiceTest {
                 rating, null, "Good product", null, null,
                 null, List.of(), ReviewStatus.APPROVED,
                 null, null, null, null,
-                traitAnswers);
+                traitAnswers, null);
     }
 
     // =========================================================

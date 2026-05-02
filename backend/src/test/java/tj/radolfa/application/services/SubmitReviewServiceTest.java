@@ -249,7 +249,8 @@ class SubmitReviewServiceTest {
                     review.getSellerRepliedAt(),
                     review.getCreatedAt(),
                     review.getUpdatedAt(),
-                    review.getTraitAnswers().isEmpty() ? null : review.getTraitAnswers()
+                    review.getTraitAnswers().isEmpty() ? null : review.getTraitAnswers(),
+                    review.getPointsAwardedAt()
             );
             return lastSaved;
         }

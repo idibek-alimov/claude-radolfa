@@ -91,6 +91,7 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort, AdjustRevi
             entity.setStatus(review.getStatus());
             entity.setSellerReply(review.getSellerReply());
             entity.setSellerRepliedAt(review.getSellerRepliedAt());
+            entity.setPointsAwardedAt(review.getPointsAwardedAt());
         } else {
             entity = mapper.toEntity(review);
         }

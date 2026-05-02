@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { ThumbsUp, ThumbsDown, Store } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Store, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { StarRating } from "@/shared/ui/StarRating";
+import { Button } from "@/shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
+import { ShareableReviewCard } from "./ShareableReviewCard";
+import { shareReview } from "../lib/shareReview";
+import { getErrorMessage } from "@/shared/lib/utils";
 import type { StorefrontReview, MatchingSize } from "../model/types";
 
 const MAX_VISIBLE_PHOTOS = 4;
@@ -37,6 +43,27 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
   const t = useTranslations("reviews.card");
   const tSummary = useTranslations("reviews.summary");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
+
+  async function handleShare() {
+    setIsSharing(true);
+    try {
+      const result = await shareReview(
+        shareCardRef,
+        review,
+        t("shareTitle", { author: review.authorName }),
+        t("shareText")
+      );
+      if (result === "downloaded") {
+        toast.info(t("shareDownloadFallback"));
+      }
+    } catch (err) {
+      toast.error(t("shareFailed") + ": " + getErrorMessage(err));
+    } finally {
+      setIsSharing(false);
+    }
+  }
 
   const visiblePhotos = review.photoUrls.slice(0, MAX_VISIBLE_PHOTOS);
   const extraCount = review.photoUrls.length - MAX_VISIBLE_PHOTOS;
@@ -160,6 +187,27 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
           )}
         </div>
       )}
+
+      {/* Share button */}
+      <div className="flex justify-end">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+              disabled={isSharing}
+              className="h-7 w-7 p-0"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t("share")}</TooltipContent>
+        </Tooltip>
+      </div>
+
+      {/* Off-screen share template */}
+      <ShareableReviewCard ref={shareCardRef} review={review} />
 
       {/* Lightbox */}
       <Dialog

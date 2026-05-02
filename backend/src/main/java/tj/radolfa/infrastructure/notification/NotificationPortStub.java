@@ -2,19 +2,16 @@ package tj.radolfa.infrastructure.notification;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.domain.model.OrderStatus;
 
 /**
- * Dev/test stub for {@link NotificationPort}.
+ * Stub for {@link NotificationPort} — logs all calls to the console.
  *
- * <p>Logs all calls to the console. Replace with a real SMS/push adapter in a
- * later phase.
+ * <p>Active in all profiles until a real SMS/push adapter is provided.
  */
 @Component
-@Profile("dev | test")
 public class NotificationPortStub implements NotificationPort {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationPortStub.class);
@@ -28,5 +25,15 @@ public class NotificationPortStub implements NotificationPort {
     public void sendOrderStatusUpdate(Long userId, Long orderId, OrderStatus newStatus) {
         log.info("[NOTIFICATION STUB] Order status update → userId={} orderId={} status={}",
                 userId, orderId, newStatus);
+    }
+
+    @Override
+    public void sendReviewApprovedNotification(Long userId, Long reviewId) {
+        log.info("[NOTIFICATION STUB] Review approved → userId={} reviewId={}", userId, reviewId);
+    }
+
+    @Override
+    public void sendReviewReplyNotification(Long userId, Long reviewId) {
+        log.info("[NOTIFICATION STUB] Seller reply posted → userId={} reviewId={}", userId, reviewId);
     }
 }

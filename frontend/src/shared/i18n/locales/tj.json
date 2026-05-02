@@ -329,7 +329,11 @@
     "product": "Мол",
     "subtotal": "Ҷамъи миёна",
     "quantity": "Миқдор",
-    "writeReview": "Шарҳ навиштан"
+    "writeReview": "Шарҳ навиштан",
+    "reviewProgressTitle": "Пешрафти шарҳҳо",
+    "reviewProgressSubtitle": "Шумо {reviewed} аз {total} молро шарҳ додед",
+    "earnPointsForNextReview": "Барои шарҳи навбатӣ {points} балл ба даст оред",
+    "reviewProgressAllDone": "Шумо ҳама харидҳои худро шарҳ додед — ташаккур!"
   },
   "cart": {
     "title": "Сабади шумо",
@@ -440,7 +444,12 @@
       "morePhotos": "боз",
       "helpful": "Кӯмак кард?",
       "report": "Шикоят кардан",
-      "imageLightbox": "Сурати шарҳ"
+      "imageLightbox": "Сурати шарҳ",
+      "share": "Мубодила кардан",
+      "shareTitle": "Шарҳи {author} дар Radolfa",
+      "shareText": "Ин шарҳро дар Radolfa бинед",
+      "shareDownloadFallback": "Тасвири шарҳ боргирӣ шуд.",
+      "shareFailed": "Мубодила кардан имконпазир набуд"
     },
     "strip": {
       "photosAndVideos": "Акс ва видео",

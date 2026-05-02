@@ -29,4 +29,20 @@ public interface NotificationPort {
      * @param newStatus the status the order transitioned to
      */
     void sendOrderStatusUpdate(Long userId, Long orderId, OrderStatus newStatus);
+
+    /**
+     * Notifies the reviewer that their review was approved and is now public.
+     *
+     * @param userId   the review author
+     * @param reviewId the approved review
+     */
+    void sendReviewApprovedNotification(Long userId, Long reviewId);
+
+    /**
+     * Notifies the reviewer that the seller posted a reply to their review.
+     *
+     * @param userId   the review author
+     * @param reviewId the review that received a reply
+     */
+    void sendReviewReplyNotification(Long userId, Long reviewId);
 }

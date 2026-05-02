@@ -31,8 +31,9 @@ public class Review {
     private final List<String>        photos;
     private final Map<String, Object> traitAnswers;    // nullable — keyed by trait key
     private       ReviewStatus        status;
-    private       String        sellerReply;     // nullable
-    private       Instant       sellerRepliedAt; // nullable
+    private       String        sellerReply;      // nullable
+    private       Instant       sellerRepliedAt;  // nullable
+    private       Instant       pointsAwardedAt;  // nullable — set when loyalty bonus is granted
     private final Instant       createdAt;
     private       Instant       updatedAt;
 
@@ -54,7 +55,8 @@ public class Review {
                   Instant sellerRepliedAt,
                   Instant createdAt,
                   Instant updatedAt,
-                  Map<String, Object> traitAnswers) {
+                  Map<String, Object> traitAnswers,
+                  Instant pointsAwardedAt) {
 
         Objects.requireNonNull(listingVariantId, "listingVariantId must not be null");
         Objects.requireNonNull(orderId,          "orderId must not be null");
@@ -84,6 +86,7 @@ public class Review {
         this.status           = status != null ? status : ReviewStatus.PENDING;
         this.sellerReply      = sellerReply;
         this.sellerRepliedAt  = sellerRepliedAt;
+        this.pointsAwardedAt  = pointsAwardedAt;
         this.createdAt        = createdAt != null ? createdAt : Instant.now();
         this.updatedAt        = updatedAt != null ? updatedAt : this.createdAt;
     }
@@ -91,10 +94,19 @@ public class Review {
 
     // ── Domain mutations ──────────────────────────────────────────────────────
 
-    /** Approves the review, making it visible on the storefront. */
+    /** Approves the review, making it visible on the storefront. Idempotent. */
     public void approve() {
+        if (this.status == ReviewStatus.APPROVED) return;
         this.status    = ReviewStatus.APPROVED;
         this.updatedAt = Instant.now();
+    }
+
+    /** Records that the loyalty bonus has been awarded. Throws if already marked. */
+    public void markPointsAwarded(Instant awardedAt) {
+        if (this.pointsAwardedAt != null) {
+            throw new IllegalStateException("Loyalty bonus already awarded for review id=" + this.id);
+        }
+        this.pointsAwardedAt = awardedAt;
     }
 
     /** Rejects the review — it will never appear publicly. */
@@ -137,6 +149,7 @@ public class Review {
     public ReviewStatus        getStatus()          { return status; }
     public String       getSellerReply()     { return sellerReply; }
     public Instant      getSellerRepliedAt() { return sellerRepliedAt; }
+    public Instant      getPointsAwardedAt() { return pointsAwardedAt; }
     public Instant      getCreatedAt()       { return createdAt; }
     public Instant      getUpdatedAt()       { return updatedAt; }
 }
