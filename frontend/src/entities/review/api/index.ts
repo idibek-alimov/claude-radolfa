@@ -24,7 +24,7 @@ export const fetchReviews = (
   apiClient
     .get(`/api/v1/listings/${slug}/reviews`, {
       params: {
-        page: page - 1,
+        page,
         size,
         sort,
         ...(hasPhotos ? { hasPhotos: true } : {}),
@@ -41,6 +41,16 @@ export const submitReview = (body: SubmitReviewRequest): Promise<{ reviewId: num
 /** GET /api/v1/admin/reviews/pending — MANAGER+ */
 export const fetchPendingReviews = (): Promise<ReviewAdminView[]> =>
   apiClient.get("/api/v1/admin/reviews/pending").then((r) => r.data);
+
+/** GET /api/v1/admin/reviews — MANAGER+ — paginated list of all reviews */
+export const fetchAllAdminReviews = (
+  page: number,
+  size = 20,
+  status?: string,
+): Promise<{ content: ReviewAdminView[]; totalElements: number; totalPages: number }> =>
+  apiClient
+    .get("/api/v1/admin/reviews", { params: { page, size, ...(status ? { status } : {}) } })
+    .then((r) => r.data);
 
 /** PATCH /api/v1/admin/reviews/{id}/approve — ADMIN only */
 export const approveReview = (id: number): Promise<void> =>

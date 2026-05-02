@@ -3,6 +3,7 @@ package tj.radolfa.application.ports.out;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import tj.radolfa.domain.model.Review;
+import tj.radolfa.domain.model.ReviewStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,4 +27,7 @@ public interface LoadReviewPort {
 
     /** Returns the oldest pending reviews up to {@code limit} — used by the admin moderation queue. */
     List<Review> findPendingOldestFirst(int limit);
+
+    /** Paginated all-reviews query for the admin panel — optional status filter, null means all statuses. */
+    Page<Review> findAllForAdmin(ReviewStatus status, Pageable pageable);
 }

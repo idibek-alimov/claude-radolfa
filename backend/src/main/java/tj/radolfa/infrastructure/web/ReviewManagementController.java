@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,10 @@ import tj.radolfa.application.ports.in.question.EditProductQuestionAnswerUseCase
 import tj.radolfa.application.ports.in.question.GetAdminQuestionsUseCase;
 import tj.radolfa.application.ports.in.question.ModerateProductQuestionUseCase;
 import tj.radolfa.application.ports.in.review.GetPendingReviewsUseCase;
+import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadReviewPort;
+import tj.radolfa.domain.model.ListingVariant;
+import tj.radolfa.domain.model.ReviewStatus;
 import tj.radolfa.application.ports.in.review.ModerateReviewUseCase;
 import tj.radolfa.application.ports.in.review.ReplyToReviewUseCase;
 import tj.radolfa.application.readmodel.QuestionAdminView;
@@ -46,6 +52,8 @@ public class ReviewManagementController {
     private final AnswerProductQuestionUseCase      answerProductQuestionUseCase;
     private final EditProductQuestionAnswerUseCase  editProductQuestionAnswerUseCase;
     private final ModerateProductQuestionUseCase    moderateProductQuestionUseCase;
+    private final LoadReviewPort                    loadReviewPort;
+    private final LoadListingVariantPort            loadListingVariantPort;
 
     public ReviewManagementController(GetPendingReviewsUseCase getPendingReviewsUseCase,
                                       ModerateReviewUseCase moderateReviewUseCase,
@@ -53,7 +61,9 @@ public class ReviewManagementController {
                                       GetAdminQuestionsUseCase getAdminQuestionsUseCase,
                                       AnswerProductQuestionUseCase answerProductQuestionUseCase,
                                       EditProductQuestionAnswerUseCase editProductQuestionAnswerUseCase,
-                                      ModerateProductQuestionUseCase moderateProductQuestionUseCase) {
+                                      ModerateProductQuestionUseCase moderateProductQuestionUseCase,
+                                      LoadReviewPort loadReviewPort,
+                                      LoadListingVariantPort loadListingVariantPort) {
         this.getPendingReviewsUseCase          = getPendingReviewsUseCase;
         this.moderateReviewUseCase             = moderateReviewUseCase;
         this.replyToReviewUseCase              = replyToReviewUseCase;
@@ -61,6 +71,8 @@ public class ReviewManagementController {
         this.answerProductQuestionUseCase      = answerProductQuestionUseCase;
         this.editProductQuestionAnswerUseCase  = editProductQuestionAnswerUseCase;
         this.moderateProductQuestionUseCase    = moderateProductQuestionUseCase;
+        this.loadReviewPort                    = loadReviewPort;
+        this.loadListingVariantPort            = loadListingVariantPort;
     }
 
     // ---- Review Moderation ----
@@ -74,6 +86,46 @@ public class ReviewManagementController {
 
         int effectiveLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
         return ResponseEntity.ok(getPendingReviewsUseCase.getPending(effectiveLimit));
+    }
+
+    @GetMapping("/api/v1/admin/reviews")
+    @Tag(name = "Review Management")
+    @Operation(summary = "All reviews", description = "Paginated list of all reviews. Optional status filter: PENDING, APPROVED, REJECTED.")
+    @ApiResponse(responseCode = "200", description = "Page of reviews")
+    public ResponseEntity<Page<ReviewAdminView>> getAllReviews(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1")  int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        ReviewStatus statusFilter = null;
+        if (status != null && !status.isBlank()) {
+            statusFilter = ReviewStatus.valueOf(status.toUpperCase());
+        }
+        int effectivePage = Math.max(page - 1, 0);
+        int effectiveSize = Math.min(Math.max(size, 1), MAX_LIMIT);
+        PageRequest pageable = PageRequest.of(effectivePage, effectiveSize,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<tj.radolfa.domain.model.Review> reviewPage =
+                loadReviewPort.findAllForAdmin(statusFilter, pageable);
+
+        java.util.Set<Long> variantIds = reviewPage.getContent().stream()
+                .map(tj.radolfa.domain.model.Review::getListingVariantId)
+                .collect(java.util.stream.Collectors.toSet());
+        java.util.Map<Long, ListingVariant> variantMap =
+                loadListingVariantPort.findVariantsByIds(variantIds);
+
+        Page<ReviewAdminView> result = reviewPage.map(r -> {
+            ListingVariant variant = variantMap.get(r.getListingVariantId());
+            String slug = variant != null ? variant.getSlug() : "unknown";
+            return new ReviewAdminView(
+                    r.getId(), r.getListingVariantId(), slug,
+                    r.getAuthorName(), r.getRating(), r.getTitle(), r.getBody(),
+                    r.getPros(), r.getCons(), r.getMatchingSize(), r.getPhotos(),
+                    r.getStatus(), r.getSellerReply(), r.getCreatedAt());
+        });
+
+        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/api/v1/admin/reviews/{reviewId}/approve")

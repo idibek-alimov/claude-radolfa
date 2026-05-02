@@ -146,6 +146,7 @@ class RecalculateRatingSummaryServiceTest {
         @Override public boolean existsByOrderAndVariant(Long orderId, Long listingVariantId) { return false; }
         @Override public Page<Review> findApprovedByVariant(Long listingVariantId, ReviewFilter filter, Pageable pageable) { return Page.empty(); }
         @Override public List<Review> findPendingOldestFirst(int limit) { return List.of(); }
+        @Override public org.springframework.data.domain.Page<Review> findAllForAdmin(tj.radolfa.domain.model.ReviewStatus status, org.springframework.data.domain.Pageable p) { return org.springframework.data.domain.Page.empty(); }
     }
 
     static class FakeLoadReviewTraitPort implements LoadReviewTraitPort {

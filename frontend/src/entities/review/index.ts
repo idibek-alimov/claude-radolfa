@@ -17,6 +17,7 @@ export {
   uploadReviewPhotos,
   voteOnReview,
   fetchPendingReviews,
+  fetchAllAdminReviews,
   approveReview,
   rejectReview,
   replyToReview,

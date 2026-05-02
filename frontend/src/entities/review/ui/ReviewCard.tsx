@@ -7,7 +7,7 @@ import { ThumbsUp, ThumbsDown, Store, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { StarRating } from "@/shared/ui/StarRating";
 import { Button } from "@/shared/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
 import { ShareableReviewCard } from "./ShareableReviewCard";
 import { shareReview } from "../lib/shareReview";
@@ -190,20 +190,22 @@ export function ReviewCard({ review, showSellerReply = false, variant = "card" }
 
       {/* Share button */}
       <div className="flex justify-end">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
-              disabled={isSharing}
-              className="h-7 w-7 p-0"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t("share")}</TooltipContent>
-        </Tooltip>
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShare}
+                disabled={isSharing}
+                className="h-7 w-7 p-0"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("share")}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Off-screen share template */}

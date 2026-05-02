@@ -132,6 +132,7 @@ class VoteReviewServiceTest {
         @Override public List<Review> findAllApprovedByVariant(Long id) { return List.of(); }
         @Override public Page<Review> findApprovedByVariant(Long id, ReviewFilter f, Pageable p) { return Page.empty(); }
         @Override public List<Review> findPendingOldestFirst(int limit) { return List.of(); }
+        @Override public org.springframework.data.domain.Page<Review> findAllForAdmin(tj.radolfa.domain.model.ReviewStatus status, org.springframework.data.domain.Pageable p) { return org.springframework.data.domain.Page.empty(); }
     }
 
     static class FakeSaveReviewVotePort implements SaveReviewVotePort {

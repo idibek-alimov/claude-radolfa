@@ -69,6 +69,11 @@ public class ReviewAdapter implements LoadReviewPort, SaveReviewPort, AdjustRevi
                 .toList();
     }
 
+    @Override
+    public Page<Review> findAllForAdmin(ReviewStatus status, Pageable pageable) {
+        return reviewRepository.findAllForAdmin(status, pageable).map(mapper::toReview);
+    }
+
     // ---- AdjustReviewUpvotesPort ---------------------------------------
 
     @Override

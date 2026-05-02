@@ -24,6 +24,10 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
     @Query("UPDATE ReviewEntity r SET r.upvotes = r.upvotes + :delta WHERE r.id = :id")
     void adjustUpvotes(@Param("id") Long id, @Param("delta") int delta);
 
+    /** All reviews with an optional status filter — null status returns all statuses. */
+    @Query("SELECT r FROM ReviewEntity r WHERE (:status IS NULL OR r.status = :status)")
+    Page<ReviewEntity> findAllForAdmin(@Param("status") ReviewStatus status, Pageable pageable);
+
     /** Paginated approved reviews with optional hasPhotos, rating, and search filters. */
     @Query("""
             SELECT r FROM ReviewEntity r
