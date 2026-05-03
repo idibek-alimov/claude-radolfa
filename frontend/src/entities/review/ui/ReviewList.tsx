@@ -98,7 +98,7 @@ export function ReviewList({
 
   if (totalReviews === 0) return null;
 
-  const allPhotos = data?.content.flatMap((r) => r.photoUrls) ?? [];
+  const allPhotos = data?.content?.flatMap((r) => r.photoUrls) ?? [];
   const reviewsPageUrl = `/products/${slug}/reviews`;
 
   const sortOptions: { value: ReviewSortOption; label: string }[] = [

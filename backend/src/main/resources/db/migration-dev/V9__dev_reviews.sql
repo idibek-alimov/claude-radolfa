@@ -138,6 +138,37 @@ INSERT INTO orders (user_id, external_order_id, status, total_amount, version, c
     ((SELECT id FROM users WHERE phone = '+992903456789'), 'SO-2026-00013', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '11 days', NOW() - INTERVAL '10 days'),
     ((SELECT id FROM users WHERE phone = '+992904567890'), 'SO-2026-00014', 'DELIVERED', 25.00, 0, NOW() - INTERVAL '12 days', NOW() - INTERVAL '11 days');
 
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00007'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M'), 'TPL-TSHIRT-001-MBK-M', 'Essential Cotton T-Shirt Midnight Black - M', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00008'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M'), 'TPL-TSHIRT-001-MBK-M', 'Essential Cotton T-Shirt Midnight Black - M', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00009'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-L'), 'TPL-TSHIRT-001-MBK-L', 'Essential Cotton T-Shirt Midnight Black - L', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-L');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00010'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-S'), 'TPL-TSHIRT-001-MBK-S', 'Essential Cotton T-Shirt Midnight Black - S', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-S');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00011'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M'), 'TPL-TSHIRT-001-MBK-M', 'Essential Cotton T-Shirt Midnight Black - M', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00012'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-L'), 'TPL-TSHIRT-001-MBK-L', 'Essential Cotton T-Shirt Midnight Black - L', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-L');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00013'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M'), 'TPL-TSHIRT-001-MBK-M', 'Essential Cotton T-Shirt Midnight Black - M', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M');
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+SELECT (SELECT id FROM orders WHERE external_order_id = 'SO-2026-00014'), (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-S'), 'TPL-TSHIRT-001-MBK-S', 'Essential Cotton T-Shirt Midnight Black - S', 1, 25.00
+WHERE EXISTS (SELECT 1 FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-S');
 
 -- ================================================================
 -- 2. APPROVED REVIEWS
