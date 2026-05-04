@@ -1,0 +1,12 @@
+package tj.radolfa.application.ports.out;
+
+import tj.radolfa.domain.model.Pickpoint;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface LoadPickpointPort {
+    List<Pickpoint> findAll();
+    List<Pickpoint> findAllActive();
+    Optional<Pickpoint> findById(Long id);
+}
