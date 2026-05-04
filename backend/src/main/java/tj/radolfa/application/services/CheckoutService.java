@@ -164,7 +164,8 @@ public class CheckoutService implements CheckoutUseCase {
         // 9. Persist order
         Order newOrder = new Order(null, command.userId(), null,
                 OrderStatus.PENDING, total, orderItems, Instant.now(),
-                pointsToRedeem, 0);
+                pointsToRedeem, 0,
+                null, null, null, null);
         Order saved = saveOrderPort.save(newOrder);
 
         // 10. Record one discount_application row per stacked discount layer per line

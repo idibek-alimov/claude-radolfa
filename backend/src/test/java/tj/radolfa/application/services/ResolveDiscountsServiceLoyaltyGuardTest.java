@@ -117,7 +117,8 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
                         i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice()))
                 .toList();
         return new Order(100L, order.userId(), null, OrderStatus.PENDING, order.totalAmount(),
-                itemsWithIds, order.createdAt(), 0, 0);
+                itemsWithIds, order.createdAt(), 0, 0,
+                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId());
     };
 
     static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {

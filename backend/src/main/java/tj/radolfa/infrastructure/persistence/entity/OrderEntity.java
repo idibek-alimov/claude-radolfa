@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.math.BigDecimal;
@@ -48,6 +49,19 @@ public class OrderEntity extends BaseAuditEntity {
 
     @Column(name = "loyalty_points_awarded", nullable = false)
     private int loyaltyPointsAwarded;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type", length = 50)
+    private DeliveryType deliveryType;
+
+    @Column(name = "delivery_address", columnDefinition = "TEXT")
+    private String deliveryAddress;
+
+    @Column(name = "preferred_time_window", length = 255)
+    private String preferredTimeWindow;
+
+    @Column(name = "pickpoint_id")
+    private Long pickpointId;
 
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)

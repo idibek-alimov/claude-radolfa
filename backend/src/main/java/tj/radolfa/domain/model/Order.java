@@ -13,7 +13,11 @@ public record Order(
         List<OrderItem> items,
         Instant createdAt,
         int loyaltyPointsRedeemed,
-        int loyaltyPointsAwarded) {
+        int loyaltyPointsAwarded,
+        DeliveryType deliveryType,
+        String deliveryAddress,
+        String preferredTimeWindow,
+        Long pickpointId) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);
