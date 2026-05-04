@@ -311,7 +311,7 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="divide-y">
                     {orders.map((order) => (
                       <OrderHistoryCard key={order.id} order={order} />
                     ))}

@@ -124,7 +124,7 @@ function WriteReviewButton({
   return (
     <>
       <Button
-        variant="outline"
+        variant="default"
         size="sm"
         className="h-6 text-[10px] px-1.5 gap-1 shrink-0"
         onClick={() => setReviewOpen(true)}
@@ -191,6 +191,7 @@ function OrderDetailsAccordion({ order }: { order: Order }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="bg-muted/50 text-muted-foreground">
+            <th className="px-3 py-2 w-12" />
             <th className="text-left px-3 py-2 font-medium">{t("product")}</th>
             <th className="text-left px-3 py-2 font-medium hidden sm:table-cell">{t("sizeLabel")}</th>
             <th className="text-left px-3 py-2 font-medium hidden sm:table-cell">{t("skuCode")}</th>
@@ -202,6 +203,24 @@ function OrderDetailsAccordion({ order }: { order: Order }) {
         <tbody className="divide-y">
           {order.items.map((item, idx) => (
             <tr key={idx} className="hover:bg-muted/20 transition-colors">
+              <td className="px-3 py-2">
+                <div className="relative h-10 w-10 rounded-md border overflow-hidden bg-muted shrink-0">
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.productName}
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </td>
               <td className="px-3 py-2 font-medium max-w-[140px] truncate">{item.productName}</td>
               <td className="px-3 py-2 text-muted-foreground hidden sm:table-cell">
                 {item.sizeLabel ?? "—"}
@@ -268,7 +287,7 @@ export function OrderHistoryCard({ order }: { order: Order }) {
   });
 
   return (
-    <div className="border rounded-xl p-4 hover:border-primary/20 transition-colors">
+    <div className="py-5">
       {/* Header row */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2 flex-wrap">
@@ -310,32 +329,6 @@ export function OrderHistoryCard({ order }: { order: Order }) {
             {new Date(order.createdAt).toLocaleDateString()}
           </span>
         </div>
-      </div>
-
-      {/* Thumbnail strip */}
-      <div className="flex gap-2 overflow-x-auto py-1 scrollbar-none">
-        {order.items.map((item, idx) => (
-          <div
-            key={idx}
-            className="relative h-12 w-12 rounded-lg border overflow-hidden shrink-0 bg-muted"
-            title={item.productName}
-          >
-            {item.imageUrl ? (
-              <Image
-                src={item.imageUrl}
-                alt={item.productName}
-                fill
-                sizes="48px"
-                className="object-cover"
-                unoptimized
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-        ))}
       </div>
 
       {/* Status timeline */}
