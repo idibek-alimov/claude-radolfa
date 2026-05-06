@@ -1,8 +1,13 @@
 import apiClient from "@/shared/api/axios";
+import type { DeliveryType } from "./model/types";
 
 export interface CheckoutRequest {
   loyaltyPointsToRedeem: number;
   notes?: string;
+  deliveryType: DeliveryType;
+  address?: string;
+  preferredTimeWindow?: string;
+  pickpointId?: number;
 }
 
 export interface CheckoutResponse {

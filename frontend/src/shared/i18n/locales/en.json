@@ -391,6 +391,31 @@
       "NOT_ACTIVE": "This coupon is outside its validity period",
       "CAP_EXHAUSTED": "This coupon has reached its usage limit",
       "NO_ITEMS_AFFECTED": "This coupon does not apply to items in your cart"
+    },
+    "delivery": {
+      "title": "Delivery Method",
+      "home": {
+        "title": "Home Delivery",
+        "description": "We'll deliver to your address.",
+        "addressLabel": "Delivery address",
+        "addressPlaceholder": "Street, building, apartment…",
+        "addressRequired": "Address is required for home delivery.",
+        "timeWindowLabel": "Preferred time window"
+      },
+      "pickpoint": {
+        "title": "Pickup Point",
+        "description": "Collect your order at a pickup location.",
+        "selectLabel": "Select pickup point",
+        "selectPlaceholder": "Choose a location",
+        "loading": "Loading pickup points…",
+        "empty": "No pickup points available right now.",
+        "required": "Please select a pickup point."
+      },
+      "timeWindow": {
+        "MORNING": "09:00 – 12:00",
+        "AFTERNOON": "12:00 – 18:00",
+        "EVENING": "Evening (18:00 – 21:00)"
+      }
     }
   },
   "payment": {

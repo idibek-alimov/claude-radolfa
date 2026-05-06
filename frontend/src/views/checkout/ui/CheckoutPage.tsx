@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { ApplyCouponResponse } from "@/entities/cart";
+import { useActivePickpoints } from "@/entities/pickpoint";
 import {
   ShoppingBag,
   AlertTriangle,
@@ -17,10 +18,20 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { cn } from "@/shared/lib/utils";
 import { useCartQuery, useApplyCoupon, useRemoveCoupon } from "@/features/cart";
 import { useAuth } from "@/features/auth";
-import { checkout } from "@/features/checkout";
+import { checkout, TIME_WINDOW_CODES, type DeliveryType, type TimeWindowCode } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { getErrorMessage, isCouponsEnabled } from "@/shared/lib";
 
@@ -31,6 +42,7 @@ export function CheckoutPage() {
   const { user } = useAuth();
 
   const { data: cart, isLoading: loadingCart } = useCartQuery();
+  const { data: pickpoints, isLoading: pickpointsLoading } = useActivePickpoints();
 
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [notes, setNotes] = useState("");
@@ -38,6 +50,12 @@ export function CheckoutPage() {
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
   const [affectedCount, setAffectedCount] = useState<number | null>(null);
+
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("HOME");
+  const [address, setAddress] = useState("");
+  const [timeWindow, setTimeWindow] = useState<TimeWindowCode>("MORNING");
+  const [pickpointId, setPickpointId] = useState<number | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const applyCouponMutation = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
@@ -64,9 +82,20 @@ export function CheckoutPage() {
   const availablePoints = user?.loyalty?.points ?? 0;
   const hasOutOfStockItems = cart?.items.some((i) => !i.inStock) ?? false;
 
+  const addressMissing = deliveryType === "HOME" && address.trim().length === 0;
+  const pickpointMissing = deliveryType === "PICKPOINT" && pickpointId === null;
+  const deliveryInvalid = addressMissing || pickpointMissing;
+
   const checkoutMutation = useMutation({
     mutationFn: () =>
-      checkout({ loyaltyPointsToRedeem: pointsToRedeem, notes: notes || undefined }),
+      checkout({
+        loyaltyPointsToRedeem: pointsToRedeem,
+        notes: notes || undefined,
+        deliveryType,
+        address: deliveryType === "HOME" ? address.trim() : undefined,
+        preferredTimeWindow: deliveryType === "HOME" ? timeWindow : undefined,
+        pickpointId: deliveryType === "PICKPOINT" ? (pickpointId ?? undefined) : undefined,
+      }),
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
@@ -272,6 +301,139 @@ export function CheckoutPage() {
         </div>
       )}
 
+      {/* Delivery method */}
+      <div className="rounded-xl border bg-card shadow-sm p-5">
+        <h2 className="font-semibold mb-3">{t("delivery.title")}</h2>
+
+        <RadioGroup
+          value={deliveryType}
+          onValueChange={(v) => {
+            setDeliveryType(v as DeliveryType);
+            setSubmitted(false);
+          }}
+          className="space-y-3"
+        >
+          {/* HOME card */}
+          <div
+            className={cn(
+              "flex flex-col gap-3 rounded-xl border p-4 transition-colors",
+              deliveryType === "HOME"
+                ? "border-primary/40 bg-primary/5"
+                : "border-border bg-muted/30"
+            )}
+          >
+            <div className="flex items-start gap-3">
+              <RadioGroupItem value="HOME" id="delivery-home" className="mt-0.5" />
+              <Label htmlFor="delivery-home" className="cursor-pointer">
+                <p className="text-sm font-medium">{t("delivery.home.title")}</p>
+                <p className="text-xs text-muted-foreground">{t("delivery.home.description")}</p>
+              </Label>
+            </div>
+
+            {deliveryType === "HOME" && (
+              <div className="pl-6 space-y-3">
+                <div>
+                  <Label htmlFor="delivery-address" className="text-xs">
+                    {t("delivery.home.addressLabel")}
+                  </Label>
+                  <Input
+                    id="delivery-address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder={t("delivery.home.addressPlaceholder")}
+                    className="mt-1"
+                  />
+                  {submitted && addressMissing && (
+                    <p className="text-xs text-destructive mt-1">
+                      {t("delivery.home.addressRequired")}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="delivery-window" className="text-xs">
+                    {t("delivery.home.timeWindowLabel")}
+                  </Label>
+                  <Select
+                    value={timeWindow}
+                    onValueChange={(v) => setTimeWindow(v as TimeWindowCode)}
+                  >
+                    <SelectTrigger id="delivery-window" className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIME_WINDOW_CODES.map((code) => (
+                        <SelectItem key={code} value={code}>
+                          {t(`delivery.timeWindow.${code}` as Parameters<typeof t>[0])}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* PICKPOINT card */}
+          <div
+            className={cn(
+              "flex flex-col gap-3 rounded-xl border p-4 transition-colors",
+              deliveryType === "PICKPOINT"
+                ? "border-primary/40 bg-primary/5"
+                : "border-border bg-muted/30"
+            )}
+          >
+            <div className="flex items-start gap-3">
+              <RadioGroupItem value="PICKPOINT" id="delivery-pickpoint" className="mt-0.5" />
+              <Label htmlFor="delivery-pickpoint" className="cursor-pointer">
+                <p className="text-sm font-medium">{t("delivery.pickpoint.title")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("delivery.pickpoint.description")}
+                </p>
+              </Label>
+            </div>
+
+            {deliveryType === "PICKPOINT" && (
+              <div className="pl-6 space-y-2">
+                {pickpointsLoading ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t("delivery.pickpoint.loading")}
+                  </p>
+                ) : !pickpoints || pickpoints.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("delivery.pickpoint.empty")}</p>
+                ) : (
+                  <>
+                    <Label htmlFor="delivery-pickpoint-select" className="text-xs">
+                      {t("delivery.pickpoint.selectLabel")}
+                    </Label>
+                    <Select
+                      value={pickpointId !== null ? String(pickpointId) : ""}
+                      onValueChange={(v) => setPickpointId(Number(v))}
+                    >
+                      <SelectTrigger id="delivery-pickpoint-select">
+                        <SelectValue placeholder={t("delivery.pickpoint.selectPlaceholder")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pickpoints.map((pp) => (
+                          <SelectItem key={pp.id} value={String(pp.id)}>
+                            {pp.name} — {pp.address}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {submitted && pickpointMissing && (
+                      <p className="text-xs text-destructive mt-1">
+                        {t("delivery.pickpoint.required")}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </RadioGroup>
+      </div>
+
       {/* Notes */}
       <div className="rounded-xl border bg-card shadow-sm p-5">
         <h2 className="font-semibold mb-3">{t("notes")}</h2>
@@ -307,8 +469,11 @@ export function CheckoutPage() {
       {/* Place Order */}
       <Button
         className="w-full h-12 text-base font-semibold"
-        disabled={hasOutOfStockItems || checkoutMutation.isPending}
-        onClick={() => checkoutMutation.mutate()}
+        disabled={hasOutOfStockItems || checkoutMutation.isPending || deliveryInvalid}
+        onClick={() => {
+          setSubmitted(true);
+          checkoutMutation.mutate();
+        }}
       >
         {checkoutMutation.isPending ? t("placing") : t("placeOrder")}
       </Button>
