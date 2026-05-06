@@ -298,7 +298,15 @@
         "statusLabel": "Вазъиятро тағйир додан",
         "statusUpdated": "Вазъият навсозӣ шуд",
         "statusUpdateFailed": "Навсозии вазъият нашуд",
-        "noNextStatus": "Гузариши минбаъда дастрас нест"
+        "noNextStatus": "Гузариши минбаъда дастрас нест",
+        "shipmentSection": "Фиристодан",
+        "courierName": "Курьер",
+        "courierNamePlaceholder": "масалан DHL, Ҳаҷималӣ",
+        "courierNameRequired": "Номи курьерро нишон диҳед",
+        "trackingNumber": "Рақами пайгирӣ",
+        "trackingNumberPlaceholder": "Ихтиёрӣ",
+        "estimatedDeliveryDate": "Санаи тахминии расонидан",
+        "markAsShipped": "Фиристода шуд"
       },
       "empty": "Фармоишҳо ёфт нашуданд.",
       "page": "Саҳ. {page}",
@@ -379,7 +387,11 @@
     "reviewProgressTitle": "Пешрафти шарҳҳо",
     "reviewProgressSubtitle": "Шумо {reviewed} аз {total} молро шарҳ додед",
     "earnPointsForNextReview": "Барои шарҳи навбатӣ {points} балл ба даст оред",
-    "reviewProgressAllDone": "Шумо ҳама харидҳои худро шарҳ додед — ташаккур!"
+    "reviewProgressAllDone": "Шумо ҳама харидҳои худро шарҳ додед — ташаккур!",
+    "shipmentTitle": "Тафсилоти фиристодан",
+    "courierLabel": "Курьер",
+    "trackingLabel": "Рақами пайгирӣ",
+    "estimatedDeliveryLabel": "Санаи тахминии расонидан"
   },
   "cart": {
     "title": "Сабади шумо",

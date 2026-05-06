@@ -6,6 +6,7 @@ import tj.radolfa.domain.model.Pickpoint;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 public record AdminOrderDetailDto(
@@ -23,12 +24,15 @@ public record AdminOrderDetailDto(
         String preferredTimeWindow,
         Long pickpointId,
         String pickpointName,
-        String pickpointAddress) {
+        String pickpointAddress,
+        String courierName,
+        String trackingNumber,
+        LocalDate estimatedDeliveryDate) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
                                            List<OrderItemDto> enrichedItems) {
-        Order order    = result.order();
-        Pickpoint pp   = result.pickpoint().orElse(null);
+        Order order = result.order();
+        Pickpoint pp = result.pickpoint().orElse(null);
 
         return new AdminOrderDetailDto(
                 order.id(),
@@ -45,7 +49,10 @@ public record AdminOrderDetailDto(
                 order.preferredTimeWindow(),
                 order.pickpointId(),
                 pp != null ? pp.name()    : null,
-                pp != null ? pp.address() : null
+                pp != null ? pp.address() : null,
+                order.courierName(),
+                order.trackingNumber(),
+                order.estimatedDeliveryDate()
         );
     }
 }

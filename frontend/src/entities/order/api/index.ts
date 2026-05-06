@@ -51,11 +51,29 @@ export function useAdminOrder(orderId: number | null) {
 export function useUpdateOrderStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ orderId, status }: { orderId: number; status: OrderStatus }) =>
-      apiClient.patch(`/api/v1/orders/${orderId}/status`, { status }),
+    mutationFn: ({
+      orderId,
+      status,
+      courierName,
+      trackingNumber,
+      estimatedDeliveryDate,
+    }: {
+      orderId: number;
+      status: OrderStatus;
+      courierName?: string;
+      trackingNumber?: string;
+      estimatedDeliveryDate?: string;
+    }) =>
+      apiClient.patch(`/api/v1/orders/${orderId}/status`, {
+        status,
+        courierName: courierName?.trim() || undefined,
+        trackingNumber: trackingNumber?.trim() || undefined,
+        estimatedDeliveryDate: estimatedDeliveryDate || undefined,
+      }),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["admin-orders"] });
       qc.invalidateQueries({ queryKey: ["admin-order", vars.orderId] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
     },
   });
 }

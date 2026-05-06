@@ -298,7 +298,15 @@
         "statusLabel": "Update status",
         "statusUpdated": "Status updated",
         "statusUpdateFailed": "Failed to update status",
-        "noNextStatus": "No further transitions available"
+        "noNextStatus": "No further transitions available",
+        "shipmentSection": "Shipment",
+        "courierName": "Courier",
+        "courierNamePlaceholder": "e.g. DHL, Hajimali",
+        "courierNameRequired": "Courier name is required",
+        "trackingNumber": "Tracking number",
+        "trackingNumberPlaceholder": "Optional",
+        "estimatedDeliveryDate": "Estimated delivery",
+        "markAsShipped": "Mark as Shipped"
       },
       "empty": "No orders found.",
       "page": "Page {page}",
@@ -379,7 +387,11 @@
     "reviewProgressTitle": "Review Progress",
     "reviewProgressSubtitle": "You've reviewed {reviewed} of {total} items",
     "earnPointsForNextReview": "Earn {points} points for your next review",
-    "reviewProgressAllDone": "You've reviewed all your purchases — thank you!"
+    "reviewProgressAllDone": "You've reviewed all your purchases — thank you!",
+    "shipmentTitle": "Shipment details",
+    "courierLabel": "Courier",
+    "trackingLabel": "Tracking number",
+    "estimatedDeliveryLabel": "Estimated delivery"
   },
   "cart": {
     "title": "Your Cart",

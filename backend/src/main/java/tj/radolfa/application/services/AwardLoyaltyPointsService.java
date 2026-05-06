@@ -83,7 +83,8 @@ public class AwardLoyaltyPointsService implements AwardLoyaltyPointsUseCase {
                 order.id(), order.userId(), order.externalOrderId(),
                 order.status(), order.totalAmount(), order.items(), order.createdAt(),
                 order.loyaltyPointsRedeemed(), earnedPoints,
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId());
+                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
+                order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate());
         saveOrderPort.save(recorded);
     }
 }

@@ -334,6 +334,34 @@ export function OrderHistoryCard({ order }: { order: Order }) {
       {/* Status timeline */}
       <OrderTimeline status={order.status} />
 
+      {/* Shipment details (SHIPPED / DELIVERED, courier data present) */}
+      {order.courierName && (order.status === "SHIPPED" || order.status === "DELIVERED") && (
+        <div className="mt-3 rounded-xl border bg-muted/30 p-3 space-y-1.5 text-xs">
+          <div className="flex items-center gap-1.5 text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+            <Truck className="h-3.5 w-3.5" />
+            {t("shipmentTitle")}
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t("courierLabel")}</span>
+            <span className="font-medium">{order.courierName}</span>
+          </div>
+          {order.trackingNumber && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("trackingLabel")}</span>
+              <span className="font-medium font-mono">{order.trackingNumber}</span>
+            </div>
+          )}
+          {order.estimatedDeliveryDate && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("estimatedDeliveryLabel")}</span>
+              <span className="font-medium">
+                {new Date(order.estimatedDeliveryDate).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* View Details toggle */}
       <Button
         variant="ghost"

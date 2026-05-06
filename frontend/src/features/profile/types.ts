@@ -23,6 +23,9 @@ export interface Order {
     createdAt: string;
     loyaltyPointsRedeemed: number;
     loyaltyPointsAwarded: number;
+    courierName: string | null;
+    trackingNumber: string | null;
+    estimatedDeliveryDate: string | null;
 }
 
 export interface UpdateProfileRequest {

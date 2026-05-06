@@ -20,7 +20,8 @@ class ListAdminOrdersServiceTest {
     private static Order order(Long id) {
         return new Order(id, 1L, null, OrderStatus.PENDING,
                 new Money(BigDecimal.TEN), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null);
+                0, 0, DeliveryType.HOME, "Addr", null, null,
+                null, null, null);
     }
 
     private static LoadAdminOrdersPort.OrderRow row(Long id) {

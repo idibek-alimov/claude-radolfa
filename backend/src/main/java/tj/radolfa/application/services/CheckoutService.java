@@ -176,7 +176,8 @@ public class CheckoutService implements CheckoutUseCase {
                 command.deliveryType(),
                 command.address(),
                 command.preferredTimeWindow(),
-                command.pickpointId());
+                command.pickpointId(),
+                null, null, null);
         Order saved = saveOrderPort.save(newOrder);
 
         // 10. Record one discount_application row per stacked discount layer per line

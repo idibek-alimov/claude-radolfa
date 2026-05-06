@@ -25,6 +25,7 @@ import tj.radolfa.infrastructure.web.dto.CheckoutRequestDto;
 import tj.radolfa.infrastructure.web.dto.CheckoutResponseDto;
 import tj.radolfa.infrastructure.web.dto.OrderDto;
 import tj.radolfa.infrastructure.web.dto.OrderItemDto;
+import tj.radolfa.infrastructure.web.dto.UpdateOrderStatusRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -102,22 +103,22 @@ public class OrderController {
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update order status (ADMIN only: PENDING→PAID→SHIPPED→DELIVERED)")
+    @Operation(summary = "Update order status (ADMIN only: PENDING→PAID→SHIPPED→DELIVERED). courierName required for HOME→SHIPPED.")
     public ResponseEntity<Void> updateStatus(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody UpdateOrderStatusRequest body) {
 
-        String statusStr = body.get("status");
-        if (statusStr == null || statusStr.isBlank()) {
+        if (body.status() == null || body.status().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
         OrderStatus newStatus;
         try {
-            newStatus = OrderStatus.valueOf(statusStr.toUpperCase());
+            newStatus = OrderStatus.valueOf(body.status().toUpperCase());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
-        updateOrderStatusUseCase.execute(id, newStatus);
+        updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
+                id, newStatus, body.courierName(), body.trackingNumber(), body.estimatedDeliveryDate()));
         return ResponseEntity.noContent().build();
     }
 
@@ -184,6 +185,9 @@ public class OrderController {
                 order.preferredTimeWindow(),
                 order.pickpointId(),
                 pickpoint != null ? pickpoint.name()    : null,
-                pickpoint != null ? pickpoint.address() : null);
+                pickpoint != null ? pickpoint.address() : null,
+                order.courierName(),
+                order.trackingNumber(),
+                order.estimatedDeliveryDate());
     }
 }

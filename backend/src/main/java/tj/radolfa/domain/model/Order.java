@@ -1,6 +1,7 @@
 package tj.radolfa.domain.model;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,7 +18,10 @@ public record Order(
         DeliveryType deliveryType,
         String deliveryAddress,
         String preferredTimeWindow,
-        Long pickpointId) {
+        Long pickpointId,
+        String courierName,
+        String trackingNumber,
+        LocalDate estimatedDeliveryDate) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);

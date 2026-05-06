@@ -11,6 +11,7 @@ import tj.radolfa.domain.model.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +63,15 @@ public class OrderEntity extends BaseAuditEntity {
 
     @Column(name = "pickpoint_id")
     private Long pickpointId;
+
+    @Column(name = "courier_name")
+    private String courierName;
+
+    @Column(name = "tracking_number")
+    private String trackingNumber;
+
+    @Column(name = "estimated_delivery_date")
+    private LocalDate estimatedDeliveryDate;
 
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)

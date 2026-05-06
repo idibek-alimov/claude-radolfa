@@ -85,7 +85,8 @@ public class CancelOrderService implements CancelOrderUseCase {
         Order cancelled = new Order(order.id(), order.userId(), order.externalOrderId(),
                 OrderStatus.CANCELLED, order.totalAmount(), order.items(), order.createdAt(),
                 order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId());
+                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
+                order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate());
         saveOrderPort.save(cancelled);
     }
 }

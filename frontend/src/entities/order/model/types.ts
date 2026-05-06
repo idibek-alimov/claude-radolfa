@@ -56,4 +56,7 @@ export interface AdminOrderDetail {
   pickpointId: number | null;
   pickpointName: string | null;
   pickpointAddress: string | null;
+  courierName: string | null;
+  trackingNumber: string | null;
+  estimatedDeliveryDate: string | null;
 }

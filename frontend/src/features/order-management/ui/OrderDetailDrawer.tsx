@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { X, MapPin, Home, Package } from "lucide-react";
+import { X, MapPin, Home, Package, Truck } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -11,6 +12,8 @@ import {
   SheetTitle,
 } from "@/shared/ui/sheet";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 import {
   Select,
   SelectContent,
@@ -44,6 +47,11 @@ export function OrderDetailDrawer({ orderId, onOpenChange }: Props) {
   const { data: order, isLoading } = useAdminOrder(orderId);
   const updateStatus = useUpdateOrderStatus();
 
+  const [courierName, setCourierName] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState("");
+  const [courierError, setCourierError] = useState(false);
+
   function handleStatusChange(newStatus: OrderStatus) {
     if (!orderId) return;
     updateStatus.mutate(
@@ -55,7 +63,36 @@ export function OrderDetailDrawer({ orderId, onOpenChange }: Props) {
     );
   }
 
+  function handleMarkShipped() {
+    if (!orderId) return;
+    if (!courierName.trim()) {
+      setCourierError(true);
+      return;
+    }
+    setCourierError(false);
+    updateStatus.mutate(
+      {
+        orderId,
+        status: "SHIPPED",
+        courierName: courierName.trim(),
+        trackingNumber: trackingNumber.trim() || undefined,
+        estimatedDeliveryDate: estimatedDeliveryDate || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success(t("statusUpdated"));
+          setCourierName("");
+          setTrackingNumber("");
+          setEstimatedDeliveryDate("");
+        },
+        onError: (err) => toast.error(getErrorMessage(err, t("statusUpdateFailed"))),
+      }
+    );
+  }
+
   const nextStatus = order ? NEXT_STATUS[order.status] : null;
+  const showShipmentForm =
+    order?.status === "PAID" && order?.deliveryType === "HOME";
 
   return (
     <Sheet open={orderId !== null} onOpenChange={onOpenChange}>
@@ -192,12 +229,93 @@ export function OrderDetailDrawer({ orderId, onOpenChange }: Props) {
                 )}
               </section>
 
+              {/* Shipment info (read-only, shown when courier data exists) */}
+              {order.courierName && (
+                <section className="rounded-xl border bg-muted/30 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Truck className="h-4 w-4 text-primary" />
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      {t("shipmentSection")}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{t("courierName")}</span>
+                      <span className="font-medium">{order.courierName}</span>
+                    </div>
+                    {order.trackingNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t("trackingNumber")}</span>
+                        <span className="font-medium font-mono text-xs">{order.trackingNumber}</span>
+                      </div>
+                    )}
+                    {order.estimatedDeliveryDate && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t("estimatedDeliveryDate")}</span>
+                        <span className="font-medium">
+                          {new Date(order.estimatedDeliveryDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
               {/* Status transition */}
               <section>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                   {t("statusLabel")}
                 </p>
-                {nextStatus ? (
+
+                {showShipmentForm ? (
+                  <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="courier-name" className="text-xs">
+                        {t("courierName")} <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="courier-name"
+                        value={courierName}
+                        onChange={(e) => { setCourierName(e.target.value); setCourierError(false); }}
+                        placeholder={t("courierNamePlaceholder")}
+                        className={courierError ? "border-destructive" : ""}
+                      />
+                      {courierError && (
+                        <p className="text-destructive text-xs">{t("courierNameRequired")}</p>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="tracking-number" className="text-xs">
+                        {t("trackingNumber")}
+                      </Label>
+                      <Input
+                        id="tracking-number"
+                        value={trackingNumber}
+                        onChange={(e) => setTrackingNumber(e.target.value)}
+                        placeholder={t("trackingNumberPlaceholder")}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edd" className="text-xs">
+                        {t("estimatedDeliveryDate")}
+                      </Label>
+                      <Input
+                        id="edd"
+                        type="date"
+                        value={estimatedDeliveryDate}
+                        onChange={(e) => setEstimatedDeliveryDate(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={handleMarkShipped}
+                      disabled={updateStatus.isPending}
+                    >
+                      <Truck className="h-4 w-4 mr-2" />
+                      {t("markAsShipped")}
+                    </Button>
+                  </div>
+                ) : nextStatus ? (
                   <Select
                     value=""
                     onValueChange={(v) => handleStatusChange(v as OrderStatus)}

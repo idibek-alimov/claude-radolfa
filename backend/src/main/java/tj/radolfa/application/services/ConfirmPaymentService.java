@@ -66,7 +66,8 @@ public class ConfirmPaymentService implements ConfirmPaymentUseCase {
         savePaymentPort.save(completed);
 
         // Transition order to PAID
-        updateOrderStatusUseCase.execute(payment.orderId(), OrderStatus.PAID);
+        updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
+                payment.orderId(), OrderStatus.PAID, null, null, null));
 
         // Award loyalty points (Phase 9 provides real implementation)
         Long userId = loadOrderPort.loadById(payment.orderId())

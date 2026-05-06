@@ -5,13 +5,17 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
+
+import java.time.LocalDate;
 
 /**
  * ADMIN-only service: transitions an order through the fulfilment pipeline.
  *
  * <p>Legal forward path: PENDING → PAID → SHIPPED → DELIVERED.
+ * HOME orders transitioning to SHIPPED require {@code courierName}.
  * Cancellation is handled separately by {@link CancelOrderService}.
  */
 @Service
@@ -28,17 +32,33 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 
     @Override
     @Transactional
-    public void execute(Long orderId, OrderStatus newStatus) {
-        Order order = loadOrderPort.loadById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+    public void execute(Command command) {
+        Order order = loadOrderPort.loadById(command.orderId())
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + command.orderId()));
 
-        validateTransition(order.status(), newStatus);
+        validateTransition(order.status(), command.newStatus());
+        validateCourierFields(order, command);
 
-        Order updated = new Order(order.id(), order.userId(), order.externalOrderId(),
-                newStatus, order.totalAmount(), order.items(), order.createdAt(),
+        boolean toShipped = command.newStatus() == OrderStatus.SHIPPED;
+        String courierName    = toShipped ? command.courierName()            : order.courierName();
+        String trackingNumber = toShipped ? command.trackingNumber()         : order.trackingNumber();
+        LocalDate edd         = toShipped ? command.estimatedDeliveryDate()  : order.estimatedDeliveryDate();
+
+        Order updated = new Order(
+                order.id(), order.userId(), order.externalOrderId(),
+                command.newStatus(), order.totalAmount(), order.items(), order.createdAt(),
                 order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId());
+                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
+                courierName, trackingNumber, edd);
         saveOrderPort.save(updated);
+    }
+
+    private void validateCourierFields(Order order, Command command) {
+        if (command.newStatus() == OrderStatus.SHIPPED
+                && order.deliveryType() == DeliveryType.HOME
+                && (command.courierName() == null || command.courierName().isBlank())) {
+            throw new IllegalArgumentException("Courier name is required when shipping a home delivery");
+        }
     }
 
     private void validateTransition(OrderStatus from, OrderStatus to) {
@@ -47,10 +67,10 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
                     "Use the cancel endpoint to cancel an order.");
         }
         boolean valid = switch (from) {
-            case PENDING  -> to == OrderStatus.PAID;
-            case PAID     -> to == OrderStatus.SHIPPED;
-            case SHIPPED  -> to == OrderStatus.DELIVERED;
-            default       -> false;
+            case PENDING -> to == OrderStatus.PAID;
+            case PAID    -> to == OrderStatus.SHIPPED;
+            case SHIPPED -> to == OrderStatus.DELIVERED;
+            default      -> false;
         };
         if (!valid) {
             throw new IllegalArgumentException(

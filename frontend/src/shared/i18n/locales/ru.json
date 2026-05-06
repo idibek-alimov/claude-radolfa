@@ -298,7 +298,15 @@
         "statusLabel": "Изменить статус",
         "statusUpdated": "Статус обновлён",
         "statusUpdateFailed": "Не удалось обновить статус",
-        "noNextStatus": "Дальнейшие переходы недоступны"
+        "noNextStatus": "Дальнейшие переходы недоступны",
+        "shipmentSection": "Отправка",
+        "courierName": "Курьер",
+        "courierNamePlaceholder": "напр. DHL, Хаджимали",
+        "courierNameRequired": "Укажите имя курьера",
+        "trackingNumber": "Номер отслеживания",
+        "trackingNumberPlaceholder": "Необязательно",
+        "estimatedDeliveryDate": "Ожидаемая доставка",
+        "markAsShipped": "Отметить отправленным"
       },
       "empty": "Заказы не найдены.",
       "page": "Стр. {page}",
@@ -379,7 +387,11 @@
     "reviewProgressTitle": "Прогресс отзывов",
     "reviewProgressSubtitle": "Вы оценили {reviewed} из {total} товаров",
     "earnPointsForNextReview": "Заработайте {points} баллов за следующий отзыв",
-    "reviewProgressAllDone": "Вы оценили все свои покупки — спасибо!"
+    "reviewProgressAllDone": "Вы оценили все свои покупки — спасибо!",
+    "shipmentTitle": "Детали отправки",
+    "courierLabel": "Курьер",
+    "trackingLabel": "Номер отслеживания",
+    "estimatedDeliveryLabel": "Ожидаемая доставка"
   },
   "cart": {
     "title": "Ваша корзина",

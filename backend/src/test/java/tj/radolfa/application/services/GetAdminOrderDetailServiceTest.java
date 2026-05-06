@@ -36,14 +36,16 @@ class GetAdminOrderDetailServiceTest {
         return new Order(10L, 1L, null, OrderStatus.PAID,
                 new Money(BigDecimal.valueOf(200)), List.of(),
                 Instant.now(), 0, 0,
-                DeliveryType.HOME, "Main St 1", "MORNING", null);
+                DeliveryType.HOME, "Main St 1", "MORNING", null,
+                null, null, null);
     }
 
     static Order pickpointOrder(Long ppId) {
         return new Order(11L, 1L, null, OrderStatus.PENDING,
                 new Money(BigDecimal.valueOf(150)), List.of(),
                 Instant.now(), 0, 0,
-                DeliveryType.PICKPOINT, null, null, ppId);
+                DeliveryType.PICKPOINT, null, null, ppId,
+                null, null, null);
     }
 
     static LoadOrderPort orderPort(Order order) {
