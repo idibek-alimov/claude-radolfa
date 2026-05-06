@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.in.loyalty.RedeemLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
@@ -24,6 +25,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
@@ -52,6 +54,7 @@ public class CheckoutService implements CheckoutUseCase {
     private final RedeemLoyaltyPointsUseCase       redeemLoyaltyPointsUseCase;
     private final ResolveDiscountsUseCase          resolveDiscountsUseCase;
     private final RecordDiscountApplicationUseCase recordDiscountApplicationUseCase;
+    private final LoadPickpointPort                loadPickpointPort;
 
     public CheckoutService(LoadCartPort loadCartPort,
                            SaveCartPort saveCartPort,
@@ -64,7 +67,8 @@ public class CheckoutService implements CheckoutUseCase {
                            LoyaltyCalculator loyaltyCalculator,
                            RedeemLoyaltyPointsUseCase redeemLoyaltyPointsUseCase,
                            ResolveDiscountsUseCase resolveDiscountsUseCase,
-                           RecordDiscountApplicationUseCase recordDiscountApplicationUseCase) {
+                           RecordDiscountApplicationUseCase recordDiscountApplicationUseCase,
+                           LoadPickpointPort loadPickpointPort) {
         this.loadCartPort                    = loadCartPort;
         this.saveCartPort                    = saveCartPort;
         this.loadSkuPort                     = loadSkuPort;
@@ -77,11 +81,15 @@ public class CheckoutService implements CheckoutUseCase {
         this.redeemLoyaltyPointsUseCase      = redeemLoyaltyPointsUseCase;
         this.resolveDiscountsUseCase         = resolveDiscountsUseCase;
         this.recordDiscountApplicationUseCase = recordDiscountApplicationUseCase;
+        this.loadPickpointPort               = loadPickpointPort;
     }
 
     @Override
     @Transactional
     public Result execute(Command command) {
+        // 0. Validate delivery choice before touching any DB resources
+        validateDelivery(command);
+
         // 1. Load user with loyalty profile
         User user = loadUserPort.loadById(command.userId())
                 .orElseThrow(() -> new IllegalStateException("User not found: " + command.userId()));
@@ -165,7 +173,10 @@ public class CheckoutService implements CheckoutUseCase {
         Order newOrder = new Order(null, command.userId(), null,
                 OrderStatus.PENDING, total, orderItems, Instant.now(),
                 pointsToRedeem, 0,
-                null, null, null, null);
+                command.deliveryType(),
+                command.address(),
+                command.preferredTimeWindow(),
+                command.pickpointId());
         Order saved = saveOrderPort.save(newOrder);
 
         // 10. Record one discount_application row per stacked discount layer per line
@@ -200,6 +211,31 @@ public class CheckoutService implements CheckoutUseCase {
         saveCartPort.save(cart);
 
         return new Result(saved.id(), subtotal, tierDiscount, pointsDiscount, total);
+    }
+
+    private void validateDelivery(Command command) {
+        if (command.deliveryType() == null) {
+            throw new IllegalArgumentException("deliveryType is required");
+        }
+        switch (command.deliveryType()) {
+            case HOME -> {
+                if (command.address() == null || command.address().isBlank()) {
+                    throw new IllegalArgumentException("address is required for HOME delivery");
+                }
+            }
+            case PICKPOINT -> {
+                if (command.pickpointId() == null) {
+                    throw new IllegalArgumentException("pickpointId is required for PICKPOINT delivery");
+                }
+                Pickpoint pickpoint = loadPickpointPort.findById(command.pickpointId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "pickpoint not found: " + command.pickpointId()));
+                if (!pickpoint.active()) {
+                    throw new IllegalArgumentException(
+                            "pickpoint is not active: " + command.pickpointId());
+                }
+            }
+        }
     }
 
     private record LineResolution(BigDecimal finalUnitPrice, List<AppliedDiscount> applied) {}

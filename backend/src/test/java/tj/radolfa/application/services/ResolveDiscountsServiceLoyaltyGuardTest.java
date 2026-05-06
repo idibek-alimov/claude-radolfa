@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
@@ -15,6 +16,7 @@ import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Cart;
 import tj.radolfa.domain.model.CartStatus;
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountApplication;
 import tj.radolfa.domain.model.DiscountType;
@@ -26,6 +28,7 @@ import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PhoneNumber;
+import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.SkuTarget;
@@ -127,6 +130,12 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
         @Override public void setAbsolute(Long id, int qty) {}
     };
 
+    static final LoadPickpointPort FAKE_LOAD_PICKPOINT = new LoadPickpointPort() {
+        @Override public List<Pickpoint> findAll() { return List.of(); }
+        @Override public List<Pickpoint> findAllActive() { return List.of(); }
+        @Override public Optional<Pickpoint> findById(Long id) { return Optional.empty(); }
+    };
+
     static class FakeSaveDiscountApplicationPort implements SaveDiscountApplicationPort {
         final List<DiscountApplication> stored = new ArrayList<>();
         @Override public DiscountApplication save(DiscountApplication app) {
@@ -146,7 +155,8 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
                 SAVE_ORDER, NO_STOCK, new LoyaltyCalculator(),
                 (userId, pts) -> Money.ZERO,
                 query -> resolvedMap,
-                recordService
+                recordService,
+                FAKE_LOAD_PICKPOINT
         );
     }
 
@@ -169,7 +179,7 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
         FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
         CheckoutService service = buildService(LOYALTY_PCT, Map.of(SKU_CODE, List.of(d)), fakeAppPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
 
         assertEquals(0, fakeAppPort.stored.size(),
                 "Loyalty (75) beats stacked sale (80): no discount rows expected");
@@ -183,7 +193,7 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
         FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
         CheckoutService service = buildService(LOYALTY_PCT, Map.of(SKU_CODE, List.of(d)), fakeAppPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
 
         assertEquals(1, fakeAppPort.stored.size(),
                 "Sale (70) beats loyalty (75): one discount row expected");

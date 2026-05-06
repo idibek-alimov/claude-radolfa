@@ -72,7 +72,11 @@ public class OrderController {
         CheckoutUseCase.Command command = new CheckoutUseCase.Command(
                 user.userId(),
                 request.loyaltyPointsToRedeem(),
-                request.notes());
+                request.notes(),
+                request.deliveryType(),
+                request.address(),
+                request.preferredTimeWindow(),
+                request.pickpointId());
 
         CheckoutUseCase.Result result = checkoutUseCase.execute(command);
         return ResponseEntity.ok(CheckoutResponseDto.from(result));

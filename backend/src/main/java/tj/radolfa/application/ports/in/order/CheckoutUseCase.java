@@ -1,5 +1,6 @@
 package tj.radolfa.application.ports.in.order;
 
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 
 /**
@@ -23,9 +24,13 @@ public interface CheckoutUseCase {
     Result execute(Command command);
 
     record Command(
-            Long   userId,
-            int    loyaltyPointsToRedeem,  // 0 = no redemption
-            String notes                   // optional customer note
+            Long         userId,
+            int          loyaltyPointsToRedeem,
+            String       notes,
+            DeliveryType deliveryType,
+            String       address,
+            String       preferredTimeWindow,
+            Long         pickpointId
     ) {}
 
     record Result(
