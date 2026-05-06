@@ -12,10 +12,12 @@ import {
   CircleCheckBig,
   Clock,
   Package,
+  PackageCheck,
   Pencil,
   RotateCcw,
   Truck,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { cancelOrder } from "@/features/profile/api";
@@ -26,32 +28,40 @@ import type { Order, OrderItem } from "@/features/profile/types";
 
 /* ── Status timeline constants ─────────────────────────────────── */
 
-const ORDER_STEPS = ["PENDING", "PAID", "SHIPPED", "DELIVERED"] as const;
+const HOME_STEPS      = ["PENDING", "PAID", "SHIPPED",          "DELIVERED"] as const;
+const PICKPOINT_STEPS = ["PENDING", "PAID", "READY_FOR_PICKUP", "DELIVERED"] as const;
 
-const STEP_ICONS = {
-  PENDING: Clock,
-  PAID: Check,
-  SHIPPED: Truck,
-  DELIVERED: CircleCheckBig,
-} as const;
+type AnyStep = (typeof HOME_STEPS)[number] | (typeof PICKPOINT_STEPS)[number];
 
-const STEP_KEYS = {
-  PENDING: "orderPlaced",
-  PAID: "statusPaid",
-  SHIPPED: "orderShipped",
-  DELIVERED: "orderDelivered",
-} as const;
+const STEP_ICONS: Record<AnyStep, LucideIcon> = {
+  PENDING:          Clock,
+  PAID:             Check,
+  SHIPPED:          Truck,
+  READY_FOR_PICKUP: PackageCheck,
+  DELIVERED:        CircleCheckBig,
+};
 
-function getStepIndex(status: string): number {
-  const idx = ORDER_STEPS.indexOf(status as (typeof ORDER_STEPS)[number]);
+const STEP_KEYS: Record<AnyStep, string> = {
+  PENDING:          "orderPlaced",
+  PAID:             "statusPaid",
+  SHIPPED:          "orderShipped",
+  READY_FOR_PICKUP: "orderReadyForPickup",
+  DELIVERED:        "orderDelivered",
+};
+
+type StepsTuple = readonly string[];
+
+function getStepIndex(status: string, steps: StepsTuple): number {
+  const idx = steps.indexOf(status);
   return idx === -1 ? 0 : idx;
 }
 
 /* ── Timeline ──────────────────────────────────────────────────── */
 
-function OrderTimeline({ status }: { status: string }) {
+function OrderTimeline({ status, deliveryType }: { status: string; deliveryType: string | null }) {
   const t = useTranslations("profile");
-  const currentStep = getStepIndex(status);
+  const steps = deliveryType === "PICKPOINT" ? PICKPOINT_STEPS : HOME_STEPS;
+  const currentStep = getStepIndex(status, steps);
   const isCancelled = status === "CANCELLED";
 
   if (isCancelled) {
@@ -67,8 +77,8 @@ function OrderTimeline({ status }: { status: string }) {
 
   return (
     <div className="flex items-center mt-3 w-full overflow-hidden">
-      {ORDER_STEPS.map((step, i) => {
-        const Icon = STEP_ICONS[step];
+      {steps.map((step, i) => {
+        const Icon = STEP_ICONS[step as AnyStep];
         const isComplete = i <= currentStep;
         const isCurrent = i === currentStep;
         return (
@@ -90,10 +100,10 @@ function OrderTimeline({ status }: { status: string }) {
                   isComplete ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
-                {t(STEP_KEYS[step])}
+                {t(STEP_KEYS[step as AnyStep] as Parameters<typeof t>[0])}
               </span>
             </div>
-            {i < ORDER_STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className={`h-0.5 flex-1 min-w-2 mx-0.5 rounded-full mt-[-14px] ${
                   i < currentStep ? "bg-primary/40" : "bg-muted"
@@ -298,12 +308,16 @@ export function OrderHistoryCard({ order }: { order: Order }) {
             className={`text-xs px-2 py-0.5 rounded-full font-medium ${
               order.status === "PENDING"
                 ? "bg-yellow-100 text-yellow-800"
+                : order.status === "PAID"
+                ? "bg-emerald-100 text-emerald-800"
                 : order.status === "DELIVERED"
                 ? "bg-green-100 text-green-800"
                 : order.status === "CANCELLED"
                 ? "bg-red-100 text-red-800"
                 : order.status === "SHIPPED"
-                ? "bg-blue-100 text-blue-800"
+                ? "bg-cyan-100 text-cyan-800"
+                : order.status === "READY_FOR_PICKUP"
+                ? "bg-indigo-100 text-indigo-800"
                 : "bg-gray-100 text-gray-800"
             }`}
           >
@@ -331,8 +345,18 @@ export function OrderHistoryCard({ order }: { order: Order }) {
         </div>
       </div>
 
+      {/* READY_FOR_PICKUP callout */}
+      {order.status === "READY_FOR_PICKUP" && (
+        <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3 flex items-start gap-2">
+          <PackageCheck className="h-4 w-4 text-indigo-700 shrink-0 mt-0.5" />
+          <p className="text-sm text-indigo-800 font-medium">
+            {t("readyForPickupCallout")}
+          </p>
+        </div>
+      )}
+
       {/* Status timeline */}
-      <OrderTimeline status={order.status} />
+      <OrderTimeline status={order.status} deliveryType={order.deliveryType ?? null} />
 
       {/* Shipment details (SHIPPED / DELIVERED, courier data present) */}
       {order.courierName && (order.status === "SHIPPED" || order.status === "DELIVERED") && (

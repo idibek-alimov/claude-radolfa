@@ -36,7 +36,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         Order order = loadOrderPort.loadById(command.orderId())
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + command.orderId()));
 
-        validateTransition(order.status(), command.newStatus());
+        validateTransition(order, command.newStatus());
         validateCourierFields(order, command);
 
         boolean toShipped = command.newStatus() == OrderStatus.SHIPPED;
@@ -61,20 +61,24 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         }
     }
 
-    private void validateTransition(OrderStatus from, OrderStatus to) {
+    private void validateTransition(Order order, OrderStatus to) {
         if (to == OrderStatus.CANCELLED) {
             throw new IllegalArgumentException(
                     "Use the cancel endpoint to cancel an order.");
         }
-        boolean valid = switch (from) {
-            case PENDING -> to == OrderStatus.PAID;
-            case PAID    -> to == OrderStatus.SHIPPED;
-            case SHIPPED -> to == OrderStatus.DELIVERED;
-            default      -> false;
+        boolean pickpoint = order.deliveryType() == DeliveryType.PICKPOINT;
+        boolean valid = switch (order.status()) {
+            case PENDING          -> to == OrderStatus.PAID;
+            case PAID             -> pickpoint ? to == OrderStatus.READY_FOR_PICKUP
+                                               : to == OrderStatus.SHIPPED;
+            case SHIPPED          -> !pickpoint && to == OrderStatus.DELIVERED;
+            case READY_FOR_PICKUP -> pickpoint  && to == OrderStatus.DELIVERED;
+            default               -> false;
         };
         if (!valid) {
             throw new IllegalArgumentException(
-                    "Invalid status transition: " + from + " → " + to);
+                    "Invalid status transition: " + order.status() + " → " + to
+                    + " (deliveryType=" + order.deliveryType() + ")");
         }
     }
 }

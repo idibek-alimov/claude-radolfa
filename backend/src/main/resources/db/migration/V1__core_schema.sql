@@ -25,7 +25,7 @@ CREATE TABLE order_statuses (
 
 -- Seed lookup values (present in all environments)
 INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC');
-INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('SHIPPED'), ('DELIVERED'), ('CANCELLED');
+INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('SHIPPED'), ('READY_FOR_PICKUP'), ('DELIVERED'), ('CANCELLED');
 
 -- ----------------------------------------------------------------
 -- Loyalty tiers (referenced by users)

@@ -27,13 +27,18 @@ import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
 import type { OrderStatus } from "@/entities/order";
 import { getErrorMessage } from "@/shared/lib";
 
-const NEXT_STATUS: Record<OrderStatus, OrderStatus | null> = {
-  PENDING:   "PAID",
-  PAID:      "SHIPPED",
-  SHIPPED:   "DELIVERED",
-  DELIVERED: null,
-  CANCELLED: null,
-};
+import type { AdminOrderDetail } from "@/entities/order";
+
+function nextStatusFor(order: AdminOrderDetail): OrderStatus | null {
+  const isPickpoint = order.deliveryType === "PICKPOINT";
+  switch (order.status) {
+    case "PENDING":          return "PAID";
+    case "PAID":             return isPickpoint ? "READY_FOR_PICKUP" : "SHIPPED";
+    case "SHIPPED":          return "DELIVERED";
+    case "READY_FOR_PICKUP": return "DELIVERED";
+    default:                 return null;
+  }
+}
 
 interface Props {
   orderId: number | null;
@@ -90,7 +95,7 @@ export function OrderDetailDrawer({ orderId, onOpenChange }: Props) {
     );
   }
 
-  const nextStatus = order ? NEXT_STATUS[order.status] : null;
+  const nextStatus = order ? nextStatusFor(order) : null;
   const showShipmentForm =
     order?.status === "PAID" && order?.deliveryType === "HOME";
 

@@ -32,8 +32,9 @@ const STATUS_OPTIONS: Array<{ value: OrderStatus | ""; label: string }> = [
   { value: "", label: "statusAll" },
   { value: "PENDING",   label: "status.PENDING" },
   { value: "PAID",      label: "status.PAID" },
-  { value: "SHIPPED",   label: "status.SHIPPED" },
-  { value: "DELIVERED", label: "status.DELIVERED" },
+  { value: "SHIPPED",          label: "status.SHIPPED" },
+  { value: "READY_FOR_PICKUP", label: "status.READY_FOR_PICKUP" },
+  { value: "DELIVERED",        label: "status.DELIVERED" },
   { value: "CANCELLED", label: "status.CANCELLED" },
 ];
 

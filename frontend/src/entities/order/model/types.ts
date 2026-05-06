@@ -1,5 +1,5 @@
 // Synced from backend — do not edit manually
-export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "READY_FOR_PICKUP" | "DELIVERED" | "CANCELLED";
 export type DeliveryType = "HOME" | "PICKPOINT";
 
 /** Minimal order item — only what the review form needs. */

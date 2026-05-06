@@ -106,14 +106,14 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→SHIPPED without courierName succeeds")
-    void pickpointShipWithoutCourier_succeeds() {
+    @DisplayName("PICKPOINT PAID→READY_FOR_PICKUP without courierName succeeds (no courier required)")
+    void pickpointTransitionToReadyForPickup_noCourierRequired() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), save);
 
-        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
 
-        assertEquals(OrderStatus.SHIPPED, save.last().status());
+        assertEquals(OrderStatus.READY_FOR_PICKUP, save.last().status());
         assertNull(save.last().courierName());
     }
 
@@ -154,5 +154,56 @@ class UpdateOrderStatusServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null)));
+    }
+
+    @Test
+    @DisplayName("PICKPOINT PAID→READY_FOR_PICKUP succeeds")
+    void pickpointPaidToReadyForPickup_succeeds() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), save);
+
+        svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
+
+        assertEquals(OrderStatus.READY_FOR_PICKUP, save.last().status());
+    }
+
+    @Test
+    @DisplayName("PICKPOINT READY_FOR_PICKUP→DELIVERED succeeds")
+    void pickpointReadyForPickupToDelivered_succeeds() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.READY_FOR_PICKUP), save);
+
+        svc.execute(new Command(2L, OrderStatus.DELIVERED, null, null, null));
+
+        assertEquals(OrderStatus.DELIVERED, save.last().status());
+    }
+
+    @Test
+    @DisplayName("PICKPOINT PAID→SHIPPED throws (cross-track forbidden)")
+    void pickpointPaidToShipped_throws() {
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null)));
+    }
+
+    @Test
+    @DisplayName("HOME PAID→READY_FOR_PICKUP throws (cross-track forbidden)")
+    void homePaidToReadyForPickup_throws() {
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.READY_FOR_PICKUP, null, null, null)));
+    }
+
+    @Test
+    @DisplayName("HOME SHIPPED→DELIVERED still works (regression)")
+    void homeShippedToDelivered_regression() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeShippedOrder(), save);
+
+        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null));
+
+        assertEquals(OrderStatus.DELIVERED, save.last().status());
     }
 }

@@ -17,12 +17,13 @@ export interface OrderItem {
 
 export interface Order {
     id: number;
-    status: 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+    status: 'PENDING' | 'PAID' | 'SHIPPED' | 'READY_FOR_PICKUP' | 'DELIVERED' | 'CANCELLED';
     totalAmount: number;
     items: OrderItem[];
     createdAt: string;
     loyaltyPointsRedeemed: number;
     loyaltyPointsAwarded: number;
+    deliveryType: 'HOME' | 'PICKPOINT' | null;
     courierName: string | null;
     trackingNumber: string | null;
     estimatedDeliveryDate: string | null;

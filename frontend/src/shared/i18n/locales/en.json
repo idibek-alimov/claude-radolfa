@@ -272,11 +272,12 @@
         "total": "Total"
       },
       "status": {
-        "PENDING": "Pending",
-        "PAID": "Paid",
-        "SHIPPED": "Shipped",
-        "DELIVERED": "Delivered",
-        "CANCELLED": "Cancelled"
+        "PENDING":          "Pending",
+        "PAID":             "Paid",
+        "SHIPPED":          "Shipped",
+        "READY_FOR_PICKUP": "Ready for pickup",
+        "DELIVERED":        "Delivered",
+        "CANCELLED":        "Cancelled"
       },
       "deliveryType": {
         "HOME": "Home",
@@ -391,7 +392,10 @@
     "shipmentTitle": "Shipment details",
     "courierLabel": "Courier",
     "trackingLabel": "Tracking number",
-    "estimatedDeliveryLabel": "Estimated delivery"
+    "estimatedDeliveryLabel": "Estimated delivery",
+    "statusReadyForPickup": "Ready for pickup",
+    "orderReadyForPickup": "Ready",
+    "readyForPickupCallout": "Your parcel is waiting at the pickup point"
   },
   "cart": {
     "title": "Your Cart",

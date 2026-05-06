@@ -272,11 +272,12 @@
         "total": "Сумма"
       },
       "status": {
-        "PENDING": "Ожидает",
-        "PAID": "Оплачен",
-        "SHIPPED": "Отправлен",
-        "DELIVERED": "Доставлен",
-        "CANCELLED": "Отменён"
+        "PENDING":          "Ожидает",
+        "PAID":             "Оплачен",
+        "SHIPPED":          "Отправлен",
+        "READY_FOR_PICKUP": "Готов к выдаче",
+        "DELIVERED":        "Доставлен",
+        "CANCELLED":        "Отменён"
       },
       "deliveryType": {
         "HOME": "На дом",
@@ -391,7 +392,10 @@
     "shipmentTitle": "Детали отправки",
     "courierLabel": "Курьер",
     "trackingLabel": "Номер отслеживания",
-    "estimatedDeliveryLabel": "Ожидаемая доставка"
+    "estimatedDeliveryLabel": "Ожидаемая доставка",
+    "statusReadyForPickup": "Готов к выдаче",
+    "orderReadyForPickup": "Готов",
+    "readyForPickupCallout": "Ваш заказ ждёт вас в пункте самовывоза"
   },
   "cart": {
     "title": "Ваша корзина",

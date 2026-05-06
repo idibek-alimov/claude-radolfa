@@ -272,11 +272,12 @@
         "total": "Маблағ"
       },
       "status": {
-        "PENDING": "Интизор",
-        "PAID": "Пардохтшуда",
-        "SHIPPED": "Фиристода шуд",
-        "DELIVERED": "Расонида шуд",
-        "CANCELLED": "Бекор шуд"
+        "PENDING":          "Интизор",
+        "PAID":             "Пардохтшуда",
+        "SHIPPED":          "Фиристода шуд",
+        "READY_FOR_PICKUP": "Омода ба гирифтан",
+        "DELIVERED":        "Расонида шуд",
+        "CANCELLED":        "Бекор шуд"
       },
       "deliveryType": {
         "HOME": "Ба хона",
@@ -391,7 +392,10 @@
     "shipmentTitle": "Тафсилоти фиристодан",
     "courierLabel": "Курьер",
     "trackingLabel": "Рақами пайгирӣ",
-    "estimatedDeliveryLabel": "Санаи тахминии расонидан"
+    "estimatedDeliveryLabel": "Санаи тахминии расонидан",
+    "statusReadyForPickup": "Омода ба гирифтан",
+    "orderReadyForPickup": "Омода",
+    "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст"
   },
   "cart": {
     "title": "Сабади шумо",
