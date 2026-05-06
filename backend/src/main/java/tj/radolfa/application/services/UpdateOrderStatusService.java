@@ -21,13 +21,16 @@ import java.time.LocalDate;
 @Service
 public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 
-    private final LoadOrderPort loadOrderPort;
-    private final SaveOrderPort saveOrderPort;
+    private final LoadOrderPort            loadOrderPort;
+    private final SaveOrderPort            saveOrderPort;
+    private final OrderNotificationService orderNotificationService;
 
     public UpdateOrderStatusService(LoadOrderPort loadOrderPort,
-                                    SaveOrderPort saveOrderPort) {
-        this.loadOrderPort = loadOrderPort;
-        this.saveOrderPort = saveOrderPort;
+                                    SaveOrderPort saveOrderPort,
+                                    OrderNotificationService orderNotificationService) {
+        this.loadOrderPort            = loadOrderPort;
+        this.saveOrderPort            = saveOrderPort;
+        this.orderNotificationService = orderNotificationService;
     }
 
     @Override
@@ -51,6 +54,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
                 courierName, trackingNumber, edd);
         saveOrderPort.save(updated);
+        orderNotificationService.notify(updated);
     }
 
     private void validateCourierFields(Order order, Command command) {

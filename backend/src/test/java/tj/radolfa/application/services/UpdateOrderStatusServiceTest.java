@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase.Command;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
@@ -64,8 +65,33 @@ class UpdateOrderStatusServiceTest {
         Order last() { return saved.get(saved.size() - 1); }
     }
 
+    static class CountingNotificationPort implements NotificationPort {
+        int confirmCount = 0;
+        int updateCount  = 0;
+        OrderStatus lastStatus;
+        @Override public void sendOrderConfirmation(Long u, Long o) { confirmCount++; }
+        @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { updateCount++; lastStatus = s; }
+        @Override public void sendReviewApprovedNotification(Long u, Long r) {}
+        @Override public void sendReviewReplyNotification(Long u, Long r) {}
+    }
+
+    static NotificationPort silentPort() {
+        return new NotificationPort() {
+            @Override public void sendOrderConfirmation(Long u, Long o) {}
+            @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) {}
+            @Override public void sendReviewApprovedNotification(Long u, Long r) {}
+            @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        };
+    }
+
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save) {
-        return new UpdateOrderStatusService(orderPort(order), save);
+        return new UpdateOrderStatusService(orderPort(order), save,
+                new OrderNotificationService(silentPort()));
+    }
+
+    static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save, NotificationPort notifPort) {
+        return new UpdateOrderStatusService(orderPort(order), save,
+                new OrderNotificationService(notifPort));
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -205,5 +231,31 @@ class UpdateOrderStatusServiceTest {
         svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null));
 
         assertEquals(OrderStatus.DELIVERED, save.last().status());
+    }
+
+    @Test
+    @DisplayName("Successful HOME PAID→SHIPPED fires exactly one SHIPPED notification")
+    void notification_firedOnSuccess() {
+        CountingNotificationPort port = new CountingNotificationPort();
+        CapturingSaveOrderPort save   = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PAID), save, port);
+
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, "DHL", null, null));
+
+        assertEquals(1, port.updateCount);
+        assertEquals(OrderStatus.SHIPPED, port.lastStatus);
+    }
+
+    @Test
+    @DisplayName("Invalid transition does not fire any notification")
+    void notification_notFiredOnInvalidTransition() {
+        CountingNotificationPort port = new CountingNotificationPort();
+        CapturingSaveOrderPort save   = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PAID), save, port);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null)));
+
+        assertEquals(0, port.confirmCount + port.updateCount);
     }
 }

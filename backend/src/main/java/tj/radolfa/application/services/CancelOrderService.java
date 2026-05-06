@@ -26,21 +26,24 @@ import tj.radolfa.domain.model.UserRole;
 public class CancelOrderService implements CancelOrderUseCase {
 
     private final LoadOrderPort                loadOrderPort;
-    private final SaveOrderPort               saveOrderPort;
-    private final LoadUserPort                loadUserPort;
-    private final StockAdjustmentPort         stockAdjustmentPort;
-    private final RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase;
+    private final SaveOrderPort                saveOrderPort;
+    private final LoadUserPort                 loadUserPort;
+    private final StockAdjustmentPort          stockAdjustmentPort;
+    private final RestoreLoyaltyPointsUseCase  restoreLoyaltyPointsUseCase;
+    private final OrderNotificationService     orderNotificationService;
 
     public CancelOrderService(LoadOrderPort loadOrderPort,
                               SaveOrderPort saveOrderPort,
                               LoadUserPort loadUserPort,
                               StockAdjustmentPort stockAdjustmentPort,
-                              RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase) {
+                              RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase,
+                              OrderNotificationService orderNotificationService) {
         this.loadOrderPort               = loadOrderPort;
         this.saveOrderPort               = saveOrderPort;
         this.loadUserPort                = loadUserPort;
         this.stockAdjustmentPort         = stockAdjustmentPort;
         this.restoreLoyaltyPointsUseCase = restoreLoyaltyPointsUseCase;
+        this.orderNotificationService    = orderNotificationService;
     }
 
     @Override
@@ -88,5 +91,6 @@ public class CancelOrderService implements CancelOrderUseCase {
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
                 order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate());
         saveOrderPort.save(cancelled);
+        orderNotificationService.notify(cancelled);
     }
 }
