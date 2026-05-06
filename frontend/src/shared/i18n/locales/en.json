@@ -257,7 +257,53 @@
     "noReviewTraitsYet": "No traits defined yet",
     "linkedTraits": "Linked traits",
     "linkedTraitsHelp": "Reviews on products in this category will be asked these questions.",
-    "noTraitsAvailable": "No traits available — define some in Review Traits first."
+    "noTraitsAvailable": "No traits available — define some in Review Traits first.",
+    "orders": {
+      "title": "Order Management",
+      "searchPlaceholder": "Search by phone or order ID…",
+      "statusAll": "All statuses",
+      "table": {
+        "id": "Order #",
+        "customer": "Customer",
+        "date": "Date",
+        "status": "Status",
+        "delivery": "Delivery",
+        "items": "Items",
+        "total": "Total"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "SHIPPED": "Shipped",
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled"
+      },
+      "deliveryType": {
+        "HOME": "Home",
+        "PICKPOINT": "Pickup"
+      },
+      "drawer": {
+        "title": "Order #{id}",
+        "customer": "Customer",
+        "items": "Items",
+        "subtotal": "Subtotal",
+        "pointsDiscount": "Points discount",
+        "total": "Total",
+        "deliverySection": "Delivery",
+        "deliveryHome": "Home delivery",
+        "deliveryAddress": "Address",
+        "deliveryWindow": "Preferred time",
+        "deliveryPickpoint": "Pickup point",
+        "deliveryPickpointAddress": "Location",
+        "statusLabel": "Update status",
+        "statusUpdated": "Status updated",
+        "statusUpdateFailed": "Failed to update status",
+        "noNextStatus": "No further transitions available"
+      },
+      "empty": "No orders found.",
+      "page": "Page {page}",
+      "total": "{count, plural, one {# order total} other {# orders total}}"
+    }
   },
   "profile": {
     "yourProfile": "Your Profile",

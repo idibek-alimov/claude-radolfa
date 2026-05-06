@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.GetMyOrdersUseCase;
@@ -10,12 +11,14 @@ import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CheckoutRequestDto;
@@ -39,6 +42,7 @@ public class OrderController {
     private final LoadListingVariantPort   loadListingVariantPort;
     private final LoadSkuPort              loadSkuPort;
     private final LoadReviewPort           loadReviewPort;
+    private final LoadPickpointPort        loadPickpointPort;
 
     public OrderController(GetMyOrdersUseCase getMyOrdersUseCase,
                            CheckoutUseCase checkoutUseCase,
@@ -46,7 +50,8 @@ public class OrderController {
                            UpdateOrderStatusUseCase updateOrderStatusUseCase,
                            LoadListingVariantPort loadListingVariantPort,
                            LoadSkuPort loadSkuPort,
-                           LoadReviewPort loadReviewPort) {
+                           LoadReviewPort loadReviewPort,
+                           LoadPickpointPort loadPickpointPort) {
         this.getMyOrdersUseCase       = getMyOrdersUseCase;
         this.checkoutUseCase          = checkoutUseCase;
         this.cancelOrderUseCase       = cancelOrderUseCase;
@@ -54,6 +59,7 @@ public class OrderController {
         this.loadListingVariantPort   = loadListingVariantPort;
         this.loadSkuPort              = loadSkuPort;
         this.loadReviewPort           = loadReviewPort;
+        this.loadPickpointPort        = loadPickpointPort;
     }
 
     @GetMapping("/my-orders")
@@ -95,6 +101,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update order status (ADMIN only: PENDING→PAID→SHIPPED→DELIVERED)")
     public ResponseEntity<Void> updateStatus(
             @PathVariable Long id,
@@ -135,6 +142,10 @@ public class OrderController {
                 ? Map.of()
                 : loadSkuPort.findAllByIdsAsMap(skuIds);
 
+        Pickpoint pickpoint = order.pickpointId() != null
+                ? loadPickpointPort.findById(order.pickpointId()).orElse(null)
+                : null;
+
         return new OrderDto(
                 order.id(),
                 order.status().name(),
@@ -167,6 +178,12 @@ public class OrderController {
                         .toList(),
                 order.createdAt(),
                 order.loyaltyPointsRedeemed(),
-                order.loyaltyPointsAwarded());
+                order.loyaltyPointsAwarded(),
+                order.deliveryType() != null ? order.deliveryType().name() : null,
+                order.deliveryAddress(),
+                order.preferredTimeWindow(),
+                order.pickpointId(),
+                pickpoint != null ? pickpoint.name()    : null,
+                pickpoint != null ? pickpoint.address() : null);
     }
 }

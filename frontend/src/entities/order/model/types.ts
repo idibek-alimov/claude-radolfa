@@ -1,3 +1,7 @@
+// Synced from backend — do not edit manually
+export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+export type DeliveryType = "HOME" | "PICKPOINT";
+
 /** Minimal order item — only what the review form needs. */
 export interface DeliveredOrderItem {
   productName: string;
@@ -17,8 +21,39 @@ export interface DeliveredOrder {
   id: number;
   status: string;
   totalAmount: number;
-  createdAt: string;   // ISO instant
+  createdAt: string;
   items: DeliveredOrderItem[];
   loyaltyPointsRedeemed: number;
   loyaltyPointsAwarded: number;
+}
+
+/** Row returned by GET /api/v1/admin/orders (list). */
+export interface AdminOrderListItem {
+  id: number;
+  userPhone: string;
+  userName: string | null;
+  createdAt: string;
+  status: OrderStatus;
+  totalAmount: number;
+  deliveryType: DeliveryType | null;
+  itemCount: number;
+}
+
+/** Full order returned by GET /api/v1/admin/orders/{id}. */
+export interface AdminOrderDetail {
+  id: number;
+  userPhone: string;
+  userName: string | null;
+  status: OrderStatus;
+  totalAmount: number;
+  createdAt: string;
+  loyaltyPointsRedeemed: number;
+  loyaltyPointsAwarded: number;
+  items: DeliveredOrderItem[];
+  deliveryType: DeliveryType | null;
+  deliveryAddress: string | null;
+  preferredTimeWindow: string | null;
+  pickpointId: number | null;
+  pickpointName: string | null;
+  pickpointAddress: string | null;
 }

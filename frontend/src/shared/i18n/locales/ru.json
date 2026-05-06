@@ -257,7 +257,53 @@
     "noReviewTraitsYet": "Признаки ещё не определены",
     "linkedTraits": "Связанные признаки",
     "linkedTraitsHelp": "Покупатели в этой категории будут отвечать на эти вопросы.",
-    "noTraitsAvailable": "Нет доступных признаков — сначала создайте их в разделе «Признаки отзывов»."
+    "noTraitsAvailable": "Нет доступных признаков — сначала создайте их в разделе «Признаки отзывов».",
+    "orders": {
+      "title": "Управление заказами",
+      "searchPlaceholder": "Поиск по телефону или номеру заказа…",
+      "statusAll": "Все статусы",
+      "table": {
+        "id": "Заказ №",
+        "customer": "Покупатель",
+        "date": "Дата",
+        "status": "Статус",
+        "delivery": "Доставка",
+        "items": "Товары",
+        "total": "Сумма"
+      },
+      "status": {
+        "PENDING": "Ожидает",
+        "PAID": "Оплачен",
+        "SHIPPED": "Отправлен",
+        "DELIVERED": "Доставлен",
+        "CANCELLED": "Отменён"
+      },
+      "deliveryType": {
+        "HOME": "На дом",
+        "PICKPOINT": "Самовывоз"
+      },
+      "drawer": {
+        "title": "Заказ #{id}",
+        "customer": "Покупатель",
+        "items": "Товары",
+        "subtotal": "Подытог",
+        "pointsDiscount": "Скидка баллами",
+        "total": "Итого",
+        "deliverySection": "Доставка",
+        "deliveryHome": "Доставка на дом",
+        "deliveryAddress": "Адрес",
+        "deliveryWindow": "Удобное время",
+        "deliveryPickpoint": "Пункт самовывоза",
+        "deliveryPickpointAddress": "Адрес пункта",
+        "statusLabel": "Изменить статус",
+        "statusUpdated": "Статус обновлён",
+        "statusUpdateFailed": "Не удалось обновить статус",
+        "noNextStatus": "Дальнейшие переходы недоступны"
+      },
+      "empty": "Заказы не найдены.",
+      "page": "Стр. {page}",
+      "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}"
+    }
   },
   "profile": {
     "yourProfile": "Ваш профиль",

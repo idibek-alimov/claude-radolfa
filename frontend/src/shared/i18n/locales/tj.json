@@ -257,7 +257,53 @@
     "noReviewTraitsYet": "Хусусиятҳо ҳанӯз муайян нашудаанд",
     "linkedTraits": "Хусусиятҳои алоқаманд",
     "linkedTraitsHelp": "Харидорон дар ин категория ба ин саволҳо ҷавоб хоҳанд дод.",
-    "noTraitsAvailable": "Хусусияте мавҷуд нест — аввал дар бахши «Хусусиятҳои тақриз» созед."
+    "noTraitsAvailable": "Хусусияте мавҷуд нест — аввал дар бахши «Хусусиятҳои тақриз» созед.",
+    "orders": {
+      "title": "Идоракунии фармоишҳо",
+      "searchPlaceholder": "Ҷустуҷӯ аз рӯи телефон ё рақами фармоиш…",
+      "statusAll": "Ҳама вазъиятҳо",
+      "table": {
+        "id": "Фармоиш №",
+        "customer": "Харидор",
+        "date": "Сана",
+        "status": "Вазъият",
+        "delivery": "Расонидан",
+        "items": "Молҳо",
+        "total": "Маблағ"
+      },
+      "status": {
+        "PENDING": "Интизор",
+        "PAID": "Пардохтшуда",
+        "SHIPPED": "Фиристода шуд",
+        "DELIVERED": "Расонида шуд",
+        "CANCELLED": "Бекор шуд"
+      },
+      "deliveryType": {
+        "HOME": "Ба хона",
+        "PICKPOINT": "Худхуруҷ"
+      },
+      "drawer": {
+        "title": "Фармоиш #{id}",
+        "customer": "Харидор",
+        "items": "Молҳо",
+        "subtotal": "Зерҷамъ",
+        "pointsDiscount": "Тахфифи баллҳо",
+        "total": "Ҷамъ",
+        "deliverySection": "Расонидан",
+        "deliveryHome": "Расонидан ба хона",
+        "deliveryAddress": "Суроға",
+        "deliveryWindow": "Вақти мувофиқ",
+        "deliveryPickpoint": "Нуқтаи худхуруҷ",
+        "deliveryPickpointAddress": "Суроғаи нуқта",
+        "statusLabel": "Вазъиятро тағйир додан",
+        "statusUpdated": "Вазъият навсозӣ шуд",
+        "statusUpdateFailed": "Навсозии вазъият нашуд",
+        "noNextStatus": "Гузариши минбаъда дастрас нест"
+      },
+      "empty": "Фармоишҳо ёфт нашуданд.",
+      "page": "Саҳ. {page}",
+      "total": "{count} фармоиш"
+    }
   },
   "profile": {
     "yourProfile": "Профили шумо",

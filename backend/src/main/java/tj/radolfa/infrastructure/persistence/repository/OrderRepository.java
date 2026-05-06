@@ -15,7 +15,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
+                                          org.springframework.data.jpa.repository.JpaSpecificationExecutor<OrderEntity> {
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByUser_IdOrderByCreatedAtDesc(Long userId);
 

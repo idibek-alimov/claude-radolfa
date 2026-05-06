@@ -11,5 +11,11 @@ public record OrderDto(
         List<OrderItemDto> items,
         Instant createdAt,
         int loyaltyPointsRedeemed,
-        int loyaltyPointsAwarded) {
+        int loyaltyPointsAwarded,
+        String deliveryType,
+        String deliveryAddress,
+        String preferredTimeWindow,
+        Long pickpointId,
+        String pickpointName,
+        String pickpointAddress) {
 }

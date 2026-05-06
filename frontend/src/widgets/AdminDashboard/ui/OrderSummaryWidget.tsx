@@ -5,6 +5,7 @@ import { ShoppingBag, TrendingUp, Calendar, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { fetchAdminOrderSummary } from "@/features/admin-dashboard";
 import { cn } from "@/shared/lib";
+import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import type { RecentOrder } from "@/features/admin-dashboard";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -22,26 +23,6 @@ function timeAgo(isoString: string): string {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
-}
-
-// ── Status badge ──────────────────────────────────────────────────────────────
-
-const STATUS_STYLES: Record<string, string> = {
-  PAID:      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  PENDING:   "bg-amber-50  text-amber-700   ring-1 ring-amber-200",
-  DELIVERED: "bg-blue-50   text-blue-700    ring-1 ring-blue-200",
-  CANCELLED: "bg-rose-50   text-rose-700    ring-1 ring-rose-200",
-  REFUNDED:  "bg-violet-50 text-violet-700  ring-1 ring-violet-200",
-  SHIPPED:   "bg-cyan-50   text-cyan-700    ring-1 ring-cyan-200",
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const style = STATUS_STYLES[status] ?? "bg-zinc-100 text-zinc-600 ring-1 ring-zinc-200";
-  return (
-    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", style)}>
-      {status}
-    </span>
-  );
 }
 
 // ── Stat column ───────────────────────────────────────────────────────────────
@@ -97,7 +78,7 @@ function OrderRow({ order, index }: { order: RecentOrder; index: number }) {
       </span>
 
       {/* Status */}
-      <StatusBadge status={order.status} />
+      <OrderStatusBadge status={order.status} />
 
       {/* Time */}
       <span className="text-[11px] text-zinc-400 text-right whitespace-nowrap w-14">

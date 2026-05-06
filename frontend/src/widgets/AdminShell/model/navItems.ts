@@ -10,6 +10,7 @@ import {
   Star,
   HelpCircle,
   Sparkles,
+  ShoppingBag,
 } from "lucide-react";
 import type { AdminNavGroup } from "./types";
 
@@ -32,6 +33,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Commerce",
     items: [
+      { href: "/manage/orders",    label: "Orders",    icon: ShoppingBag },
       { href: "/manage/discounts", label: "Discounts", icon: Percent },
     ],
   },
