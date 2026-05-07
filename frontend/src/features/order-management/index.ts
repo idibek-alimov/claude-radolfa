@@ -1,1 +1,1 @@
-export { OrderManagementTable, OrderDetailDrawer } from "./ui";
+export { OrderManagementTable, OrderDetailDrawer, OrderKpiRibbon } from "./ui";

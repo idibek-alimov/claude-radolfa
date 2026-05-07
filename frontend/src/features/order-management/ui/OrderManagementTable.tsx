@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -26,7 +27,6 @@ import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrders } from "@/entities/order";
 import type { AdminOrderListItem, OrderStatus } from "@/entities/order";
 import { useDynamicPageSize } from "@/shared/lib";
-import { OrderDetailDrawer } from "./OrderDetailDrawer";
 
 const STATUS_OPTIONS: Array<{ value: OrderStatus | "ALL"; label: string }> = [
   { value: "ALL", label: "statusAll" },
@@ -41,11 +41,12 @@ const STATUS_OPTIONS: Array<{ value: OrderStatus | "ALL"; label: string }> = [
 export function OrderManagementTable() {
   const t = useTranslations("manage.orders");
 
+  const router = useRouter();
+
   const [page, setPage]                 = useState(1);
   const [searchQuery, setSearchQuery]   = useState("");
   const [debouncedSearch, setDebounced] = useState("");
   const [statusFilter, setStatus]       = useState<OrderStatus | "">("");
-  const [selectedId, setSelectedId]     = useState<number | null>(null);
 
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const cardRef     = useRef<HTMLDivElement>(null);
@@ -133,7 +134,7 @@ export function OrderManagementTable() {
                 <TableRow
                   key={order.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => setSelectedId(order.id)}
+                  onClick={() => router.push(`/manage/orders/${order.id}`)}
                 >
                   <TableCell className="pl-4 font-mono text-xs">{order.id}</TableCell>
                   <TableCell>
@@ -200,10 +201,6 @@ export function OrderManagementTable() {
         </div>
       )}
 
-      <OrderDetailDrawer
-        orderId={selectedId}
-        onOpenChange={(open) => { if (!open) setSelectedId(null); }}
-      />
     </div>
   );
 }
