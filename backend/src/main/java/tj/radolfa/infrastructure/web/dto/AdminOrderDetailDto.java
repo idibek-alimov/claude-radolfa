@@ -18,7 +18,7 @@ public record AdminOrderDetailDto(
         Instant createdAt,
         int loyaltyPointsRedeemed,
         int loyaltyPointsAwarded,
-        List<OrderItemDto> items,
+        List<AdminOrderItemDto> items,
         String deliveryType,
         String deliveryAddress,
         String preferredTimeWindow,
@@ -27,10 +27,13 @@ public record AdminOrderDetailDto(
         String pickpointAddress,
         String courierName,
         String trackingNumber,
-        LocalDate estimatedDeliveryDate) {
+        LocalDate estimatedDeliveryDate,
+        Instant shippedAt,
+        Instant deliveredAt,
+        Instant cancelledAt) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
-                                           List<OrderItemDto> enrichedItems) {
+                                           List<AdminOrderItemDto> enrichedItems) {
         Order order = result.order();
         Pickpoint pp = result.pickpoint().orElse(null);
 
@@ -52,7 +55,10 @@ public record AdminOrderDetailDto(
                 pp != null ? pp.address() : null,
                 order.courierName(),
                 order.trackingNumber(),
-                order.estimatedDeliveryDate()
+                order.estimatedDeliveryDate(),
+                order.shippedAt(),
+                order.deliveredAt(),
+                order.cancelledAt()
         );
     }
 }

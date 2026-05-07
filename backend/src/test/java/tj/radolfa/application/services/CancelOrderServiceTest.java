@@ -41,6 +41,7 @@ class CancelOrderServiceTest {
         return new Order(1L, ownerId, null, OrderStatus.PENDING,
                 new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
                 0, 0, DeliveryType.HOME, "Addr", null, null,
+                null, null, null,
                 null, null, null);
     }
 
@@ -141,11 +142,29 @@ class CancelOrderServiceTest {
     }
 
     @Test
+    @DisplayName("Cancellation sets cancelledAt")
+    void cancellation_setsCancelledAt() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+
+        Instant before = Instant.now();
+        service(pendingOrder(REGULAR_USER.id()), REGULAR_USER, save,
+                new CountingNotificationPort())
+                .execute(1L, REGULAR_USER.id(), null);
+        Instant after = Instant.now();
+
+        Order saved = save.last();
+        assertNotNull(saved.cancelledAt());
+        assertFalse(saved.cancelledAt().isBefore(before));
+        assertFalse(saved.cancelledAt().isAfter(after));
+    }
+
+    @Test
     @DisplayName("ADMIN cannot cancel an already-DELIVERED order")
     void adminCannotCancelDeliveredOrder_throws() {
         Order delivered = new Order(1L, 10L, null, OrderStatus.DELIVERED,
                 new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
                 0, 0, DeliveryType.HOME, "Addr", null, null,
+                null, null, null,
                 null, null, null);
 
         CancelOrderService svc = service(delivered, ADMIN_USER,

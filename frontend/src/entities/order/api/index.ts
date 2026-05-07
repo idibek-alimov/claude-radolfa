@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
-import type { DeliveredOrder, AdminOrderListItem, AdminOrderDetail, OrderStatus } from "../model/types";
+import type { DeliveredOrder, AdminOrderListItem, AdminOrderDetail, AdminOrderSummary, OrderStatus } from "../model/types";
 import type { PaginatedResponse } from "@/shared/api/types";
 
 /** Fetch authenticated user's delivered orders — used for review submission. */
@@ -73,6 +73,31 @@ export function useUpdateOrderStatus() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["admin-orders"] });
       qc.invalidateQueries({ queryKey: ["admin-order", vars.orderId] });
+      qc.invalidateQueries({ queryKey: ["admin-order-summary"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+    },
+  });
+}
+
+export function useAdminOrderSummary() {
+  return useQuery({
+    queryKey: ["admin-order-summary"],
+    queryFn: () =>
+      apiClient
+        .get<AdminOrderSummary>("/api/v1/admin/orders/summary")
+        .then((r) => r.data),
+  });
+}
+
+export function useCancelOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: number; reason?: string }) =>
+      apiClient.patch(`/api/v1/orders/${orderId}/cancel`, reason ? { reason } : {}),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-order", vars.orderId] });
+      qc.invalidateQueries({ queryKey: ["admin-order-summary"] });
       qc.invalidateQueries({ queryKey: ["my-orders"] });
     },
   });

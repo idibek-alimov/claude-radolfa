@@ -16,6 +16,11 @@ export interface DeliveredOrderItem {
   hasReviewed: boolean;
 }
 
+/** Admin-only item shape — adds currentStock for pre-fulfillment availability check. */
+export interface AdminOrderItem extends DeliveredOrderItem {
+  currentStock: number | null;
+}
+
 /** Minimal order shape — only what the review form needs. */
 export interface DeliveredOrder {
   id: number;
@@ -49,7 +54,7 @@ export interface AdminOrderDetail {
   createdAt: string;
   loyaltyPointsRedeemed: number;
   loyaltyPointsAwarded: number;
-  items: DeliveredOrderItem[];
+  items: AdminOrderItem[];
   deliveryType: DeliveryType | null;
   deliveryAddress: string | null;
   preferredTimeWindow: string | null;
@@ -59,4 +64,23 @@ export interface AdminOrderDetail {
   courierName: string | null;
   trackingNumber: string | null;
   estimatedDeliveryDate: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  cancelledAt: string | null;
+}
+
+export interface RecentOrder {
+  orderId: number;
+  userPhone: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface AdminOrderSummary {
+  totalOrders: number;
+  todayOrders: number;
+  revenueToday: number;
+  revenueThisMonth: number;
+  recentOrders: RecentOrder[];
 }

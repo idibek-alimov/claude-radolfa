@@ -37,6 +37,7 @@ class GetAdminOrderDetailServiceTest {
                 new Money(BigDecimal.valueOf(200)), List.of(),
                 Instant.now(), 0, 0,
                 DeliveryType.HOME, "Main St 1", "MORNING", null,
+                null, null, null,
                 null, null, null);
     }
 
@@ -45,6 +46,7 @@ class GetAdminOrderDetailServiceTest {
                 new Money(BigDecimal.valueOf(150)), List.of(),
                 Instant.now(), 0, 0,
                 DeliveryType.PICKPOINT, null, null, ppId,
+                null, null, null,
                 null, null, null);
     }
 

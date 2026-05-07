@@ -177,6 +177,7 @@ public class CheckoutService implements CheckoutUseCase {
                 command.address(),
                 command.preferredTimeWindow(),
                 command.pickpointId(),
+                null, null, null,
                 null, null, null);
         Order saved = saveOrderPort.save(newOrder);
 

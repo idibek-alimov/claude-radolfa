@@ -49,6 +49,7 @@ class OrderNotificationServiceTest {
         return new Order(42L, 7L, null, status,
                 new Money(BigDecimal.valueOf(100)), List.of(), Instant.now(),
                 0, 0, DeliveryType.HOME, null, null, null,
+                null, null, null,
                 null, null, null);
     }
 

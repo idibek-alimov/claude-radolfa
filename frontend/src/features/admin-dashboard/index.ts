@@ -1,2 +1,2 @@
 export { fetchAdminOrderSummary } from "./api";
-export type { AdminOrderSummary, RecentOrder } from "./model/types";
+export type { AdminOrderSummary, RecentOrder } from "@/entities/order";

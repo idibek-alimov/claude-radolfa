@@ -13,6 +13,8 @@ import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
 
+import java.time.Instant;
+
 /**
  * Cancels an order and restores the reserved stock.
  *
@@ -89,7 +91,8 @@ public class CancelOrderService implements CancelOrderUseCase {
                 OrderStatus.CANCELLED, order.totalAmount(), order.items(), order.createdAt(),
                 order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate());
+                order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate(),
+                order.shippedAt(), order.deliveredAt(), Instant.now());
         saveOrderPort.save(cancelled);
         orderNotificationService.notify(cancelled);
     }

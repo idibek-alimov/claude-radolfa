@@ -20,9 +20,9 @@ import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.web.dto.AdminOrderDetailDto;
+import tj.radolfa.infrastructure.web.dto.AdminOrderItemDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderListDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderSummaryDto;
-import tj.radolfa.infrastructure.web.dto.OrderItemDto;
 import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
 
 import java.util.List;
@@ -94,7 +94,7 @@ public class AdminOrderController {
     @Operation(summary = "Get full order detail including delivery info and items (ADMIN only)")
     public ResponseEntity<AdminOrderDetailDto> getOrder(@PathVariable Long id) {
         GetAdminOrderDetailUseCase.Result result = getAdminOrderDetailUseCase.execute(id);
-        List<OrderItemDto> items = enrichItems(result.order());
+        List<AdminOrderItemDto> items = enrichItems(result.order());
         return ResponseEntity.ok(AdminOrderDetailDto.from(result, items));
     }
 
@@ -112,7 +112,7 @@ public class AdminOrderController {
                 order.items().size());
     }
 
-    private List<OrderItemDto> enrichItems(Order order) {
+    private List<AdminOrderItemDto> enrichItems(Order order) {
         List<Long> variantIds = order.items().stream()
                 .map(OrderItem::getListingVariantId)
                 .filter(Objects::nonNull)
@@ -141,10 +141,11 @@ public class AdminOrderController {
             String sizeLabel = sku != null ? sku.getSizeLabel() : null;
             boolean hasReviewed = item.getListingVariantId() != null
                     && loadReviewPort.existsByOrderAndVariant(order.id(), item.getListingVariantId());
-            return new OrderItemDto(
+            return new AdminOrderItemDto(
                     item.getProductName(), item.getQuantity(), item.getPrice().amount(),
                     item.getSkuId(), item.getListingVariantId(), imageUrl,
-                    item.getSkuCode(), sizeLabel, slug, hasReviewed);
+                    item.getSkuCode(), sizeLabel, slug, hasReviewed,
+                    sku != null ? sku.getStockQuantity() : null);
         }).toList();
     }
 

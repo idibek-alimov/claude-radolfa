@@ -29,6 +29,7 @@ class UpdateOrderStatusServiceTest {
                 new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
                 0, 0,
                 DeliveryType.HOME, "123 Main St", "MORNING", null,
+                null, null, null,
                 null, null, null);
     }
 
@@ -37,7 +38,8 @@ class UpdateOrderStatusServiceTest {
                 new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
                 0, 0,
                 DeliveryType.HOME, "123 Main St", "MORNING", null,
-                "DHL", "TST123", LocalDate.of(2026, 6, 1));
+                "DHL", "TST123", LocalDate.of(2026, 6, 1),
+                Instant.now(), null, null);
     }
 
     static Order pickpointOrder(OrderStatus status) {
@@ -45,6 +47,7 @@ class UpdateOrderStatusServiceTest {
                 new Money(BigDecimal.valueOf(300)), List.of(), Instant.now(),
                 0, 0,
                 DeliveryType.PICKPOINT, null, null, 99L,
+                null, null, null,
                 null, null, null);
     }
 
@@ -257,5 +260,41 @@ class UpdateOrderStatusServiceTest {
                 () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null)));
 
         assertEquals(0, port.confirmCount + port.updateCount);
+    }
+
+    @Test
+    @DisplayName("PAID→SHIPPED sets shippedAt; deliveredAt and cancelledAt remain null")
+    void paidToShipped_setsShippedAt() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+
+        Instant before = Instant.now();
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, "DHL", null, null));
+        Instant after = Instant.now();
+
+        Order saved = save.last();
+        assertNotNull(saved.shippedAt());
+        assertFalse(saved.shippedAt().isBefore(before));
+        assertFalse(saved.shippedAt().isAfter(after));
+        assertNull(saved.deliveredAt());
+        assertNull(saved.cancelledAt());
+    }
+
+    @Test
+    @DisplayName("SHIPPED→DELIVERED sets deliveredAt; shippedAt carried through")
+    void shippedToDelivered_setsDeliveredAt() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeShippedOrder(), save);
+
+        Instant before = Instant.now();
+        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null));
+        Instant after = Instant.now();
+
+        Order saved = save.last();
+        assertNotNull(saved.deliveredAt());
+        assertFalse(saved.deliveredAt().isBefore(before));
+        assertFalse(saved.deliveredAt().isAfter(after));
+        assertNotNull(saved.shippedAt());
+        assertNull(saved.cancelledAt());
     }
 }

@@ -9,6 +9,7 @@ import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 /**
@@ -42,17 +43,22 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         validateTransition(order, command.newStatus());
         validateCourierFields(order, command);
 
-        boolean toShipped = command.newStatus() == OrderStatus.SHIPPED;
-        String courierName    = toShipped ? command.courierName()            : order.courierName();
-        String trackingNumber = toShipped ? command.trackingNumber()         : order.trackingNumber();
-        LocalDate edd         = toShipped ? command.estimatedDeliveryDate()  : order.estimatedDeliveryDate();
+        boolean toShipped   = command.newStatus() == OrderStatus.SHIPPED;
+        boolean toDelivered = command.newStatus() == OrderStatus.DELIVERED;
+        String courierName    = toShipped ? command.courierName()           : order.courierName();
+        String trackingNumber = toShipped ? command.trackingNumber()        : order.trackingNumber();
+        LocalDate edd         = toShipped ? command.estimatedDeliveryDate() : order.estimatedDeliveryDate();
+        Instant now           = Instant.now();
+        Instant shippedAt     = toShipped   ? now : order.shippedAt();
+        Instant deliveredAt   = toDelivered ? now : order.deliveredAt();
 
         Order updated = new Order(
                 order.id(), order.userId(), order.externalOrderId(),
                 command.newStatus(), order.totalAmount(), order.items(), order.createdAt(),
                 order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                courierName, trackingNumber, edd);
+                courierName, trackingNumber, edd,
+                shippedAt, deliveredAt, order.cancelledAt());
         saveOrderPort.save(updated);
         orderNotificationService.notify(updated);
     }

@@ -21,7 +21,10 @@ public record Order(
         Long pickpointId,
         String courierName,
         String trackingNumber,
-        LocalDate estimatedDeliveryDate) {
+        LocalDate estimatedDeliveryDate,
+        Instant shippedAt,
+        Instant deliveredAt,
+        Instant cancelledAt) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);

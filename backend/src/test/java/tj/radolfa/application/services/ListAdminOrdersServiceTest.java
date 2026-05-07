@@ -21,6 +21,7 @@ class ListAdminOrdersServiceTest {
         return new Order(id, 1L, null, OrderStatus.PENDING,
                 new Money(BigDecimal.TEN), List.of(), Instant.now(),
                 0, 0, DeliveryType.HOME, "Addr", null, null,
+                null, null, null,
                 null, null, null);
     }
 
