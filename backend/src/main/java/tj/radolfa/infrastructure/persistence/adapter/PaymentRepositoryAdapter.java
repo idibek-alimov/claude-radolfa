@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.out.LoadPaymentPort;
 import tj.radolfa.application.ports.out.SavePaymentPort;
 import tj.radolfa.domain.model.Payment;
 import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
+import tj.radolfa.infrastructure.persistence.entity.PaymentEntity;
 import tj.radolfa.infrastructure.persistence.mappers.PaymentMapper;
 import tj.radolfa.infrastructure.persistence.repository.PaymentRepository;
 
@@ -40,8 +41,15 @@ public class PaymentRepositoryAdapter implements LoadPaymentPort, SavePaymentPor
 
     @Override
     public Payment save(Payment payment) {
-        var entity = mapper.toEntity(payment);
-        entity.setOrder(em.getReference(OrderEntity.class, payment.orderId()));
+        PaymentEntity entity;
+        if (payment.id() != null) {
+            entity = repository.findById(payment.id())
+                    .orElseThrow(() -> new IllegalStateException("Payment not found: " + payment.id()));
+            mapper.updateEntity(payment, entity);
+        } else {
+            entity = mapper.toEntity(payment);
+            entity.setOrder(em.getReference(OrderEntity.class, payment.orderId()));
+        }
         var saved = repository.save(entity);
         return mapper.toPayment(saved);
     }

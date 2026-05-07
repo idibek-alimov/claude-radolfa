@@ -32,7 +32,7 @@ public class PaymentPortStub implements PaymentPort {
                 externalOrderId, customerId, amount.amount(), currency, txId);
         return new PaymentIntent(
                 txId,
-                "/stub/payment/success?tx=" + txId,
+                "/api/v1/payments/stub/confirm?tx=" + txId + "&orderId=" + externalOrderId,
                 Instant.now().plusSeconds(3600)
         );
     }

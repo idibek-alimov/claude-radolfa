@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.persistence.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Payment;
 import tj.radolfa.infrastructure.persistence.entity.PaymentEntity;
@@ -19,6 +20,13 @@ public interface PaymentMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     PaymentEntity toEntity(Payment payment);
+
+    /** Updates an existing managed entity in-place, preserving version/audit fields. */
+    @Mapping(target = "order", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntity(Payment payment, @MappingTarget PaymentEntity entity);
 
     // ---- Money <-> BigDecimal bridge --------------------------------
 

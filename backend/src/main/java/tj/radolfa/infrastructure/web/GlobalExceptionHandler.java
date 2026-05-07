@@ -22,6 +22,7 @@ import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 
 import jakarta.persistence.OptimisticLockException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -210,6 +211,17 @@ public class GlobalExceptionHandler {
         LOG.error("[STATE] Internal state error: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(MessageResponseDto.error("An internal error occurred. Please try again later."));
+    }
+
+    /**
+     * Client closed the connection before the response was fully written (navigated away,
+     * timeout, cancelled request). Not an application error — log at DEBUG only and do not
+     * attempt to write a response body (the socket is already gone).
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public ResponseEntity<Void> handleClientDisconnect(AsyncRequestNotUsableException ex) {
+        LOG.debug("[NETWORK] Client disconnected mid-response: {}", ex.getMessage());
+        return ResponseEntity.ok().build();
     }
 
     /**

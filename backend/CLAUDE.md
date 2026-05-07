@@ -14,6 +14,15 @@
   - **Sort:** Accept `sort=field,asc|desc` (Spring `Sort` convention). **Whitelist** sortable field names in the controller — never interpolate raw user input into JPQL or native SQL `ORDER BY` (SQL injection risk).
   - **Why:** The frontend is forbidden from filtering `content[]` locally (see root `CLAUDE.md` and `frontend/CLAUDE.md`). If the backend does not implement search/sort, the feature is broken, not degraded.
 
+## Seed Data — Development Only
+
+All `INSERT` seed data belongs in `backend/src/main/resources/db/migration-dev/`.
+
+- This directory is only loaded when the `dev` Spring profile is active (`spring.flyway.locations` includes `classpath:db/migration-dev`).
+- Append new seed rows to `V15__dev_seed.sql` (general data) or `V16__dev_reviews.sql` (review/QA data). Do **not** create a new versioned file just for seed data.
+- Production migrations (`db/migration/`) must never contain `INSERT` seed rows.
+- **Versioning rule (critical):** Dev seed file version numbers must always be **higher** than the highest production migration version. Currently the highest production migration is `V14__pickpoint.sql`, so seeds are `V15` and `V16`. When a new production migration (e.g. `V15__...`) is added, the seed files must be renumbered above it. Failing to do this causes Flyway to run seed `INSERT`s before the schema tables they reference exist, crashing startup.
+
 ## Database Migrations — Development Policy
 
 **Rule: No `ALTER TABLE` in dev. Edit the original `CREATE TABLE` instead.**

@@ -1,5 +1,5 @@
 -- ================================================================
--- V7__dev_seed.sql
+-- V15__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -17,6 +17,7 @@
 --   9. Discounts & discount items
 --  10. Product tags & assignments
 --  11. Category attribute blueprints
+--  12. Pickup points
 -- ================================================================
 
 
@@ -681,6 +682,14 @@ WHERE pb.external_ref IN ('TPL-TSHIRT-001', 'TPL-HOODIE-001', 'TPL-JEANS-001', '
       GROUP BY lv2.product_base_id
   )
 ON CONFLICT DO NOTHING;
+
+-- ================================================================
+-- 12. PICKUP POINTS
+-- ================================================================
+
+INSERT INTO pickpoint (name, address, active) VALUES
+    ('Radolfa — Центр',    'г. Душанбе, пр. Рудаки, 42', TRUE),
+    ('Radolfa — Сомони',   'г. Душанбе, ул. Сомони, 17', TRUE);
 
 -- ================================================================
 -- 11. CATEGORY ATTRIBUTE BLUEPRINTS

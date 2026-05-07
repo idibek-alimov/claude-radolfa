@@ -91,18 +91,24 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
 
     @Override
     public Order save(Order order) {
-        var entity = mapper.toEntity(order);
+        OrderEntity entity;
+        if (order.id() != null) {
+            entity = repository.findById(order.id())
+                    .orElseThrow(() -> new IllegalStateException("Order not found: " + order.id()));
+            mapper.updateEntity(order, entity);
+        } else {
+            entity = mapper.toEntity(order);
+            entity.setUser(em.getReference(UserEntity.class, order.userId()));
 
-        entity.setUser(em.getReference(UserEntity.class, order.userId()));
+            if (entity.getItems() != null) {
+                for (int i = 0; i < entity.getItems().size(); i++) {
+                    var item = entity.getItems().get(i);
+                    item.setOrder(entity);
 
-        if (entity.getItems() != null) {
-            for (int i = 0; i < entity.getItems().size(); i++) {
-                var item = entity.getItems().get(i);
-                item.setOrder(entity);
-
-                Long skuId = order.items().get(i).getSkuId();
-                if (skuId != null) {
-                    item.setSku(em.getReference(SkuEntity.class, skuId));
+                    Long skuId = order.items().get(i).getSkuId();
+                    if (skuId != null) {
+                        item.setSku(em.getReference(SkuEntity.class, skuId));
+                    }
                 }
             }
         }

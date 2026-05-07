@@ -28,8 +28,8 @@ import type { AdminOrderListItem, OrderStatus } from "@/entities/order";
 import { useDynamicPageSize } from "@/shared/lib";
 import { OrderDetailDrawer } from "./OrderDetailDrawer";
 
-const STATUS_OPTIONS: Array<{ value: OrderStatus | ""; label: string }> = [
-  { value: "", label: "statusAll" },
+const STATUS_OPTIONS: Array<{ value: OrderStatus | "ALL"; label: string }> = [
+  { value: "ALL", label: "statusAll" },
   { value: "PENDING",   label: "status.PENDING" },
   { value: "PAID",      label: "status.PAID" },
   { value: "SHIPPED",          label: "status.SHIPPED" },
@@ -91,8 +91,8 @@ export function OrderManagementTable() {
           />
         </div>
         <Select
-          value={statusFilter}
-          onValueChange={(v) => { setStatus(v as OrderStatus | ""); setPage(1); }}
+          value={statusFilter || "ALL"}
+          onValueChange={(v) => { setStatus(v === "ALL" ? "" : v as OrderStatus); setPage(1); }}
         >
           <SelectTrigger className="w-44">
             <SelectValue placeholder={t("statusAll")} />
