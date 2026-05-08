@@ -23,7 +23,7 @@ import {
 } from "@/shared/ui/select";
 import { useDebounce } from "@/shared/lib";
 
-type StatusFilter = "PENDING" | "PUBLISHED";
+type StatusFilter = "PENDING" | "PUBLISHED" | "REJECTED";
 type SortOption = "createdAt_ASC" | "createdAt_DESC" | "answeredAt_DESC";
 
 const SORT_OPTIONS: { value: SortOption; label: string; statusOnly?: StatusFilter }[] = [
@@ -43,7 +43,7 @@ export function QuestionModerationQueue() {
   // Reset sort to a valid option when switching tabs
   function handleTabChange(value: string) {
     setActiveStatus(value as StatusFilter);
-    if (value === "PENDING" && sort === "answeredAt_DESC") {
+    if (value !== "PUBLISHED" && sort === "answeredAt_DESC") {
       setSort("createdAt_ASC");
     }
   }
@@ -108,6 +108,7 @@ export function QuestionModerationQueue() {
             <TabsList>
               <TabsTrigger value="PENDING">Pending</TabsTrigger>
               <TabsTrigger value="PUBLISHED">Answered</TabsTrigger>
+              <TabsTrigger value="REJECTED">Rejected</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -158,7 +159,9 @@ export function QuestionModerationQueue() {
                 ? "No questions match your search."
                 : activeStatus === "PENDING"
                 ? "No questions pending moderation."
-                : "No answered questions yet."}
+                : activeStatus === "PUBLISHED"
+                ? "No answered questions yet."
+                : "No rejected questions."}
             </p>
           </div>
         ) : (

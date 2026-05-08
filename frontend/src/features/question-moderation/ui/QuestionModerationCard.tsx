@@ -28,7 +28,8 @@ interface QuestionModerationCardProps {
 
 export function QuestionModerationCard({ question }: QuestionModerationCardProps) {
   const qc = useQueryClient();
-  const isAnswered = question.status === "PUBLISHED";
+  const isAnswered  = question.status === "PUBLISHED";
+  const isRejected  = question.status === "REJECTED";
 
   const rejectMutation = useMutation({
     mutationFn: () => rejectQuestion(question.id),
@@ -40,7 +41,9 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
   });
 
   return (
-    <div className={`p-5 border-l-4 bg-card hover:bg-muted/30 transition-colors ${isAnswered ? "border-l-green-500" : "border-l-orange-400"}`}>
+    <div className={`p-5 border-l-4 bg-card hover:bg-muted/30 transition-colors ${
+      isRejected ? "border-l-zinc-300" : isAnswered ? "border-l-green-500" : "border-l-orange-400"
+    }`}>
       <div className="flex items-start gap-5">
         {/* Left column — product context */}
         <div className="shrink-0 w-56 flex items-start gap-3">
@@ -108,6 +111,11 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 Answered
               </span>
+            ) : isRejected ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
+                Rejected
+              </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
@@ -116,7 +124,7 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          {!isRejected && <div className="flex items-center gap-2">
             <AnswerDialog
               questionId={question.id}
               questionText={question.questionText}
@@ -174,7 +182,7 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
                 {rejectMutation.isPending ? "Rejecting…" : "Reject"}
               </Button>
             )}
-          </div>
+          </div>}
         </div>
       </div>
     </div>

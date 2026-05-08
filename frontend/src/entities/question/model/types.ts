@@ -31,7 +31,7 @@ export interface QuestionAdminView {
 }
 
 export interface FetchAdminQuestionsParams {
-  status: 'PENDING' | 'PUBLISHED';
+  status: 'PENDING' | 'PUBLISHED' | 'REJECTED';
   search?: string;
   dateFrom?: string;
   dateTo?: string;
