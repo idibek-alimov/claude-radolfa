@@ -114,7 +114,7 @@ class CheckoutServiceDeliveryValidationTest {
                 itemsWithIds, order.createdAt(), 0, 0,
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
                 null, null, null,
-                null, null, null);
+                null, null, null, null);
     };
 
     static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {

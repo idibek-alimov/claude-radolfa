@@ -30,7 +30,7 @@ class UpdateOrderStatusServiceTest {
                 0, 0,
                 DeliveryType.HOME, "123 Main St", "MORNING", null,
                 null, null, null,
-                null, null, null);
+                null, null, null, null);
     }
 
     static Order homeShippedOrder() {
@@ -39,7 +39,7 @@ class UpdateOrderStatusServiceTest {
                 0, 0,
                 DeliveryType.HOME, "123 Main St", "MORNING", null,
                 "DHL", "TST123", LocalDate.of(2026, 6, 1),
-                Instant.now(), null, null);
+                Instant.now(), null, null, null);
     }
 
     static Order pickpointOrder(OrderStatus status) {
@@ -48,7 +48,7 @@ class UpdateOrderStatusServiceTest {
                 0, 0,
                 DeliveryType.PICKPOINT, null, null, 99L,
                 null, null, null,
-                null, null, null);
+                null, null, null, null);
     }
 
     static LoadOrderPort orderPort(Order order) {

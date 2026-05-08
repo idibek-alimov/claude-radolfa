@@ -1,5 +1,5 @@
 // Synced from backend — do not edit manually
-export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "READY_FOR_PICKUP" | "DELIVERED" | "CANCELLED";
+export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "READY_FOR_PICKUP" | "DELIVERED" | "CANCELLED" | "REFUNDED";
 export type DeliveryType = "HOME" | "PICKPOINT";
 
 /** Minimal order item — only what the review form needs. */
@@ -67,6 +67,7 @@ export interface AdminOrderDetail {
   shippedAt: string | null;
   deliveredAt: string | null;
   cancelledAt: string | null;
+  refundedAt: string | null;
 }
 
 export interface RecentOrder {

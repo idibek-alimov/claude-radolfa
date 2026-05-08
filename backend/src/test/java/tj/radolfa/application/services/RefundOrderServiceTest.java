@@ -2,12 +2,10 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tj.radolfa.application.ports.in.loyalty.RestoreLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
-import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.Money;
@@ -25,7 +23,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CancelOrderServiceTest {
+class RefundOrderServiceTest {
 
     // ── Fakes ─────────────────────────────────────────────────────────────────
 
@@ -33,13 +31,13 @@ class CancelOrderServiceTest {
             99L, new PhoneNumber("992000000099"), UserRole.ADMIN,
             "Admin", null, LoyaltyProfile.empty(), true, 1L);
 
-    static final User REGULAR_USER = new User(
-            10L, new PhoneNumber("992000000010"), UserRole.USER,
-            "Alice", null, LoyaltyProfile.empty(), true, 1L);
+    static final User MANAGER_USER = new User(
+            88L, new PhoneNumber("992000000088"), UserRole.MANAGER,
+            "Manager", null, LoyaltyProfile.empty(), true, 1L);
 
-    static Order pendingOrder(Long ownerId) {
-        return new Order(1L, ownerId, null, OrderStatus.PENDING,
-                new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
+    static Order orderWithStatus(OrderStatus status) {
+        return new Order(1L, 10L, null, status,
+                new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
                 0, 0, DeliveryType.HOME, "Addr", null, null,
                 null, null, null,
                 null, null, null, null);
@@ -81,96 +79,87 @@ class CancelOrderServiceTest {
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
     }
 
-    static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {
-        @Override public void decrement(Long skuId, int qty) {}
-        @Override public void increment(Long skuId, int qty) {}
-        @Override public void setAbsolute(Long skuId, int qty) {}
-    };
-
-    static final RestoreLoyaltyPointsUseCase NO_LOYALTY = (userId, pts) -> {};
-
-    static CancelOrderService service(Order order, User requester,
+    static RefundOrderService service(Order order, User requester,
                                       CapturingSaveOrderPort save,
                                       NotificationPort notifPort) {
-        return new CancelOrderService(
+        return new RefundOrderService(
                 orderPort(order),
                 save,
                 userPort(requester),
-                NO_STOCK,
-                NO_LOYALTY,
                 new OrderNotificationService(notifPort));
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("USER cancels own PENDING order — CANCELLED notification fires")
-    void userCancelsOwnPendingOrder_notificationFired() {
-        CountingNotificationPort port = new CountingNotificationPort();
-        CapturingSaveOrderPort   save = new CapturingSaveOrderPort();
+    @DisplayName("Refunds a DELIVERED order — status becomes REFUNDED")
+    void refundsDeliveredOrder() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
 
-        service(pendingOrder(REGULAR_USER.id()), REGULAR_USER, save, port)
-                .execute(1L, REGULAR_USER.id(), null);
+        service(orderWithStatus(OrderStatus.DELIVERED), ADMIN_USER, save,
+                new CountingNotificationPort())
+                .execute(1L, ADMIN_USER.id(), "Customer dispute");
 
-        assertEquals(OrderStatus.CANCELLED, save.last().status());
-        assertEquals(1, port.updateCount);
-        assertEquals(OrderStatus.CANCELLED, port.lastStatus);
+        assertEquals(OrderStatus.REFUNDED, save.last().status());
     }
 
     @Test
-    @DisplayName("ADMIN cancels any PENDING order — CANCELLED notification fires")
-    void adminCancelsOrder_notificationFired() {
-        CountingNotificationPort port = new CountingNotificationPort();
-        CapturingSaveOrderPort   save = new CapturingSaveOrderPort();
+    @DisplayName("Refunds a CANCELLED order — status becomes REFUNDED")
+    void refundsCancelledOrder() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
 
-        service(pendingOrder(REGULAR_USER.id()), ADMIN_USER, save, port)
-                .execute(1L, ADMIN_USER.id(), "admin override");
+        service(orderWithStatus(OrderStatus.CANCELLED), ADMIN_USER, save,
+                new CountingNotificationPort())
+                .execute(1L, ADMIN_USER.id(), null);
 
-        assertEquals(OrderStatus.CANCELLED, save.last().status());
-        assertEquals(1, port.updateCount);
+        assertEquals(OrderStatus.REFUNDED, save.last().status());
     }
 
     @Test
-    @DisplayName("USER cannot cancel another user's order")
-    void userCannotCancelOtherOrder_throws() {
-        Order otherUsersOrder = pendingOrder(55L);
-        CancelOrderService svc = service(otherUsersOrder, REGULAR_USER,
-                new CapturingSaveOrderPort(), new CountingNotificationPort());
-
-        assertThrows(IllegalStateException.class,
-                () -> svc.execute(1L, REGULAR_USER.id(), null));
-    }
-
-    @Test
-    @DisplayName("Cancellation sets cancelledAt")
-    void cancellation_setsCancelledAt() {
+    @DisplayName("Refund sets refundedAt timestamp")
+    void refund_setsRefundedAt() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
 
         Instant before = Instant.now();
-        service(pendingOrder(REGULAR_USER.id()), REGULAR_USER, save,
+        service(orderWithStatus(OrderStatus.DELIVERED), ADMIN_USER, save,
                 new CountingNotificationPort())
-                .execute(1L, REGULAR_USER.id(), null);
+                .execute(1L, ADMIN_USER.id(), null);
         Instant after = Instant.now();
 
         Order saved = save.last();
-        assertNotNull(saved.cancelledAt());
-        assertFalse(saved.cancelledAt().isBefore(before));
-        assertFalse(saved.cancelledAt().isAfter(after));
+        assertNotNull(saved.refundedAt());
+        assertFalse(saved.refundedAt().isBefore(before));
+        assertFalse(saved.refundedAt().isAfter(after));
     }
 
     @Test
-    @DisplayName("ADMIN cannot cancel an already-DELIVERED order")
-    void adminCannotCancelDeliveredOrder_throws() {
-        Order delivered = new Order(1L, 10L, null, OrderStatus.DELIVERED,
-                new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
-
-        CancelOrderService svc = service(delivered, ADMIN_USER,
+    @DisplayName("Rejects a PAID order — not a final state")
+    void rejectsNonFinalStatus_throws() {
+        RefundOrderService svc = service(orderWithStatus(OrderStatus.PAID), ADMIN_USER,
                 new CapturingSaveOrderPort(), new CountingNotificationPort());
 
-        assertThrows(IllegalStateException.class,
-                () -> svc.execute(1L, ADMIN_USER.id(), null));
+        assertThrows(IllegalStateException.class, () -> svc.execute(1L, ADMIN_USER.id(), null));
+    }
+
+    @Test
+    @DisplayName("Rejects MANAGER requester — ADMIN only")
+    void rejectsNonAdminRequester_throws() {
+        RefundOrderService svc = service(orderWithStatus(OrderStatus.DELIVERED), MANAGER_USER,
+                new CapturingSaveOrderPort(), new CountingNotificationPort());
+
+        assertThrows(IllegalStateException.class, () -> svc.execute(1L, MANAGER_USER.id(), null));
+    }
+
+    @Test
+    @DisplayName("Notification fires with REFUNDED status after successful refund")
+    void notifiesOnRefund() {
+        CountingNotificationPort port = new CountingNotificationPort();
+        CapturingSaveOrderPort   save = new CapturingSaveOrderPort();
+
+        service(orderWithStatus(OrderStatus.DELIVERED), ADMIN_USER, save, port)
+                .execute(1L, ADMIN_USER.id(), null);
+
+        assertEquals(1, port.updateCount);
+        assertEquals(OrderStatus.REFUNDED, port.lastStatus);
     }
 }

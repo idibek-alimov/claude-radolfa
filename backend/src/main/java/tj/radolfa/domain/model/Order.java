@@ -24,7 +24,8 @@ public record Order(
         LocalDate estimatedDeliveryDate,
         Instant shippedAt,
         Instant deliveredAt,
-        Instant cancelledAt) {
+        Instant cancelledAt,
+        Instant refundedAt) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);

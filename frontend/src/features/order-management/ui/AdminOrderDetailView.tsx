@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Ban, Home, MapPin, Truck } from "lucide-react";
+import { Ban, Home, MapPin, Truck, Undo2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
@@ -18,11 +18,13 @@ import {
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
 import { getErrorMessage } from "@/shared/lib";
+import { useAuth } from "@/features/auth";
 import type { AdminOrderDetail, OrderStatus } from "@/entities/order";
 import { FulfillmentTimeline } from "./FulfillmentTimeline";
 import { OrderItemsStockTable } from "./OrderItemsStockTable";
 import { ShipOrderModal } from "./ShipOrderModal";
 import { CancelOrderModal } from "./CancelOrderModal";
+import { RefundOrderModal } from "./RefundOrderModal";
 
 function nextStatusFor(order: AdminOrderDetail): OrderStatus | null {
   const isPickpoint = order.deliveryType === "PICKPOINT";
@@ -56,11 +58,15 @@ interface Props {
 
 export function AdminOrderDetailView({ orderId }: Props) {
   const t = useTranslations("manage.orders");
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+
   const { data: order, isLoading } = useAdminOrder(orderId);
   const updateStatus = useUpdateOrderStatus();
 
   const [shipOpen, setShipOpen]     = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
 
   function handleStatusChange(newStatus: OrderStatus) {
     updateStatus.mutate(
@@ -93,10 +99,13 @@ export function AdminOrderDetailView({ orderId }: Props) {
   }
 
   const nextStatus        = nextStatusFor(order);
-  const isFinalState      = order.status === "DELIVERED" || order.status === "CANCELLED";
+  const isFinalState      = order.status === "DELIVERED"
+                         || order.status === "CANCELLED"
+                         || order.status === "REFUNDED";
   const showShipButton    = order.status === "PAID" && order.deliveryType === "HOME";
   const showAdvanceButton = nextStatus !== null && !showShipButton;
   const showCancelButton  = !isFinalState;
+  const showRefundButton  = isAdmin && (order.status === "DELIVERED" || order.status === "CANCELLED");
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -128,7 +137,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
           </p>
         </div>
 
-        {(showShipButton || showAdvanceButton || showCancelButton) && (
+        {(showShipButton || showAdvanceButton || showCancelButton || showRefundButton) && (
           <div className="flex items-center justify-end gap-2 flex-wrap">
             {showShipButton && (
               <Button onClick={() => setShipOpen(true)}>
@@ -152,6 +161,12 @@ export function AdminOrderDetailView({ orderId }: Props) {
                 {t("detail.cancelOrder")}
               </Button>
             )}
+            {showRefundButton && (
+              <Button variant="destructive" onClick={() => setRefundOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />
+                {t("detail.refundOrder")}
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -163,6 +178,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
         shippedAt={order.shippedAt}
         deliveredAt={order.deliveredAt}
         cancelledAt={order.cancelledAt}
+        refundedAt={order.refundedAt}
         deliveryType={order.deliveryType}
       />
 
@@ -290,6 +306,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
 
       <ShipOrderModal open={shipOpen} onClose={() => setShipOpen(false)} orderId={orderId} />
       <CancelOrderModal open={cancelOpen} onClose={() => setCancelOpen(false)} orderId={orderId} />
+      <RefundOrderModal open={refundOpen} onClose={() => setRefundOpen(false)} orderId={orderId} />
     </div>
   );
 }

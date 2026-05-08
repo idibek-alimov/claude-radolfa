@@ -277,7 +277,8 @@
         "SHIPPED":          "Shipped",
         "READY_FOR_PICKUP": "Ready for pickup",
         "DELIVERED":        "Delivered",
-        "CANCELLED":        "Cancelled"
+        "CANCELLED":        "Cancelled",
+        "REFUNDED":         "Refunded"
       },
       "deliveryType": {
         "HOME": "Home",
@@ -316,6 +317,7 @@
         "title": "Order #{id}",
         "moveTo": "Move to {status}",
         "cancelOrder": "Cancel Order",
+        "refundOrder": "Refund Order",
         "summary": "Summary",
         "loyaltyDiscount": "Loyalty discount",
         "total": "Total",
@@ -363,7 +365,8 @@
         "shipped": "Shipped",
         "ready": "Ready",
         "delivered": "Delivered",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "refunded": "Refunded"
       },
       "toast": {
         "statusUpdated": "Order status updated.",
@@ -371,7 +374,18 @@
         "shipped": "Order marked as shipped.",
         "shipFailed": "Failed to ship order.",
         "cancelled": "Order cancelled.",
-        "cancelFailed": "Failed to cancel order."
+        "cancelFailed": "Failed to cancel order.",
+        "refunded": "Order refunded.",
+        "refundFailed": "Failed to refund order."
+      },
+      "refundModal": {
+        "title": "Refund Order #{id}?",
+        "description": "This will mark the order as REFUNDED. Process the actual money-back via the payment provider separately. This action cannot be undone.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Optional — visible to staff",
+        "keep": "Keep Order",
+        "refunding": "Refunding…",
+        "confirm": "Refund Order"
       },
       "empty": "No orders found.",
       "page": "Page {page}",

@@ -10,6 +10,7 @@ interface TimelineNode {
   reached: boolean;
   isCurrent: boolean;
   isCancelled?: boolean;
+  isRefunded?: boolean;
 }
 
 function formatTs(iso: string) {
@@ -25,6 +26,8 @@ function formatTs(iso: string) {
 function Node({ node }: { node: TimelineNode }) {
   const circleClass = node.isCancelled
     ? "bg-rose-500"
+    : node.isRefunded
+    ? "bg-violet-500"
     : node.reached
     ? "bg-primary"
     : "border-2 border-muted bg-background";
@@ -33,7 +36,7 @@ function Node({ node }: { node: TimelineNode }) {
     <div className="flex flex-col items-center gap-1 min-w-[72px]">
       <div className="relative flex items-center justify-center">
         <div className={cn("h-6 w-6 rounded-full", circleClass)} />
-        {node.isCurrent && !node.isCancelled && (
+        {node.isCurrent && !node.isCancelled && !node.isRefunded && (
           <div className="absolute h-6 w-6 rounded-full bg-primary opacity-30 animate-ping" />
         )}
       </div>
@@ -42,6 +45,8 @@ function Node({ node }: { node: TimelineNode }) {
           "text-[11px] font-semibold text-center leading-tight",
           node.isCancelled
             ? "text-rose-600"
+            : node.isRefunded
+            ? "text-violet-700"
             : node.reached
             ? "text-foreground"
             : "text-muted-foreground"
@@ -66,6 +71,7 @@ interface Props {
   shippedAt: string | null;
   deliveredAt: string | null;
   cancelledAt: string | null;
+  refundedAt: string | null;
   deliveryType: "HOME" | "PICKPOINT" | null;
 }
 
@@ -75,26 +81,32 @@ export function FulfillmentTimeline({
   shippedAt,
   deliveredAt,
   cancelledAt,
+  refundedAt,
   deliveryType,
 }: Props) {
   const t = useTranslations("manage.orders.timeline");
 
-  const isPaid      = ["PAID", "SHIPPED", "READY_FOR_PICKUP", "DELIVERED"].includes(status);
-  const isShipped   = ["SHIPPED", "READY_FOR_PICKUP", "DELIVERED"].includes(status);
-  const isDelivered = status === "DELIVERED";
+  const isPaid      = ["PAID", "SHIPPED", "READY_FOR_PICKUP", "DELIVERED", "REFUNDED"].includes(status);
+  const isShipped   = ["SHIPPED", "READY_FOR_PICKUP", "DELIVERED", "REFUNDED"].includes(status);
+  const isDelivered = status === "DELIVERED" || status === "REFUNDED";
   const isCancelled = !!cancelledAt;
+  const isRefunded  = !!refundedAt;
 
   const shippedLabel = deliveryType === "PICKPOINT" ? t("ready") : t("shipped");
 
   const nodes: TimelineNode[] = [
-    { label: t("created"),     timestamp: createdAt,   reached: true,        isCurrent: status === "PENDING" && !isCancelled },
-    { label: t("paid"),        timestamp: null,         reached: isPaid,      isCurrent: status === "PAID" && !isCancelled },
-    { label: shippedLabel,     timestamp: shippedAt,    reached: isShipped,   isCurrent: (status === "SHIPPED" || status === "READY_FOR_PICKUP") && !isCancelled },
-    { label: t("delivered"),   timestamp: deliveredAt,  reached: isDelivered, isCurrent: isDelivered },
+    { label: t("created"),     timestamp: createdAt,   reached: true,        isCurrent: status === "PENDING" && !isCancelled && !isRefunded },
+    { label: t("paid"),        timestamp: null,         reached: isPaid,      isCurrent: status === "PAID" && !isCancelled && !isRefunded },
+    { label: shippedLabel,     timestamp: shippedAt,    reached: isShipped,   isCurrent: (status === "SHIPPED" || status === "READY_FOR_PICKUP") && !isCancelled && !isRefunded },
+    { label: t("delivered"),   timestamp: deliveredAt,  reached: isDelivered, isCurrent: status === "DELIVERED" },
   ];
 
   if (isCancelled) {
     nodes.push({ label: t("cancelled"), timestamp: cancelledAt, reached: true, isCurrent: false, isCancelled: true });
+  }
+
+  if (isRefunded) {
+    nodes.push({ label: t("refunded"), timestamp: refundedAt, reached: true, isCurrent: false, isRefunded: true });
   }
 
   return (
@@ -112,6 +124,8 @@ export function FulfillmentTimeline({
                   "flex-1 h-0.5 mt-3 mx-1",
                   nodes[i + 1].isCancelled
                     ? "bg-rose-200"
+                    : nodes[i + 1].isRefunded
+                    ? "bg-violet-200"
                     : nodes[i + 1].reached
                     ? "bg-primary/40"
                     : "bg-border"

@@ -4,10 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
 import tj.radolfa.application.ports.in.order.ListAdminOrdersUseCase;
+import tj.radolfa.application.ports.in.order.RefundOrderUseCase;
 import tj.radolfa.application.ports.out.AdminOrderSummary;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -24,6 +26,8 @@ import tj.radolfa.infrastructure.web.dto.AdminOrderItemDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderListDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderSummaryDto;
 import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
+import tj.radolfa.infrastructure.web.dto.RefundOrderRequest;
+import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 
 import java.util.List;
 import java.util.Map;
@@ -37,6 +41,7 @@ public class AdminOrderController {
     private final GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase;
     private final ListAdminOrdersUseCase      listAdminOrdersUseCase;
     private final GetAdminOrderDetailUseCase  getAdminOrderDetailUseCase;
+    private final RefundOrderUseCase          refundOrderUseCase;
     private final LoadListingVariantPort      loadListingVariantPort;
     private final LoadSkuPort                 loadSkuPort;
     private final LoadReviewPort              loadReviewPort;
@@ -44,12 +49,14 @@ public class AdminOrderController {
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
                                 GetAdminOrderDetailUseCase getAdminOrderDetailUseCase,
+                                RefundOrderUseCase refundOrderUseCase,
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
                                 LoadReviewPort loadReviewPort) {
         this.getAdminOrderSummaryUseCase = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase      = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase  = getAdminOrderDetailUseCase;
+        this.refundOrderUseCase          = refundOrderUseCase;
         this.loadListingVariantPort      = loadListingVariantPort;
         this.loadSkuPort                 = loadSkuPort;
         this.loadReviewPort              = loadReviewPort;
@@ -96,6 +103,17 @@ public class AdminOrderController {
         GetAdminOrderDetailUseCase.Result result = getAdminOrderDetailUseCase.execute(id);
         List<AdminOrderItemDto> items = enrichItems(result.order());
         return ResponseEntity.ok(AdminOrderDetailDto.from(result, items));
+    }
+
+    @PostMapping("/{id}/refund")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Refund an order — marks it REFUNDED (ADMIN only; DELIVERED or CANCELLED only)")
+    public ResponseEntity<Void> refund(@PathVariable Long id,
+                                       @AuthenticationPrincipal JwtAuthenticatedUser user,
+                                       @RequestBody(required = false) RefundOrderRequest body) {
+        String reason = body != null ? body.reason() : null;
+        refundOrderUseCase.execute(id, user.userId(), reason);
+        return ResponseEntity.noContent().build();
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

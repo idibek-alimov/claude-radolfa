@@ -58,7 +58,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
                 order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
                 courierName, trackingNumber, edd,
-                shippedAt, deliveredAt, order.cancelledAt());
+                shippedAt, deliveredAt, order.cancelledAt(), order.refundedAt());
         saveOrderPort.save(updated);
         orderNotificationService.notify(updated);
     }

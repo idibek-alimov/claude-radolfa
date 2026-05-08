@@ -30,7 +30,8 @@ public record AdminOrderDetailDto(
         LocalDate estimatedDeliveryDate,
         Instant shippedAt,
         Instant deliveredAt,
-        Instant cancelledAt) {
+        Instant cancelledAt,
+        Instant refundedAt) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
                                            List<AdminOrderItemDto> enrichedItems) {
@@ -58,7 +59,8 @@ public record AdminOrderDetailDto(
                 order.estimatedDeliveryDate(),
                 order.shippedAt(),
                 order.deliveredAt(),
-                order.cancelledAt()
+                order.cancelledAt(),
+                order.refundedAt()
         );
     }
 }

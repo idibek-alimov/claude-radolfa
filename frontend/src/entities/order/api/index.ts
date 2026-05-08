@@ -102,3 +102,17 @@ export function useCancelOrder() {
     },
   });
 }
+
+export function useRefundOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: number; reason?: string }) =>
+      apiClient.post(`/api/v1/admin/orders/${orderId}/refund`, reason ? { reason } : {}),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-order", vars.orderId] });
+      qc.invalidateQueries({ queryKey: ["admin-order-summary"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+    },
+  });
+}

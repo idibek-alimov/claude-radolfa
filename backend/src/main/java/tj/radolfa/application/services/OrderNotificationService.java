@@ -29,7 +29,7 @@ public class OrderNotificationService {
             switch (order.status()) {
                 case PAID ->
                         notificationPort.sendOrderConfirmation(order.userId(), order.id());
-                case SHIPPED, READY_FOR_PICKUP, DELIVERED, CANCELLED ->
+                case SHIPPED, READY_FOR_PICKUP, DELIVERED, CANCELLED, REFUNDED ->
                         notificationPort.sendOrderStatusUpdate(order.userId(), order.id(), order.status());
                 default -> { /* PENDING: no notification */ }
             }

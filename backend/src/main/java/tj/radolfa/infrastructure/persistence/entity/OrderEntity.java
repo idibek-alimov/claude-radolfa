@@ -85,6 +85,10 @@ public class OrderEntity extends BaseAuditEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Instant cancelledAt;
 
+    @Column(name = "refunded_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant refundedAt;
+
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant deletedAt;

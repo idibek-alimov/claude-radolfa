@@ -38,7 +38,7 @@ class GetAdminOrderDetailServiceTest {
                 Instant.now(), 0, 0,
                 DeliveryType.HOME, "Main St 1", "MORNING", null,
                 null, null, null,
-                null, null, null);
+                null, null, null, null);
     }
 
     static Order pickpointOrder(Long ppId) {
@@ -47,7 +47,7 @@ class GetAdminOrderDetailServiceTest {
                 Instant.now(), 0, 0,
                 DeliveryType.PICKPOINT, null, null, ppId,
                 null, null, null,
-                null, null, null);
+                null, null, null, null);
     }
 
     static LoadOrderPort orderPort(Order order) {

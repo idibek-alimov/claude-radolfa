@@ -32,6 +32,7 @@ CREATE TABLE orders (
     shipped_at               TIMESTAMPTZ,
     delivered_at             TIMESTAMPTZ,
     cancelled_at             TIMESTAMPTZ,
+    refunded_at              TIMESTAMPTZ,
     deleted_at               TIMESTAMPTZ,
     version                  BIGINT         NOT NULL DEFAULT 0,
     created_at               TIMESTAMPTZ    NOT NULL DEFAULT NOW(),

@@ -92,7 +92,7 @@ public class CancelOrderService implements CancelOrderUseCase {
                 order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
                 order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
                 order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate(),
-                order.shippedAt(), order.deliveredAt(), Instant.now());
+                order.shippedAt(), order.deliveredAt(), Instant.now(), order.refundedAt());
         saveOrderPort.save(cancelled);
         orderNotificationService.notify(cancelled);
     }
