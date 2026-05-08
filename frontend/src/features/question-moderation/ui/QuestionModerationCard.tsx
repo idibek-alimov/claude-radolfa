@@ -35,6 +35,7 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
     mutationFn: () => rejectQuestion(question.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-questions"] });
+      qc.invalidateQueries({ queryKey: ["admin-questions-count"] });
       toast.success("Question rejected");
     },
     onError: (err) => toast.error(getErrorMessage(err)),

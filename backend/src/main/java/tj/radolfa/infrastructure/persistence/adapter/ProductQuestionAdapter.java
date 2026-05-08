@@ -133,6 +133,11 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
         return new PageImpl<>(content, PageRequest.of(page - 1, size), total);
     }
 
+    @Override
+    public long countByStatus(QuestionStatus status) {
+        return repository.countByStatus(status);
+    }
+
     // ---- SaveProductQuestionPort ---------------------------------------
 
     @Override

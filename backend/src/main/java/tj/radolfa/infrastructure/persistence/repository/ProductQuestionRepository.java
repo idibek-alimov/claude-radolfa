@@ -10,4 +10,5 @@ public interface ProductQuestionRepository extends JpaRepository<ProductQuestion
 
     Page<ProductQuestionEntity> findByProductBaseIdAndStatus(Long productBaseId, QuestionStatus status, Pageable pageable);
 
+    long countByStatus(QuestionStatus status);
 }

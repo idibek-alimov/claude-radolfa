@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth";
 import { useAdminShell } from "../model/AdminShellContext";
 import { ADMIN_NAV_GROUPS } from "../model/navItems";
 import { cn } from "@/shared/lib";
 import type { AdminNavItem } from "../model/types";
+import { fetchAdminQuestionCount } from "@/entities/question";
 
 function isActive(href: string, pathname: string) {
   if (href === "/manage") return pathname === "/manage";
   return pathname.startsWith(href);
 }
 
-function NavItem({ item, collapsed }: { item: AdminNavItem; collapsed: boolean }) {
+function NavItem({ item, collapsed, badgeCount = 0 }: { item: AdminNavItem; collapsed: boolean; badgeCount?: number }) {
   const pathname = usePathname();
   const active = isActive(item.href, pathname);
 
@@ -54,7 +56,19 @@ function NavItem({ item, collapsed }: { item: AdminNavItem; collapsed: boolean }
         >
           {item.label}
         </span>
+
+        {/* Badge — expanded: number pill; collapsed: dot only */}
+        {badgeCount > 0 && !collapsed && (
+          <span className="ml-auto shrink-0 h-4 min-w-4 rounded-full bg-rose-500 text-white text-[10px] font-bold tabular-nums flex items-center justify-center px-1">
+            {badgeCount > 99 ? "99+" : badgeCount}
+          </span>
+        )}
       </Link>
+
+      {/* Collapsed dot badge — outside Link so it sits on top of the icon area */}
+      {badgeCount > 0 && collapsed && (
+        <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500" />
+      )}
 
       {/* CSS tooltip — only visible when collapsed, shown on hover */}
       {collapsed && (
@@ -78,6 +92,16 @@ export function AdminSidebar() {
   const { collapsed, mobileOpen, closeMobile } = useAdminShell();
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const isManagerOrAdmin = user?.role === "ADMIN" || user?.role === "MANAGER";
+
+  const { data: pendingCountData } = useQuery({
+    queryKey: ["admin-questions-count", "PENDING"],
+    queryFn: () => fetchAdminQuestionCount("PENDING"),
+    enabled: isManagerOrAdmin,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+  const pendingCount = pendingCountData?.count ?? 0;
 
   const initials = user?.phone ? user.phone.slice(-2) : "AD";
   const roleLabel = user?.role ?? "MANAGER";
@@ -152,7 +176,12 @@ export function AdminSidebar() {
 
                 <div className={cn("flex flex-col gap-0.5", collapsed ? "lg:px-1.5" : "px-2")}>
                   {visibleItems.map((item) => (
-                    <NavItem key={item.href} item={item} collapsed={collapsed} />
+                    <NavItem
+                      key={item.href}
+                      item={item}
+                      collapsed={collapsed}
+                      badgeCount={item.badge ? pendingCount : 0}
+                    />
                   ))}
                 </div>
               </div>

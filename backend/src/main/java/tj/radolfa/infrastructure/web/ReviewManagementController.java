@@ -38,6 +38,7 @@ import tj.radolfa.infrastructure.web.dto.ReplyToReviewRequestDto;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -223,6 +224,18 @@ public class ReviewManagementController {
                                            @Valid @RequestBody AnswerQuestionRequestDto request) {
         editProductQuestionAnswerUseCase.execute(questionId, request.answerText());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/api/v1/admin/questions/count")
+    @Tag(name = "Q&A Management")
+    @Operation(summary = "Count questions by status",
+               description = "Returns the count of questions for the given status. Defaults to PENDING.")
+    @ApiResponse(responseCode = "200", description = "Count returned")
+    public ResponseEntity<Map<String, Long>> countQuestions(
+            @RequestParam(defaultValue = "PENDING") String status) {
+        QuestionStatus resolvedStatus = QuestionStatus.valueOf(status.toUpperCase());
+        long count = getAdminQuestionsUseCase.countByStatus(resolvedStatus);
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
     @PatchMapping("/api/v1/admin/questions/{questionId}/reject")

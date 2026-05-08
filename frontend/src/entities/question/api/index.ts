@@ -1,6 +1,6 @@
 import apiClient from "@/shared/api/axios";
 import type { PaginatedResponse } from "@/shared/api/types";
-import type { AskQuestionRequest, QuestionView, QuestionAdminView, FetchAdminQuestionsParams } from "../model/types";
+import type { AskQuestionRequest, QuestionView, QuestionAdminView, FetchAdminQuestionsParams, QuestionStatus } from "../model/types";
 
 /** GET /api/v1/products/{productBaseId}/questions — public, paginated */
 export const fetchQuestions = (
@@ -37,3 +37,11 @@ export const updateAnswer = (id: number, answerText: string): Promise<void> =>
 /** PATCH /api/v1/admin/questions/{id}/reject — MANAGER/ADMIN */
 export const rejectQuestion = (id: number): Promise<void> =>
   apiClient.patch(`/api/v1/admin/questions/${id}/reject`);
+
+/** GET /api/v1/admin/questions/count — MANAGER/ADMIN, returns total count for the given status */
+export const fetchAdminQuestionCount = (
+  status: QuestionStatus = "PENDING"
+): Promise<{ count: number }> =>
+  apiClient
+    .get("/api/v1/admin/questions/count", { params: { status } })
+    .then((r) => r.data);

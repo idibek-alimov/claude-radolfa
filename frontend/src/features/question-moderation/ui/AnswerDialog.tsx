@@ -61,6 +61,7 @@ export function AnswerDialog({
       isEdit ? updateAnswer(questionId, text.trim()) : answerQuestion(questionId, text.trim()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-questions"] });
+      qc.invalidateQueries({ queryKey: ["admin-questions-count"] });
       setOpen(false);
       toast.success(isEdit ? "Answer updated" : "Answer posted");
     },

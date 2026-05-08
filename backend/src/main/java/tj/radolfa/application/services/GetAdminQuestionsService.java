@@ -32,4 +32,10 @@ public class GetAdminQuestionsService implements GetAdminQuestionsUseCase {
         return loadProductQuestionPort.findAdminQuestions(
                 status, search, dateFrom, dateTo, page, size, sortBy, sortDir);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByStatus(QuestionStatus status) {
+        return loadProductQuestionPort.countByStatus(status);
+    }
 }

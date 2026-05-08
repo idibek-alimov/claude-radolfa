@@ -16,4 +16,6 @@ public interface GetAdminQuestionsUseCase {
                                          int size,
                                          String sortBy,
                                          String sortDir);
+
+    long countByStatus(QuestionStatus status);
 }
