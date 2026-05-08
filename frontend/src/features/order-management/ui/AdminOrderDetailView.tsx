@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Ban, Home, MapPin, Truck } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -54,6 +55,7 @@ interface Props {
 }
 
 export function AdminOrderDetailView({ orderId }: Props) {
+  const t = useTranslations("manage.orders");
   const { data: order, isLoading } = useAdminOrder(orderId);
   const updateStatus = useUpdateOrderStatus();
 
@@ -64,8 +66,8 @@ export function AdminOrderDetailView({ orderId }: Props) {
     updateStatus.mutate(
       { orderId, status: newStatus },
       {
-        onSuccess: () => toast.success("Order status updated."),
-        onError: (err) => toast.error(getErrorMessage(err, "Failed to update status.")),
+        onSuccess: () => toast.success(t("toast.statusUpdated")),
+        onError: (err) => toast.error(getErrorMessage(err, t("toast.statusUpdateFailed"))),
       }
     );
   }
@@ -90,9 +92,9 @@ export function AdminOrderDetailView({ orderId }: Props) {
     );
   }
 
-  const nextStatus      = nextStatusFor(order);
-  const isFinalState    = order.status === "DELIVERED" || order.status === "CANCELLED";
-  const showShipButton  = order.status === "PAID" && order.deliveryType === "HOME";
+  const nextStatus        = nextStatusFor(order);
+  const isFinalState      = order.status === "DELIVERED" || order.status === "CANCELLED";
+  const showShipButton    = order.status === "PAID" && order.deliveryType === "HOME";
   const showAdvanceButton = nextStatus !== null && !showShipButton;
   const showCancelButton  = !isFinalState;
 
@@ -105,12 +107,12 @@ export function AdminOrderDetailView({ orderId }: Props) {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/manage/orders">Orders</Link>
+              <Link href="/manage/orders">{t("breadcrumb.orders")}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Order #{order.id}</BreadcrumbPage>
+            <BreadcrumbPage>{t("detail.title", { id: order.id })}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -118,7 +120,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-2xl font-bold tracking-tight">Order #{order.id}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("detail.title", { id: order.id })}</h1>
           <OrderStatusBadge status={order.status} />
           <p className="text-sm text-muted-foreground ml-auto">
             {order.userPhone}
@@ -131,7 +133,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
             {showShipButton && (
               <Button onClick={() => setShipOpen(true)}>
                 <Truck className="h-4 w-4 mr-2" />
-                Mark as Shipped
+                {t("drawer.markAsShipped")}
               </Button>
             )}
             {showAdvanceButton && (
@@ -139,13 +141,15 @@ export function AdminOrderDetailView({ orderId }: Props) {
                 onClick={() => handleStatusChange(nextStatus!)}
                 disabled={updateStatus.isPending}
               >
-                Move to {nextStatus}
+                {t("detail.moveTo", {
+                  status: t(`status.${nextStatus}` as Parameters<typeof t>[0]),
+                })}
               </Button>
             )}
             {showCancelButton && (
               <Button variant="destructive" onClick={() => setCancelOpen(true)}>
                 <Ban className="h-4 w-4 mr-2" />
-                Cancel Order
+                {t("detail.cancelOrder")}
               </Button>
             )}
           </div>
@@ -173,16 +177,16 @@ export function AdminOrderDetailView({ orderId }: Props) {
           {/* Financials */}
           <div className="rounded-xl border bg-card p-5 space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-              Summary
+              {t("detail.summary")}
             </p>
             {order.loyaltyPointsRedeemed > 0 && (
               <div className="flex justify-between text-xs text-amber-700">
-                <span>Loyalty discount</span>
+                <span>{t("detail.loyaltyDiscount")}</span>
                 <span>−{(order.loyaltyPointsRedeemed * 0.01).toFixed(2)} TJS</span>
               </div>
             )}
             <div className="flex justify-between text-sm font-semibold pt-2 border-t">
-              <span>Total</span>
+              <span>{t("detail.total")}</span>
               <span className="tabular-nums">{order.totalAmount.toFixed(2)} TJS</span>
             </div>
           </div>
@@ -192,7 +196,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
         <div className="space-y-4">
 
           {/* Customer */}
-          <SectionCard title="Customer">
+          <SectionCard title={t("detail.customer")}>
             <div className="text-sm">
               <p className="font-medium font-mono">{order.userPhone}</p>
               {order.userName && (
@@ -202,18 +206,18 @@ export function AdminOrderDetailView({ orderId }: Props) {
           </SectionCard>
 
           {/* Delivery */}
-          <SectionCard title="Delivery">
+          <SectionCard title={t("detail.delivery")}>
             {order.deliveryType === "HOME" ? (
               <div className="flex items-start gap-2">
                 <Home className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <div className="space-y-0.5 text-sm">
-                  <p className="font-medium">Home Delivery</p>
+                  <p className="font-medium">{t("detail.homeDelivery")}</p>
                   {order.deliveryAddress && (
                     <p className="text-xs text-muted-foreground">{order.deliveryAddress}</p>
                   )}
                   {order.preferredTimeWindow && (
                     <p className="text-xs text-muted-foreground">
-                      Time window: {order.preferredTimeWindow}
+                      {t("detail.timeWindow", { value: order.preferredTimeWindow })}
                     </p>
                   )}
                 </div>
@@ -222,7 +226,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <div className="space-y-0.5 text-sm">
-                  <p className="font-medium">{order.pickpointName ?? "Pickup Point"}</p>
+                  <p className="font-medium">{order.pickpointName ?? t("detail.pickupPoint")}</p>
                   {order.pickpointAddress && (
                     <p className="text-xs text-muted-foreground">{order.pickpointAddress}</p>
                   )}
@@ -235,7 +239,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
 
           {/* Shipment info (read-only) */}
           {order.courierName && (
-            <SectionCard title="Shipment">
+            <SectionCard title={t("detail.shipment")}>
               <div className="flex items-center gap-2 mb-1">
                 <Truck className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">{order.courierName}</span>
@@ -243,13 +247,13 @@ export function AdminOrderDetailView({ orderId }: Props) {
               <div className="space-y-1 text-xs">
                 {order.trackingNumber && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tracking</span>
+                    <span className="text-muted-foreground">{t("detail.tracking")}</span>
                     <span className="font-mono font-medium">{order.trackingNumber}</span>
                   </div>
                 )}
                 {order.estimatedDeliveryDate && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">ETA</span>
+                    <span className="text-muted-foreground">{t("detail.eta")}</span>
                     <span>{new Date(order.estimatedDeliveryDate).toLocaleDateString()}</span>
                   </div>
                 )}
@@ -259,18 +263,22 @@ export function AdminOrderDetailView({ orderId }: Props) {
 
           {/* Loyalty */}
           {(order.loyaltyPointsRedeemed > 0 || order.loyaltyPointsAwarded > 0) && (
-            <SectionCard title="Loyalty Points">
+            <SectionCard title={t("detail.loyaltyPoints")}>
               <div className="space-y-1 text-xs">
                 {order.loyaltyPointsRedeemed > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Redeemed</span>
-                    <span className="text-amber-700 font-medium">−{order.loyaltyPointsRedeemed} pts</span>
+                    <span className="text-muted-foreground">{t("detail.redeemed")}</span>
+                    <span className="text-amber-700 font-medium">
+                      −{order.loyaltyPointsRedeemed} {t("detail.ptsShort")}
+                    </span>
                   </div>
                 )}
                 {order.loyaltyPointsAwarded > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Awarded</span>
-                    <span className="text-green-600 font-medium">+{order.loyaltyPointsAwarded} pts</span>
+                    <span className="text-muted-foreground">{t("detail.awarded")}</span>
+                    <span className="text-green-600 font-medium">
+                      +{order.loyaltyPointsAwarded} {t("detail.ptsShort")}
+                    </span>
                   </div>
                 )}
               </div>

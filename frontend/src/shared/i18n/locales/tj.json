@@ -309,6 +309,70 @@
         "estimatedDeliveryDate": "Санаи тахминии расонидан",
         "markAsShipped": "Фиристода шуд"
       },
+      "breadcrumb": {
+        "orders": "Фармоишҳо"
+      },
+      "detail": {
+        "title": "Фармоиш #{id}",
+        "moveTo": "Гузаронидан ба {status}",
+        "cancelOrder": "Бекор кардан",
+        "summary": "Хулоса",
+        "loyaltyDiscount": "Тахфифи баллҳо",
+        "total": "Ҷамъ",
+        "customer": "Харидор",
+        "delivery": "Расонидан",
+        "homeDelivery": "Расонидан ба хона",
+        "timeWindow": "Вақти мувофиқ: {value}",
+        "pickupPoint": "Нуқтаи худхуруҷ",
+        "shipment": "Фиристодан",
+        "tracking": "Рақами пайгирӣ",
+        "eta": "Санаи расонидан",
+        "loyaltyPoints": "Баллҳои бонус",
+        "redeemed": "Истифодашуда",
+        "awarded": "Илова шуд",
+        "ptsShort": "балл"
+      },
+      "shipModal": {
+        "cancel": "Бекор кардан",
+        "shipping": "Фиристода истода…"
+      },
+      "cancelModal": {
+        "title": "Фармоиш #{id}-ро бекор кунем?",
+        "description": "Фармоиш ҳамчун БЕКОРШУДА қайд карда мешавад ва баргашта намешавад. Харидор хабардор карда мешавад.",
+        "reasonLabel": "Сабаб",
+        "reasonPlaceholder": "Ихтиёрӣ — танҳо барои кормандон",
+        "keep": "Нигоҳ доштан",
+        "cancelling": "Бекор карда истода…",
+        "confirm": "Бекор кардан"
+      },
+      "itemsTable": {
+        "product": "Мол",
+        "qty": "Шумора",
+        "unitPrice": "Нарх",
+        "subtotal": "Маблағ",
+        "stock": "Мавҷудӣ"
+      },
+      "stock": {
+        "inStock": "✓ Дар анбор",
+        "shortage": "⚠ Нокифоя ({count} мавҷуд)"
+      },
+      "timeline": {
+        "title": "Хронологияи иҷро",
+        "created": "Сохта шуд",
+        "paid": "Пардохт шуд",
+        "shipped": "Фиристода шуд",
+        "ready": "Омода",
+        "delivered": "Расонида шуд",
+        "cancelled": "Бекор шуд"
+      },
+      "toast": {
+        "statusUpdated": "Вазъият навсозӣ шуд.",
+        "statusUpdateFailed": "Навсозии вазъият нашуд.",
+        "shipped": "Фармоиш фиристода шуд.",
+        "shipFailed": "Фиристодани фармоиш нашуд.",
+        "cancelled": "Фармоиш бекор шуд.",
+        "cancelFailed": "Бекор кардани фармоиш нашуд."
+      },
       "empty": "Фармоишҳо ёфт нашуданд.",
       "page": "Саҳ. {page}",
       "total": "{count} фармоиш"

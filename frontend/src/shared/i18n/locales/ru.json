@@ -309,6 +309,70 @@
         "estimatedDeliveryDate": "Ожидаемая доставка",
         "markAsShipped": "Отметить отправленным"
       },
+      "breadcrumb": {
+        "orders": "Заказы"
+      },
+      "detail": {
+        "title": "Заказ #{id}",
+        "moveTo": "Перевести в {status}",
+        "cancelOrder": "Отменить заказ",
+        "summary": "Итог",
+        "loyaltyDiscount": "Скидка баллами",
+        "total": "Итого",
+        "customer": "Покупатель",
+        "delivery": "Доставка",
+        "homeDelivery": "Доставка на дом",
+        "timeWindow": "Удобное время: {value}",
+        "pickupPoint": "Пункт самовывоза",
+        "shipment": "Отправка",
+        "tracking": "Трек-номер",
+        "eta": "Дата доставки",
+        "loyaltyPoints": "Бонусные баллы",
+        "redeemed": "Списано",
+        "awarded": "Начислено",
+        "ptsShort": "балл."
+      },
+      "shipModal": {
+        "cancel": "Отмена",
+        "shipping": "Отправляем…"
+      },
+      "cancelModal": {
+        "title": "Отменить заказ #{id}?",
+        "description": "Заказ будет отмечен как ОТМЕНЁН. Это действие необратимо. Покупатель будет уведомлён.",
+        "reasonLabel": "Причина",
+        "reasonPlaceholder": "Необязательно — видна сотрудникам",
+        "keep": "Оставить заказ",
+        "cancelling": "Отменяем…",
+        "confirm": "Отменить заказ"
+      },
+      "itemsTable": {
+        "product": "Товар",
+        "qty": "Кол-во",
+        "unitPrice": "Цена",
+        "subtotal": "Сумма",
+        "stock": "Остаток"
+      },
+      "stock": {
+        "inStock": "✓ В наличии",
+        "shortage": "⚠ Дефицит (доступно: {count})"
+      },
+      "timeline": {
+        "title": "Хронология выполнения",
+        "created": "Создан",
+        "paid": "Оплачен",
+        "shipped": "Отправлен",
+        "ready": "Готов",
+        "delivered": "Доставлен",
+        "cancelled": "Отменён"
+      },
+      "toast": {
+        "statusUpdated": "Статус обновлён.",
+        "statusUpdateFailed": "Не удалось обновить статус.",
+        "shipped": "Заказ отправлен.",
+        "shipFailed": "Не удалось отправить заказ.",
+        "cancelled": "Заказ отменён.",
+        "cancelFailed": "Не удалось отменить заказ."
+      },
       "empty": "Заказы не найдены.",
       "page": "Стр. {page}",
       "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}"

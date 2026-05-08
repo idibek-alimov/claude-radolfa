@@ -309,6 +309,70 @@
         "estimatedDeliveryDate": "Estimated delivery",
         "markAsShipped": "Mark as Shipped"
       },
+      "breadcrumb": {
+        "orders": "Orders"
+      },
+      "detail": {
+        "title": "Order #{id}",
+        "moveTo": "Move to {status}",
+        "cancelOrder": "Cancel Order",
+        "summary": "Summary",
+        "loyaltyDiscount": "Loyalty discount",
+        "total": "Total",
+        "customer": "Customer",
+        "delivery": "Delivery",
+        "homeDelivery": "Home Delivery",
+        "timeWindow": "Time window: {value}",
+        "pickupPoint": "Pickup Point",
+        "shipment": "Shipment",
+        "tracking": "Tracking",
+        "eta": "ETA",
+        "loyaltyPoints": "Loyalty Points",
+        "redeemed": "Redeemed",
+        "awarded": "Awarded",
+        "ptsShort": "pts"
+      },
+      "shipModal": {
+        "cancel": "Cancel",
+        "shipping": "Shipping…"
+      },
+      "cancelModal": {
+        "title": "Cancel Order #{id}?",
+        "description": "This will mark the order as CANCELLED and cannot be undone. The customer will be notified.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Optional — visible to staff",
+        "keep": "Keep Order",
+        "cancelling": "Cancelling…",
+        "confirm": "Cancel Order"
+      },
+      "itemsTable": {
+        "product": "Product",
+        "qty": "Qty",
+        "unitPrice": "Unit Price",
+        "subtotal": "Subtotal",
+        "stock": "Stock"
+      },
+      "stock": {
+        "inStock": "✓ In Stock",
+        "shortage": "⚠ Shortage ({count} avail.)"
+      },
+      "timeline": {
+        "title": "Fulfillment Timeline",
+        "created": "Created",
+        "paid": "Paid",
+        "shipped": "Shipped",
+        "ready": "Ready",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "toast": {
+        "statusUpdated": "Order status updated.",
+        "statusUpdateFailed": "Failed to update status.",
+        "shipped": "Order marked as shipped.",
+        "shipFailed": "Failed to ship order.",
+        "cancelled": "Order cancelled.",
+        "cancelFailed": "Failed to cancel order."
+      },
       "empty": "No orders found.",
       "page": "Page {page}",
       "total": "{count, plural, one {# order total} other {# orders total}}"

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Package } from "lucide-react";
 import {
   Table,
@@ -13,15 +14,16 @@ import {
 import type { AdminOrderItem } from "@/entities/order";
 
 function StockBadge({ item }: { item: AdminOrderItem }) {
+  const t = useTranslations("manage.orders.stock");
   if (item.currentStock === null) {
     return <span className="text-muted-foreground text-xs">—</span>;
   }
   if (item.currentStock >= item.quantity) {
-    return <span className="text-green-600 text-xs font-medium">✓ In Stock</span>;
+    return <span className="text-green-600 text-xs font-medium">{t("inStock")}</span>;
   }
   return (
     <span className="text-rose-600 text-xs font-medium">
-      ⚠ Shortage ({item.currentStock} avail.)
+      {t("shortage", { count: item.currentStock })}
     </span>
   );
 }
@@ -31,16 +33,18 @@ interface Props {
 }
 
 export function OrderItemsStockTable({ items }: Props) {
+  const t = useTranslations("manage.orders.itemsTable");
+
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="pl-4">Product</TableHead>
-            <TableHead className="text-center">Qty</TableHead>
-            <TableHead className="text-right">Unit Price</TableHead>
-            <TableHead className="text-right">Subtotal</TableHead>
-            <TableHead className="text-right pr-4">Stock</TableHead>
+            <TableHead className="pl-4">{t("product")}</TableHead>
+            <TableHead className="text-center">{t("qty")}</TableHead>
+            <TableHead className="text-right">{t("unitPrice")}</TableHead>
+            <TableHead className="text-right">{t("subtotal")}</TableHead>
+            <TableHead className="text-right pr-4">{t("stock")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

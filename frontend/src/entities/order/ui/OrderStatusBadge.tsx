@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -11,7 +14,12 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function OrderStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("manage.orders.status");
   const style = STATUS_STYLES[status] ?? "bg-zinc-100 text-zinc-600 ring-1 ring-zinc-200";
+  const label = STATUS_STYLES[status]
+    ? t(status as Parameters<typeof t>[0])
+    : status;
+
   return (
     <span
       className={cn(
@@ -19,7 +27,7 @@ export function OrderStatusBadge({ status }: { status: string }) {
         style
       )}
     >
-      {status}
+      {label}
     </span>
   );
 }

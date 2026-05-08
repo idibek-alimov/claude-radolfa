@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -24,6 +25,7 @@ interface CancelOrderModalProps {
 }
 
 export function CancelOrderModal({ open, onClose, orderId }: CancelOrderModalProps) {
+  const t = useTranslations("manage.orders");
   const cancelOrder = useCancelOrder();
   const [reason, setReason] = useState("");
 
@@ -32,11 +34,11 @@ export function CancelOrderModal({ open, onClose, orderId }: CancelOrderModalPro
       { orderId, reason: reason.trim() || undefined },
       {
         onSuccess: () => {
-          toast.success("Order cancelled.");
+          toast.success(t("toast.cancelled"));
           setReason("");
           onClose();
         },
-        onError: (err) => toast.error(getErrorMessage(err, "Failed to cancel order.")),
+        onError: (err) => toast.error(getErrorMessage(err, t("toast.cancelFailed"))),
       }
     );
   }
@@ -45,32 +47,29 @@ export function CancelOrderModal({ open, onClose, orderId }: CancelOrderModalPro
     <AlertDialog open={open} onOpenChange={(o) => !o && onClose()}>
       <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
-          <AlertDialogTitle>Cancel Order #{orderId}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will mark the order as CANCELLED and cannot be undone. The customer will be
-            notified.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("cancelModal.title", { id: orderId })}</AlertDialogTitle>
+          <AlertDialogDescription>{t("cancelModal.description")}</AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-1.5 py-2">
-          <Label htmlFor="cancel-reason" className="text-sm">Reason</Label>
+          <Label htmlFor="cancel-reason" className="text-sm">{t("cancelModal.reasonLabel")}</Label>
           <Textarea
             id="cancel-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Optional — visible to staff"
+            placeholder={t("cancelModal.reasonPlaceholder")}
             rows={3}
           />
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Keep Order</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>{t("cancelModal.keep")}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={handleConfirm}
             disabled={cancelOrder.isPending}
           >
-            {cancelOrder.isPending ? "Cancelling…" : "Cancel Order"}
+            {cancelOrder.isPending ? t("cancelModal.cancelling") : t("cancelModal.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

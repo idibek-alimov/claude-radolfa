@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import type { OrderStatus } from "@/entities/order";
 
@@ -76,28 +77,30 @@ export function FulfillmentTimeline({
   cancelledAt,
   deliveryType,
 }: Props) {
+  const t = useTranslations("manage.orders.timeline");
+
   const isPaid      = ["PAID", "SHIPPED", "READY_FOR_PICKUP", "DELIVERED"].includes(status);
   const isShipped   = ["SHIPPED", "READY_FOR_PICKUP", "DELIVERED"].includes(status);
   const isDelivered = status === "DELIVERED";
   const isCancelled = !!cancelledAt;
 
-  const shippedLabel = deliveryType === "PICKPOINT" ? "Ready" : "Shipped";
+  const shippedLabel = deliveryType === "PICKPOINT" ? t("ready") : t("shipped");
 
   const nodes: TimelineNode[] = [
-    { label: "Created",      timestamp: createdAt,   reached: true,        isCurrent: status === "PENDING" && !isCancelled },
-    { label: "Paid",         timestamp: null,         reached: isPaid,      isCurrent: status === "PAID" && !isCancelled },
-    { label: shippedLabel,   timestamp: shippedAt,    reached: isShipped,   isCurrent: (status === "SHIPPED" || status === "READY_FOR_PICKUP") && !isCancelled },
-    { label: "Delivered",    timestamp: deliveredAt,  reached: isDelivered, isCurrent: isDelivered },
+    { label: t("created"),     timestamp: createdAt,   reached: true,        isCurrent: status === "PENDING" && !isCancelled },
+    { label: t("paid"),        timestamp: null,         reached: isPaid,      isCurrent: status === "PAID" && !isCancelled },
+    { label: shippedLabel,     timestamp: shippedAt,    reached: isShipped,   isCurrent: (status === "SHIPPED" || status === "READY_FOR_PICKUP") && !isCancelled },
+    { label: t("delivered"),   timestamp: deliveredAt,  reached: isDelivered, isCurrent: isDelivered },
   ];
 
   if (isCancelled) {
-    nodes.push({ label: "Cancelled", timestamp: cancelledAt, reached: true, isCurrent: false, isCancelled: true });
+    nodes.push({ label: t("cancelled"), timestamp: cancelledAt, reached: true, isCurrent: false, isCancelled: true });
   }
 
   return (
     <div className="rounded-xl border bg-card p-5">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-        Fulfillment Timeline
+        {t("title")}
       </p>
       <div className="flex items-start">
         {nodes.map((node, i) => (
