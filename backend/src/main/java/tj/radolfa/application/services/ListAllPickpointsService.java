@@ -19,7 +19,7 @@ public class ListAllPickpointsService implements ListAllPickpointsUseCase {
     }
 
     @Override
-    public List<Pickpoint> execute() {
-        return loadPickpointPort.findAll();
+    public List<Pickpoint> execute(String search) {
+        return loadPickpointPort.findAll(search);
     }
 }

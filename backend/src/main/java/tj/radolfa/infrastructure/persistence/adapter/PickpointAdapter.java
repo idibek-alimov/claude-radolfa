@@ -21,8 +21,12 @@ public class PickpointAdapter implements LoadPickpointPort, SavePickpointPort {
     }
 
     @Override
-    public List<Pickpoint> findAll() {
-        return repo.findAll().stream().map(this::toDomain).toList();
+    public List<Pickpoint> findAll(String search) {
+        boolean hasSearch = search != null && !search.isBlank();
+        List<PickpointEntity> entities = hasSearch
+                ? repo.searchAll(search.trim())
+                : repo.findAllByOrderByActiveDescNameAsc();
+        return entities.stream().map(this::toDomain).toList();
     }
 
     @Override

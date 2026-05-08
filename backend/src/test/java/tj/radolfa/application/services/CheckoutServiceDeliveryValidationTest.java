@@ -153,7 +153,7 @@ class CheckoutServiceDeliveryValidationTest {
 
     static LoadPickpointPort pickpointPort(Optional<Pickpoint> result) {
         return new LoadPickpointPort() {
-            @Override public List<Pickpoint> findAll() { return List.of(); }
+            @Override public List<Pickpoint> findAll(String search) { return List.of(); }
             @Override public List<Pickpoint> findAllActive() { return List.of(); }
             @Override public Optional<Pickpoint> findById(Long id) { return result; }
         };

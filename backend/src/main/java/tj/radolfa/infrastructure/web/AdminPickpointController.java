@@ -40,8 +40,9 @@ public class AdminPickpointController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "List all pickpoints", description = "Returns all pickpoints including inactive ones. ADMIN only.")
     @ApiResponse(responseCode = "200", description = "Pickpoint list returned")
-    public ResponseEntity<List<PickpointResponse>> listAll() {
-        List<PickpointResponse> body = listAllPickpointsUseCase.execute().stream()
+    public ResponseEntity<List<PickpointResponse>> listAll(
+            @RequestParam(required = false) String search) {
+        List<PickpointResponse> body = listAllPickpointsUseCase.execute(search).stream()
                 .map(PickpointResponse::from)
                 .toList();
         return ResponseEntity.ok(body);

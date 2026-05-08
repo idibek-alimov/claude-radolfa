@@ -125,7 +125,7 @@ class CheckoutServiceStackingTest {
     };
 
     static final LoadPickpointPort FAKE_LOAD_PICKPOINT = new LoadPickpointPort() {
-        @Override public java.util.List<Pickpoint> findAll() { return java.util.List.of(); }
+        @Override public java.util.List<Pickpoint> findAll(String search) { return java.util.List.of(); }
         @Override public java.util.List<Pickpoint> findAllActive() { return java.util.List.of(); }
         @Override public Optional<Pickpoint> findById(Long id) { return Optional.empty(); }
     };

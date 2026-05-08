@@ -16,3 +16,4 @@ CREATE TABLE pickpoint (
 );
 
 CREATE INDEX idx_pickpoint_active ON pickpoint (active) WHERE active = TRUE;
+CREATE INDEX idx_pickpoint_name   ON pickpoint (lower(name));

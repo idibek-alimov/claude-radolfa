@@ -133,7 +133,7 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
     };
 
     static final LoadPickpointPort FAKE_LOAD_PICKPOINT = new LoadPickpointPort() {
-        @Override public List<Pickpoint> findAll() { return List.of(); }
+        @Override public List<Pickpoint> findAll(String search) { return List.of(); }
         @Override public List<Pickpoint> findAllActive() { return List.of(); }
         @Override public Optional<Pickpoint> findById(Long id) { return Optional.empty(); }
     };
