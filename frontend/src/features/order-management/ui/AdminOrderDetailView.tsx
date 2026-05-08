@@ -3,17 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Home, MapPin, Package, Truck } from "lucide-react";
+import { Ban, Home, MapPin, Truck } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
   Breadcrumb,
@@ -29,6 +20,8 @@ import { getErrorMessage } from "@/shared/lib";
 import type { AdminOrderDetail, OrderStatus } from "@/entities/order";
 import { FulfillmentTimeline } from "./FulfillmentTimeline";
 import { OrderItemsStockTable } from "./OrderItemsStockTable";
+import { ShipOrderModal } from "./ShipOrderModal";
+import { CancelOrderModal } from "./CancelOrderModal";
 
 function nextStatusFor(order: AdminOrderDetail): OrderStatus | null {
   const isPickpoint = order.deliveryType === "PICKPOINT";
@@ -64,10 +57,8 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const { data: order, isLoading } = useAdminOrder(orderId);
   const updateStatus = useUpdateOrderStatus();
 
-  const [courierName, setCourierName]                   = useState("");
-  const [trackingNumber, setTrackingNumber]             = useState("");
-  const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState("");
-  const [courierError, setCourierError]                 = useState(false);
+  const [shipOpen, setShipOpen]     = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   function handleStatusChange(newStatus: OrderStatus) {
     updateStatus.mutate(
@@ -75,27 +66,6 @@ export function AdminOrderDetailView({ orderId }: Props) {
       {
         onSuccess: () => toast.success("Order status updated."),
         onError: (err) => toast.error(getErrorMessage(err, "Failed to update status.")),
-      }
-    );
-  }
-
-  function handleMarkShipped() {
-    if (!courierName.trim()) { setCourierError(true); return; }
-    setCourierError(false);
-    updateStatus.mutate(
-      {
-        orderId,
-        status: "SHIPPED",
-        courierName: courierName.trim(),
-        trackingNumber: trackingNumber.trim() || undefined,
-        estimatedDeliveryDate: estimatedDeliveryDate || undefined,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Order marked as shipped.");
-          setCourierName(""); setTrackingNumber(""); setEstimatedDeliveryDate("");
-        },
-        onError: (err) => toast.error(getErrorMessage(err, "Failed to ship order.")),
       }
     );
   }
@@ -120,8 +90,11 @@ export function AdminOrderDetailView({ orderId }: Props) {
     );
   }
 
-  const nextStatus     = nextStatusFor(order);
-  const showShipForm   = order.status === "PAID" && order.deliveryType === "HOME";
+  const nextStatus      = nextStatusFor(order);
+  const isFinalState    = order.status === "DELIVERED" || order.status === "CANCELLED";
+  const showShipButton  = order.status === "PAID" && order.deliveryType === "HOME";
+  const showAdvanceButton = nextStatus !== null && !showShipButton;
+  const showCancelButton  = !isFinalState;
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -143,13 +116,40 @@ export function AdminOrderDetailView({ orderId }: Props) {
       </Breadcrumb>
 
       {/* Header */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold tracking-tight">Order #{order.id}</h1>
-        <OrderStatusBadge status={order.status} />
-        <p className="text-sm text-muted-foreground ml-auto">
-          {order.userPhone}
-          {order.userName && <span className="ml-1">· {order.userName}</span>}
-        </p>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-2xl font-bold tracking-tight">Order #{order.id}</h1>
+          <OrderStatusBadge status={order.status} />
+          <p className="text-sm text-muted-foreground ml-auto">
+            {order.userPhone}
+            {order.userName && <span className="ml-1">· {order.userName}</span>}
+          </p>
+        </div>
+
+        {(showShipButton || showAdvanceButton || showCancelButton) && (
+          <div className="flex items-center justify-end gap-2 flex-wrap">
+            {showShipButton && (
+              <Button onClick={() => setShipOpen(true)}>
+                <Truck className="h-4 w-4 mr-2" />
+                Mark as Shipped
+              </Button>
+            )}
+            {showAdvanceButton && (
+              <Button
+                onClick={() => handleStatusChange(nextStatus!)}
+                disabled={updateStatus.isPending}
+              >
+                Move to {nextStatus}
+              </Button>
+            )}
+            {showCancelButton && (
+              <Button variant="destructive" onClick={() => setCancelOpen(true)}>
+                <Ban className="h-4 w-4 mr-2" />
+                Cancel Order
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Timeline */}
@@ -277,77 +277,11 @@ export function AdminOrderDetailView({ orderId }: Props) {
             </SectionCard>
           )}
 
-          {/* Status actions */}
-          {(showShipForm || nextStatus) && (
-            <SectionCard title="Status Actions">
-              {showShipForm ? (
-                <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="courier-name" className="text-xs">
-                      Courier Name <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="courier-name"
-                      value={courierName}
-                      onChange={(e) => { setCourierName(e.target.value); setCourierError(false); }}
-                      placeholder="e.g. DHL"
-                      className={courierError ? "border-destructive" : ""}
-                    />
-                    {courierError && (
-                      <p className="text-destructive text-xs">Courier name is required.</p>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="tracking-number" className="text-xs">Tracking Number</Label>
-                    <Input
-                      id="tracking-number"
-                      value={trackingNumber}
-                      onChange={(e) => setTrackingNumber(e.target.value)}
-                      placeholder="Optional"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edd" className="text-xs">Estimated Delivery Date</Label>
-                    <Input
-                      id="edd"
-                      type="date"
-                      value={estimatedDeliveryDate}
-                      onChange={(e) => setEstimatedDeliveryDate(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    className="w-full"
-                    onClick={handleMarkShipped}
-                    disabled={updateStatus.isPending}
-                  >
-                    <Truck className="h-4 w-4 mr-2" />
-                    Mark as Shipped
-                  </Button>
-                </div>
-              ) : nextStatus ? (
-                <Select
-                  value=""
-                  onValueChange={(v) => handleStatusChange(v as OrderStatus)}
-                  disabled={updateStatus.isPending}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={`Move to ${nextStatus}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={nextStatus}>
-                      <div className="flex items-center gap-2">
-                        <Package className="h-3.5 w-3.5" />
-                        {nextStatus}
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : null}
-            </SectionCard>
-          )}
-
         </div>
       </div>
+
+      <ShipOrderModal open={shipOpen} onClose={() => setShipOpen(false)} orderId={orderId} />
+      <CancelOrderModal open={cancelOpen} onClose={() => setCancelOpen(false)} orderId={orderId} />
     </div>
   );
 }
