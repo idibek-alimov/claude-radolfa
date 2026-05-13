@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
+import { PickpointFormDialog } from "./PickpointFormDialog";
 
 export function PickpointManagementPanel() {
   const [search, setSearch] = useState("");
@@ -134,7 +135,14 @@ export function PickpointManagementPanel() {
         )}
       </div>
 
-      {/* Dialog wired in Phase 4 */}
+      <PickpointFormDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingPickpoint(null);
+        }}
+        initialData={editingPickpoint ?? undefined}
+      />
     </div>
   );
 }
