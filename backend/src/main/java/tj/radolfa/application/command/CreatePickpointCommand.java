@@ -1,10 +1,8 @@
-package tj.radolfa.domain.model;
+package tj.radolfa.application.command;
 
-public record Pickpoint(
-        Long id,
+public record CreatePickpointCommand(
         String name,
         String address,
-        boolean active,
         Double latitude,
         Double longitude,
         boolean hasParking,

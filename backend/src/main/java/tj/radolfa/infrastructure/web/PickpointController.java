@@ -33,9 +33,24 @@ public class PickpointController {
         return ResponseEntity.ok(body);
     }
 
-    public record PickpointResponse(Long id, String name, String address, boolean active) {
+    public record PickpointResponse(
+            Long id,
+            String name,
+            String address,
+            boolean active,
+            Double latitude,
+            Double longitude,
+            boolean hasParking,
+            boolean hasFittingRoom,
+            boolean hasCardPayment,
+            boolean wheelchairAccessible
+    ) {
         public static PickpointResponse from(Pickpoint p) {
-            return new PickpointResponse(p.id(), p.name(), p.address(), p.active());
+            return new PickpointResponse(
+                    p.id(), p.name(), p.address(), p.active(),
+                    p.latitude(), p.longitude(),
+                    p.hasParking(), p.hasFittingRoom(),
+                    p.hasCardPayment(), p.wheelchairAccessible());
         }
     }
 }

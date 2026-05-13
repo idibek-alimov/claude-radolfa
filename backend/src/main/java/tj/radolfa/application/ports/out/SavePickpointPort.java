@@ -1,8 +1,10 @@
 package tj.radolfa.application.ports.out;
 
+import tj.radolfa.application.command.CreatePickpointCommand;
+import tj.radolfa.application.command.UpdatePickpointCommand;
 import tj.radolfa.domain.model.Pickpoint;
 
 public interface SavePickpointPort {
-    Pickpoint save(String name, String address);
-    Pickpoint update(Long id, String name, String address, boolean active);
+    Pickpoint save(CreatePickpointCommand command);
+    Pickpoint update(UpdatePickpointCommand command);
 }

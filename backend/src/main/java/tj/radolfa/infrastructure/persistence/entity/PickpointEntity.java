@@ -26,4 +26,22 @@ public class PickpointEntity extends BaseAuditEntity {
 
     @Column(name = "active", nullable = false)
     private boolean active;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "has_parking", nullable = false)
+    private boolean hasParking;
+
+    @Column(name = "has_fitting_room", nullable = false)
+    private boolean hasFittingRoom;
+
+    @Column(name = "has_card_payment", nullable = false)
+    private boolean hasCardPayment;
+
+    @Column(name = "wheelchair_accessible", nullable = false)
+    private boolean wheelchairAccessible;
 }

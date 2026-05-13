@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.command.UpdatePickpointCommand;
 import tj.radolfa.application.ports.in.UpdatePickpointUseCase;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.SavePickpointPort;
@@ -22,9 +23,10 @@ public class UpdatePickpointService implements UpdatePickpointUseCase {
     }
 
     @Override
-    public Pickpoint execute(Long id, String name, String address, boolean active) {
-        loadPickpointPort.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Pickpoint not found: " + id));
-        return savePickpointPort.update(id, name, address, active);
+    public Pickpoint execute(UpdatePickpointCommand command) {
+        loadPickpointPort.findById(command.id())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Pickpoint not found: " + command.id()));
+        return savePickpointPort.update(command);
     }
 }

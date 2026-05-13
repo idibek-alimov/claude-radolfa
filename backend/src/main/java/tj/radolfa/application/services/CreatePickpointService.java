@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.command.CreatePickpointCommand;
 import tj.radolfa.application.ports.in.CreatePickpointUseCase;
 import tj.radolfa.application.ports.out.SavePickpointPort;
 import tj.radolfa.domain.model.Pickpoint;
@@ -17,7 +18,7 @@ public class CreatePickpointService implements CreatePickpointUseCase {
     }
 
     @Override
-    public Pickpoint execute(String name, String address) {
-        return savePickpointPort.save(name, address);
+    public Pickpoint execute(CreatePickpointCommand command) {
+        return savePickpointPort.save(command);
     }
 }

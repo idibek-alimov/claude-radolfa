@@ -5,12 +5,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.command.CreatePickpointCommand;
+import tj.radolfa.application.command.UpdatePickpointCommand;
 import tj.radolfa.application.ports.in.CreatePickpointUseCase;
 import tj.radolfa.application.ports.in.ListAllPickpointsUseCase;
 import tj.radolfa.application.ports.in.UpdatePickpointUseCase;
@@ -57,7 +61,11 @@ public class AdminPickpointController {
             @ApiResponse(responseCode = "403", description = "Insufficient role")
     })
     public ResponseEntity<PickpointResponse> create(@Valid @RequestBody CreatePickpointRequest request) {
-        Pickpoint created = createPickpointUseCase.execute(request.name(), request.address());
+        Pickpoint created = createPickpointUseCase.execute(new CreatePickpointCommand(
+                request.name(), request.address(),
+                request.latitude(), request.longitude(),
+                request.hasParking(), request.hasFittingRoom(),
+                request.hasCardPayment(), request.wheelchairAccessible()));
         return ResponseEntity.status(HttpStatus.CREATED).body(PickpointResponse.from(created));
     }
 
@@ -73,7 +81,11 @@ public class AdminPickpointController {
     public ResponseEntity<PickpointResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdatePickpointRequest request) {
-        Pickpoint updated = updatePickpointUseCase.execute(id, request.name(), request.address(), request.active());
+        Pickpoint updated = updatePickpointUseCase.execute(new UpdatePickpointCommand(
+                id, request.name(), request.address(), request.active(),
+                request.latitude(), request.longitude(),
+                request.hasParking(), request.hasFittingRoom(),
+                request.hasCardPayment(), request.wheelchairAccessible()));
         return ResponseEntity.ok(PickpointResponse.from(updated));
     }
 
@@ -82,7 +94,17 @@ public class AdminPickpointController {
             @Size(max = 255, message = "Name must not exceed 255 characters")
             String name,
             @NotBlank(message = "Address is required")
-            String address) {
+            String address,
+            @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
+            @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
+            Double latitude,
+            @DecimalMin(value = "-180.0", message = "Longitude must be between -180 and 180")
+            @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
+            Double longitude,
+            boolean hasParking,
+            boolean hasFittingRoom,
+            boolean hasCardPayment,
+            boolean wheelchairAccessible) {
     }
 
     public record UpdatePickpointRequest(
@@ -91,6 +113,16 @@ public class AdminPickpointController {
             String name,
             @NotBlank(message = "Address is required")
             String address,
-            boolean active) {
+            boolean active,
+            @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
+            @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
+            Double latitude,
+            @DecimalMin(value = "-180.0", message = "Longitude must be between -180 and 180")
+            @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
+            Double longitude,
+            boolean hasParking,
+            boolean hasFittingRoom,
+            boolean hasCardPayment,
+            boolean wheelchairAccessible) {
     }
 }

@@ -1,6 +1,6 @@
-package tj.radolfa.domain.model;
+package tj.radolfa.application.command;
 
-public record Pickpoint(
+public record UpdatePickpointCommand(
         Long id,
         String name,
         String address,
