@@ -10,5 +10,7 @@ public record UpdatePickpointCommand(
         boolean hasParking,
         boolean hasFittingRoom,
         boolean hasCardPayment,
-        boolean wheelchairAccessible
+        boolean wheelchairAccessible,
+        String timezone,
+        boolean temporarilyClosed
 ) {}

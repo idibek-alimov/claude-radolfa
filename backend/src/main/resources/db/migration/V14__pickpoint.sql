@@ -16,6 +16,8 @@ CREATE TABLE pickpoint (
     has_fitting_room      BOOLEAN        NOT NULL DEFAULT FALSE,
     has_card_payment      BOOLEAN        NOT NULL DEFAULT FALSE,
     wheelchair_accessible BOOLEAN        NOT NULL DEFAULT FALSE,
+    timezone              VARCHAR(50)    NULL,
+    temporarily_closed    BOOLEAN        NOT NULL DEFAULT FALSE,
     version     BIGINT         NOT NULL DEFAULT 0,
     created_at  TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ    NOT NULL DEFAULT NOW()

@@ -216,7 +216,7 @@ class CheckoutServiceDeliveryValidationTest {
     @Test
     @DisplayName("PICKPOINT with inactive pickpoint → IllegalArgumentException")
     void pickpoint_inactive_rejected() {
-        Pickpoint inactive = new Pickpoint(PP_ID, "Closed Point", "Some St", false, null, null, false, false, false, false);
+        Pickpoint inactive = new Pickpoint(PP_ID, "Closed Point", "Some St", false, null, null, false, false, false, false, null, false);
         CheckoutService service = buildService(pickpointPort(Optional.of(inactive)));
         var ex = assertThrows(IllegalArgumentException.class, () ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
@@ -227,7 +227,7 @@ class CheckoutServiceDeliveryValidationTest {
     @Test
     @DisplayName("PICKPOINT with active pickpoint → order saved with pickpointId, null address")
     void pickpoint_active_orderSavedWithPickpointId() {
-        Pickpoint active = new Pickpoint(PP_ID, "Central Hub", "1 Hub Ave", true, null, null, false, false, false, false);
+        Pickpoint active = new Pickpoint(PP_ID, "Central Hub", "1 Hub Ave", true, null, null, false, false, false, false, null, false);
         CheckoutService service = buildService(pickpointPort(Optional.of(active)));
 
         // capture the saved order via the SAVE_ORDER lambda — we verify via result orderId

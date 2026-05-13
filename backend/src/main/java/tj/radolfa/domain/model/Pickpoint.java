@@ -10,5 +10,7 @@ public record Pickpoint(
         boolean hasParking,
         boolean hasFittingRoom,
         boolean hasCardPayment,
-        boolean wheelchairAccessible
+        boolean wheelchairAccessible,
+        String timezone,
+        boolean temporarilyClosed
 ) {}

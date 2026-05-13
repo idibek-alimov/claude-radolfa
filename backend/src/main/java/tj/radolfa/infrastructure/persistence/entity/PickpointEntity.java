@@ -44,4 +44,10 @@ public class PickpointEntity extends BaseAuditEntity {
 
     @Column(name = "wheelchair_accessible", nullable = false)
     private boolean wheelchairAccessible;
+
+    @Column(name = "timezone", length = 50)
+    private String timezone;
+
+    @Column(name = "temporarily_closed", nullable = false)
+    private boolean temporarilyClosed;
 }

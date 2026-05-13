@@ -98,7 +98,7 @@ class GetAdminOrderDetailServiceTest {
     @Test
     @DisplayName("PICKPOINT order — active pickpoint resolved")
     void pickpointOrder_pickpointResolved() {
-        Pickpoint pp = new Pickpoint(99L, "Central", "1 Hub Ave", true, null, null, false, false, false, false);
+        Pickpoint pp = new Pickpoint(99L, "Central", "1 Hub Ave", true, null, null, false, false, false, false, null, false);
         GetAdminOrderDetailService svc = service(pickpointOrder(99L), Optional.of(pp));
         GetAdminOrderDetailUseCase.Result r = svc.execute(11L);
 
