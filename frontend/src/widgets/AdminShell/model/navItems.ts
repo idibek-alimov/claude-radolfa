@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  MapPin,
   Package,
   Folder,
   Palette,
@@ -33,8 +34,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Commerce",
     items: [
-      { href: "/manage/orders",    label: "Orders",    icon: ShoppingBag },
-      { href: "/manage/discounts", label: "Discounts", icon: Percent },
+      { href: "/manage/orders",      label: "Orders",      icon: ShoppingBag },
+      { href: "/manage/discounts",   label: "Discounts",   icon: Percent },
+      { href: "/manage/pickpoints",  label: "Pickpoints",  icon: MapPin, adminOnly: true },
     ],
   },
   {
