@@ -133,7 +133,17 @@ export function PickpointFormDialog({
 
     if (isEdit && initialData) {
       updateMutation.mutate(
-        { id: initialData.id, payload: { name: trimmedName, address: trimmedAddress, active, ...amenities } },
+        {
+          id: initialData.id,
+          payload: {
+            name: trimmedName,
+            address: trimmedAddress,
+            active,
+            ...amenities,
+            timezone: initialData.timezone ?? null,
+            temporarilyClosed: initialData.temporarilyClosed ?? false,
+          },
+        },
         handlers,
       );
     } else {

@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
-import type { Pickpoint, CreatePickpointPayload, UpdatePickpointPayload } from "./model/types";
+import type {
+  Pickpoint,
+  CreatePickpointPayload,
+  UpdatePickpointPayload,
+  PickpointHours,
+  UpsertPickpointHoursPayload,
+} from "./model/types";
 
 export function useActivePickpoints() {
   return useQuery({
@@ -50,6 +56,38 @@ export function useUpdatePickpoint() {
     mutationFn: ({ id, payload }: { id: number; payload: UpdatePickpointPayload }) =>
       updatePickpoint(id, payload),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-pickpoints"] });
+      qc.invalidateQueries({ queryKey: ["pickpoints"] });
+    },
+  });
+}
+
+// ── Hours ──────────────────────────────────────────────────────────────────
+
+export const fetchPickpointHours = (id: number): Promise<PickpointHours[]> =>
+  apiClient.get<PickpointHours[]>(`/api/v1/admin/pickpoints/${id}/hours`).then((r) => r.data);
+
+export const putPickpointHours = (
+  id: number,
+  hours: UpsertPickpointHoursPayload[],
+): Promise<PickpointHours[]> =>
+  apiClient.put<PickpointHours[]>(`/api/v1/admin/pickpoints/${id}/hours`, hours).then((r) => r.data);
+
+export function usePickpointHours(id: number | null) {
+  return useQuery({
+    queryKey: ["admin-pickpoint-hours", id],
+    queryFn:  () => fetchPickpointHours(id!),
+    enabled:  id !== null,
+  });
+}
+
+export function useUpdatePickpointHours() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, hours }: { id: number; hours: UpsertPickpointHoursPayload[] }) =>
+      putPickpointHours(id, hours),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["admin-pickpoint-hours", id] });
       qc.invalidateQueries({ queryKey: ["admin-pickpoints"] });
       qc.invalidateQueries({ queryKey: ["pickpoints"] });
     },

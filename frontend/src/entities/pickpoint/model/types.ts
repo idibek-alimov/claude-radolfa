@@ -9,6 +9,9 @@ export interface Pickpoint {
   hasFittingRoom: boolean;
   hasCardPayment: boolean;
   wheelchairAccessible: boolean;
+  timezone: string | null;
+  temporarilyClosed: boolean;
+  isOpenNow: boolean;
 }
 
 export interface CreatePickpointPayload {
@@ -32,4 +35,19 @@ export interface UpdatePickpointPayload {
   hasFittingRoom: boolean;
   hasCardPayment: boolean;
   wheelchairAccessible: boolean;
+  timezone: string | null;
+  temporarilyClosed: boolean;
+}
+
+export interface PickpointHours {
+  id: number;
+  dayOfWeek: number; // 1=Mon … 7=Sun
+  openTime: string;  // "HH:mm"
+  closeTime: string; // "HH:mm"
+}
+
+export interface UpsertPickpointHoursPayload {
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
 }

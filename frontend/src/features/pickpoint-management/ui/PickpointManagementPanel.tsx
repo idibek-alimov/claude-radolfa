@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Pencil, Plus, Search } from "lucide-react";
+import { MapPin, Pencil, Plus, Search, Clock } from "lucide-react";
 import { useAdminPickpoints, type Pickpoint } from "@/entities/pickpoint";
 import { useDebounce, getErrorMessage } from "@/shared/lib";
 import { Button } from "@/shared/ui/button";
@@ -16,11 +16,14 @@ import {
   TableRow,
 } from "@/shared/ui/table";
 import { PickpointFormDialog } from "./PickpointFormDialog";
+import { PickpointHoursDialog } from "./PickpointHoursDialog";
 
 export function PickpointManagementPanel() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPickpoint, setEditingPickpoint] = useState<Pickpoint | null>(null);
+  const [hoursDialogOpen, setHoursDialogOpen] = useState(false);
+  const [hoursPickpoint, setHoursPickpoint] = useState<Pickpoint | null>(null);
 
   const debouncedSearch = useDebounce(search, 300);
   const { data = [], isLoading, isError, error } = useAdminPickpoints(debouncedSearch);
@@ -103,30 +106,59 @@ export function PickpointManagementPanel() {
                     {pickpoint.address}
                   </TableCell>
                   <TableCell>
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${
-                        pickpoint.active
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-zinc-100 text-zinc-600 border-zinc-200"
-                      }`}
-                    >
+                    <div className="flex flex-col items-start gap-0.5">
                       <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          pickpoint.active ? "bg-green-500" : "bg-zinc-400"
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${
+                          pickpoint.active
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-zinc-100 text-zinc-600 border-zinc-200"
                         }`}
-                      />
-                      {pickpoint.active ? "Active" : "Inactive"}
-                    </span>
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            pickpoint.active ? "bg-green-500" : "bg-zinc-400"
+                          }`}
+                        />
+                        {pickpoint.active ? "Active" : "Inactive"}
+                      </span>
+                      {pickpoint.active && (
+                        <span
+                          className={`flex items-center gap-1 text-xs ${
+                            pickpoint.isOpenNow ? "text-green-600" : "text-zinc-400"
+                          }`}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              pickpoint.isOpenNow ? "bg-green-500" : "bg-zinc-300"
+                            }`}
+                          />
+                          {pickpoint.isOpenNow ? "Open now" : "Closed now"}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right pr-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEditDialog(pickpoint)}
-                    >
-                      <Pencil className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setHoursPickpoint(pickpoint);
+                          setHoursDialogOpen(true);
+                        }}
+                      >
+                        <Clock className="h-4 w-4 mr-1" />
+                        Hours
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(pickpoint)}
+                      >
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -143,6 +175,17 @@ export function PickpointManagementPanel() {
         }}
         initialData={editingPickpoint ?? undefined}
       />
+
+      {hoursPickpoint && (
+        <PickpointHoursDialog
+          open={hoursDialogOpen}
+          onOpenChange={(open) => {
+            setHoursDialogOpen(open);
+            if (!open) setHoursPickpoint(null);
+          }}
+          pickpoint={hoursPickpoint}
+        />
+      )}
     </div>
   );
 }
