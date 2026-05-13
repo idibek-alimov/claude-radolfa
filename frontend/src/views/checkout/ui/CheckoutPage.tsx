@@ -15,6 +15,12 @@ import {
   Loader2,
   Tag,
   X,
+  MapPin,
+  Car,
+  Shirt,
+  CreditCard,
+  Accessibility,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -34,6 +40,15 @@ import { useAuth } from "@/features/auth";
 import { checkout, TIME_WINDOW_CODES, type DeliveryType, type TimeWindowCode } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { getErrorMessage, isCouponsEnabled } from "@/shared/lib";
+
+function AmenityBadge({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border">
+      <Icon className="h-3 w-3" />
+      {label}
+    </span>
+  );
+}
 
 export function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -56,6 +71,8 @@ export function CheckoutPage() {
   const [timeWindow, setTimeWindow] = useState<TimeWindowCode>("MORNING");
   const [pickpointId, setPickpointId] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  const selectedPickpoint = pickpoints?.find((pp) => pp.id === pickpointId) ?? null;
 
   const applyCouponMutation = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
@@ -421,6 +438,30 @@ export function CheckoutPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {selectedPickpoint && (
+                      <div className="mt-2 rounded-lg border bg-muted/30 p-3 space-y-2 text-sm">
+                        {selectedPickpoint.latitude !== null && selectedPickpoint.longitude !== null && (
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPickpoint.latitude},${selectedPickpoint.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                          >
+                            <MapPin className="h-3.5 w-3.5" />
+                            Get Directions
+                          </a>
+                        )}
+                        {(selectedPickpoint.hasParking || selectedPickpoint.hasFittingRoom
+                          || selectedPickpoint.hasCardPayment || selectedPickpoint.wheelchairAccessible) && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedPickpoint.hasParking           && <AmenityBadge icon={Car}           label="Parking" />}
+                            {selectedPickpoint.hasFittingRoom       && <AmenityBadge icon={Shirt}         label="Fitting room" />}
+                            {selectedPickpoint.hasCardPayment       && <AmenityBadge icon={CreditCard}    label="Card payment" />}
+                            {selectedPickpoint.wheelchairAccessible && <AmenityBadge icon={Accessibility} label="Accessible" />}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {submitted && pickpointMissing && (
                       <p className="text-xs text-destructive mt-1">
                         {t("delivery.pickpoint.required")}
