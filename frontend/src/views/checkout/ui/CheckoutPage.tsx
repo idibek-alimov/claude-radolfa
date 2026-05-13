@@ -433,13 +433,33 @@ export function CheckoutPage() {
                       <SelectContent>
                         {pickpoints.map((pp) => (
                           <SelectItem key={pp.id} value={String(pp.id)}>
-                            {pp.name} — {pp.address}
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                                  pp.isOpenNow ? "bg-green-500" : "bg-zinc-300"
+                                }`}
+                              />
+                              <span>{pp.name}</span>
+                              <span className="text-muted-foreground text-sm">— {pp.address}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     {selectedPickpoint && (
                       <div className="mt-2 rounded-lg border bg-muted/30 p-3 space-y-2 text-sm">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                            selectedPickpoint.isOpenNow ? "text-green-700" : "text-zinc-500"
+                          }`}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              selectedPickpoint.isOpenNow ? "bg-green-500" : "bg-zinc-400"
+                            }`}
+                          />
+                          {selectedPickpoint.isOpenNow ? "Open now" : "Currently closed"}
+                        </span>
                         {selectedPickpoint.latitude !== null && selectedPickpoint.longitude !== null && (
                           <a
                             href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPickpoint.latitude},${selectedPickpoint.longitude}`}
