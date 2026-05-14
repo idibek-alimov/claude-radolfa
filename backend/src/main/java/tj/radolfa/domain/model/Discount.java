@@ -1,6 +1,7 @@
 package tj.radolfa.domain.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -42,5 +43,16 @@ public record Discount(
     public boolean isActive(Instant now) {
         if (disabled) return false;
         return !now.isBefore(validFrom) && !now.isAfter(validUpto);
+    }
+
+    /** Returns the actual currency reduction this discount gives on the given original price. */
+    public BigDecimal reductionFor(BigDecimal originalPrice) {
+        if (originalPrice == null || originalPrice.signum() <= 0) return BigDecimal.ZERO;
+        if (amountType == AmountType.FIXED) {
+            return amountValue.min(originalPrice);
+        }
+        return originalPrice
+                .multiply(amountValue)
+                .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
     }
 }
