@@ -4,7 +4,7 @@ import { defaultLocale, locales } from "./config";
 import type { Locale } from "./config";
 
 export default getRequestConfig(async () => {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const cookieLocale = cookieStore.get("NEXT_LOCALE")?.value;
   const locale: Locale = (locales as readonly string[]).includes(
     cookieLocale ?? ""

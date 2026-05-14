@@ -1,0 +1,48 @@
+package tj.radolfa.application.ports.out;
+
+import tj.radolfa.domain.model.OrderStatus;
+
+/**
+ * Out-Port: send notifications to users.
+ *
+ * <p>Implementations:
+ * <ul>
+ *   <li>{@code NotificationPortStub} — dev/test; logs to console.</li>
+ *   <li>Future: SMS via SMS.ru, push via FCM, or email via SMTP.</li>
+ * </ul>
+ */
+public interface NotificationPort {
+
+    /**
+     * Notifies the user that their order was placed successfully.
+     *
+     * @param userId  the recipient
+     * @param orderId the new order's ID
+     */
+    void sendOrderConfirmation(Long userId, Long orderId);
+
+    /**
+     * Notifies the user that their order status changed.
+     *
+     * @param userId    the recipient
+     * @param orderId   the affected order
+     * @param newStatus the status the order transitioned to
+     */
+    void sendOrderStatusUpdate(Long userId, Long orderId, OrderStatus newStatus);
+
+    /**
+     * Notifies the reviewer that their review was approved and is now public.
+     *
+     * @param userId   the review author
+     * @param reviewId the approved review
+     */
+    void sendReviewApprovedNotification(Long userId, Long reviewId);
+
+    /**
+     * Notifies the reviewer that the seller posted a reply to their review.
+     *
+     * @param userId   the review author
+     * @param reviewId the review that received a reply
+     */
+    void sendReviewReplyNotification(Long userId, Long reviewId);
+}

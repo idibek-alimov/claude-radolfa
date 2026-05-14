@@ -9,7 +9,7 @@ public record User(
                 UserRole role,
                 String name,
                 String email,
-                int loyaltyPoints,
+                LoyaltyProfile loyalty,
                 boolean enabled,
                 Long version) {
 }

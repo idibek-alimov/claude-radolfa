@@ -5,12 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "product_bases")
+@BatchSize(size = 50)
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
@@ -21,8 +23,8 @@ public class ProductBaseEntity extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "erp_template_code", nullable = false, unique = true, length = 64)
-    private String erpTemplateCode;
+    @Column(name = "external_ref", nullable = false, unique = true, length = 64)
+    private String externalRef;
 
     @Column(name = "name", length = 255)
     private String name;
@@ -33,6 +35,10 @@ public class ProductBaseEntity extends BaseAuditEntity {
 
     @Column(name = "category_name", length = 255)
     private String categoryName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private BrandEntity brand;
 
     @OneToMany(mappedBy = "productBase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingVariantEntity> variants = new ArrayList<>();

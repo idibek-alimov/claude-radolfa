@@ -50,12 +50,23 @@
     "home": "Home",
     "products": "Products",
     "noImage": "No image available",
-    "priceFrom": "From",
-    "dependingOnSize": "depending on size",
-    "availableColours": "Available Colours",
-    "availableSizes": "Available Sizes",
+    "loyaltyExtra": "Extra -{pct}% Loyalty",
+    "availableColours": "Colour",
+    "availableSizes": "Size",
     "description": "Description",
-    "youMayAlsoLike": "You May Also Like"
+    "youMayAlsoLike": "You May Also Like",
+    "specifications": "Specifications",
+    "bestseller": "Bestseller",
+    "color": "Colour",
+    "itemsLeft": "Only {count} left",
+    "loyaltyPrice": "With loyalty card",
+    "aboutProduct": "About product",
+    "quantity": "Quantity",
+    "addToCart": "Add to Cart",
+    "adding": "Adding...",
+    "addedToCart": "Added to cart!",
+    "outOfStockError": "This item is out of stock",
+    "partialDiscountHint": "Sale price applies to select sizes only"
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -94,7 +105,15 @@
     "outOfStock": "Out of stock",
     "lowStock": "Only {count} left",
     "popular": "Popular",
-    "currency": "TJS"
+    "currency": "TJS",
+    "yourPrice": "Your price",
+    "loyaltyTag": "-{pct}% loyalty",
+    "loyaltyTierBadge": "{pct}% tier discount",
+    "loyaltyTierDetail": "Your loyalty tier · {pct}% off applied",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "megaMenu": {
     "categories": "Categories"
@@ -122,8 +141,8 @@
     "productsTotal": "{count, plural, one {# product total} other {# products total}}",
     "page": "Page {page}",
     "editProductTitle": "Edit Product",
-    "editProductDesc": "Update description and images. Price, stock, and basic details are synced from ERP and cannot be changed here.",
-    "erpSyncedData": "ERP-Synced Data",
+    "editProductDesc": "Update description and images. Price, stock, and core data are managed by the system and cannot be changed here.",
+    "catalogData": "Catalog Data (read-only)",
     "slug": "Slug",
     "nameAndColor": "Name & Color",
     "price": "Price",
@@ -135,8 +154,13 @@
     "primary": "Primary",
     "enrichment": "Enrichment",
     "webDescription": "Web Description",
-    "topSelling": "Top Selling",
-    "featured": "Featured",
+    "dimensionsTitle": "Dimensions",
+    "dimensionsHint": "Leave a field blank to clear its value.",
+    "dimensionsSaved": "Dimensions saved",
+    "fieldWeight": "Weight",
+    "fieldWidth": "Width",
+    "fieldHeight": "Height",
+    "fieldDepth": "Depth",
     "productImages": "Product Images",
     "addImage": "Add Image",
     "uploading": "Uploading...",
@@ -144,7 +168,229 @@
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving...",
-    "topSeller": "Top Seller"
+    "tabLoyaltyTiers": "Tiers",
+    "loyaltyTiers": "Loyalty Tiers",
+    "tierColor": "Color",
+    "colorUpdated": "Tier color updated",
+    "newProduct": "New Product",
+    "createProductTitle": "Create New Product",
+    "createProductDesc": "Define the product name, category, color, and initial SKUs.",
+    "createStepBasicInfo": "Basic Info",
+    "createStepSkus": "Sizes & Pricing",
+    "productName": "Product Name",
+    "productNamePlaceholder": "e.g. Classic T-Shirt",
+    "category": "Category",
+    "selectCategory": "Select category...",
+    "color": "Color",
+    "selectColor": "Select color...",
+    "addSize": "Add Size",
+    "fieldRequired": "This field is required",
+    "fieldNonNegative": "Must be 0 or greater",
+    "skuAtLeastOne": "At least one size is required",
+    "productCreated": "Product created (slug: {slug})",
+    "creating": "Creating...",
+    "createProduct": "Create Product",
+    "adminEditable": "admin can edit",
+    "priceUpdated": "Price updated",
+    "stockUpdated": "Stock updated",
+    "tabCategories": "Categories",
+    "tabColors": "Colors",
+    "categoryTitle": "Category Management",
+    "newCategoryTitle": "New Category",
+    "categoryNameLabel": "Category Name",
+    "parentCategoryLabel": "Parent Category",
+    "noParent": "None (top-level)",
+    "createCategoryButton": "Create",
+    "creatingCategory": "Creating...",
+    "categoryCreated": "Category created",
+    "categoryUpdated": "Category updated",
+    "editCategoryTitle": "Edit Category",
+    "editCategoryDesc": "Update the category name or parent. Slug remains unchanged.",
+    "deleteCategoryButton": "Delete",
+    "confirmDeleteTitle": "Delete Category",
+    "confirmDeleteDesc": "This action cannot be undone.",
+    "confirmDeleteButton": "Yes, delete",
+    "deletedCategory": "Category deleted",
+    "categoryInUse": "Category is still in use by products",
+    "noCategoriesFound": "No categories found",
+    "colorTitle": "Color Management",
+    "colorKey": "Key",
+    "colorDisplayNameLabel": "Display Name",
+    "colorHexLabel": "Hex Code",
+    "colorSaved": "Color saved",
+    "noColorsFound": "No colors found",
+    "colorCreate": "New Color",
+    "colorCreateTitle": "Create Color",
+    "colorCreated": "Color created",
+    "colorKeyLabel": "Key (slug)",
+    "colorKeyPlaceholder": "e.g. navy_blue",
+    "colorKeyHint": "Lowercase letters, digits, and underscores only.",
+    "colorCreateSubmit": "Create",
+    "searchToolsTitle": "Search Tools",
+    "reindexButton": "Rebuild Search Index",
+    "reindexing": "Reindexing...",
+    "reindexResult": "Indexed {count} products ({errors} errors)",
+    "generalInfo": "General Info",
+    "productNameUpdated": "Product name updated",
+    "productCategoryUpdated": "Category updated",
+    "colorPermanentHint": "Permanent",
+    "backToProducts": "Back to Products",
+    "priceStockAdminOnly": "Price & stock: admin only",
+    "sizeLabelUpdated": "Size label updated",
+    "loading": "Loading...",
+    "failedToLoad": "Failed to load product",
+    "maxImagesReached": "Maximum of 20 images reached",
+    "reviewTraitsTitle": "Review Traits",
+    "reviewTraitsSubtitle": "Manage the global bank of category-specific review questions.",
+    "newReviewTrait": "New Trait",
+    "newReviewTraitTitle": "Create Review Trait",
+    "editReviewTraitTitle": "Edit Review Trait",
+    "reviewTraitKey": "Key",
+    "reviewTraitKeyHelp": "Lowercase, digits, and underscores. Cannot be changed later.",
+    "reviewTraitLabel": "Label",
+    "reviewTraitInputType": "Input Type",
+    "reviewTraitInputSlider": "Slider (1–5)",
+    "reviewTraitInputRadio": "Radio Options",
+    "reviewTraitCreated": "Trait created",
+    "reviewTraitUpdated": "Trait updated",
+    "reviewTraitDeleted": "Trait deleted",
+    "noReviewTraitsYet": "No traits defined yet",
+    "linkedTraits": "Linked traits",
+    "linkedTraitsHelp": "Reviews on products in this category will be asked these questions.",
+    "noTraitsAvailable": "No traits available — define some in Review Traits first.",
+    "orders": {
+      "title": "Order Management",
+      "searchPlaceholder": "Search by phone or order ID…",
+      "statusAll": "All statuses",
+      "table": {
+        "id": "Order #",
+        "customer": "Customer",
+        "date": "Date",
+        "status": "Status",
+        "delivery": "Delivery",
+        "items": "Items",
+        "total": "Total"
+      },
+      "status": {
+        "PENDING":          "Pending",
+        "PAID":             "Paid",
+        "SHIPPED":          "Shipped",
+        "READY_FOR_PICKUP": "Ready for pickup",
+        "DELIVERED":        "Delivered",
+        "CANCELLED":        "Cancelled",
+        "REFUNDED":         "Refunded"
+      },
+      "deliveryType": {
+        "HOME": "Home",
+        "PICKPOINT": "Pickup"
+      },
+      "drawer": {
+        "title": "Order #{id}",
+        "customer": "Customer",
+        "items": "Items",
+        "subtotal": "Subtotal",
+        "pointsDiscount": "Points discount",
+        "total": "Total",
+        "deliverySection": "Delivery",
+        "deliveryHome": "Home delivery",
+        "deliveryAddress": "Address",
+        "deliveryWindow": "Preferred time",
+        "deliveryPickpoint": "Pickup point",
+        "deliveryPickpointAddress": "Location",
+        "statusLabel": "Update status",
+        "statusUpdated": "Status updated",
+        "statusUpdateFailed": "Failed to update status",
+        "noNextStatus": "No further transitions available",
+        "shipmentSection": "Shipment",
+        "courierName": "Courier",
+        "courierNamePlaceholder": "e.g. DHL, Hajimali",
+        "courierNameRequired": "Courier name is required",
+        "trackingNumber": "Tracking number",
+        "trackingNumberPlaceholder": "Optional",
+        "estimatedDeliveryDate": "Estimated delivery",
+        "markAsShipped": "Mark as Shipped"
+      },
+      "breadcrumb": {
+        "orders": "Orders"
+      },
+      "detail": {
+        "title": "Order #{id}",
+        "moveTo": "Move to {status}",
+        "cancelOrder": "Cancel Order",
+        "refundOrder": "Refund Order",
+        "summary": "Summary",
+        "loyaltyDiscount": "Loyalty discount",
+        "total": "Total",
+        "customer": "Customer",
+        "delivery": "Delivery",
+        "homeDelivery": "Home Delivery",
+        "timeWindow": "Time window: {value}",
+        "pickupPoint": "Pickup Point",
+        "shipment": "Shipment",
+        "tracking": "Tracking",
+        "eta": "ETA",
+        "loyaltyPoints": "Loyalty Points",
+        "redeemed": "Redeemed",
+        "awarded": "Awarded",
+        "ptsShort": "pts"
+      },
+      "shipModal": {
+        "cancel": "Cancel",
+        "shipping": "Shipping…"
+      },
+      "cancelModal": {
+        "title": "Cancel Order #{id}?",
+        "description": "This will mark the order as CANCELLED and cannot be undone. The customer will be notified.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Optional — visible to staff",
+        "keep": "Keep Order",
+        "cancelling": "Cancelling…",
+        "confirm": "Cancel Order"
+      },
+      "itemsTable": {
+        "product": "Product",
+        "qty": "Qty",
+        "unitPrice": "Unit Price",
+        "subtotal": "Subtotal",
+        "stock": "Stock"
+      },
+      "stock": {
+        "inStock": "✓ In Stock",
+        "shortage": "⚠ Shortage ({count} avail.)"
+      },
+      "timeline": {
+        "title": "Fulfillment Timeline",
+        "created": "Created",
+        "paid": "Paid",
+        "shipped": "Shipped",
+        "ready": "Ready",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled",
+        "refunded": "Refunded"
+      },
+      "toast": {
+        "statusUpdated": "Order status updated.",
+        "statusUpdateFailed": "Failed to update status.",
+        "shipped": "Order marked as shipped.",
+        "shipFailed": "Failed to ship order.",
+        "cancelled": "Order cancelled.",
+        "cancelFailed": "Failed to cancel order.",
+        "refunded": "Order refunded.",
+        "refundFailed": "Failed to refund order."
+      },
+      "refundModal": {
+        "title": "Refund Order #{id}?",
+        "description": "This will mark the order as REFUNDED. Process the actual money-back via the payment provider separately. This action cannot be undone.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Optional — visible to staff",
+        "keep": "Keep Order",
+        "refunding": "Refunding…",
+        "confirm": "Refund Order"
+      },
+      "empty": "No orders found.",
+      "page": "Page {page}",
+      "total": "{count, plural, one {# order total} other {# orders total}}"
+    }
   },
   "profile": {
     "yourProfile": "Your Profile",
@@ -182,16 +428,153 @@
     "orderConfirmed": "Confirmed",
     "orderShipped": "Shipped",
     "orderDelivered": "Delivered",
-    "tierBronze": "Bronze",
-    "tierSilver": "Silver",
-    "tierGold": "Gold",
-    "tierPlatinum": "Platinum",
-    "nextTier": "{points} pts to {tier}",
     "topTier": "You've reached the highest tier!",
+    "spendToNextTier": "Spend {amount} TJS more to reach the next tier",
+    "startEarning": "Start shopping to earn your first tier!",
+    "discount": "discount",
+    "cashback": "cashback",
+    "minSpend": "min. spend",
+    "allTiers": "All Loyalty Tiers",
+    "yourTier": "Your tier",
+    "nextTier": "Next tier",
+    "goalTier": "Your goal",
+    "seeAllTiers": "See all tiers",
+    "hideTiers": "Hide",
+    "demotionWarning": "Spend {amount} TJS in the next {days} days to keep your tier",
+    "cancelOrder": "Cancel",
+    "cancelling": "Cancelling...",
+    "orderCancelled": "Order cancelled",
+    "failedToCancel": "Failed to cancel order",
     "sessionExpired": "Your session has expired. Please sign in again.",
+    "recentEarnings": "Recent Earnings",
     "loyaltyHowTitle": "How it works",
     "loyaltyHowEarn": "You earn points automatically with every purchase.",
-    "loyaltyHowRedeem": "Points can be used as a discount on future orders."
+    "loyaltyHowRedeem": "Points can be used as a discount on future orders.",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "statusPaid": "Paid",
+    "viewDetails": "View Details",
+    "hideDetails": "Hide Details",
+    "buyAgain": "Buy Again",
+    "buyAgainSuccess": "Added to cart",
+    "loyaltyUsed": "Loyalty Points Used",
+    "sizeLabel": "Size",
+    "skuCode": "SKU",
+    "product": "Product",
+    "subtotal": "Subtotal",
+    "quantity": "Qty",
+    "writeReview": "Write a Review",
+    "reviewProgressTitle": "Review Progress",
+    "reviewProgressSubtitle": "You've reviewed {reviewed} of {total} items",
+    "earnPointsForNextReview": "Earn {points} points for your next review",
+    "reviewProgressAllDone": "You've reviewed all your purchases — thank you!",
+    "shipmentTitle": "Shipment details",
+    "courierLabel": "Courier",
+    "trackingLabel": "Tracking number",
+    "estimatedDeliveryLabel": "Estimated delivery",
+    "statusReadyForPickup": "Ready for pickup",
+    "orderReadyForPickup": "Ready",
+    "readyForPickupCallout": "Your parcel is waiting at the pickup point"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "cartHeading": "Shopping Cart",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "empty": "Your cart is empty",
+    "emptyDescription": "Browse our catalog and add items to your cart",
+    "browseProducts": "Browse Products",
+    "subtotal": "Subtotal",
+    "orderSummary": "Order Summary",
+    "proceedToCheckout": "Proceed to Checkout",
+    "clearCart": "Clear cart",
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "outOfStock": "Out of stock",
+    "outOfStockWarning": "Some items are out of stock. Remove them to continue.",
+    "viewCart": "View Cart",
+    "openCart": "Open cart",
+    "noImage": "No image",
+    "securePayment": "Secure Payment",
+    "easyReturns": "Easy Returns",
+    "qualityGuarantee": "Quality Guarantee"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "orderSummary": "Order Summary",
+    "loyaltyPoints": "Loyalty Points",
+    "availablePoints": "{count} pts available",
+    "notes": "Notes",
+    "notesPlaceholder": "Any special instructions...",
+    "totalBreakdown": "Total",
+    "subtotal": "Subtotal",
+    "tierDiscount": "Tier Discount",
+    "pointsDiscount": "Points Discount",
+    "total": "Total",
+    "redirecting": "Redirecting to payment...",
+    "placeOrder": "Place Order",
+    "placing": "Placing Order...",
+    "outOfStockWarning": "Some items in your cart are out of stock. Please remove them before checking out.",
+    "outOfStock": "Out of stock",
+    "editCart": "Edit cart",
+    "successTitle": "Order Placed!",
+    "orderNumber": "Order #{id}",
+    "viewOrders": "View My Orders",
+    "coupon": {
+      "label": "Coupon Code",
+      "placeholder": "e.g. SUMMER25",
+      "apply": "Apply",
+      "remove": "Remove",
+      "applied": "Coupon applied",
+      "affectedItems": "Applied to {count} item(s)",
+      "NOT_FOUND": "This coupon code does not exist",
+      "DISABLED": "This coupon is no longer active",
+      "NOT_ACTIVE": "This coupon is outside its validity period",
+      "CAP_EXHAUSTED": "This coupon has reached its usage limit",
+      "NO_ITEMS_AFFECTED": "This coupon does not apply to items in your cart"
+    },
+    "delivery": {
+      "title": "Delivery Method",
+      "home": {
+        "title": "Home Delivery",
+        "description": "We'll deliver to your address.",
+        "addressLabel": "Delivery address",
+        "addressPlaceholder": "Street, building, apartment…",
+        "addressRequired": "Address is required for home delivery.",
+        "timeWindowLabel": "Preferred time window"
+      },
+      "pickpoint": {
+        "title": "Pickup Point",
+        "description": "Collect your order at a pickup location.",
+        "selectLabel": "Select pickup point",
+        "selectPlaceholder": "Choose a location",
+        "loading": "Loading pickup points…",
+        "empty": "No pickup points available right now.",
+        "required": "Please select a pickup point."
+      },
+      "timeWindow": {
+        "MORNING": "09:00 – 12:00",
+        "AFTERNOON": "12:00 – 18:00",
+        "EVENING": "Evening (18:00 – 21:00)"
+      }
+    }
+  },
+  "payment": {
+    "pollingTitle": "Verifying payment...",
+    "pollingDesc": "Please wait while we confirm your payment.",
+    "successTitle": "Payment Successful!",
+    "successDesc": "Your order has been confirmed.",
+    "via": "via",
+    "processingTitle": "Payment is Being Processed",
+    "processingDesc": "Your payment is taking longer than expected. Check back in a few minutes.",
+    "refundedTitle": "Payment Refunded",
+    "refundedDesc": "Your payment was refunded. Please contact support if you have questions.",
+    "failureTitle": "Payment Failed",
+    "failureDesc": "Something went wrong with your payment. Please try again.",
+    "errorTitle": "Invalid Payment Link",
+    "errorDesc": "No order ID was found. Please check your payment link.",
+    "viewOrders": "View My Orders",
+    "retryCheck": "Check Again",
+    "browsProducts": "Browse Products"
   },
   "userManagement": {
     "searchPlaceholder": "Search by phone or name...",
@@ -214,5 +597,229 @@
     "noUsersFound": "No users found.",
     "usersTotal": "{count, plural, one {# user total} other {# users total}}",
     "page": "Page {page}"
+  },
+  "reviews": {
+    "card": {
+      "verifiedPurchase": "Verified Purchase",
+      "pros": "Pros",
+      "cons": "Cons",
+      "comment": "Comment",
+      "sellerReply": "Seller reply",
+      "officialResponse": "Official Store Response",
+      "morePhotos": "more",
+      "helpful": "Was this helpful?",
+      "report": "Report",
+      "imageLightbox": "Review photo",
+      "share": "Share",
+      "shareTitle": "{author}'s review on Radolfa",
+      "shareText": "Check out this review on Radolfa",
+      "shareDownloadFallback": "Your review image was downloaded.",
+      "shareFailed": "Couldn't share review"
+    },
+    "strip": {
+      "photosAndVideos": "Photos & Videos",
+      "seeAll": "See all {n}"
+    },
+    "sort": {
+      "newest": "Newest",
+      "mostHelpful": "Most helpful",
+      "highestRated": "Highest rated",
+      "lowestRated": "Lowest rated",
+      "withPhoto": "With photo"
+    },
+    "seeAll": "See all reviews",
+    "empty": "No reviews yet.",
+    "form": {
+      "addPhotos": "Add photos",
+      "photoLimit": "Up to 5 photos",
+      "uploading": "Uploading…",
+      "traits": {
+        "heading": "Help others by rating these aspects",
+        "scaleLow": "Poor",
+        "scaleHigh": "Excellent"
+      },
+      "lowRating": {
+        "heading": "We're sorry you had a bad experience",
+        "body": "Would you prefer to contact support or request a return?",
+        "cta": "Visit your orders"
+      }
+    },
+    "summary": {
+      "reviews": "{count} reviews",
+      "writeReview": "Write a Review",
+      "sizeFit": "Size fit",
+      "runsSmall": "Runs small",
+      "trueToSize": "True to size",
+      "runsLarge": "Runs large",
+      "traits": {
+        "heading": "Customer ratings by aspect"
+      }
+    },
+    "page": {
+      "back": "Back"
+    },
+    "banner": {
+      "purchasedOn": "You purchased this on {date}.",
+      "writeReviewCta": "Write a Review"
+    },
+    "filter": {
+      "searchPlaceholder": "Search reviews...",
+      "clearFilters": "Clear filters",
+      "noResults": "No reviews match your filters."
+    }
+  },
+  "questions": {
+    "card": {
+      "sellerReply": "Seller reply"
+    },
+    "seeAll": "See all questions",
+    "empty": "No questions yet.",
+    "login": "Log in to ask a question",
+    "page": {
+      "back": "Back",
+      "title": "Questions"
+    }
+  },
+  "section": {
+    "tabs": {
+      "reviews": "Reviews",
+      "questions": "Questions"
+    }
+  },
+  "discount": {
+    "status": {
+      "active": "Active",
+      "scheduled": "Scheduled",
+      "expired": "Expired",
+      "disabled": "Disabled"
+    },
+    "bulk": {
+      "selected": "{count} selected",
+      "enable": "Enable",
+      "disable": "Disable",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "enabled": "Enabled {count} campaigns",
+      "disabled": "Disabled {count} campaigns",
+      "duplicated": "Duplicated {count} campaigns",
+      "deleted": "Deleted {count} campaigns",
+      "confirmDelete": {
+        "title": "Delete {count} campaigns?",
+        "body": "This cannot be undone. Campaigns: {titles}",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "tab": {
+      "products": "Discounted Products"
+    },
+    "drawer": {
+      "title": "Campaign SKUs",
+      "searchPlaceholder": "Search by SKU or product…",
+      "empty": "No SKUs in this campaign."
+    },
+    "products": {
+      "searchPlaceholder": "Search by SKU or product…",
+      "campaignFilter": "Campaign",
+      "deltaMin": "Min %",
+      "deltaMax": "Max %",
+      "empty": "No discounted products found.",
+      "total": "{count} products discounted",
+      "columns": {
+        "image": "Image",
+        "product": "Product",
+        "sku": "SKU code",
+        "size": "Size",
+        "price": "Price",
+        "delta": "Δ%",
+        "winner": "Winning campaign",
+        "other": "Other campaigns",
+        "stock": "Stock"
+      }
+    },
+    "overlap": {
+      "column": "Conflicts",
+      "tooltip": {
+        "title": "Conflicts on {count} SKU(s)",
+        "line": "{skuCode} → winner: {campaignTitle}",
+        "more": "…and {count} more"
+      },
+      "warning": {
+        "title": "{count} SKU(s) overlap with another active campaign",
+        "win": "{skuCode} — already in {campaignTitle} (rank {otherRank}). Yours (rank {myRank}) would win.",
+        "lose": "{skuCode} — already in {campaignTitle} (rank {otherRank}). Yours (rank {myRank}) would lose.",
+        "more": "+{count} more"
+      }
+    },
+    "metrics": {
+      "title": "Campaign Analytics",
+      "ordersUsing": "Orders Using",
+      "unitsMoved": "Units Moved",
+      "revenueUplift": "Revenue Uplift",
+      "avgDiscountPerOrder": "Avg Discount / Order",
+      "sparkline": {
+        "orders": "Orders",
+        "units": "Units",
+        "uplift": "Uplift"
+      },
+      "cutoffBanner": "This campaign predates analytics tracking (started {date}). KPIs below reflect data from {startDate} onward.",
+      "editCampaign": "Edit Campaign",
+      "window": "Period: {from} – {to}",
+      "loading": "Loading metrics…",
+      "empty": "No analytics data yet. Orders will appear here once this campaign is used at checkout."
+    },
+    "topCampaigns": {
+      "title": "Top Campaigns",
+      "byRevenue": "Revenue",
+      "byUnits": "Units",
+      "period7d": "7d",
+      "period30d": "30d",
+      "period90d": "90d",
+      "rank": "Rank",
+      "units": "Units",
+      "uplift": "Uplift",
+      "empty": "No campaign data yet."
+    },
+    "amountType": {
+      "heading": "Discount Amount",
+      "percent": "Percent",
+      "fixed": "Fixed (TJS)"
+    },
+    "target": {
+      "sku": {
+        "tab": "SKU list"
+      },
+      "category": {
+        "tab": "Category",
+        "includeSubs": "Include subcategories",
+        "empty": "Select one or more categories."
+      },
+      "segment": {
+        "tab": "Segment",
+        "loyaltyTier": "Loyalty tier",
+        "newCustomer": "New customers"
+      }
+    },
+    "limits": {
+      "heading": "Usage Limits",
+      "description": "Optional gates evaluated at checkout. Leave blank for unlimited.",
+      "minBasket": "Min basket amount",
+      "capTotal": "Max uses (total)",
+      "capPerCustomer": "Max uses per customer",
+      "unlimited": "Unlimited"
+    },
+    "stacking": {
+      "heading": "Stacking Policy",
+      "bestWins": {
+        "title": "Best wins",
+        "body": "Highest-ranked discount of this type wins; others are evicted on the same SKU.",
+        "short": "Best wins"
+      },
+      "stackable": {
+        "title": "Stackable",
+        "body": "Combines multiplicatively with other STACKABLE discounts on the same SKU.",
+        "short": "Stackable"
+      }
+    }
   }
 }

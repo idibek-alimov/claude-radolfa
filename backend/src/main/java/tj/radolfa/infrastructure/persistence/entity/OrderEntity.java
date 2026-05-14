@@ -6,10 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +32,8 @@ public class OrderEntity extends BaseAuditEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(name = "erp_order_id", unique = true, length = 64)
-    private String erpOrderId;
+    @Column(name = "external_order_id", unique = true, length = 64)
+    private String externalOrderId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -42,6 +44,50 @@ public class OrderEntity extends BaseAuditEntity {
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items = new ArrayList<>();
+
+    @Column(name = "loyalty_points_redeemed", nullable = false)
+    private int loyaltyPointsRedeemed;
+
+    @Column(name = "loyalty_points_awarded", nullable = false)
+    private int loyaltyPointsAwarded;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type", length = 50)
+    private DeliveryType deliveryType;
+
+    @Column(name = "delivery_address", columnDefinition = "TEXT")
+    private String deliveryAddress;
+
+    @Column(name = "preferred_time_window", length = 255)
+    private String preferredTimeWindow;
+
+    @Column(name = "pickpoint_id")
+    private Long pickpointId;
+
+    @Column(name = "courier_name")
+    private String courierName;
+
+    @Column(name = "tracking_number")
+    private String trackingNumber;
+
+    @Column(name = "estimated_delivery_date")
+    private LocalDate estimatedDeliveryDate;
+
+    @Column(name = "shipped_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant shippedAt;
+
+    @Column(name = "delivered_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant deliveredAt;
+
+    @Column(name = "cancelled_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant cancelledAt;
+
+    @Column(name = "refunded_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant refundedAt;
 
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)

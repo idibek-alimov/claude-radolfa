@@ -1,2 +1,3 @@
 export { UserManagementTable } from "./ui/UserManagementTable";
-export type { UserDto, PageResult } from "./types";
+export { fetchUsers } from "./api";
+export type { UserDto } from "./types";

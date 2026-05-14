@@ -10,3 +10,8 @@ export async function updateProfile(data: UpdateProfileRequest): Promise<User> {
     const response = await apiClient.put<User>("/api/v1/users/profile", data);
     return response.data;
 }
+
+export async function cancelOrder(orderId: number): Promise<Order> {
+    const response = await apiClient.patch<Order>(`/api/v1/orders/${orderId}/cancel`);
+    return response.data;
+}

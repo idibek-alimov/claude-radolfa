@@ -1,10 +1,17 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
@@ -12,9 +19,10 @@ import tj.radolfa.infrastructure.persistence.repository.OrderRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
-public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
+public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
@@ -42,25 +50,65 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort {
     }
 
     @Override
-    public Optional<Order> loadByErpOrderId(String erpOrderId) {
-        return repository.findByErpOrderId(erpOrderId)
+    public Optional<Order> loadByExternalOrderId(String externalOrderId) {
+        return repository.findByExternalOrderId(externalOrderId)
                 .map(mapper::toOrder);
     }
 
     @Override
+    public List<Order> loadRecentPaidByUserId(Long userId, int limit) {
+        return repository.findByUser_IdAndStatusOrderByCreatedAtDesc(
+                        userId, OrderStatus.PAID, PageRequest.of(0, limit))
+                .stream()
+                .map(mapper::toOrder)
+                .toList();
+    }
+
+    private static final Set<String> SORTABLE = Set.of("createdAt", "totalAmount", "status", "id");
+
+    @Override
+    public PageResult<OrderRow> search(String search, OrderStatus statusFilter,
+                                       String sortBy, String sortDir,
+                                       int page, int size) {
+        String col = SORTABLE.contains(sortBy) ? sortBy : "createdAt";
+        Sort.Direction dir = "ASC".equalsIgnoreCase(sortDir)
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by(dir, col));
+        Page<OrderEntity> result = repository.findAll(
+                OrderSpecifications.adminSearch(search, statusFilter), pageRequest);
+
+        List<OrderRow> rows = result.getContent().stream()
+                .map(e -> new OrderRow(
+                        mapper.toOrder(e),
+                        e.getUser().getPhone(),
+                        e.getUser().getName()))
+                .toList();
+
+        return new PageResult<>(rows, result.getTotalElements(),
+                page, size, result.isLast());
+    }
+
+    @Override
     public Order save(Order order) {
-        var entity = mapper.toEntity(order);
+        OrderEntity entity;
+        if (order.id() != null) {
+            entity = repository.findById(order.id())
+                    .orElseThrow(() -> new IllegalStateException("Order not found: " + order.id()));
+            mapper.updateEntity(order, entity);
+        } else {
+            entity = mapper.toEntity(order);
+            entity.setUser(em.getReference(UserEntity.class, order.userId()));
 
-        entity.setUser(em.getReference(UserEntity.class, order.userId()));
+            if (entity.getItems() != null) {
+                for (int i = 0; i < entity.getItems().size(); i++) {
+                    var item = entity.getItems().get(i);
+                    item.setOrder(entity);
 
-        if (entity.getItems() != null) {
-            for (int i = 0; i < entity.getItems().size(); i++) {
-                var item = entity.getItems().get(i);
-                item.setOrder(entity);
-
-                Long skuId = order.items().get(i).getSkuId();
-                if (skuId != null) {
-                    item.setSku(em.getReference(SkuEntity.class, skuId));
+                    Long skuId = order.items().get(i).getSkuId();
+                    if (skuId != null) {
+                        item.setSku(em.getReference(SkuEntity.class, skuId));
+                    }
                 }
             }
         }

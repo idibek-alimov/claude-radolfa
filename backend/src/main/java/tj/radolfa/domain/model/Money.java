@@ -14,7 +14,7 @@ import java.util.Objects;
  *   <li>{@code amount} is never negative.</li>
  * </ul>
  *
- * <p>Nullable fields (e.g. {@code Product.price} before first ERP sync)
+ * <p>Nullable fields (e.g. {@code Product.price} before first price import)
  * are modelled as {@code Money price = null}, NOT {@code Money.of(null)}.
  */
 public record Money(BigDecimal amount) {
@@ -34,7 +34,7 @@ public record Money(BigDecimal amount) {
      * a valid {@code Money} otherwise.
      */
     public static Money of(BigDecimal amount) {
-        return amount != null ? new Money(amount) : null;
+        return amount != null ? new Money(amount) : ZERO;
     }
 
     public Money add(Money other) {

@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
 import { getMyOrders, updateProfile } from "@/features/profile/api";
+import { OrderHistoryCard } from "@/features/profile/ui/OrderHistoryCard";
+import { ReviewProgressCard } from "@/features/profile/ui/ReviewProgressCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -16,54 +18,14 @@ import {
   User,
   ShoppingBag,
   Star,
-  AlertCircle,
   Check,
   Package,
-  Truck,
-  CircleCheckBig,
-  Clock,
   Pencil,
   X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-
-/* ── Loyalty tier helpers ──────────────────────────────────────── */
-const TIERS = [
-  { name: "tierBronze", min: 0, max: 100 },
-  { name: "tierSilver", min: 100, max: 500 },
-  { name: "tierGold", min: 500, max: 2000 },
-  { name: "tierPlatinum", min: 2000, max: Infinity },
-] as const;
-
-function getCurrentTier(points: number) {
-  for (let i = TIERS.length - 1; i >= 0; i--) {
-    if (points >= TIERS[i].min) return { tier: TIERS[i], index: i };
-  }
-  return { tier: TIERS[0], index: 0 };
-}
-
-/* ── Order status steps ────────────────────────────────────────── */
-const ORDER_STEPS = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"] as const;
-
-const STEP_ICONS = {
-  PENDING: Clock,
-  CONFIRMED: Check,
-  SHIPPED: Truck,
-  DELIVERED: CircleCheckBig,
-} as const;
-
-const STEP_KEYS = {
-  PENDING: "orderPlaced",
-  CONFIRMED: "orderConfirmed",
-  SHIPPED: "orderShipped",
-  DELIVERED: "orderDelivered",
-} as const;
-
-function getStepIndex(status: string): number {
-  const idx = ORDER_STEPS.indexOf(status as (typeof ORDER_STEPS)[number]);
-  return idx === -1 ? 0 : idx;
-}
+import LoyaltyDashboard from "@/widgets/loyalty-dashboard/LoyaltyDashboard";
 
 /* ── Inline Editable Field ─────────────────────────────────────── */
 function InlineEditField({
@@ -185,65 +147,6 @@ function InfoField({
   );
 }
 
-/* ── Order Timeline ────────────────────────────────────────────── */
-function OrderTimeline({ status }: { status: string }) {
-  const t = useTranslations("profile");
-  const currentStep = getStepIndex(status);
-  const isCancelled = status === "CANCELLED";
-
-  if (isCancelled) {
-    return (
-      <div className="flex items-center gap-2 mt-3">
-        <X className="h-4 w-4 text-destructive" />
-        <span className="text-xs text-destructive font-medium">
-          {t("statusCancelled")}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center mt-3 w-full overflow-hidden">
-      {ORDER_STEPS.map((step, i) => {
-        const Icon = STEP_ICONS[step];
-        const isComplete = i <= currentStep;
-        const isCurrent = i === currentStep;
-        return (
-          <div key={step} className="flex items-center flex-1 min-w-0 last:flex-initial">
-            <div className="flex flex-col items-center min-w-0">
-              <div
-                className={`flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full shrink-0 transition-colors ${
-                  isCurrent
-                    ? "bg-primary text-primary-foreground"
-                    : isComplete
-                    ? "bg-primary/20 text-primary"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              </div>
-              <span
-                className={`text-[10px] sm:text-xs mt-1 text-center leading-tight truncate max-w-[60px] sm:max-w-none ${
-                  isComplete ? "text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {t(STEP_KEYS[step])}
-              </span>
-            </div>
-            {i < ORDER_STEPS.length - 1 && (
-              <div
-                className={`h-0.5 flex-1 min-w-2 mx-0.5 rounded-full mt-[-14px] ${
-                  i < currentStep ? "bg-primary/40" : "bg-muted"
-                }`}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 /* ── Main Profile Page ─────────────────────────────────────────── */
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -287,15 +190,11 @@ export default function ProfilePage() {
         .slice(0, 2)
     : user?.phone?.slice(-2) ?? "?";
 
-  const points = user?.loyaltyPoints ?? 0;
-  const { tier: currentTier, index: tierIndex } = getCurrentTier(points);
-  const nextTier = tierIndex < TIERS.length - 1 ? TIERS[tierIndex + 1] : null;
-  const tierProgress = nextTier
-    ? ((points - currentTier.min) / (nextTier.min - currentTier.min)) * 100
-    : 100;
+  const loyalty = user?.loyalty;
+  const points = loyalty?.points ?? 0;
 
   const avatarRing =
-    user?.role === "MANAGER" || user?.role === "SYSTEM"
+    user?.role === "MANAGER" || user?.role === "ADMIN"
       ? "ring-purple-400"
       : "ring-primary/30";
 
@@ -316,18 +215,26 @@ export default function ProfilePage() {
                   {user?.name || t("yourProfile")}
                 </h1>
                 <p className="text-sm text-muted-foreground">{user?.phone}</p>
-                {points > 0 && (
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                    <span className="text-xs text-muted-foreground">
-                      {t("points", { count: points })}
-                    </span>
+                {(loyalty?.tier || points > 0) && (
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {loyalty?.tier && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                        {loyalty.tier.name} · {loyalty.tier.discountPercentage}% {t("discount")}
+                      </span>
+                    )}
+                    {points > 0 && (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                        {t("points", { count: points })}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                  user?.role === "MANAGER"
+                  user?.role === "MANAGER" || user?.role === "ADMIN"
                     ? "bg-purple-100 text-purple-700"
                     : "bg-blue-100 text-blue-700"
                 }`}
@@ -386,9 +293,10 @@ export default function ProfilePage() {
             {/* Orders Tab — with timeline */}
             <TabsContent value="orders">
               <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
-                <h2 className="text-lg font-semibold text-foreground mb-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4">
                   {t("orderHistory")}
                 </h2>
+                <ReviewProgressCard />
                 {loadingOrders ? (
                   <div className="space-y-4">
                     {Array.from({ length: 3 }).map((_, i) => (
@@ -403,146 +311,18 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="divide-y">
                     {orders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="border rounded-xl p-4 hover:border-primary/20 transition-colors"
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">
-                              {t("orderNumber", { id: order.id })}
-                            </span>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                order.status === "PENDING"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : order.status === "DELIVERED"
-                                  ? "bg-green-100 text-green-800"
-                                  : order.status === "CANCELLED"
-                                  ? "bg-red-100 text-red-800"
-                                  : order.status === "SHIPPED"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <ul className="text-sm text-muted-foreground mb-1 space-y-0.5">
-                          {order.items.map((i, idx) => (
-                            <li key={idx}>
-                              {i.productName} <span className="text-xs">x{i.quantity}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <OrderTimeline status={order.status} />
-                        <p className="font-semibold text-sm text-right mt-3 pt-3 border-t">
-                          {t("total")} {order.totalAmount.toFixed(2)} TJS
-                        </p>
-                      </div>
+                      <OrderHistoryCard key={order.id} order={order} />
                     ))}
                   </div>
                 )}
               </div>
             </TabsContent>
 
-            {/* Loyalty Tab — with tier progress */}
+            {/* Loyalty Tab */}
             <TabsContent value="loyalty">
-              <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
-                <h2 className="text-lg font-semibold text-foreground mb-6">
-                  {t("loyaltyPoints")}
-                </h2>
-
-                {/* Points card */}
-                <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 rounded-xl p-6 text-white mb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm opacity-90">{t("availablePoints")}</p>
-                      <p className="text-4xl font-bold mt-1">
-                        {points}
-                      </p>
-                      <p className="text-xs opacity-75 mt-2">
-                        {t("earnPoints")}
-                      </p>
-                    </div>
-                    <Star className="h-14 w-14 opacity-30" />
-                  </div>
-                </div>
-
-                {/* Tier progress */}
-                <div className="bg-accent/30 rounded-xl p-5">
-                  {/* Tier badges */}
-                  <div className="flex justify-between mb-3">
-                    {TIERS.map((tier, i) => {
-                      const isActive = i <= tierIndex;
-                      return (
-                        <div
-                          key={tier.name}
-                          className={`flex flex-col items-center gap-1 ${
-                            isActive ? "text-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          <div
-                            className={`h-8 w-8 rounded-full flex items-center justify-center text-xs ${
-                              i === tierIndex
-                                ? "bg-primary text-primary-foreground font-bold"
-                                : isActive
-                                ? "bg-primary/20 text-primary"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            <Star className={`h-3.5 w-3.5 ${i === tierIndex ? "fill-current" : ""}`} />
-                          </div>
-                          <span className="text-[11px] font-medium">
-                            {t(tier.name)}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(tierProgress, 100)}%` }}
-                    />
-                  </div>
-
-                  {/* Next tier info */}
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    {nextTier
-                      ? t("nextTier", {
-                          points: nextTier.min - points,
-                          tier: t(nextTier.name),
-                        })
-                      : t("topTier")}
-                  </p>
-                </div>
-
-                {/* How it works */}
-                <div className="mt-6 rounded-xl border bg-accent/20 p-4">
-                  <p className="text-sm font-medium text-foreground mb-2">
-                    {t("loyaltyHowTitle")}
-                  </p>
-                  <ul className="space-y-1.5 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <Star className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                      {t("loyaltyHowEarn")}
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Star className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                      {t("loyaltyHowRedeem")}
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              {loyalty && <LoyaltyDashboard loyalty={loyalty} />}
             </TabsContent>
           </Tabs>
         </div>

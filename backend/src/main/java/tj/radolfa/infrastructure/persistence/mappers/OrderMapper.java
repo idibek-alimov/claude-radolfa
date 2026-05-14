@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.persistence.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
@@ -23,8 +24,18 @@ public interface OrderMapper {
     @Mapping(target = "deletedAt", ignore = true)
     OrderEntity toEntity(Order order);
 
+    /** Updates an existing managed entity in-place, preserving version/audit/items fields. */
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    @Mapping(target = "items", ignore = true)
+    void updateEntity(Order order, @MappingTarget OrderEntity entity);
+
     @Mapping(target = "price", source = "priceAtPurchase")
     @Mapping(target = "skuId", source = "sku.id")
+    @Mapping(target = "listingVariantId", source = "sku.listingVariant.id")
     OrderItem toOrderItem(OrderItemEntity entity);
 
     @Mapping(target = "priceAtPurchase", source = "price")

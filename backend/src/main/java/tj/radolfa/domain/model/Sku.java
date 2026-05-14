@@ -1,12 +1,12 @@
 package tj.radolfa.domain.model;
 
-import java.time.Instant;
-
 /**
- * A size/price variant — the actual purchasable unit (one ERPNext Item).
+ * A size/price variant — the actual purchasable unit.
  *
- * <p>All pricing and stock fields are ERP-locked and <b>always</b>
- * overwritten on every sync via {@link #updateFromErp}.
+ * <p>Pricing and stock fields are ADMIN-managed and must only be written
+ * via {@link #updatePriceAndStock}.
+ *
+ * <p>Logistics fields (barcode, weight, dimensions) are Radolfa-managed only.
  *
  * <p>Pure Java — zero Spring / JPA / Jackson / Lombok dependencies.
  */
@@ -14,70 +14,64 @@ public class Sku {
 
     private final Long   id;
     private final Long   listingVariantId;
-    private final String erpItemCode;
+    private final String skuCode;
 
     private String  sizeLabel;
 
-    // ERP-locked fields — always overwritten
+    // ADMIN-managed fields
     private Integer stockQuantity;
-    private Money   price;         // Original / list price
-    private Money   salePrice;     // Effective price (after promotions)
-    private Instant saleEndsAt;
+    private Money   price;
+
+    // Radolfa-managed logistics fields
+    private String  barcode;
 
     public Sku(Long id,
                Long listingVariantId,
-               String erpItemCode,
+               String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price,
-               Money salePrice,
-               Instant saleEndsAt) {
+               String barcode) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
-        this.erpItemCode      = erpItemCode;
+        this.skuCode          = skuCode;
         this.sizeLabel        = sizeLabel;
         this.stockQuantity    = stockQuantity;
         this.price            = price;
-        this.salePrice        = salePrice;
-        this.saleEndsAt       = saleEndsAt;
+        this.barcode          = barcode;
+    }
+
+    /** Constructor without barcode. */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, null);
     }
 
     /**
-     * ERP merge — overwrites ALL pricing and stock fields.
-     * This is the single authorised write path.
+     * ADMIN-only write path — overwrites ALL pricing and stock fields.
      */
-    public void updateFromErp(Integer stockQuantity,
-                              Money price,
-                              Money salePrice,
-                              Instant saleEndsAt) {
-        this.stockQuantity = stockQuantity;
+    public void updatePriceAndStock(Money price, Integer stockQuantity) {
         this.price         = price;
-        this.salePrice     = salePrice;
-        this.saleEndsAt    = saleEndsAt;
+        this.stockQuantity = stockQuantity;
     }
 
     /**
-     * Updates the size label. Called when ERP sends a different label.
+     * Updates the size label. Called when the external source sends a different label.
      */
     public void updateSizeLabel(String sizeLabel) {
         this.sizeLabel = sizeLabel;
     }
 
-    // ---- Queries ----
-
-    public boolean isOnSale() {
-        if (salePrice == null || price == null) return false;
-        if (saleEndsAt != null && Instant.now().isAfter(saleEndsAt)) return false;
-        return salePrice.amount().compareTo(price.amount()) < 0;
-    }
-
     // ---- Getters ----
     public Long    getId()               { return id; }
-    public Long    getListingVariantId()  { return listingVariantId; }
-    public String  getErpItemCode()      { return erpItemCode; }
+    public Long    getListingVariantId() { return listingVariantId; }
+    public String  getSkuCode()          { return skuCode; }
     public String  getSizeLabel()        { return sizeLabel; }
     public Integer getStockQuantity()    { return stockQuantity; }
     public Money   getPrice()            { return price; }
-    public Money   getSalePrice()        { return salePrice; }
-    public Instant getSaleEndsAt()       { return saleEndsAt; }
+    public String  getBarcode()          { return barcode; }
 }

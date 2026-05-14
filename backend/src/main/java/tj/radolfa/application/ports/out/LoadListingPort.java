@@ -1,8 +1,8 @@
 package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,4 +40,10 @@ public interface LoadListingPort {
      * Paginated grid filtered by a set of category IDs (category + descendants).
      */
     PageResult<ListingVariantDto> loadByCategoryIds(List<Long> categoryIds, int page, int limit);
+
+    /**
+     * Exact product-code lookup (e.g. "RD-10047").
+     * Returns a single-item page when the code exists, empty page otherwise.
+     */
+    PageResult<ListingVariantDto> findByProductCode(String code, int page, int limit);
 }

@@ -1,18 +1,16 @@
+import type { LoyaltyProfile } from "@/entities/loyalty";
+import type { PaginatedResponse } from "@/shared/api/types";
+
+export type { PaginatedResponse };
+
 export interface UserDto {
   id: number;
   phone: string;
-  role: "USER" | "MANAGER" | "SYSTEM";
+  role: "USER" | "MANAGER" | "ADMIN";
   name?: string;
   email?: string;
-  loyaltyPoints: number;
+  loyalty: LoyaltyProfile;
   enabled: boolean;
-}
-
-export interface PageResult<T> {
-  items: T[];
-  totalElements: number;
-  page: number;
-  hasMore: boolean;
 }
 
 export interface ToggleStatusParams {
@@ -22,5 +20,15 @@ export interface ToggleStatusParams {
 
 export interface ChangeRoleParams {
   userId: number;
-  role: "USER" | "MANAGER";
+  role: "USER" | "MANAGER" | "ADMIN";
+}
+
+export interface AssignTierParams {
+  userId: number;
+  tierId: number;
+}
+
+export interface SetLoyaltyPermanentParams {
+  userId: number;
+  permanent: boolean;
 }

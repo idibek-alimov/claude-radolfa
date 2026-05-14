@@ -1,0 +1,62 @@
+import {
+  LayoutDashboard,
+  MapPin,
+  Package,
+  Folder,
+  Palette,
+  Tag,
+  Percent,
+  Award,
+  Users,
+  Star,
+  HelpCircle,
+  Sparkles,
+  ShoppingBag,
+} from "lucide-react";
+import type { AdminNavGroup } from "./types";
+
+export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
+  {
+    label: "Overview",
+    items: [
+      { href: "/manage", label: "Dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Catalog",
+    items: [
+      { href: "/manage/products", label: "Products", icon: Package },
+      { href: "/manage/categories", label: "Categories", icon: Folder },
+      { href: "/manage/colors", label: "Colors", icon: Palette },
+      { href: "/manage/tags", label: "Tags", icon: Tag, adminOnly: true },
+    ],
+  },
+  {
+    label: "Commerce",
+    items: [
+      { href: "/manage/orders",      label: "Orders",      icon: ShoppingBag },
+      { href: "/manage/discounts",   label: "Discounts",   icon: Percent },
+      { href: "/manage/pickpoints",  label: "Pickpoints",  icon: MapPin, adminOnly: true },
+    ],
+  },
+  {
+    label: "Loyalty",
+    items: [
+      { href: "/manage/tiers", label: "Tiers", icon: Award },
+    ],
+  },
+  {
+    label: "People",
+    items: [
+      { href: "/manage/users", label: "Users", icon: Users },
+    ],
+  },
+  {
+    label: "Reviews",
+    items: [
+      { href: "/manage/reviews", label: "Reviews", icon: Star },
+      { href: "/manage/qa", label: "Q&A", icon: HelpCircle, badge: true },
+      { href: "/manage/review-traits", label: "Review Traits", icon: Sparkles, adminOnly: true },
+    ],
+  },
+];

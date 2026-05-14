@@ -4,15 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.ports.in.RegisterUserUseCase;
 import tj.radolfa.application.ports.in.SendOtpUseCase;
 import tj.radolfa.application.ports.in.VerifyOtpUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
-import tj.radolfa.application.ports.out.SaveUserPort;
+import tj.radolfa.application.ports.out.OtpPort;
+import tj.radolfa.application.ports.out.TokenIssuerPort;
 import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
-import tj.radolfa.domain.model.UserRole;
-import tj.radolfa.infrastructure.security.JwtUtil;
-import tj.radolfa.infrastructure.security.OtpStore;
 
 import java.util.Optional;
 
@@ -37,19 +36,19 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpAuthService.class);
 
-    private final OtpStore otpStore;
-    private final JwtUtil jwtUtil;
+    private final OtpPort otpPort;
+    private final TokenIssuerPort tokenIssuer;
     private final LoadUserPort loadUserPort;
-    private final SaveUserPort saveUserPort;
+    private final RegisterUserUseCase registerUserUseCase;
 
-    public OtpAuthService(OtpStore otpStore,
-            JwtUtil jwtUtil,
+    public OtpAuthService(OtpPort otpPort,
+            TokenIssuerPort tokenIssuer,
             LoadUserPort loadUserPort,
-            SaveUserPort saveUserPort) {
-        this.otpStore = otpStore;
-        this.jwtUtil = jwtUtil;
+            RegisterUserUseCase registerUserUseCase) {
+        this.otpPort = otpPort;
+        this.tokenIssuer = tokenIssuer;
         this.loadUserPort = loadUserPort;
-        this.saveUserPort = saveUserPort;
+        this.registerUserUseCase = registerUserUseCase;
     }
 
     // ----------------------------------------------------------------
@@ -58,8 +57,11 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
 
     @Override
     public void execute(String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("Phone number must not be null or blank");
+        }
         PhoneNumber normalized = PhoneNumber.of(phone);
-        otpStore.generateOtp(normalized.value());
+        otpPort.generateOtp(normalized.value());
         LOG.info("[AUTH] OTP sent to phone={}", mask(normalized));
     }
 
@@ -70,16 +72,19 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
     @Override
     @Transactional
     public Optional<AuthResult> execute(String phone, String otp) {
+        if (phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("Phone number must not be null or blank");
+        }
         PhoneNumber normalized = PhoneNumber.of(phone);
 
-        if (!otpStore.verifyOtp(normalized.value(), otp)) {
+        if (!otpPort.verifyOtp(normalized.value(), otp)) {
             LOG.warn("[AUTH] OTP verification failed for phone={}", mask(normalized));
             return Optional.empty();
         }
 
-        // Find existing user or create new one
+        // Find existing user or self-register on first login
         User user = loadUserPort.loadByPhone(normalized.value())
-                .orElseGet(() -> createNewUser(normalized));
+                .orElseGet(() -> registerUserUseCase.execute(normalized));
 
         if (!user.enabled()) {
             LOG.warn("[AUTH] Blocked user attempted login: phone={}", mask(normalized));
@@ -87,7 +92,7 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
         }
 
         // Generate JWT
-        String token = jwtUtil.generateToken(user.id(), user.phone().value(), user.role());
+        String token = tokenIssuer.generateToken(user.id(), user.phone().value(), user.role());
         LOG.info("[AUTH] User authenticated: phone={}, role={}", mask(user.phone()), user.role());
 
         return Optional.of(new AuthResult(token, user));
@@ -103,15 +108,5 @@ public class OtpAuthService implements SendOtpUseCase, VerifyOtpUseCase {
         if (v.length() <= 4) return "***";
         return v.substring(0, v.length() - 4).replaceAll("\\d", "*")
                 + v.substring(v.length() - 4);
-    }
-
-    /**
-     * Creates a new user with default USER role.
-     */
-    private User createNewUser(PhoneNumber phone) {
-        User newUser = new User(null, phone, UserRole.USER, null, null, 0, true, null);
-        User saved = saveUserPort.save(newUser);
-        LOG.info("[AUTH] Created new user: phone={}, id={}", mask(phone), saved.id());
-        return saved;
     }
 }

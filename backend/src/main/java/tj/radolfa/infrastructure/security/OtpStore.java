@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.OtpPort;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -22,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * In PROD mode, the actual SMS sending would be integrated here.
  */
 @Component
-public class OtpStore {
+public class OtpStore implements OtpPort {
 
     private static final Logger LOG = LoggerFactory.getLogger(OtpStore.class);
 

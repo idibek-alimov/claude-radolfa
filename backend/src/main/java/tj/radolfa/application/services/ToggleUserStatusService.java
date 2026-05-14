@@ -29,10 +29,6 @@ public class ToggleUserStatusService implements ToggleUserStatusUseCase {
         User target = loadUserPort.loadById(targetUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + targetUserId));
 
-        if (target.role() == UserRole.SYSTEM) {
-            throw new IllegalArgumentException("Cannot change status of SYSTEM users");
-        }
-
         if (callerRole == UserRole.MANAGER && target.role() == UserRole.MANAGER) {
             throw new IllegalArgumentException("Managers cannot block other managers");
         }
@@ -43,7 +39,7 @@ public class ToggleUserStatusService implements ToggleUserStatusUseCase {
                 target.role(),
                 target.name(),
                 target.email(),
-                target.loyaltyPoints(),
+                target.loyalty(),
                 enabled,
                 target.version());
 

@@ -37,7 +37,7 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase {
                 user.role(),
                 trimmedName,
                 trimmedEmail,
-                user.loyaltyPoints(),
+                user.loyalty(),
                 user.enabled(),
                 user.version());
 

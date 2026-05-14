@@ -50,12 +50,23 @@
     "home": "Главная",
     "products": "Товары",
     "noImage": "Изображение недоступно",
-    "priceFrom": "От",
-    "dependingOnSize": "в зависимости от размера",
-    "availableColours": "Доступные цвета",
-    "availableSizes": "Доступные размеры",
+    "loyaltyExtra": "Доп. -{pct}% Лояльность",
+    "availableColours": "Цвет",
+    "availableSizes": "Размер",
     "description": "Описание",
-    "youMayAlsoLike": "Вам может понравиться"
+    "youMayAlsoLike": "Вам может понравиться",
+    "specifications": "Характеристики",
+    "bestseller": "Хит продаж",
+    "color": "Цвет",
+    "itemsLeft": "Осталось {count} шт.",
+    "loyaltyPrice": "С картой лояльности",
+    "aboutProduct": "О товаре",
+    "quantity": "Количество",
+    "addToCart": "Добавить в корзину",
+    "adding": "Добавление...",
+    "addedToCart": "Добавлено в корзину!",
+    "outOfStockError": "Этот товар недоступен",
+    "partialDiscountHint": "Цена со скидкой действует только на отдельные размеры"
   },
   "auth": {
     "welcomeBack": "С возвращением",
@@ -94,7 +105,15 @@
     "outOfStock": "Нет в наличии",
     "lowStock": "Осталось {count}",
     "popular": "Популярное",
-    "currency": "TJS"
+    "currency": "TJS",
+    "yourPrice": "Ваша цена",
+    "loyaltyTag": "-{pct}% бонус",
+    "loyaltyTierBadge": "Скидка уровня {pct}%",
+    "loyaltyTierDetail": "Ваш уровень лояльности · скидка {pct}%",
+    "pagination": {
+      "previous": "Назад",
+      "next": "Далее"
+    }
   },
   "megaMenu": {
     "categories": "Категории"
@@ -122,8 +141,8 @@
     "productsTotal": "{count} товаров всего",
     "page": "Страница {page}",
     "editProductTitle": "Редактировать товар",
-    "editProductDesc": "Обновите описание и изображения. Цена, склад и основные данные синхронизируются из ERP и не могут быть изменены здесь.",
-    "erpSyncedData": "Данные из ERP",
+    "editProductDesc": "Обновите описание и изображения. Цена, склад и основные данные управляются системой и не могут быть изменены здесь.",
+    "catalogData": "Данные каталога (только чтение)",
     "slug": "Слаг",
     "nameAndColor": "Название и цвет",
     "price": "Цена",
@@ -135,8 +154,13 @@
     "primary": "Основное",
     "enrichment": "Обогащение",
     "webDescription": "Веб-описание",
-    "topSelling": "Топ продаж",
-    "featured": "Рекомендуемый",
+    "dimensionsTitle": "Размеры",
+    "dimensionsHint": "Оставьте поле пустым, чтобы очистить значение.",
+    "dimensionsSaved": "Размеры сохранены",
+    "fieldWeight": "Вес",
+    "fieldWidth": "Ширина",
+    "fieldHeight": "Высота",
+    "fieldDepth": "Глубина",
     "productImages": "Изображения товара",
     "addImage": "Добавить изображение",
     "uploading": "Загрузка...",
@@ -144,7 +168,229 @@
     "cancel": "Отмена",
     "save": "Сохранить",
     "saving": "Сохранение...",
-    "topSeller": "Топ продавец"
+    "tabLoyaltyTiers": "Уровни",
+    "loyaltyTiers": "Уровни лояльности",
+    "tierColor": "Цвет",
+    "colorUpdated": "Цвет уровня обновлён",
+    "newProduct": "Новый товар",
+    "createProductTitle": "Создать новый товар",
+    "createProductDesc": "Укажите название, категорию, цвет и начальные SKU.",
+    "createStepBasicInfo": "Основная информация",
+    "createStepSkus": "Размеры и цены",
+    "productName": "Название товара",
+    "productNamePlaceholder": "напр. Классическая футболка",
+    "category": "Категория",
+    "selectCategory": "Выберите категорию...",
+    "color": "Цвет",
+    "selectColor": "Выберите цвет...",
+    "addSize": "Добавить размер",
+    "fieldRequired": "Обязательное поле",
+    "fieldNonNegative": "Должно быть 0 или больше",
+    "skuAtLeastOne": "Необходим хотя бы один размер",
+    "productCreated": "Товар создан (slug: {slug})",
+    "creating": "Создание...",
+    "createProduct": "Создать товар",
+    "adminEditable": "редактируется администратором",
+    "priceUpdated": "Цена обновлена",
+    "stockUpdated": "Склад обновлён",
+    "tabCategories": "Категории",
+    "tabColors": "Цвета",
+    "categoryTitle": "Управление категориями",
+    "newCategoryTitle": "Новая категория",
+    "categoryNameLabel": "Название категории",
+    "parentCategoryLabel": "Родительская категория",
+    "noParent": "Нет (верхний уровень)",
+    "createCategoryButton": "Создать",
+    "creatingCategory": "Создание...",
+    "categoryCreated": "Категория создана",
+    "categoryUpdated": "Категория обновлена",
+    "editCategoryTitle": "Редактировать категорию",
+    "editCategoryDesc": "Измените название или родительскую категорию. Слаг не изменяется.",
+    "deleteCategoryButton": "Удалить",
+    "confirmDeleteTitle": "Удалить категорию",
+    "confirmDeleteDesc": "Это действие необратимо.",
+    "confirmDeleteButton": "Да, удалить",
+    "deletedCategory": "Категория удалена",
+    "categoryInUse": "Категория используется в товарах",
+    "noCategoriesFound": "Категории не найдены",
+    "colorTitle": "Управление цветами",
+    "colorKey": "Ключ",
+    "colorDisplayNameLabel": "Отображаемое название",
+    "colorHexLabel": "Hex-код",
+    "colorSaved": "Цвет сохранён",
+    "noColorsFound": "Цвета не найдены",
+    "colorCreate": "Новый цвет",
+    "colorCreateTitle": "Создать цвет",
+    "colorCreated": "Цвет создан",
+    "colorKeyLabel": "Ключ (slug)",
+    "colorKeyPlaceholder": "например navy_blue",
+    "colorKeyHint": "Только строчные буквы, цифры и символы подчёркивания.",
+    "colorCreateSubmit": "Создать",
+    "searchToolsTitle": "Инструменты поиска",
+    "reindexButton": "Перестроить индекс поиска",
+    "reindexing": "Индексация...",
+    "reindexResult": "Проиндексировано {count} товаров ({errors} ошибок)",
+    "generalInfo": "Основная информация",
+    "productNameUpdated": "Название товара обновлено",
+    "productCategoryUpdated": "Категория обновлена",
+    "colorPermanentHint": "Постоянное",
+    "backToProducts": "Назад к товарам",
+    "priceStockAdminOnly": "Цена и склад: только для администратора",
+    "sizeLabelUpdated": "Размер обновлён",
+    "loading": "Загрузка...",
+    "failedToLoad": "Не удалось загрузить товар",
+    "maxImagesReached": "Достигнут максимум 20 изображений",
+    "reviewTraitsTitle": "Признаки отзывов",
+    "reviewTraitsSubtitle": "Управление банком вопросов для отзывов по категориям.",
+    "newReviewTrait": "Новый признак",
+    "newReviewTraitTitle": "Создать признак отзыва",
+    "editReviewTraitTitle": "Редактировать признак",
+    "reviewTraitKey": "Ключ",
+    "reviewTraitKeyHelp": "Строчные буквы, цифры и подчёркивания. Нельзя изменить позже.",
+    "reviewTraitLabel": "Название",
+    "reviewTraitInputType": "Тип ввода",
+    "reviewTraitInputSlider": "Ползунок (1–5)",
+    "reviewTraitInputRadio": "Радиокнопки",
+    "reviewTraitCreated": "Признак создан",
+    "reviewTraitUpdated": "Признак обновлён",
+    "reviewTraitDeleted": "Признак удалён",
+    "noReviewTraitsYet": "Признаки ещё не определены",
+    "linkedTraits": "Связанные признаки",
+    "linkedTraitsHelp": "Покупатели в этой категории будут отвечать на эти вопросы.",
+    "noTraitsAvailable": "Нет доступных признаков — сначала создайте их в разделе «Признаки отзывов».",
+    "orders": {
+      "title": "Управление заказами",
+      "searchPlaceholder": "Поиск по телефону или номеру заказа…",
+      "statusAll": "Все статусы",
+      "table": {
+        "id": "Заказ №",
+        "customer": "Покупатель",
+        "date": "Дата",
+        "status": "Статус",
+        "delivery": "Доставка",
+        "items": "Товары",
+        "total": "Сумма"
+      },
+      "status": {
+        "PENDING":          "Ожидает",
+        "PAID":             "Оплачен",
+        "SHIPPED":          "Отправлен",
+        "READY_FOR_PICKUP": "Готов к выдаче",
+        "DELIVERED":        "Доставлен",
+        "CANCELLED":        "Отменён",
+        "REFUNDED":         "Возврат"
+      },
+      "deliveryType": {
+        "HOME": "На дом",
+        "PICKPOINT": "Самовывоз"
+      },
+      "drawer": {
+        "title": "Заказ #{id}",
+        "customer": "Покупатель",
+        "items": "Товары",
+        "subtotal": "Подытог",
+        "pointsDiscount": "Скидка баллами",
+        "total": "Итого",
+        "deliverySection": "Доставка",
+        "deliveryHome": "Доставка на дом",
+        "deliveryAddress": "Адрес",
+        "deliveryWindow": "Удобное время",
+        "deliveryPickpoint": "Пункт самовывоза",
+        "deliveryPickpointAddress": "Адрес пункта",
+        "statusLabel": "Изменить статус",
+        "statusUpdated": "Статус обновлён",
+        "statusUpdateFailed": "Не удалось обновить статус",
+        "noNextStatus": "Дальнейшие переходы недоступны",
+        "shipmentSection": "Отправка",
+        "courierName": "Курьер",
+        "courierNamePlaceholder": "напр. DHL, Хаджимали",
+        "courierNameRequired": "Укажите имя курьера",
+        "trackingNumber": "Номер отслеживания",
+        "trackingNumberPlaceholder": "Необязательно",
+        "estimatedDeliveryDate": "Ожидаемая доставка",
+        "markAsShipped": "Отметить отправленным"
+      },
+      "breadcrumb": {
+        "orders": "Заказы"
+      },
+      "detail": {
+        "title": "Заказ #{id}",
+        "moveTo": "Перевести в {status}",
+        "cancelOrder": "Отменить заказ",
+        "refundOrder": "Возврат заказа",
+        "summary": "Итог",
+        "loyaltyDiscount": "Скидка баллами",
+        "total": "Итого",
+        "customer": "Покупатель",
+        "delivery": "Доставка",
+        "homeDelivery": "Доставка на дом",
+        "timeWindow": "Удобное время: {value}",
+        "pickupPoint": "Пункт самовывоза",
+        "shipment": "Отправка",
+        "tracking": "Трек-номер",
+        "eta": "Дата доставки",
+        "loyaltyPoints": "Бонусные баллы",
+        "redeemed": "Списано",
+        "awarded": "Начислено",
+        "ptsShort": "балл."
+      },
+      "shipModal": {
+        "cancel": "Отмена",
+        "shipping": "Отправляем…"
+      },
+      "cancelModal": {
+        "title": "Отменить заказ #{id}?",
+        "description": "Заказ будет отмечен как ОТМЕНЁН. Это действие необратимо. Покупатель будет уведомлён.",
+        "reasonLabel": "Причина",
+        "reasonPlaceholder": "Необязательно — видна сотрудникам",
+        "keep": "Оставить заказ",
+        "cancelling": "Отменяем…",
+        "confirm": "Отменить заказ"
+      },
+      "itemsTable": {
+        "product": "Товар",
+        "qty": "Кол-во",
+        "unitPrice": "Цена",
+        "subtotal": "Сумма",
+        "stock": "Остаток"
+      },
+      "stock": {
+        "inStock": "✓ В наличии",
+        "shortage": "⚠ Дефицит (доступно: {count})"
+      },
+      "timeline": {
+        "title": "Хронология выполнения",
+        "created": "Создан",
+        "paid": "Оплачен",
+        "shipped": "Отправлен",
+        "ready": "Готов",
+        "delivered": "Доставлен",
+        "cancelled": "Отменён",
+        "refunded": "Возврат"
+      },
+      "toast": {
+        "statusUpdated": "Статус обновлён.",
+        "statusUpdateFailed": "Не удалось обновить статус.",
+        "shipped": "Заказ отправлен.",
+        "shipFailed": "Не удалось отправить заказ.",
+        "cancelled": "Заказ отменён.",
+        "cancelFailed": "Не удалось отменить заказ.",
+        "refunded": "Заказ возвращён.",
+        "refundFailed": "Не удалось вернуть заказ."
+      },
+      "refundModal": {
+        "title": "Возврат заказа #{id}?",
+        "description": "Заказ будет отмечен как ВОЗВРАЩЁН. Возврат денежных средств выполните отдельно через платёжную систему. Отменить это действие нельзя.",
+        "reasonLabel": "Причина",
+        "reasonPlaceholder": "Необязательно — видна сотрудникам",
+        "keep": "Оставить заказ",
+        "refunding": "Возврат…",
+        "confirm": "Возврат заказа"
+      },
+      "empty": "Заказы не найдены.",
+      "page": "Стр. {page}",
+      "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}"
+    }
   },
   "profile": {
     "yourProfile": "Ваш профиль",
@@ -182,16 +428,153 @@
     "orderConfirmed": "Подтверждён",
     "orderShipped": "Отправлен",
     "orderDelivered": "Доставлен",
-    "tierBronze": "Бронза",
-    "tierSilver": "Серебро",
-    "tierGold": "Золото",
-    "tierPlatinum": "Платина",
-    "nextTier": "{points} баллов до {tier}",
     "topTier": "Вы достигли высшего уровня!",
+    "spendToNextTier": "Потратьте ещё {amount} TJS для следующего уровня",
+    "startEarning": "Начните покупки, чтобы получить первый уровень!",
+    "discount": "скидка",
+    "cashback": "кэшбэк",
+    "minSpend": "мин. расход",
+    "allTiers": "Все уровни лояльности",
+    "yourTier": "Ваш уровень",
+    "nextTier": "Следующий уровень",
+    "goalTier": "Ваша цель",
+    "seeAllTiers": "Все уровни",
+    "hideTiers": "Скрыть",
+    "demotionWarning": "Потратьте {amount} TJS в течение {days} дней, чтобы сохранить уровень",
+    "cancelOrder": "Отменить",
+    "cancelling": "Отмена...",
+    "orderCancelled": "Заказ отменён",
+    "failedToCancel": "Не удалось отменить заказ",
     "sessionExpired": "Сессия истекла. Пожалуйста, войдите снова.",
+    "recentEarnings": "Последние начисления",
     "loyaltyHowTitle": "Как это работает",
     "loyaltyHowEarn": "Баллы начисляются автоматически с каждой покупкой.",
-    "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов."
+    "loyaltyHowRedeem": "Баллами можно оплатить часть будущих заказов.",
+    "itemCount": "{count, plural, one {# товар} few {# товара} other {# товаров}}",
+    "statusPaid": "Оплачен",
+    "viewDetails": "Подробнее",
+    "hideDetails": "Скрыть",
+    "buyAgain": "Купить снова",
+    "buyAgainSuccess": "Добавлено в корзину",
+    "loyaltyUsed": "Использовано баллов",
+    "sizeLabel": "Размер",
+    "skuCode": "Артикул",
+    "product": "Товар",
+    "subtotal": "Подытог",
+    "quantity": "Кол-во",
+    "writeReview": "Написать отзыв",
+    "reviewProgressTitle": "Прогресс отзывов",
+    "reviewProgressSubtitle": "Вы оценили {reviewed} из {total} товаров",
+    "earnPointsForNextReview": "Заработайте {points} баллов за следующий отзыв",
+    "reviewProgressAllDone": "Вы оценили все свои покупки — спасибо!",
+    "shipmentTitle": "Детали отправки",
+    "courierLabel": "Курьер",
+    "trackingLabel": "Номер отслеживания",
+    "estimatedDeliveryLabel": "Ожидаемая доставка",
+    "statusReadyForPickup": "Готов к выдаче",
+    "orderReadyForPickup": "Готов",
+    "readyForPickupCallout": "Ваш заказ ждёт вас в пункте самовывоза"
+  },
+  "cart": {
+    "title": "Ваша корзина",
+    "cartHeading": "Корзина",
+    "itemCount": "{count, plural, one {# товар} few {# товара} many {# товаров} other {# товара}}",
+    "empty": "Ваша корзина пуста",
+    "emptyDescription": "Откройте каталог и добавьте товары в корзину",
+    "browseProducts": "Перейти к товарам",
+    "subtotal": "Промежуточный итог",
+    "orderSummary": "Сводка заказа",
+    "proceedToCheckout": "Перейти к оформлению",
+    "clearCart": "Очистить корзину",
+    "continueShopping": "Продолжить покупки",
+    "remove": "Удалить",
+    "quantity": "Количество",
+    "outOfStock": "Нет в наличии",
+    "outOfStockWarning": "Некоторые товары отсутствуют на складе. Удалите их, чтобы продолжить.",
+    "viewCart": "Перейти в корзину",
+    "openCart": "Открыть корзину",
+    "noImage": "Нет изображения",
+    "securePayment": "Безопасная оплата",
+    "easyReturns": "Лёгкий возврат",
+    "qualityGuarantee": "Гарантия качества"
+  },
+  "checkout": {
+    "title": "Оформление заказа",
+    "orderSummary": "Состав заказа",
+    "loyaltyPoints": "Бонусные баллы",
+    "availablePoints": "{count} баллов доступно",
+    "notes": "Примечание",
+    "notesPlaceholder": "Особые пожелания...",
+    "totalBreakdown": "Итого",
+    "subtotal": "Подытог",
+    "tierDiscount": "Скидка уровня",
+    "pointsDiscount": "Скидка баллами",
+    "total": "Итого",
+    "redirecting": "Перенаправление на оплату...",
+    "placeOrder": "Оформить заказ",
+    "placing": "Оформление...",
+    "outOfStockWarning": "Некоторые товары в корзине недоступны. Удалите их перед оформлением.",
+    "outOfStock": "Нет в наличии",
+    "editCart": "Изменить корзину",
+    "successTitle": "Заказ оформлен!",
+    "orderNumber": "Заказ #{id}",
+    "viewOrders": "Мои заказы",
+    "coupon": {
+      "label": "Купон",
+      "placeholder": "напр. SUMMER25",
+      "apply": "Применить",
+      "remove": "Убрать",
+      "applied": "Купон применён",
+      "affectedItems": "Применено к {count} товар(ам)",
+      "NOT_FOUND": "Такой купон не существует",
+      "DISABLED": "Этот купон больше не активен",
+      "NOT_ACTIVE": "Купон вне срока действия",
+      "CAP_EXHAUSTED": "Купон исчерпал лимит использований",
+      "NO_ITEMS_AFFECTED": "Купон не применяется к товарам в корзине"
+    },
+    "delivery": {
+      "title": "Способ доставки",
+      "home": {
+        "title": "Доставка на дом",
+        "description": "Доставим заказ по вашему адресу.",
+        "addressLabel": "Адрес доставки",
+        "addressPlaceholder": "Улица, дом, квартира…",
+        "addressRequired": "Укажите адрес для доставки на дом.",
+        "timeWindowLabel": "Удобное время"
+      },
+      "pickpoint": {
+        "title": "Пункт самовывоза",
+        "description": "Заберите заказ в выбранном пункте.",
+        "selectLabel": "Выберите пункт самовывоза",
+        "selectPlaceholder": "Выберите точку",
+        "loading": "Загрузка пунктов…",
+        "empty": "Сейчас нет доступных пунктов самовывоза.",
+        "required": "Выберите пункт самовывоза."
+      },
+      "timeWindow": {
+        "MORNING": "09:00 – 12:00",
+        "AFTERNOON": "12:00 – 18:00",
+        "EVENING": "Вечер (18:00 – 21:00)"
+      }
+    }
+  },
+  "payment": {
+    "pollingTitle": "Проверка оплаты...",
+    "pollingDesc": "Пожалуйста, подождите, пока мы подтвердим вашу оплату.",
+    "successTitle": "Оплата прошла успешно!",
+    "successDesc": "Ваш заказ подтверждён.",
+    "via": "через",
+    "processingTitle": "Оплата обрабатывается",
+    "processingDesc": "Ваша оплата занимает больше времени. Проверьте через несколько минут.",
+    "refundedTitle": "Оплата возвращена",
+    "refundedDesc": "Ваш платёж был возвращён. Свяжитесь с поддержкой по вопросам.",
+    "failureTitle": "Ошибка оплаты",
+    "failureDesc": "Что-то пошло не так. Пожалуйста, попробуйте снова.",
+    "errorTitle": "Неверная ссылка оплаты",
+    "errorDesc": "ID заказа не найден. Проверьте ссылку оплаты.",
+    "viewOrders": "Мои заказы",
+    "retryCheck": "Проверить снова",
+    "browsProducts": "Смотреть товары"
   },
   "userManagement": {
     "searchPlaceholder": "Поиск по телефону или имени...",
@@ -214,5 +597,229 @@
     "noUsersFound": "Пользователи не найдены.",
     "usersTotal": "{count} пользователей всего",
     "page": "Страница {page}"
+  },
+  "reviews": {
+    "card": {
+      "verifiedPurchase": "Подтвержденная покупка",
+      "pros": "Достоинства",
+      "cons": "Недостатки",
+      "comment": "Комментарий",
+      "sellerReply": "Ответ продавца",
+      "officialResponse": "Официальный ответ магазина",
+      "morePhotos": "ещё",
+      "helpful": "Помогло?",
+      "report": "Пожаловаться",
+      "imageLightbox": "Фото отзыва",
+      "share": "Поделиться",
+      "shareTitle": "Отзыв {author} на Radolfa",
+      "shareText": "Посмотрите этот отзыв на Radolfa",
+      "shareDownloadFallback": "Изображение отзыва загружено.",
+      "shareFailed": "Не удалось поделиться отзывом"
+    },
+    "strip": {
+      "photosAndVideos": "Фото и видео",
+      "seeAll": "Смотреть все {n}"
+    },
+    "sort": {
+      "newest": "Новые",
+      "mostHelpful": "Самые полезные",
+      "highestRated": "Высокий рейтинг",
+      "lowestRated": "Низкий рейтинг",
+      "withPhoto": "С фото"
+    },
+    "seeAll": "Смотреть все отзывы",
+    "empty": "Отзывов пока нет.",
+    "form": {
+      "addPhotos": "Добавить фото",
+      "photoLimit": "До 5 фото",
+      "uploading": "Загрузка…",
+      "traits": {
+        "heading": "Помогите другим, оценив эти аспекты",
+        "scaleLow": "Плохо",
+        "scaleHigh": "Отлично"
+      },
+      "lowRating": {
+        "heading": "Сожалеем, что вам не понравилось",
+        "body": "Хотите связаться с поддержкой или оформить возврат?",
+        "cta": "Перейти к заказам"
+      }
+    },
+    "summary": {
+      "reviews": "{count} отзывов",
+      "writeReview": "Написать отзыв",
+      "sizeFit": "Размер",
+      "runsSmall": "Маломерит",
+      "trueToSize": "Соответствует",
+      "runsLarge": "Большемерит",
+      "traits": {
+        "heading": "Оценки покупателей по аспектам"
+      }
+    },
+    "page": {
+      "back": "Назад"
+    },
+    "banner": {
+      "purchasedOn": "Вы приобрели этот товар {date}.",
+      "writeReviewCta": "Написать отзыв"
+    },
+    "filter": {
+      "searchPlaceholder": "Поиск по отзывам...",
+      "clearFilters": "Сбросить фильтры",
+      "noResults": "Отзывы по вашим фильтрам не найдены."
+    }
+  },
+  "questions": {
+    "card": {
+      "sellerReply": "Ответ продавца"
+    },
+    "seeAll": "Смотреть все вопросы",
+    "empty": "Вопросов пока нет.",
+    "login": "Войдите, чтобы задать вопрос",
+    "page": {
+      "back": "Назад",
+      "title": "Вопросы"
+    }
+  },
+  "section": {
+    "tabs": {
+      "reviews": "Оценки",
+      "questions": "Вопросы"
+    }
+  },
+  "discount": {
+    "status": {
+      "active": "Активна",
+      "scheduled": "Запланирована",
+      "expired": "Истекла",
+      "disabled": "Отключена"
+    },
+    "bulk": {
+      "selected": "{count} выбрано",
+      "enable": "Включить",
+      "disable": "Отключить",
+      "duplicate": "Дублировать",
+      "delete": "Удалить",
+      "enabled": "Включено {count} акций",
+      "disabled": "Отключено {count} акций",
+      "duplicated": "Дублировано {count} акций",
+      "deleted": "Удалено {count} акций",
+      "confirmDelete": {
+        "title": "Удалить {count} акций?",
+        "body": "Это действие нельзя отменить. Акции: {titles}",
+        "confirm": "Удалить",
+        "cancel": "Отмена"
+      }
+    },
+    "tab": {
+      "products": "Акционные товары"
+    },
+    "drawer": {
+      "title": "SKU кампании",
+      "searchPlaceholder": "Поиск по SKU или товару…",
+      "empty": "В этой кампании нет SKU."
+    },
+    "products": {
+      "searchPlaceholder": "Поиск по SKU или товару…",
+      "campaignFilter": "Кампания",
+      "deltaMin": "Мин %",
+      "deltaMax": "Макс %",
+      "empty": "Акционные товары не найдены.",
+      "total": "{count} товаров со скидкой",
+      "columns": {
+        "image": "Изображение",
+        "product": "Товар",
+        "sku": "Код SKU",
+        "size": "Размер",
+        "price": "Цена",
+        "delta": "Δ%",
+        "winner": "Выигрышная кампания",
+        "other": "Другие кампании",
+        "stock": "Остаток"
+      }
+    },
+    "overlap": {
+      "column": "Конфликты",
+      "tooltip": {
+        "title": "Конфликты на {count} SKU",
+        "line": "{skuCode} → победитель: {campaignTitle}",
+        "more": "…и ещё {count}"
+      },
+      "warning": {
+        "title": "{count} SKU пересекаются с другой активной кампанией",
+        "win": "{skuCode} — уже в {campaignTitle} (ранг {otherRank}). Ваша (ранг {myRank}) победит.",
+        "lose": "{skuCode} — уже в {campaignTitle} (ранг {otherRank}). Ваша (ранг {myRank}) проиграет.",
+        "more": "+{count} ещё"
+      }
+    },
+    "metrics": {
+      "title": "Аналитика кампании",
+      "ordersUsing": "Заказов с акцией",
+      "unitsMoved": "Продано единиц",
+      "revenueUplift": "Скидка в деньгах",
+      "avgDiscountPerOrder": "Ср. скидка / заказ",
+      "sparkline": {
+        "orders": "Заказы",
+        "units": "Единицы",
+        "uplift": "Скидка"
+      },
+      "cutoffBanner": "Эта кампания создана до начала аналитики ({date}). Данные ниже — с {startDate}.",
+      "editCampaign": "Редактировать",
+      "window": "Период: {from} – {to}",
+      "loading": "Загрузка метрик…",
+      "empty": "Данных пока нет. Они появятся после первого заказа по этой акции."
+    },
+    "topCampaigns": {
+      "title": "Топ кампании",
+      "byRevenue": "По скидке",
+      "byUnits": "По единицам",
+      "period7d": "7д",
+      "period30d": "30д",
+      "period90d": "90д",
+      "rank": "Место",
+      "units": "Единиц",
+      "uplift": "Скидка",
+      "empty": "Нет данных."
+    },
+    "amountType": {
+      "heading": "Скидка",
+      "percent": "Процент",
+      "fixed": "Фиксированная (TJS)"
+    },
+    "target": {
+      "sku": {
+        "tab": "Список SKU"
+      },
+      "category": {
+        "tab": "Категория",
+        "includeSubs": "Включить подкатегории",
+        "empty": "Выберите одну или несколько категорий."
+      },
+      "segment": {
+        "tab": "Сегмент",
+        "loyaltyTier": "Уровень лояльности",
+        "newCustomer": "Новые покупатели"
+      }
+    },
+    "limits": {
+      "heading": "Ограничения",
+      "description": "Необязательные условия, проверяемые при оформлении заказа. Оставьте пустым — без ограничений.",
+      "minBasket": "Минимальная сумма корзины",
+      "capTotal": "Макс. использований (всего)",
+      "capPerCustomer": "Макс. использований на покупателя",
+      "unlimited": "Без ограничений"
+    },
+    "stacking": {
+      "heading": "Политика комбинирования",
+      "bestWins": {
+        "title": "Лучшая побеждает",
+        "body": "Скидка с наивысшим приоритетом побеждает; остальные не применяются к тому же SKU.",
+        "short": "Лучшая побеждает"
+      },
+      "stackable": {
+        "title": "Суммируемая",
+        "body": "Комбинируется мультипликативно с другими STACKABLE-скидками на тот же SKU.",
+        "short": "Суммируемая"
+      }
+    }
   }
 }

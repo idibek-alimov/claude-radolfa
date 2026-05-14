@@ -50,12 +50,23 @@
     "home": "Асосӣ",
     "products": "Молҳо",
     "noImage": "Акс мавҷуд нест",
-    "priceFrom": "Аз",
-    "dependingOnSize": "вобаста аз андоза",
-    "availableColours": "Рангҳои мавҷуд",
-    "availableSizes": "Андозаҳои мавҷуд",
+    "loyaltyExtra": "Иловагӣ -{pct}% Лоялӣ",
+    "availableColours": "Ранг",
+    "availableSizes": "Андоза",
     "description": "Тавсиф",
-    "youMayAlsoLike": "Шояд писандед"
+    "youMayAlsoLike": "Шояд писандед",
+    "specifications": "Хусусиятҳо",
+    "bestseller": "Бештар харида мешавад",
+    "color": "Ранг",
+    "itemsLeft": "Танҳо {count} монд",
+    "loyaltyPrice": "Бо корти бонусӣ",
+    "aboutProduct": "Дар бораи мол",
+    "quantity": "Миқдор",
+    "addToCart": "Ба сабад илова кунед",
+    "adding": "Илова карда мешавад...",
+    "addedToCart": "Ба сабад илова карда шуд!",
+    "outOfStockError": "Ин мол дастрас нест",
+    "partialDiscountHint": "Нархи тахфифӣ танҳо барои андозаҳои муайян татбиқ мешавад"
   },
   "auth": {
     "welcomeBack": "Хуш омадед",
@@ -94,7 +105,15 @@
     "outOfStock": "Мавҷуд нест",
     "lowStock": "Танҳо {count} монд",
     "popular": "Маъмул",
-    "currency": "TJS"
+    "currency": "TJS",
+    "yourPrice": "Нархи шумо",
+    "loyaltyTag": "-{pct}% бонус",
+    "loyaltyTierBadge": "Тахфифи сатҳ {pct}%",
+    "loyaltyTierDetail": "Сатҳи вафодории шумо · тахфифи {pct}%",
+    "pagination": {
+      "previous": "Қаблӣ",
+      "next": "Навбатӣ"
+    }
   },
   "megaMenu": {
     "categories": "Категорияҳо"
@@ -122,8 +141,8 @@
     "productsTotal": "{count} молҳо ҷамъан",
     "page": "Саҳифа {page}",
     "editProductTitle": "Таҳрири мол",
-    "editProductDesc": "Тавсиф ва аксро навсозӣ кунед. Нарх, захира ва маълумоти асосӣ аз ERP синхронизатсия мешавад ва дар ин ҷо тағйир дода намешавад.",
-    "erpSyncedData": "Маълумоти ERP",
+    "editProductDesc": "Тавсиф ва аксро навсозӣ кунед. Нарх, захира ва маълумоти асосӣ аз ҷониби система идора карда мешаванд ва дар ин ҷо тағйир дода намешавад.",
+    "catalogData": "Маълумоти каталог (фақат хондан)",
     "slug": "Слаг",
     "nameAndColor": "Ном ва ранг",
     "price": "Нарх",
@@ -135,8 +154,13 @@
     "primary": "Асосӣ",
     "enrichment": "Ғанӣ кардан",
     "webDescription": "Тавсифи веб",
-    "topSelling": "Бештар фурӯхта мешавад",
-    "featured": "Тавсияшуда",
+    "dimensionsTitle": "Андозаҳо",
+    "dimensionsHint": "Майдонро холӣ гузоред, то арзишро тоза кунед.",
+    "dimensionsSaved": "Андозаҳо захира шуданд",
+    "fieldWeight": "Вазн",
+    "fieldWidth": "Паҳнӣ",
+    "fieldHeight": "Баландӣ",
+    "fieldDepth": "Чуқурӣ",
     "productImages": "Аксҳои мол",
     "addImage": "Илова кардани акс",
     "uploading": "Борбарорӣ...",
@@ -144,7 +168,229 @@
     "cancel": "Бекор кардан",
     "save": "Захира кардан",
     "saving": "Захира карда мешавад...",
-    "topSeller": "Пешсавдо"
+    "tabLoyaltyTiers": "Сатҳҳо",
+    "loyaltyTiers": "Сатҳҳои вафодорӣ",
+    "tierColor": "Ранг",
+    "colorUpdated": "Ранги сатҳ навсозӣ шуд",
+    "newProduct": "Мол нав",
+    "createProductTitle": "Мол нав эҷод кунед",
+    "createProductDesc": "Ном, категория, ранг ва SKU-ҳои аввалиро муайян кунед.",
+    "createStepBasicInfo": "Маълумоти асосӣ",
+    "createStepSkus": "Андозаҳо ва нархҳо",
+    "productName": "Номи мол",
+    "productNamePlaceholder": "масалан, Футболкаи классикӣ",
+    "category": "Категория",
+    "selectCategory": "Категорияро интихоб кунед...",
+    "color": "Ранг",
+    "selectColor": "Рангро интихоб кунед...",
+    "addSize": "Андоза илова кунед",
+    "fieldRequired": "Майдони ҳатмӣ",
+    "fieldNonNegative": "Бояд 0 ё бештар бошад",
+    "skuAtLeastOne": "Ҳадди аққал як андоза лозим аст",
+    "productCreated": "Мол эҷод шуд (slug: {slug})",
+    "creating": "Эҷод карда мешавад...",
+    "createProduct": "Мол эҷод кунед",
+    "adminEditable": "администратор метавонад таҳрир кунад",
+    "priceUpdated": "Нарх навсозӣ шуд",
+    "stockUpdated": "Захира навсозӣ шуд",
+    "tabCategories": "Категорияҳо",
+    "tabColors": "Рангҳо",
+    "categoryTitle": "Идоракунии категорияҳо",
+    "newCategoryTitle": "Категорияи нав",
+    "categoryNameLabel": "Номи категория",
+    "parentCategoryLabel": "Категорияи волидайн",
+    "noParent": "Нест (сатҳи болоӣ)",
+    "createCategoryButton": "Эҷод кардан",
+    "creatingCategory": "Эҷод...",
+    "categoryCreated": "Категория эҷод шуд",
+    "categoryUpdated": "Категория навсозӣ шуд",
+    "editCategoryTitle": "Таҳрири категория",
+    "editCategoryDesc": "Номи категория ё падарро иваз кунед. Слаг тағйир намеёбад.",
+    "deleteCategoryButton": "Нест кардан",
+    "confirmDeleteTitle": "Нест кардани категория",
+    "confirmDeleteDesc": "Ин амал барнагардонида намешавад.",
+    "confirmDeleteButton": "Бале, нест кун",
+    "deletedCategory": "Категория нест карда шуд",
+    "categoryInUse": "Категория дар молҳо истифода мешавад",
+    "noCategoriesFound": "Категорияҳо ёфт нашуданд",
+    "colorTitle": "Идоракунии рангҳо",
+    "colorKey": "Калид",
+    "colorDisplayNameLabel": "Номи намоишӣ",
+    "colorHexLabel": "Рамзи Hex",
+    "colorSaved": "Ранг нигоҳ дошта шуд",
+    "noColorsFound": "Рангҳо ёфт нашуданд",
+    "colorCreate": "Ранги нав",
+    "colorCreateTitle": "Ранг эҷод кардан",
+    "colorCreated": "Ранг эҷод шуд",
+    "colorKeyLabel": "Калид (slug)",
+    "colorKeyPlaceholder": "масалан navy_blue",
+    "colorKeyHint": "Танҳо ҳарфҳои хурд, рақамҳо ва зери хатҳо.",
+    "colorCreateSubmit": "Эҷод кардан",
+    "searchToolsTitle": "Асбобҳои ҷустуҷӯ",
+    "reindexButton": "Индекси ҷустуҷӯро аз нав созӣ кардан",
+    "reindexing": "Индексатсия...",
+    "reindexResult": "{count} мол индексатсия шуд ({errors} хатогӣ)",
+    "generalInfo": "Маълумоти умумӣ",
+    "productNameUpdated": "Номи мол навсозӣ шуд",
+    "productCategoryUpdated": "Категория навсозӣ шуд",
+    "colorPermanentHint": "Доимӣ",
+    "backToProducts": "Бозгашт ба молҳо",
+    "priceStockAdminOnly": "Нарх ва захира: танҳо администратор",
+    "sizeLabelUpdated": "Андоза навсозӣ шуд",
+    "loading": "Боргирӣ...",
+    "failedToLoad": "Боргирии мол нокомёб шуд",
+    "maxImagesReached": "Ҳадди аксари 20 тасвир расида шуд",
+    "reviewTraitsTitle": "Хусусиятҳои тақриз",
+    "reviewTraitsSubtitle": "Идоракунии бонки саволҳои тақриз ба категорияҳо.",
+    "newReviewTrait": "Хусусияти нав",
+    "newReviewTraitTitle": "Сохтани хусусияти тақриз",
+    "editReviewTraitTitle": "Таҳрири хусусият",
+    "reviewTraitKey": "Калид",
+    "reviewTraitKeyHelp": "Ҳарфҳои хурд, рақамҳо ва хатҳои зерин. Баъдтар тағйир дода намешавад.",
+    "reviewTraitLabel": "Унвон",
+    "reviewTraitInputType": "Намуди воридот",
+    "reviewTraitInputSlider": "Ползунок (1–5)",
+    "reviewTraitInputRadio": "Тугмаҳои радио",
+    "reviewTraitCreated": "Хусусият сохта шуд",
+    "reviewTraitUpdated": "Хусусият навсозӣ шуд",
+    "reviewTraitDeleted": "Хусусият нест шуд",
+    "noReviewTraitsYet": "Хусусиятҳо ҳанӯз муайян нашудаанд",
+    "linkedTraits": "Хусусиятҳои алоқаманд",
+    "linkedTraitsHelp": "Харидорон дар ин категория ба ин саволҳо ҷавоб хоҳанд дод.",
+    "noTraitsAvailable": "Хусусияте мавҷуд нест — аввал дар бахши «Хусусиятҳои тақриз» созед.",
+    "orders": {
+      "title": "Идоракунии фармоишҳо",
+      "searchPlaceholder": "Ҷустуҷӯ аз рӯи телефон ё рақами фармоиш…",
+      "statusAll": "Ҳама вазъиятҳо",
+      "table": {
+        "id": "Фармоиш №",
+        "customer": "Харидор",
+        "date": "Сана",
+        "status": "Вазъият",
+        "delivery": "Расонидан",
+        "items": "Молҳо",
+        "total": "Маблағ"
+      },
+      "status": {
+        "PENDING":          "Интизор",
+        "PAID":             "Пардохтшуда",
+        "SHIPPED":          "Фиристода шуд",
+        "READY_FOR_PICKUP": "Омода ба гирифтан",
+        "DELIVERED":        "Расонида шуд",
+        "CANCELLED":        "Бекор шуд",
+        "REFUNDED":         "Баргардонида шуд"
+      },
+      "deliveryType": {
+        "HOME": "Ба хона",
+        "PICKPOINT": "Худхуруҷ"
+      },
+      "drawer": {
+        "title": "Фармоиш #{id}",
+        "customer": "Харидор",
+        "items": "Молҳо",
+        "subtotal": "Зерҷамъ",
+        "pointsDiscount": "Тахфифи баллҳо",
+        "total": "Ҷамъ",
+        "deliverySection": "Расонидан",
+        "deliveryHome": "Расонидан ба хона",
+        "deliveryAddress": "Суроға",
+        "deliveryWindow": "Вақти мувофиқ",
+        "deliveryPickpoint": "Нуқтаи худхуруҷ",
+        "deliveryPickpointAddress": "Суроғаи нуқта",
+        "statusLabel": "Вазъиятро тағйир додан",
+        "statusUpdated": "Вазъият навсозӣ шуд",
+        "statusUpdateFailed": "Навсозии вазъият нашуд",
+        "noNextStatus": "Гузариши минбаъда дастрас нест",
+        "shipmentSection": "Фиристодан",
+        "courierName": "Курьер",
+        "courierNamePlaceholder": "масалан DHL, Ҳаҷималӣ",
+        "courierNameRequired": "Номи курьерро нишон диҳед",
+        "trackingNumber": "Рақами пайгирӣ",
+        "trackingNumberPlaceholder": "Ихтиёрӣ",
+        "estimatedDeliveryDate": "Санаи тахминии расонидан",
+        "markAsShipped": "Фиристода шуд"
+      },
+      "breadcrumb": {
+        "orders": "Фармоишҳо"
+      },
+      "detail": {
+        "title": "Фармоиш #{id}",
+        "moveTo": "Гузаронидан ба {status}",
+        "cancelOrder": "Бекор кардан",
+        "refundOrder": "Баргардонидани фармоиш",
+        "summary": "Хулоса",
+        "loyaltyDiscount": "Тахфифи баллҳо",
+        "total": "Ҷамъ",
+        "customer": "Харидор",
+        "delivery": "Расонидан",
+        "homeDelivery": "Расонидан ба хона",
+        "timeWindow": "Вақти мувофиқ: {value}",
+        "pickupPoint": "Нуқтаи худхуруҷ",
+        "shipment": "Фиристодан",
+        "tracking": "Рақами пайгирӣ",
+        "eta": "Санаи расонидан",
+        "loyaltyPoints": "Баллҳои бонус",
+        "redeemed": "Истифодашуда",
+        "awarded": "Илова шуд",
+        "ptsShort": "балл"
+      },
+      "shipModal": {
+        "cancel": "Бекор кардан",
+        "shipping": "Фиристода истода…"
+      },
+      "cancelModal": {
+        "title": "Фармоиш #{id}-ро бекор кунем?",
+        "description": "Фармоиш ҳамчун БЕКОРШУДА қайд карда мешавад ва баргашта намешавад. Харидор хабардор карда мешавад.",
+        "reasonLabel": "Сабаб",
+        "reasonPlaceholder": "Ихтиёрӣ — танҳо барои кормандон",
+        "keep": "Нигоҳ доштан",
+        "cancelling": "Бекор карда истода…",
+        "confirm": "Бекор кардан"
+      },
+      "itemsTable": {
+        "product": "Мол",
+        "qty": "Шумора",
+        "unitPrice": "Нарх",
+        "subtotal": "Маблағ",
+        "stock": "Мавҷудӣ"
+      },
+      "stock": {
+        "inStock": "✓ Дар анбор",
+        "shortage": "⚠ Нокифоя ({count} мавҷуд)"
+      },
+      "timeline": {
+        "title": "Хронологияи иҷро",
+        "created": "Сохта шуд",
+        "paid": "Пардохт шуд",
+        "shipped": "Фиристода шуд",
+        "ready": "Омода",
+        "delivered": "Расонида шуд",
+        "cancelled": "Бекор шуд",
+        "refunded": "Баргардонида шуд"
+      },
+      "toast": {
+        "statusUpdated": "Вазъият навсозӣ шуд.",
+        "statusUpdateFailed": "Навсозии вазъият нашуд.",
+        "shipped": "Фармоиш фиристода шуд.",
+        "shipFailed": "Фиристодани фармоиш нашуд.",
+        "cancelled": "Фармоиш бекор шуд.",
+        "cancelFailed": "Бекор кардани фармоиш нашуд.",
+        "refunded": "Фармоиш баргардонида шуд.",
+        "refundFailed": "Баргардонидани фармоиш нашуд."
+      },
+      "refundModal": {
+        "title": "Фармоиш #{id}-ро баргардонем?",
+        "description": "Фармоиш ҳамчун БАРГАРДОНИДА қайд карда мешавад. Бозгашти пулҳоро алоҳида тавассути системаи пардохт иҷро кунед. Ин амал баргашта намешавад.",
+        "reasonLabel": "Сабаб",
+        "reasonPlaceholder": "Ихтиёрӣ — танҳо барои кормандон",
+        "keep": "Нигоҳ доштан",
+        "refunding": "Баргардонида истода…",
+        "confirm": "Баргардонидан"
+      },
+      "empty": "Фармоишҳо ёфт нашуданд.",
+      "page": "Саҳ. {page}",
+      "total": "{count} фармоиш"
+    }
   },
   "profile": {
     "yourProfile": "Профили шумо",
@@ -182,16 +428,153 @@
     "orderConfirmed": "Тасдиқ шуд",
     "orderShipped": "Фиристода шуд",
     "orderDelivered": "Расонида шуд",
-    "tierBronze": "Биринҷӣ",
-    "tierSilver": "Нуқрагӣ",
-    "tierGold": "Тиллоӣ",
-    "tierPlatinum": "Платина",
-    "nextTier": "{points} балл то {tier}",
     "topTier": "Шумо ба дараҷаи олӣ расидед!",
+    "spendToNextTier": "Боз {amount} TJS харҷ кунед барои дараҷаи навбатӣ",
+    "startEarning": "Харид кунед, то дараҷаи аввалинро гиред!",
+    "discount": "тахфиф",
+    "cashback": "кэшбэк",
+    "minSpend": "ҳадди ақал",
+    "allTiers": "Ҳамаи дараҷаҳои бонусӣ",
+    "yourTier": "Дараҷаи шумо",
+    "nextTier": "Дараҷаи навбатӣ",
+    "goalTier": "Ҳадафи шумо",
+    "seeAllTiers": "Ҳамаи дараҷаҳо",
+    "hideTiers": "Пинҳон кардан",
+    "demotionWarning": "Дар {days} рӯзи оянда {amount} TJS харҷ кунед, то дараҷаатонро нигоҳ доред",
+    "cancelOrder": "Бекор кардан",
+    "cancelling": "Бекор карда мешавад...",
+    "orderCancelled": "Фармоиш бекор карда шуд",
+    "failedToCancel": "Бекор кардани фармоиш нокомёб шуд",
     "sessionExpired": "Вақти сессия гузашт. Лутфан дубора ворид шавед.",
+    "recentEarnings": "Охирин дарёфтҳо",
     "loyaltyHowTitle": "Чӣ тавр кор мекунад",
     "loyaltyHowEarn": "Бо ҳар хариди шумо баллҳо худкор ҷамъ мешаванд.",
-    "loyaltyHowRedeem": "Баллҳоро метавонед ҳамчун тахфиф дар фармоишҳои оянда истифода баред."
+    "loyaltyHowRedeem": "Баллҳоро метавонед ҳамчун тахфиф дар фармоишҳои оянда истифода баред.",
+    "itemCount": "{count, plural, one {# молтор} other {# молтор}}",
+    "statusPaid": "Пардохт шуд",
+    "viewDetails": "Тафсилот",
+    "hideDetails": "Пинҳон кардан",
+    "buyAgain": "Дубора харидан",
+    "buyAgainSuccess": "Ба сабад илова шуд",
+    "loyaltyUsed": "Баллҳои истифодашуда",
+    "sizeLabel": "Андоза",
+    "skuCode": "Артикул",
+    "product": "Мол",
+    "subtotal": "Ҷамъи миёна",
+    "quantity": "Миқдор",
+    "writeReview": "Шарҳ навиштан",
+    "reviewProgressTitle": "Пешрафти шарҳҳо",
+    "reviewProgressSubtitle": "Шумо {reviewed} аз {total} молро шарҳ додед",
+    "earnPointsForNextReview": "Барои шарҳи навбатӣ {points} балл ба даст оред",
+    "reviewProgressAllDone": "Шумо ҳама харидҳои худро шарҳ додед — ташаккур!",
+    "shipmentTitle": "Тафсилоти фиристодан",
+    "courierLabel": "Курьер",
+    "trackingLabel": "Рақами пайгирӣ",
+    "estimatedDeliveryLabel": "Санаи тахминии расонидан",
+    "statusReadyForPickup": "Омода ба гирифтан",
+    "orderReadyForPickup": "Омода",
+    "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст"
+  },
+  "cart": {
+    "title": "Сабади шумо",
+    "cartHeading": "Сабади харид",
+    "itemCount": "{count, plural, one {# мол} other {# мол}}",
+    "empty": "Сабади шумо холӣ аст",
+    "emptyDescription": "Аз каталог истифода баред ва молҳоро ба сабад илова кунед",
+    "browseProducts": "Дидани молҳо",
+    "subtotal": "Зерҷамъ",
+    "orderSummary": "Таркиби фармоиш",
+    "proceedToCheckout": "Ба расмият даровардан",
+    "clearCart": "Тоза кардани сабад",
+    "continueShopping": "Идомаи харид",
+    "remove": "Нест кардан",
+    "quantity": "Миқдор",
+    "outOfStock": "Мавҷуд нест",
+    "outOfStockWarning": "Баъзе молҳо дастрас нестанд. Лутфан онҳоро аз сабад хориҷ кунед.",
+    "viewCart": "Дидани сабад",
+    "openCart": "Кушодани сабад",
+    "noImage": "Расм нест",
+    "securePayment": "Пардохти бехатар",
+    "easyReturns": "Бозгардонии осон",
+    "qualityGuarantee": "Кафолати сифат"
+  },
+  "checkout": {
+    "title": "Ба расмият даровардан",
+    "orderSummary": "Таркиби фармоиш",
+    "loyaltyPoints": "Баллҳои бонус",
+    "availablePoints": "{count} балл дастрас",
+    "notes": "Эзоҳ",
+    "notesPlaceholder": "Дархостҳои махсус...",
+    "totalBreakdown": "Ҷамъ",
+    "subtotal": "Зерҷамъ",
+    "tierDiscount": "Тахфифи дараҷа",
+    "pointsDiscount": "Тахфифи баллҳо",
+    "total": "Ҷамъ",
+    "redirecting": "Ба пардохт гузаронда мешавад...",
+    "placeOrder": "Фармоиш додан",
+    "placing": "Ба расмият дароварда мешавад...",
+    "outOfStockWarning": "Баъзе молҳо дастрас нестанд. Лутфан онҳоро аз сабад хориҷ кунед.",
+    "outOfStock": "Мавҷуд нест",
+    "editCart": "Сабадро тағйир додан",
+    "successTitle": "Фармоиш қабул шуд!",
+    "orderNumber": "Фармоиш #{id}",
+    "viewOrders": "Фармоишҳои ман",
+    "coupon": {
+      "label": "Рамзи таллабот",
+      "placeholder": "масалан SUMMER25",
+      "apply": "Татбиқ кардан",
+      "remove": "Нест кардан",
+      "applied": "Рамзи таллабот татбиқ шуд",
+      "affectedItems": "Ба {count} молу мол татбиқ шудааст",
+      "NOT_FOUND": "Чунин рамзи таллабот вуҷуд надорад",
+      "DISABLED": "Ин рамзи таллабот фаъол нест",
+      "NOT_ACTIVE": "Рамзи таллабот хориҷ аз муддати амал аст",
+      "CAP_EXHAUSTED": "Рамзи таллабот ба ҳадди истифода расидааст",
+      "NO_ITEMS_AFFECTED": "Ин рамзи таллабот ба молҳои сабади шумо татбиқ намешавад"
+    },
+    "delivery": {
+      "title": "Усули расонидан",
+      "home": {
+        "title": "Расонидан ба хона",
+        "description": "Мо фармоишро ба суроғаи шумо мерасонем.",
+        "addressLabel": "Суроғаи расонидан",
+        "addressPlaceholder": "Кӯча, бино, хона…",
+        "addressRequired": "Барои расонидан ба хона суроғаро нависед.",
+        "timeWindowLabel": "Вақти мувофиқ"
+      },
+      "pickpoint": {
+        "title": "Нуқтаи худхуруҷ",
+        "description": "Фармоишро аз нуқтаи интихобшуда гиред.",
+        "selectLabel": "Нуқтаи худхуруҷро интихоб кунед",
+        "selectPlaceholder": "Нуқтаро интихоб кунед",
+        "loading": "Нуқтаҳо бор шуда истодаанд…",
+        "empty": "Ҳоло нуқтаҳои худхуруҷ дастрас нестанд.",
+        "required": "Нуқтаи худхуруҷро интихоб кунед."
+      },
+      "timeWindow": {
+        "MORNING": "09:00 – 12:00",
+        "AFTERNOON": "12:00 – 18:00",
+        "EVENING": "Шом (18:00 – 21:00)"
+      }
+    }
+  },
+  "payment": {
+    "pollingTitle": "Санҷиши пардохт...",
+    "pollingDesc": "Лутфан интизор шавед, то пардохти шумо тасдиқ шавад.",
+    "successTitle": "Пардохт бомуваффақият!",
+    "successDesc": "Фармоиши шумо тасдиқ шуд.",
+    "via": "тавассути",
+    "processingTitle": "Пардохт коркард мешавад",
+    "processingDesc": "Пардохти шумо дертар аст. Баъд аз чанд дақиқа дубора санҷед.",
+    "refundedTitle": "Пардохт баргардонда шуд",
+    "refundedDesc": "Пардохти шумо баргардонда шуд. Барои саволҳо бо дастгирӣ тамос гиред.",
+    "failureTitle": "Хатои пардохт",
+    "failureDesc": "Чизе нодуруст буд. Лутфан дубора кӯшиш кунед.",
+    "errorTitle": "Пайванди нодуруст",
+    "errorDesc": "ID фармоиш ёфт нашуд. Пайванди пардохтро санҷед.",
+    "viewOrders": "Фармоишҳои ман",
+    "retryCheck": "Дубора санҷед",
+    "browsProducts": "Дидани молҳо"
   },
   "userManagement": {
     "searchPlaceholder": "Ҷустуҷӯ аз рӯи телефон ё ном...",
@@ -214,5 +597,229 @@
     "noUsersFound": "Корбарон ёфт нашуданд.",
     "usersTotal": "{count} корбарон ҷамъан",
     "page": "Саҳифа {page}"
+  },
+  "reviews": {
+    "card": {
+      "verifiedPurchase": "Хариди тасдиқшуда",
+      "pros": "Бартариҳо",
+      "cons": "Камбудиҳо",
+      "comment": "Шарҳ",
+      "sellerReply": "Ҷавоби фурӯшанда",
+      "officialResponse": "Ҷавоби расмии мағоза",
+      "morePhotos": "боз",
+      "helpful": "Кӯмак кард?",
+      "report": "Шикоят кардан",
+      "imageLightbox": "Сурати шарҳ",
+      "share": "Мубодила кардан",
+      "shareTitle": "Шарҳи {author} дар Radolfa",
+      "shareText": "Ин шарҳро дар Radolfa бинед",
+      "shareDownloadFallback": "Тасвири шарҳ боргирӣ шуд.",
+      "shareFailed": "Мубодила кардан имконпазир набуд"
+    },
+    "strip": {
+      "photosAndVideos": "Акс ва видео",
+      "seeAll": "Ҳамаро бинед {n}"
+    },
+    "sort": {
+      "newest": "Навтарин",
+      "mostHelpful": "Аз ҳама фоидаовартарин",
+      "highestRated": "Баҳои баланд",
+      "lowestRated": "Баҳои паст",
+      "withPhoto": "Бо акс"
+    },
+    "seeAll": "Ҳамаи шарҳҳо",
+    "empty": "Ҳанӯз шарҳе нест.",
+    "form": {
+      "addPhotos": "Акс илова кунед",
+      "photoLimit": "То 5 акс",
+      "uploading": "Боргузорӣ…",
+      "traits": {
+        "heading": "Ба дигарон бо арзёбии ин ҷанбаҳо кӯмак кунед",
+        "scaleLow": "Бад",
+        "scaleHigh": "Олӣ"
+      },
+      "lowRating": {
+        "heading": "Бубахшед, ки таҷрибаи бад доштед",
+        "body": "Мехоҳед бо дастгирӣ тамос гиред ё бозгашт дархост кунед?",
+        "cta": "Ба фармоишҳо равед"
+      }
+    },
+    "summary": {
+      "reviews": "{count} баҳо",
+      "writeReview": "Баҳо нависед",
+      "sizeFit": "Андоза",
+      "runsSmall": "Хурдтар аст",
+      "trueToSize": "Мувофиқ аст",
+      "runsLarge": "Калонтар аст",
+      "traits": {
+        "heading": "Арзёбиҳои харидорон аз рӯи ҷанбаҳо"
+      }
+    },
+    "page": {
+      "back": "Бозгашт"
+    },
+    "banner": {
+      "purchasedOn": "Шумо ин маҳсулотро дар {date} харид кардаед.",
+      "writeReviewCta": "Шарҳ навиштан"
+    },
+    "filter": {
+      "searchPlaceholder": "Ҷустуҷӯ дар шарҳҳо...",
+      "clearFilters": "Тоза кардани филтрҳо",
+      "noResults": "Бо филтрҳои шумо шарҳе ёфт нашуд."
+    }
+  },
+  "questions": {
+    "card": {
+      "sellerReply": "Ҷавоби фурӯшанда"
+    },
+    "seeAll": "Ҳамаи саволҳо",
+    "empty": "Ҳанӯз саволе нест.",
+    "login": "Барои пурсидан ворид шавед",
+    "page": {
+      "back": "Бозгашт",
+      "title": "Саволҳо"
+    }
+  },
+  "section": {
+    "tabs": {
+      "reviews": "Баҳоҳо",
+      "questions": "Саволҳо"
+    }
+  },
+  "discount": {
+    "status": {
+      "active": "Фаъол",
+      "scheduled": "Барнома",
+      "expired": "Мӯҳлаташ гузашт",
+      "disabled": "Хомӯш"
+    },
+    "bulk": {
+      "selected": "{count} интихоб шуд",
+      "enable": "Фаъол кардан",
+      "disable": "Хомӯш кардан",
+      "duplicate": "Нусха бардоштан",
+      "delete": "Нест кардан",
+      "enabled": "{count} акция фаъол шуд",
+      "disabled": "{count} акция хомӯш шуд",
+      "duplicated": "{count} акция нусха шуд",
+      "deleted": "{count} акция нест шуд",
+      "confirmDelete": {
+        "title": "{count} акцияро нест кунем?",
+        "body": "Ин амалро лағв кардан мумкин нест. Акцияҳо: {titles}",
+        "confirm": "Нест кардан",
+        "cancel": "Бекор кардан"
+      }
+    },
+    "tab": {
+      "products": "Молҳои тахфифшуда"
+    },
+    "drawer": {
+      "title": "SKU-ҳои кампания",
+      "searchPlaceholder": "Ҷустуҷӯ тавассути SKU ё маҳсулот…",
+      "empty": "Дар ин кампания SKU вуҷуд надорад."
+    },
+    "products": {
+      "searchPlaceholder": "Ҷустуҷӯ тавассути SKU ё маҳсулот…",
+      "campaignFilter": "Кампания",
+      "deltaMin": "Ҳадди ақал %",
+      "deltaMax": "Ҳадди аксар %",
+      "empty": "Молҳои тахфифшуда ёфт нашуданд.",
+      "total": "{count} маҳсулоти тахфифдор",
+      "columns": {
+        "image": "Тасвир",
+        "product": "Маҳсулот",
+        "sku": "Рамзи SKU",
+        "size": "Андоза",
+        "price": "Нарх",
+        "delta": "Δ%",
+        "winner": "Кампанияи ғолиб",
+        "other": "Кампанияҳои дигар",
+        "stock": "Захира"
+      }
+    },
+    "overlap": {
+      "column": "Низоъҳо",
+      "tooltip": {
+        "title": "Низоъ дар {count} SKU",
+        "line": "{skuCode} → ғолиб: {campaignTitle}",
+        "more": "…ва {count} дигар"
+      },
+      "warning": {
+        "title": "{count} SKU бо кампанияи дигари фаъол мутобиқанд",
+        "win": "{skuCode} — аллакай дар {campaignTitle} (ранг {otherRank}). Шумо (ранг {myRank}) ғолиб мешавед.",
+        "lose": "{skuCode} — аллакай дар {campaignTitle} (ранг {otherRank}). Шумо (ранг {myRank}) бой медиҳед.",
+        "more": "+{count} дигар"
+      }
+    },
+    "metrics": {
+      "title": "Аналитикаи кампания",
+      "ordersUsing": "Фармоишҳо",
+      "unitsMoved": "Воҳидҳои фурӯхташуда",
+      "revenueUplift": "Тахфиф дар пул",
+      "avgDiscountPerOrder": "Тахфифи мутавассит",
+      "sparkline": {
+        "orders": "Фармоишҳо",
+        "units": "Воҳидҳо",
+        "uplift": "Тахфиф"
+      },
+      "cutoffBanner": "Ин кампания пеш аз оғози аналитика ({date}) буд. Маълумот аз {startDate}.",
+      "editCampaign": "Таҳрир",
+      "window": "Давра: {from} – {to}",
+      "loading": "Бор шудан…",
+      "empty": "Маълумот ҳанӯз нест."
+    },
+    "topCampaigns": {
+      "title": "Беҳтарин кампанияҳо",
+      "byRevenue": "Тахфиф",
+      "byUnits": "Воҳидҳо",
+      "period7d": "7р",
+      "period30d": "30р",
+      "period90d": "90р",
+      "rank": "Ҷой",
+      "units": "Воҳидҳо",
+      "uplift": "Тахфиф",
+      "empty": "Маълумот нест."
+    },
+    "amountType": {
+      "heading": "Тахфиф",
+      "percent": "Фоиз",
+      "fixed": "Фиксатсионӣ (TJS)"
+    },
+    "target": {
+      "sku": {
+        "tab": "Рӯйхати SKU"
+      },
+      "category": {
+        "tab": "Категория",
+        "includeSubs": "Зерсинфҳоро дохил кун",
+        "empty": "Як ё якчанд категорияро интихоб кунед."
+      },
+      "segment": {
+        "tab": "Сегмент",
+        "loyaltyTier": "Сатҳи вафодорӣ",
+        "newCustomer": "Харидорони нав"
+      }
+    },
+    "limits": {
+      "heading": "Маҳдудиятҳо",
+      "description": "Шартҳои ихтиёрӣ ҳангоми тасдиқи фармоиш санҷида мешаванд. Холӣ гузоред — бе маҳдудият.",
+      "minBasket": "Ҳадди ақали маблағи сабад",
+      "capTotal": "Ҳадди аксари истифода (ҳамагӣ)",
+      "capPerCustomer": "Ҳадди аксари истифода аз ҳар харидор",
+      "unlimited": "Бе маҳдудият"
+    },
+    "stacking": {
+      "heading": "Сиёсати якҷоякунӣ",
+      "bestWins": {
+        "title": "Беҳтарин ғолиб мешавад",
+        "body": "Тахфифи бо рейтинги баланд ғолиб мешавад; дигарон барои ҳамон SKU истифода намешаванд.",
+        "short": "Беҳтарин ғолиб"
+      },
+      "stackable": {
+        "title": "Якҷоякунанда",
+        "body": "Бо дигар тахфифҳои STACKABLE барои ҳамон SKU мультипликативӣ якҷоя мешавад.",
+        "short": "Якҷоякунанда"
+      }
+    }
   }
 }

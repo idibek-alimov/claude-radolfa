@@ -5,40 +5,55 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
+import tj.radolfa.application.readmodel.ReviewTraitView;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.ReviewTrait;
+import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
+import tj.radolfa.infrastructure.persistence.entity.ReviewTraitEntity;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDetailDto;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
-import tj.radolfa.infrastructure.web.dto.SkuDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto;
+import tj.radolfa.application.readmodel.ListingVariantDetailDto.AttributeDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
+import tj.radolfa.application.readmodel.SkuDto;
+import tj.radolfa.domain.model.AppliedDiscount;
+import tj.radolfa.domain.model.Discount;
+import tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeEntity;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Hexagonal adapter implementing the SQL-backed read queries for listings.
  *
  * <p>
  * Grid queries use JPQL aggregates (single query, no N+1).
- * Images are batch-loaded in a second query for the page.
+ * Images and SKUs are batch-loaded in separate queries for the page.
+ * Discounts are resolved from the discounts table post-query.
  */
 @Component
 public class ListingReadAdapter implements LoadListingPort {
 
         private final ListingVariantRepository variantRepo;
         private final SkuRepository skuRepo;
+        private final DiscountEnrichmentAdapter discountEnrichment;
 
         public ListingReadAdapter(ListingVariantRepository variantRepo,
-                        SkuRepository skuRepo) {
+                        SkuRepository skuRepo,
+                        DiscountEnrichmentAdapter discountEnrichment) {
                 this.variantRepo = variantRepo;
                 this.skuRepo = skuRepo;
+                this.discountEnrichment = discountEnrichment;
         }
 
         @Override
@@ -69,6 +84,12 @@ public class ListingReadAdapter implements LoadListingPort {
                 return toGridResult(raw, page, limit);
         }
 
+        @Override
+        public PageResult<ListingVariantDto> findByProductCode(String code, int page, int limit) {
+                Page<Object[]> raw = variantRepo.findGridByProductCode(code, PageRequest.of(page - 1, limit));
+                return toGridResult(raw, page, limit);
+        }
+
         // ---- Grid helpers ----
 
         private PageResult<ListingVariantDto> toGridResult(Page<Object[]> raw, int page, int limit) {
@@ -76,35 +97,17 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .map(row -> (Long) row[0])
                                 .toList();
 
-                Map<Long, List<String>> imageMap = loadImageMap(variantIds);
+                Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
+                Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
+                Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
+                Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
 
-                List<ListingVariantDto> items = raw.getContent().stream()
-                                .map(row -> toGridDto(row, imageMap))
+                List<ListingVariantDto> content = raw.getContent().stream()
+                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap))
                                 .toList();
 
-                return new PageResult<>(items, raw.getTotalElements(), page,
-                                (long) page * limit < raw.getTotalElements());
-        }
-
-        // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
-        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
-        private ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap) {
-                Long id = (Long) row[0];
-                return new ListingVariantDto(
-                                id,
-                                (String) row[1],   // slug
-                                (String) row[2],   // name
-                                (String) row[3],   // category
-                                (String) row[4],   // colorKey
-                                (String) row[10],  // colorHexCode
-                                (String) row[5],   // webDescription
-                                imageMap.getOrDefault(id, List.of()),
-                                toBigDecimal(row[7]),  // priceStart
-                                toBigDecimal(row[8]),  // priceEnd
-                                toInteger(row[9]),     // totalStock
-                                (Boolean) row[6],      // topSelling
-                                (Boolean) row[11]);    // featured
+                return new PageResult<>(content, raw.getTotalElements(), page, limit,
+                                (long) page * limit >= raw.getTotalElements());
         }
 
         // ---- Detail helpers ----
@@ -114,36 +117,75 @@ public class ListingReadAdapter implements LoadListingPort {
                                 .map(ListingVariantImageEntity::getImageUrl)
                                 .toList();
 
-                List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
-
-                List<SkuDto> skus = skuEntities.stream()
-                                .map(this::toSkuDto)
+                List<AttributeDto> attributes = entity.getAttributes().stream()
+                                .map(a -> new AttributeDto(
+                                        a.getAttrKey(),
+                                        a.getValues().stream()
+                                                .map(tj.radolfa.infrastructure.persistence.entity.ListingVariantAttributeValueEntity::getValue)
+                                                .toList()))
                                 .toList();
 
-                BigDecimal priceStart = skuEntities.stream()
-                                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
-                                .filter(Objects::nonNull)
-                                .min(BigDecimal::compareTo)
-                                .orElse(null);
+                List<SkuEntity> skuEntities = skuRepo.findByListingVariantId(entity.getId());
 
-                BigDecimal priceEnd = skuEntities.stream()
-                                .map(s -> s.getSalePrice() != null ? s.getSalePrice() : s.getPrice())
-                                .filter(Objects::nonNull)
-                                .max(BigDecimal::compareTo)
-                                .orElse(null);
+                // Resolve discounts for all SKU codes — full pipeline (category, stacking, etc.)
+                List<String> skuCodes = skuEntities.stream()
+                                .map(SkuEntity::getSkuCode)
+                                .toList();
+                Map<String, List<AppliedDiscount>> discountsBySkuCode =
+                                discountEnrichment.resolveAppliedForItemCodes(skuCodes);
 
-                int totalStock = skuEntities.stream()
-                                .mapToInt(s -> s.getStockQuantity() != null ? s.getStockQuantity() : 0)
-                                .sum();
+                List<SkuDto> skus = skuEntities.stream()
+                                .map(sku -> toSkuDto(sku, discountsBySkuCode.get(sku.getSkuCode())))
+                                .toList();
 
-                // Siblings: load IDs, slugs, colorKeys, hexCodes — then batch-load thumbnails
+                // Find the winning SKU: cheapest effective (discounted) price
+                SkuEntity winningSku = null;
+                BigDecimal winningEffectivePrice = null;
+                for (SkuEntity sku : skuEntities) {
+                        if (sku.getOriginalPrice() == null) continue;
+                        List<AppliedDiscount> applied = discountsBySkuCode.get(sku.getSkuCode());
+                        BigDecimal effective = applied != null
+                                        ? applied.get(applied.size() - 1).reducedUnitPrice()
+                                        : sku.getOriginalPrice();
+                        if (winningEffectivePrice == null || effective.compareTo(winningEffectivePrice) < 0) {
+                                winningEffectivePrice = effective;
+                                winningSku = sku;
+                        }
+                }
+
+                BigDecimal originalPrice = winningSku != null ? winningSku.getOriginalPrice() : null;
+                List<AppliedDiscount> winningApplied = winningSku != null
+                                ? discountsBySkuCode.get(winningSku.getSkuCode()) : null;
+                BigDecimal discountPrice = null;
+                Integer discountPercentage = null;
+                String discountName = null;
+                String discountColorHex = null;
+                if (winningApplied != null && originalPrice != null) {
+                        BigDecimal finalPrice = winningApplied.get(winningApplied.size() - 1).reducedUnitPrice();
+                        discountPrice = finalPrice;
+                        Discount winner = winningApplied.get(0).discount();
+                        discountName = winner.title();
+                        discountColorHex = winner.colorHex();
+                        discountPercentage = BigDecimal.ONE
+                                        .subtract(finalPrice.divide(originalPrice, 4, RoundingMode.HALF_UP))
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .setScale(0, RoundingMode.HALF_UP)
+                                        .intValue();
+                }
+
+                long discountedCount = skuEntities.stream()
+                                .filter(s -> discountsBySkuCode.containsKey(s.getSkuCode()))
+                                .count();
+                boolean isPartialDiscount = discountedCount > 0 && discountedCount < skuEntities.size();
+
+                // Siblings: load slugs, colorKeys, hexCodes — then batch-load thumbnails
                 Long baseId = entity.getProductBase().getId();
                 List<Object[]> siblingRows = variantRepo.findSiblings(baseId, entity.getId());
 
                 List<Long> siblingIds = siblingRows.stream()
                                 .map(row -> (Long) row[0])
                                 .toList();
-                Map<Long, List<String>> siblingImageMap = loadImageMap(siblingIds);
+                Map<Long, List<String>> siblingImageMap = ListingGridRowMapper.loadImageMap(siblingIds, variantRepo);
 
                 List<ListingVariantDetailDto.SiblingVariant> siblings = siblingRows.stream()
                                 .map(row -> {
@@ -153,7 +195,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                         return new ListingVariantDetailDto.SiblingVariant(
                                                         (String) row[1],   // slug
                                                         (String) row[2],   // colorKey
-                                                        (String) row[3],   // colorHexCode
+                                                        (String) row[3],   // colorHex (hexCode)
                                                         thumbnail);
                                 })
                                 .toList();
@@ -164,69 +206,102 @@ public class ListingReadAdapter implements LoadListingPort {
                 String colorKey = entity.getColor() != null
                                 ? entity.getColor().getColorKey()
                                 : null;
-                String colorHexCode = entity.getColor() != null
+                String colorHex = entity.getColor() != null
                                 ? entity.getColor().getHexCode()
                                 : null;
 
+                List<TagView> tags = entity.getTags().stream()
+                                .map(t -> new TagView(t.getId(), t.getName(), t.getColorHex()))
+                                .toList();
+
+                List<ReviewTraitView> reviewTraits = resolveTraits(
+                                entity.getProductBase() != null
+                                        ? entity.getProductBase().getCategory()
+                                        : null);
+
                 return new ListingVariantDetailDto(
+                                baseId,
                                 entity.getId(),
                                 entity.getSlug(),
                                 entity.getProductBase().getName(),
                                 categoryName,
                                 colorKey,
-                                colorHexCode,
+                                colorHex,
                                 entity.getWebDescription(),
                                 images,
-                                priceStart,
-                                priceEnd,
-                                totalStock,
-                                entity.isTopSelling(),
-                                entity.isFeatured(),
+                                attributes,
+                                originalPrice,
+                                discountPrice,
+                                discountPercentage,
+                                discountName,
+                                discountColorHex,
+                                null,              // loyaltyPrice — stamped by TierPricingEnricher
+                                null,              // loyaltyPercentage — stamped by TierPricingEnricher
+                                isPartialDiscount,
+                                tags,
                                 skus,
-                                siblings);
+                                siblings,
+                                entity.getProductCode(),
+                                entity.getWeightKg(),
+                                entity.getWidthCm(),
+                                entity.getHeightCm(),
+                                entity.getDepthCm(),
+                                reviewTraits);
         }
 
-        // ---- Shared helpers ----
+        // ---- Trait helpers (detail-page only) ----
 
-        private Map<Long, List<String>> loadImageMap(List<Long> variantIds) {
-                if (variantIds.isEmpty())
-                        return Map.of();
-                return variantRepo.findImagesByVariantIds(variantIds).stream()
-                                .collect(Collectors.groupingBy(
-                                                row -> (Long) row[0],
-                                                Collectors.mapping(row -> (String) row[1], Collectors.toList())));
+        /**
+         * Walks the category parent chain from the leaf up and collects the union
+         * of review traits from every ancestor, deduplicated by trait id.
+         */
+        private List<ReviewTraitView> resolveTraits(CategoryEntity leafCategory) {
+                if (leafCategory == null) return List.of();
+                Map<Long, ReviewTraitEntity> byId = new LinkedHashMap<>();
+                CategoryEntity current = leafCategory;
+                while (current != null) {
+                        for (ReviewTraitEntity trait : current.getReviewTraits()) {
+                                byId.putIfAbsent(trait.getId(), trait);
+                        }
+                        current = current.getParent();
+                }
+                return new ArrayList<>(byId.values()).stream()
+                        .map(t -> new ReviewTraitView(t.getTraitKey(), t.getLabelI18n(), t.getInputType()))
+                        .toList();
         }
 
-        private SkuDto toSkuDto(SkuEntity entity) {
-                boolean onSale = entity.getSalePrice() != null
-                                && entity.getPrice() != null
-                                && entity.getSalePrice().compareTo(entity.getPrice()) < 0;
+        // ---- SKU helpers (detail-page only) ----
+
+        private SkuDto toSkuDto(SkuEntity entity, List<AppliedDiscount> applied) {
+                BigDecimal originalPrice = entity.getOriginalPrice();
+                BigDecimal discountPrice = null;
+                Integer discountPercentage = null;
+                String discountName = null;
+                String discountColorHex = null;
+
+                if (applied != null && originalPrice != null) {
+                        BigDecimal finalPrice = applied.get(applied.size() - 1).reducedUnitPrice();
+                        discountPrice = finalPrice;
+                        Discount winner = applied.get(0).discount();
+                        discountName = winner.title();
+                        discountColorHex = winner.colorHex();
+                        discountPercentage = BigDecimal.ONE
+                                        .subtract(finalPrice.divide(originalPrice, 4, RoundingMode.HALF_UP))
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .setScale(0, RoundingMode.HALF_UP)
+                                        .intValue();
+                }
+
                 return new SkuDto(
                                 entity.getId(),
-                                entity.getErpItemCode(),
+                                entity.getSkuCode(),
                                 entity.getSizeLabel(),
                                 entity.getStockQuantity(),
-                                entity.getPrice(),
-                                entity.getSalePrice(),
-                                onSale,
-                                entity.getSaleEndsAt());
-        }
-
-        private BigDecimal toBigDecimal(Object value) {
-                if (value == null)
-                        return null;
-                if (value instanceof BigDecimal bd)
-                        return bd;
-                return new BigDecimal(value.toString());
-        }
-
-        private Integer toInteger(Object value) {
-                if (value == null)
-                        return 0;
-                if (value instanceof Long l)
-                        return l.intValue();
-                if (value instanceof Integer i)
-                        return i;
-                return ((Number) value).intValue();
+                                originalPrice,
+                                discountPrice,
+                                discountPercentage,
+                                discountName,
+                                discountColorHex,
+                                null); // loyaltyPrice — stamped by TierPricingEnricher via withLoyalty cascade
         }
 }

@@ -14,7 +14,7 @@ export interface VerifyOtpRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
   tokenType: string;
   user: User;
 }

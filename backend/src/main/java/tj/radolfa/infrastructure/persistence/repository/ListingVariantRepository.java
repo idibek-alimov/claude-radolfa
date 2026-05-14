@@ -38,26 +38,27 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         List<ListingVariantEntity> findByProductBaseId(Long productBaseId);
 
         // ---- Grid queries with SKU aggregates ----
-        // Column layout: [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
-        //                 [5]=webDescription, [6]=topSelling, [7]=priceStart, [8]=priceEnd,
-        //                 [9]=totalStock, [10]=colorHexCode, [11]=featured
+        // Column layout (12 columns):
+        // [0]=id, [1]=slug, [2]=name, [3]=categoryName, [4]=colorKey,
+        // [5]=webDescription, [6]=MIN(originalPrice), [7]=totalStock,
+        // [8]=colorHexCode, [9]=productCode, [10]=MAX(originalPrice), [11]=productBaseId
 
         /**
          * Paginated grid: variant card data with aggregated price/stock from SKUs.
-         * Single query, no N+1.
+         * Discount data is enriched post-query by DiscountEnrichmentAdapter.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                               lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.id ASC
                         """)
         Page<Object[]> findGridPage(Pageable pageable);
@@ -67,39 +68,42 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                               lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE pb.category.id IN :categoryIds
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.id ASC
                         """)
         Page<Object[]> findGridByCategoryIds(@Param("categoryIds") List<Long> categoryIds, Pageable pageable);
 
         /**
-         * SQL LIKE fallback search on product name and colour key.
+         * SQL LIKE fallback search on product name, colour key, product code, and SKU codes.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                               lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE LOWER(pb.name) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.color.colorKey) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.webDescription) LIKE LOWER(CONCAT('%', :query, '%'))
+                           OR LOWER(lv.productCode) LIKE LOWER(CONCAT('%', :query, '%'))
+                           OR EXISTS (SELECT 1 FROM SkuEntity sku WHERE sku.listingVariant = lv
+                                      AND LOWER(sku.skuCode) LIKE LOWER(CONCAT('%', :query, '%')))
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.id ASC
                         """)
         Page<Object[]> searchGrid(@Param("query") String query, Pageable pageable);
@@ -119,63 +123,84 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         // ---- Homepage collection queries ----
 
         /**
-         * Featured listings (manually curated via the {@code featured} flag).
+         * Variants tagged with a specific tag name (for homepage collections such as "Featured").
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                               lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
-                        WHERE lv.featured = TRUE
+                        JOIN lv.tags t
+                        WHERE t.name = :tagName
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.updatedAt DESC
                         """)
-        Page<Object[]> findFeaturedGrid(Pageable pageable);
+        Page<Object[]> findGridByTagName(@Param("tagName") String tagName, Pageable pageable);
 
         /**
          * New arrivals: most recently created variants.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                               lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured, lv.createdAt
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, lv.createdAt, pb.id
                         ORDER BY lv.createdAt DESC
                         """)
         Page<Object[]> findNewArrivalsGrid(Pageable pageable);
 
         /**
-         * On-sale listings: variants that have at least one SKU with an active sale price.
+         * Grid query for a specific set of variant IDs (used for on-sale, pre-filtered by discount adapter).
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                               lv.webDescription, lv.topSelling,
-                               COALESCE(MIN(s.salePrice), MIN(s.price)) AS priceStart,
-                               COALESCE(MAX(s.salePrice), MAX(s.price)) AS priceEnd,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
                                COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
-                               lv.color.hexCode, lv.featured
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
-                        JOIN lv.skus s
-                        WHERE s.salePrice IS NOT NULL AND s.salePrice < s.price
+                        LEFT JOIN lv.skus s
+                        WHERE lv.id IN :variantIds
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
-                                 lv.webDescription, lv.topSelling, lv.color.hexCode, lv.featured
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.updatedAt DESC
                         """)
-        Page<Object[]> findOnSaleGrid(Pageable pageable);
+        Page<Object[]> findGridByVariantIds(@Param("variantIds") List<Long> variantIds, Pageable pageable);
+
+        /**
+         * Exact product code lookup — returns a single-row grid projection.
+         * Used when the search query matches the RD-XXXXX pattern.
+         */
+        @Query("""
+                        SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                               lv.webDescription,
+                               MIN(s.originalPrice),
+                               COALESCE(SUM(s.stockQuantity), 0) AS totalStock,
+                               lv.color.hexCode, lv.productCode,
+                               MAX(s.originalPrice), pb.id
+                        FROM ListingVariantEntity lv
+                        JOIN lv.productBase pb
+                        LEFT JOIN lv.skus s
+                        WHERE UPPER(lv.productCode) = UPPER(:code)
+                        GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
+                                 lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
+                        """)
+        Page<Object[]> findGridByProductCode(@Param("code") String code, Pageable pageable);
 
         /**
          * Sibling variants of the same ProductBase (excluding the current one).
@@ -190,6 +215,22 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         List<Object[]> findSiblings(@Param("baseId") Long baseId, @Param("excludeId") Long excludeId);
 
         /**
+         * Admin product-card query: loads all variants for a ProductBase with
+         * productBase, category, brand, and color fetched eagerly in one SQL JOIN.
+         * Images, attributes, tags and SKUs are batch-loaded by Hibernate (@BatchSize).
+         */
+        @Query("""
+                        SELECT DISTINCT lv FROM ListingVariantEntity lv
+                        JOIN FETCH lv.productBase pb
+                        LEFT JOIN FETCH pb.category
+                        LEFT JOIN FETCH pb.brand
+                        JOIN FETCH lv.color
+                        WHERE pb.id = :productBaseId
+                        ORDER BY lv.id ASC
+                        """)
+        List<ListingVariantEntity> findAllByProductBaseIdForAdmin(@Param("productBaseId") Long productBaseId);
+
+        /**
          * Batch-load image URLs for a set of variant IDs, ordered by sort_order.
          */
         @Query("""
@@ -199,4 +240,16 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         ORDER BY img.sortOrder ASC
                         """)
         List<Object[]> findImagesByVariantIds(@Param("variantIds") List<Long> variantIds);
+
+        /**
+         * Batch-load tag data for a set of variant IDs.
+         * Column layout: [0]=variantId, [1]=tagId, [2]=tagName, [3]=tagColorHex
+         */
+        @Query("""
+                        SELECT lv.id, t.id, t.name, t.colorHex
+                        FROM ListingVariantEntity lv
+                        JOIN lv.tags t
+                        WHERE lv.id IN :variantIds
+                        """)
+        List<Object[]> findTagsByVariantIds(@Param("variantIds") List<Long> variantIds);
 }

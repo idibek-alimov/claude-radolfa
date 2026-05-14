@@ -8,6 +8,18 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+
+  # --- Jackson JSON Serialization ------------------------------------
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    generator:
+      write-bigdecimal-as-plain: true
+
   # --- DataSource (PostgreSQL 16) -----------------------------------
   datasource:
     url:              ${DB_URL:jdbc:postgresql://localhost:5432/radolfa_db}
@@ -56,11 +68,11 @@ management:
     health:
       show-details: always
 
-# --- ERPNext connection ----------------------------------------------
-erp:
-  base-url:   ${ERP_BASE_URL:http://localhost:8000}
-  api-key:    ${ERP_API_KEY:}
-  api-secret: ${ERP_API_SECRET:}
+# --- External catalogue importer -------------------------------------
+importer:
+  base-url:   ${IMPORTER_BASE_URL:http://localhost:8000}
+  api-key:    ${IMPORTER_API_KEY:}
+  api-secret: ${IMPORTER_API_SECRET:}
 
 # --- AWS / S3-compatible storage (Timeweb Cloud) ---------------------
 # Credentials have no hardcoded defaults — must be provided via:
@@ -78,7 +90,7 @@ aws:
 radolfa:
   security:
     jwt:
-      secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-32-characters-long-for-hs256}
+      secret: ${JWT_SECRET}
       expiration-ms: ${JWT_EXPIRATION_MS:900000}                        # 15 minutes (access token)
       refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}     # 7 days (refresh token)
     otp:
@@ -91,11 +103,23 @@ radolfa:
       otp-verify-window-minutes: 15
       ip-max-per-hour: 20
     api-key:
-      # Long-lived key for machine-to-machine auth (ERPNext → Backend).
+      # Long-lived key for machine-to-machine auth.
       # Set SYSTEM_API_KEY env var in production (min 32 chars).
-      # ERPNext sends this as: X-Api-Key: <value>
-      system-key: ${SYSTEM_API_KEY:dev-system-api-key-change-this-in-production!!}
+      # Send as: X-Api-Key: <value>
+      system-key: ${SYSTEM_API_KEY}
+    webhook:
+      # Shared signing secret from the payment provider.
+      # Set WEBHOOK_SECRET env var in production.
+      # If left empty, signature validation is skipped (dev stub only).
+      secret: ${WEBHOOK_SECRET:}
     cors:
       allowed-origins: []
+  analytics:
+    start-date: 2026-04-19
+  loyalty:
+    review-reward-points: 50
+  discount:
+    coupons:
+      enabled: ${DISCOUNT_COUPONS_ENABLED:true}
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026

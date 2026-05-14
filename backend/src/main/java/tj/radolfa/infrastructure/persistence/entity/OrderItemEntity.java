@@ -26,8 +26,8 @@ public class OrderItemEntity {
     @JoinColumn(name = "sku_id", foreignKey = @ForeignKey(name = "fk_order_item_sku"))
     private SkuEntity sku;
 
-    @Column(name = "erp_item_code", length = 128)
-    private String erpItemCode;
+    @Column(name = "sku_code", length = 128)
+    private String skuCode;
 
     @Column(name = "product_name")
     private String productName;

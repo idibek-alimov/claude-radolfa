@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ProductBaseRepository extends JpaRepository<ProductBaseEntity, Long> {
 
-    Optional<ProductBaseEntity> findByErpTemplateCode(String erpTemplateCode);
+    Optional<ProductBaseEntity> findByExternalRef(String externalRef);
 }

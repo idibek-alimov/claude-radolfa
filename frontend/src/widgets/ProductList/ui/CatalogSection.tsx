@@ -29,12 +29,12 @@ export default function CatalogSection() {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasMore) return undefined;
+      if (lastPage.last) return undefined;
       return allPages.length + 1;
     },
   });
 
-  const listings = data?.pages.flatMap((page) => page.items) ?? [];
+  const listings = data?.pages.flatMap((page) => page.content) ?? [];
   const totalCount = data?.pages[0]?.totalElements ?? 0;
 
   return (

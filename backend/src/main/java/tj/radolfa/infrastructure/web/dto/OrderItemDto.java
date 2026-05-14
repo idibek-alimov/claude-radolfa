@@ -5,5 +5,12 @@ import java.math.BigDecimal;
 public record OrderItemDto(
         String productName,
         int quantity,
-        BigDecimal price) {
+        BigDecimal price,
+        Long skuId,
+        Long listingVariantId,
+        String imageUrl,
+        String skuCode,
+        String sizeLabel,
+        String slug,
+        boolean hasReviewed) {
 }

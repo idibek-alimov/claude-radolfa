@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
-import tj.radolfa.infrastructure.web.dto.ListingVariantDto;
+import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,11 +25,12 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     private static final Logger LOG = LoggerFactory.getLogger(ListingSearchStub.class);
 
     @Override
-    public void index(Long variantId, String slug, String name, String category,
+    public void index(Long variantId, Long productBaseId, String slug, String name, String category,
                       String colorKey, String colorHexCode,
                       String description, List<String> images,
-                      Double priceStart, Double priceEnd, Integer totalStock,
-                      boolean topSelling, boolean featured, Instant lastSyncAt) {
+                      Double price, Integer totalStock,
+                      Instant lastSyncAt,
+                      String productCode, List<String> skuCodes) {
         LOG.info("[LISTING-ES-STUB] Would index variant id={}, slug={}", variantId, slug);
     }
 
@@ -41,7 +42,7 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     @Override
     public PageResult<ListingVariantDto> search(String query, int page, int limit) {
         LOG.info("[LISTING-ES-STUB] Would search for query={}", query);
-        return new PageResult<>(List.of(), 0, page, false);
+        return new PageResult<>(List.of(), 0, page, limit, true);
     }
 
     @Override

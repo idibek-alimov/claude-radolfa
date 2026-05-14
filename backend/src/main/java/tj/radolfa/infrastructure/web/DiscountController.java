@@ -1,0 +1,267 @@
+package tj.radolfa.infrastructure.web;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.discount.*;
+import tj.radolfa.application.ports.out.DiscountFilter;
+import tj.radolfa.application.ports.out.DiscountedProductFilter;
+import tj.radolfa.application.ports.out.LoadDiscountPort;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.infrastructure.web.dto.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/api/v1/admin/discounts")
+public class DiscountController {
+
+    private final LoadDiscountPort loadDiscountPort;
+    private final CreateDiscountUseCase createDiscountUseCase;
+    private final UpdateDiscountUseCase updateDiscountUseCase;
+    private final DisableDiscountUseCase disableDiscountUseCase;
+    private final ListDiscountedProductsUseCase listDiscountedProductsUseCase;
+    private final FindDiscountOverlapsUseCase findDiscountOverlapsUseCase;
+    private final BulkToggleDiscountUseCase bulkToggleDiscountUseCase;
+    private final BulkDeleteDiscountUseCase bulkDeleteDiscountUseCase;
+    private final BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase;
+    private final GetDiscountMetricsUseCase getDiscountMetricsUseCase;
+    private final GetTopCampaignsUseCase getTopCampaignsUseCase;
+    private final CheckCouponAvailabilityUseCase checkCouponAvailabilityUseCase;
+    private final LocalDate analyticsStartDate;
+    private final boolean couponsEnabled;
+
+    public DiscountController(LoadDiscountPort loadDiscountPort,
+                              CreateDiscountUseCase createDiscountUseCase,
+                              UpdateDiscountUseCase updateDiscountUseCase,
+                              DisableDiscountUseCase disableDiscountUseCase,
+                              ListDiscountedProductsUseCase listDiscountedProductsUseCase,
+                              FindDiscountOverlapsUseCase findDiscountOverlapsUseCase,
+                              BulkToggleDiscountUseCase bulkToggleDiscountUseCase,
+                              BulkDeleteDiscountUseCase bulkDeleteDiscountUseCase,
+                              BulkDuplicateDiscountUseCase bulkDuplicateDiscountUseCase,
+                              GetDiscountMetricsUseCase getDiscountMetricsUseCase,
+                              GetTopCampaignsUseCase getTopCampaignsUseCase,
+                              CheckCouponAvailabilityUseCase checkCouponAvailabilityUseCase,
+                              @Value("${radolfa.analytics.start-date}") LocalDate analyticsStartDate,
+                              @Value("${radolfa.discount.coupons.enabled:true}") boolean couponsEnabled) {
+        this.loadDiscountPort = loadDiscountPort;
+        this.createDiscountUseCase = createDiscountUseCase;
+        this.updateDiscountUseCase = updateDiscountUseCase;
+        this.disableDiscountUseCase = disableDiscountUseCase;
+        this.listDiscountedProductsUseCase = listDiscountedProductsUseCase;
+        this.findDiscountOverlapsUseCase = findDiscountOverlapsUseCase;
+        this.bulkToggleDiscountUseCase = bulkToggleDiscountUseCase;
+        this.bulkDeleteDiscountUseCase = bulkDeleteDiscountUseCase;
+        this.bulkDuplicateDiscountUseCase = bulkDuplicateDiscountUseCase;
+        this.getDiscountMetricsUseCase = getDiscountMetricsUseCase;
+        this.getTopCampaignsUseCase = getTopCampaignsUseCase;
+        this.checkCouponAvailabilityUseCase = checkCouponAvailabilityUseCase;
+        this.analyticsStartDate = analyticsStartDate;
+        this.couponsEnabled = couponsEnabled;
+    }
+
+    private static final Set<String> ALLOWED_SORT = Set.of(
+            "id", "title", "amountValue", "validFrom", "validUpto");
+
+    private Pageable sanitize(Pageable pageable) {
+        Sort filtered = Sort.by(pageable.getSort().stream()
+                .filter(o -> ALLOWED_SORT.contains(o.getProperty()))
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                filtered.isEmpty() ? Sort.by("id") : filtered);
+    }
+
+    // ---- Campaign list ----
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Page<DiscountResponse> list(
+            @RequestParam(required = false) Long typeId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+
+        DiscountFilter filter = new DiscountFilter(typeId, status, from, to, search);
+        return loadDiscountPort.findAll(filter, sanitize(pageable)).map(DiscountResponse::fromDomain);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountResponse getById(@PathVariable Long id) {
+        return loadDiscountPort.findById(id)
+                .map(DiscountResponse::fromDomain)
+                .orElseThrow(() -> new ResourceNotFoundException("Discount not found: " + id));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountResponse create(@Valid @RequestBody CreateDiscountRequest request) {
+        return DiscountResponse.fromDomain(
+                createDiscountUseCase.execute(new CreateDiscountUseCase.Command(
+                        request.typeId(),
+                        request.targets().stream().map(DiscountTargetInput::toDomain).toList(),
+                        request.amountType(), request.amountValue(),
+                        request.validFrom(), request.validUpto(),
+                        request.title(), request.colorHex(),
+                        request.minBasketAmount(), request.usageCapTotal(),
+                        request.usageCapPerCustomer(), request.couponCode()
+                )));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountResponse update(@PathVariable Long id,
+                                   @Valid @RequestBody UpdateDiscountRequest request) {
+        return DiscountResponse.fromDomain(
+                updateDiscountUseCase.execute(new UpdateDiscountUseCase.Command(
+                        id, request.typeId(),
+                        request.targets().stream().map(DiscountTargetInput::toDomain).toList(),
+                        request.amountType(), request.amountValue(),
+                        request.validFrom(), request.validUpto(),
+                        request.title(), request.colorHex(),
+                        request.minBasketAmount(), request.usageCapTotal(),
+                        request.usageCapPerCustomer(), request.couponCode()
+                )));
+    }
+
+    @PatchMapping("/{id}/disable")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountResponse disable(@PathVariable Long id) {
+        return DiscountResponse.fromDomain(
+                disableDiscountUseCase.execute(new DisableDiscountUseCase.Command(id, true)));
+    }
+
+    @PatchMapping("/{id}/enable")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountResponse enable(@PathVariable Long id) {
+        return DiscountResponse.fromDomain(
+                disableDiscountUseCase.execute(new DisableDiscountUseCase.Command(id, false)));
+    }
+
+    // ---- Discounted products view ----
+
+    @GetMapping("/products")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Page<DiscountedProductRowResponse> listDiscountedProducts(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long campaignId,
+            @RequestParam(required = false) BigDecimal minDeltaPercent,
+            @RequestParam(required = false) BigDecimal maxDeltaPercent,
+            @PageableDefault(size = 20, sort = "skuCode") Pageable pageable) {
+
+        DiscountedProductFilter filter = new DiscountedProductFilter(search, campaignId, minDeltaPercent, maxDeltaPercent);
+        return listDiscountedProductsUseCase.execute(filter, pageable)
+                .map(DiscountedProductRowResponse::fromDomain);
+    }
+
+    @GetMapping("/{id}/skus")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Page<DiscountedProductRowResponse> getCampaignSkus(
+            @PathVariable Long id,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "skuCode") Pageable pageable) {
+
+        DiscountedProductFilter filter = new DiscountedProductFilter(search, id, null, null);
+        return listDiscountedProductsUseCase.execute(filter, pageable)
+                .map(DiscountedProductRowResponse::fromDomain);
+    }
+
+    // ---- Overlap detection ----
+
+    @GetMapping("/overlaps")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public List<DiscountOverlapRowResponse> getOverlaps() {
+        return findDiscountOverlapsUseCase.execute().stream()
+                .map(DiscountOverlapRowResponse::fromDomain)
+                .toList();
+    }
+
+    // ---- Bulk operations ----
+
+    record BulkIdsRequest(@NotEmpty List<Long> ids) {}
+
+    @PatchMapping("/bulk/enable")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Map<String, Integer> bulkEnable(@Valid @RequestBody BulkIdsRequest request) {
+        int affected = bulkToggleDiscountUseCase.execute(
+                new BulkToggleDiscountUseCase.Command(request.ids(), false));
+        return Map.of("affected", affected);
+    }
+
+    @PatchMapping("/bulk/disable")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Map<String, Integer> bulkDisable(@Valid @RequestBody BulkIdsRequest request) {
+        int affected = bulkToggleDiscountUseCase.execute(
+                new BulkToggleDiscountUseCase.Command(request.ids(), true));
+        return Map.of("affected", affected);
+    }
+
+    @DeleteMapping("/bulk")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Map<String, Integer> bulkDelete(@Valid @RequestBody BulkIdsRequest request) {
+        int affected = bulkDeleteDiscountUseCase.execute(
+                new BulkDeleteDiscountUseCase.Command(request.ids()));
+        return Map.of("affected", affected);
+    }
+
+    @PostMapping("/bulk/duplicate")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public List<DiscountResponse> bulkDuplicate(@Valid @RequestBody BulkIdsRequest request) {
+        return bulkDuplicateDiscountUseCase.execute(
+                new BulkDuplicateDiscountUseCase.Command(request.ids())).stream()
+                .map(DiscountResponse::fromDomain)
+                .toList();
+    }
+
+    // ---- Analytics ----
+
+    @GetMapping("/analytics-config")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public AnalyticsConfigResponse analyticsConfig() {
+        return new AnalyticsConfigResponse(analyticsStartDate);
+    }
+
+    @GetMapping("/{id}/metrics")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public DiscountMetricsResponse getMetrics(@PathVariable Long id) {
+        return DiscountMetricsResponse.fromDomain(getDiscountMetricsUseCase.execute(id));
+    }
+
+    @GetMapping("/top")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public List<TopCampaignResponse> getTopCampaigns(
+            @RequestParam(defaultValue = "revenue") String by,
+            @RequestParam(defaultValue = "30d") String period) {
+        return getTopCampaignsUseCase.execute(
+                new GetTopCampaignsUseCase.Command(by, period, 5)).stream()
+                .map(TopCampaignResponse::fromDomain)
+                .toList();
+    }
+
+    @GetMapping("/coupon-available")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public org.springframework.http.ResponseEntity<CouponAvailabilityResponse> couponAvailable(
+            @RequestParam String code,
+            @RequestParam(required = false) Long excludeId) {
+        if (!couponsEnabled) return org.springframework.http.ResponseEntity.notFound().build();
+        return org.springframework.http.ResponseEntity.ok(
+                new CouponAvailabilityResponse(checkCouponAvailabilityUseCase.isAvailable(code, excludeId)));
+    }
+}

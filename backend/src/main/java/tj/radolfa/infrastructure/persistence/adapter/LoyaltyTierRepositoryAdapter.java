@@ -1,0 +1,68 @@
+package tj.radolfa.infrastructure.persistence.adapter;
+
+import org.springframework.stereotype.Component;
+
+import java.util.NoSuchElementException;
+import tj.radolfa.application.ports.out.LoadLoyaltyTierPort;
+import tj.radolfa.application.ports.out.SaveLoyaltyTierPort;
+import tj.radolfa.domain.model.LoyaltyTier;
+import tj.radolfa.infrastructure.persistence.entity.LoyaltyTierEntity;
+import tj.radolfa.infrastructure.persistence.mappers.LoyaltyTierMapper;
+import tj.radolfa.infrastructure.persistence.repository.LoyaltyTierRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Component
+public class LoyaltyTierRepositoryAdapter implements LoadLoyaltyTierPort, SaveLoyaltyTierPort {
+
+    private final LoyaltyTierRepository repository;
+    private final LoyaltyTierMapper mapper;
+
+    public LoyaltyTierRepositoryAdapter(LoyaltyTierRepository repository,
+                                        LoyaltyTierMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
+
+    @Override
+    public Optional<LoyaltyTier> findById(Long id) {
+        return repository.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<LoyaltyTier> findByName(String name) {
+        return repository.findByName(name).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<LoyaltyTier> findAll() {
+        return repository.findAllByOrderByDisplayOrderAsc()
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public LoyaltyTier save(LoyaltyTier tier) {
+        if (tier.id() != null) {
+            LoyaltyTierEntity entity = repository.findById(tier.id())
+                    .orElseThrow(() -> new NoSuchElementException("Loyalty tier not found: " + tier.id()));
+            entity.setName(tier.name());
+            entity.setDiscountPercentage(tier.discountPercentage());
+            entity.setCashbackPercentage(tier.cashbackPercentage());
+            entity.setMinSpendRequirement(tier.minSpendRequirement());
+            entity.setDisplayOrder(tier.displayOrder());
+            entity.setColor(tier.color());
+            return mapper.toDomain(repository.save(entity));
+        }
+        return mapper.toDomain(repository.save(mapper.toEntity(tier)));
+    }
+
+    @Override
+    public List<LoyaltyTier> saveAll(List<LoyaltyTier> tiers) {
+        return tiers.stream()
+                .map(this::save)
+                .toList();
+    }
+}
