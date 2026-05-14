@@ -297,4 +297,46 @@ class UpdateOrderStatusServiceTest {
         assertNotNull(saved.shippedAt());
         assertNull(saved.cancelledAt());
     }
+
+    @Test
+    @DisplayName("Status update preserves all unrelated fields unchanged")
+    void statusUpdate_preservesUnrelatedFields() {
+        Instant created = Instant.parse("2026-01-01T00:00:00Z");
+        Order pristine = new Order(
+                42L, 7L, "EXT-XYZ",
+                OrderStatus.PAID, new Money(new BigDecimal("123.45")),
+                List.of(),
+                created,
+                150, 30,
+                DeliveryType.HOME, "Addr Line 1", "9-12", 99L,
+                null, null, null,
+                null, null, null, null);
+
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(pristine), save,
+                new OrderNotificationService(silentPort()));
+
+        svc.execute(new Command(42L, OrderStatus.SHIPPED,
+                "DHL", "TR-001", LocalDate.of(2026, 6, 1)));
+
+        Order out = save.last();
+        assertEquals(42L,              out.id());
+        assertEquals(7L,               out.userId());
+        assertEquals("EXT-XYZ",        out.externalOrderId());
+        assertEquals(new BigDecimal("123.45"), out.totalAmount().amount());
+        assertEquals(created,          out.createdAt());
+        assertEquals(150,              out.loyaltyPointsRedeemed());
+        assertEquals(30,               out.loyaltyPointsAwarded());
+        assertEquals(DeliveryType.HOME, out.deliveryType());
+        assertEquals("Addr Line 1",    out.deliveryAddress());
+        assertEquals("9-12",           out.preferredTimeWindow());
+        assertEquals(99L,              out.pickpointId());
+        assertNull(out.cancelledAt());
+        assertNull(out.refundedAt());
+        // Status and shipping fields must be updated
+        assertEquals(OrderStatus.SHIPPED, out.status());
+        assertEquals("DHL",    out.courierName());
+        assertEquals("TR-001", out.trackingNumber());
+    }
 }

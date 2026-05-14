@@ -87,12 +87,10 @@ public class CancelOrderService implements CancelOrderUseCase {
             restoreLoyaltyPointsUseCase.execute(order.userId(), order.loyaltyPointsRedeemed());
         }
 
-        Order cancelled = new Order(order.id(), order.userId(), order.externalOrderId(),
-                OrderStatus.CANCELLED, order.totalAmount(), order.items(), order.createdAt(),
-                order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate(),
-                order.shippedAt(), order.deliveredAt(), Instant.now(), order.refundedAt());
+        Order cancelled = order.toBuilder()
+                .status(OrderStatus.CANCELLED)
+                .cancelledAt(Instant.now())
+                .build();
         saveOrderPort.save(cancelled);
         orderNotificationService.notify(cancelled);
     }

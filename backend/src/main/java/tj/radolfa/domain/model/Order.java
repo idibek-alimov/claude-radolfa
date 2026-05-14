@@ -30,4 +30,69 @@ public record Order(
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);
     }
+
+    public Builder toBuilder() {
+        return new Builder()
+                .id(id).userId(userId).externalOrderId(externalOrderId)
+                .status(status).totalAmount(totalAmount).items(items).createdAt(createdAt)
+                .loyaltyPointsRedeemed(loyaltyPointsRedeemed).loyaltyPointsAwarded(loyaltyPointsAwarded)
+                .deliveryType(deliveryType).deliveryAddress(deliveryAddress)
+                .preferredTimeWindow(preferredTimeWindow).pickpointId(pickpointId)
+                .courierName(courierName).trackingNumber(trackingNumber)
+                .estimatedDeliveryDate(estimatedDeliveryDate)
+                .shippedAt(shippedAt).deliveredAt(deliveredAt)
+                .cancelledAt(cancelledAt).refundedAt(refundedAt);
+    }
+
+    public static final class Builder {
+        private Long id;
+        private Long userId;
+        private String externalOrderId;
+        private OrderStatus status;
+        private Money totalAmount;
+        private List<OrderItem> items;
+        private Instant createdAt;
+        private int loyaltyPointsRedeemed;
+        private int loyaltyPointsAwarded;
+        private DeliveryType deliveryType;
+        private String deliveryAddress;
+        private String preferredTimeWindow;
+        private Long pickpointId;
+        private String courierName;
+        private String trackingNumber;
+        private LocalDate estimatedDeliveryDate;
+        private Instant shippedAt;
+        private Instant deliveredAt;
+        private Instant cancelledAt;
+        private Instant refundedAt;
+
+        public Builder id(Long v)                        { this.id = v; return this; }
+        public Builder userId(Long v)                    { this.userId = v; return this; }
+        public Builder externalOrderId(String v)         { this.externalOrderId = v; return this; }
+        public Builder status(OrderStatus v)             { this.status = v; return this; }
+        public Builder totalAmount(Money v)              { this.totalAmount = v; return this; }
+        public Builder items(List<OrderItem> v)          { this.items = v; return this; }
+        public Builder createdAt(Instant v)              { this.createdAt = v; return this; }
+        public Builder loyaltyPointsRedeemed(int v)      { this.loyaltyPointsRedeemed = v; return this; }
+        public Builder loyaltyPointsAwarded(int v)       { this.loyaltyPointsAwarded = v; return this; }
+        public Builder deliveryType(DeliveryType v)      { this.deliveryType = v; return this; }
+        public Builder deliveryAddress(String v)         { this.deliveryAddress = v; return this; }
+        public Builder preferredTimeWindow(String v)     { this.preferredTimeWindow = v; return this; }
+        public Builder pickpointId(Long v)               { this.pickpointId = v; return this; }
+        public Builder courierName(String v)             { this.courierName = v; return this; }
+        public Builder trackingNumber(String v)          { this.trackingNumber = v; return this; }
+        public Builder estimatedDeliveryDate(LocalDate v){ this.estimatedDeliveryDate = v; return this; }
+        public Builder shippedAt(Instant v)              { this.shippedAt = v; return this; }
+        public Builder deliveredAt(Instant v)            { this.deliveredAt = v; return this; }
+        public Builder cancelledAt(Instant v)            { this.cancelledAt = v; return this; }
+        public Builder refundedAt(Instant v)             { this.refundedAt = v; return this; }
+
+        public Order build() {
+            return new Order(id, userId, externalOrderId, status, totalAmount, items, createdAt,
+                    loyaltyPointsRedeemed, loyaltyPointsAwarded,
+                    deliveryType, deliveryAddress, preferredTimeWindow, pickpointId,
+                    courierName, trackingNumber, estimatedDeliveryDate,
+                    shippedAt, deliveredAt, cancelledAt, refundedAt);
+        }
+    }
 }

@@ -52,13 +52,14 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         Instant shippedAt     = toShipped   ? now : order.shippedAt();
         Instant deliveredAt   = toDelivered ? now : order.deliveredAt();
 
-        Order updated = new Order(
-                order.id(), order.userId(), order.externalOrderId(),
-                command.newStatus(), order.totalAmount(), order.items(), order.createdAt(),
-                order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                courierName, trackingNumber, edd,
-                shippedAt, deliveredAt, order.cancelledAt(), order.refundedAt());
+        Order updated = order.toBuilder()
+                .status(command.newStatus())
+                .courierName(courierName)
+                .trackingNumber(trackingNumber)
+                .estimatedDeliveryDate(edd)
+                .shippedAt(shippedAt)
+                .deliveredAt(deliveredAt)
+                .build();
         saveOrderPort.save(updated);
         orderNotificationService.notify(updated);
     }
