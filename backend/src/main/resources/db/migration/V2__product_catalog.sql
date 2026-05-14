@@ -135,7 +135,7 @@ CREATE TABLE skus (
     listing_variant_id BIGINT         NOT NULL REFERENCES listing_variants(id),
     sku_code           VARCHAR(64)    NOT NULL UNIQUE,
     size_label         VARCHAR(32),
-    stock_quantity     INTEGER        NOT NULL DEFAULT 0,
+    stock_quantity     INTEGER        NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
     original_price     NUMERIC(12,2),
     barcode            VARCHAR(128)   UNIQUE,
     version            BIGINT         NOT NULL DEFAULT 0,

@@ -1,6 +1,7 @@
 package tj.radolfa.infrastructure.persistence.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 
 import org.springframework.data.jpa.repository.Query;
@@ -35,4 +36,13 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
             ORDER BY s.listingVariant.id ASC, s.sizeLabel ASC
             """)
     List<Object[]> findGridSkusByVariantIds(@Param("variantIds") List<Long> variantIds);
+
+    @Modifying
+    @Query("UPDATE SkuEntity s SET s.stockQuantity = s.stockQuantity - :qty " +
+           "WHERE s.id = :id AND s.stockQuantity >= :qty")
+    int decrementStockIfAvailable(@Param("id") Long id, @Param("qty") int qty);
+
+    @Modifying
+    @Query("UPDATE SkuEntity s SET s.stockQuantity = s.stockQuantity + :qty WHERE s.id = :id")
+    int incrementStock(@Param("id") Long id, @Param("qty") int qty);
 }

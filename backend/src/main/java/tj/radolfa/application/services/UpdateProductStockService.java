@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
+import tj.radolfa.application.ports.out.AtomicStockPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
+import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.model.Sku;
 
 /**
@@ -23,11 +25,14 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
 
     private final LoadSkuPort              loadSkuPort;
     private final SaveProductHierarchyPort savePort;
+    private final AtomicStockPort          atomicStockPort;
 
     public UpdateProductStockService(LoadSkuPort loadSkuPort,
-                                     SaveProductHierarchyPort savePort) {
-        this.loadSkuPort = loadSkuPort;
-        this.savePort    = savePort;
+                                     SaveProductHierarchyPort savePort,
+                                     AtomicStockPort atomicStockPort) {
+        this.loadSkuPort     = loadSkuPort;
+        this.savePort        = savePort;
+        this.atomicStockPort = atomicStockPort;
     }
 
     // ── UpdateProductStockUseCase ──────────────────────────────────────────────
@@ -56,29 +61,24 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     @Transactional
     public void decrement(Long skuId, int quantity) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity must be > 0");
-        Sku sku = requireSku(skuId);
-        int current = sku.getStockQuantity() != null ? sku.getStockQuantity() : 0;
-        int newStock = current - quantity;
-        if (newStock < 0) {
-            throw new IllegalStateException(
-                    "Insufficient stock for SKU id=" + skuId +
-                    " (current=" + current + ", requested=" + quantity + ")");
+        int updated = atomicStockPort.decrementIfAvailable(skuId, quantity);
+        if (updated == 0) {
+            Sku sku = requireSku(skuId);
+            int available = sku.getStockQuantity() != null ? sku.getStockQuantity() : 0;
+            throw new InsufficientStockException(skuId, available, quantity);
         }
-        sku.updatePriceAndStock(sku.getPrice(), newStock);
-        savePort.saveSku(sku, sku.getListingVariantId());
-        LOG.debug("[STOCK] SKU id={} decremented by {} → {}", skuId, quantity, newStock);
+        LOG.debug("[STOCK] SKU id={} decremented by {}", skuId, quantity);
     }
 
     @Override
     @Transactional
     public void increment(Long skuId, int quantity) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity must be > 0");
-        Sku sku = requireSku(skuId);
-        int current = sku.getStockQuantity() != null ? sku.getStockQuantity() : 0;
-        int newStock = current + quantity;
-        sku.updatePriceAndStock(sku.getPrice(), newStock);
-        savePort.saveSku(sku, sku.getListingVariantId());
-        LOG.debug("[STOCK] SKU id={} incremented by {} → {}", skuId, quantity, newStock);
+        int updated = atomicStockPort.increment(skuId, quantity);
+        if (updated == 0) {
+            throw new IllegalArgumentException("SKU not found: id=" + skuId);
+        }
+        LOG.debug("[STOCK] SKU id={} incremented by {}", skuId, quantity);
     }
 
     // ── Private helpers ────────────────────────────────────────────────────────

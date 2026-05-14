@@ -16,6 +16,7 @@ import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.exception.TagInUseException;
 import tj.radolfa.domain.exception.UnauthorizedReviewException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -198,6 +199,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<MessageResponseDto> handleImageProcessing(ImageProcessingException ex) {
         LOG.error("[IMAGE] Processing failed: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<MessageResponseDto> handleInsufficientStock(InsufficientStockException ex) {
+        LOG.warn("[STOCK] Insufficient stock: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 
