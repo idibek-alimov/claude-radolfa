@@ -149,6 +149,13 @@ class AddVariantToProductServiceTest {
 
         @Override
         public Optional<ProductBase> findByExternalRef(String externalRef) { return Optional.empty(); }
+
+        @Override
+        public Map<Long, ProductBase> findProductsByIds(Collection<Long> ids) {
+            return ids.stream()
+                    .filter(store::containsKey)
+                    .collect(java.util.stream.Collectors.toMap(id -> id, store::get));
+        }
     }
 
     static class FakeLoadColorPort implements LoadColorPort {

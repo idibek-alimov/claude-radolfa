@@ -94,6 +94,15 @@ public class ProductHierarchyAdapter
         return baseRepo.findById(id).map(mapper::toProductBase);
     }
 
+    @Override
+    public Map<Long, ProductBase> findProductsByIds(Collection<Long> ids) {
+        if (ids.isEmpty()) return Map.of();
+        return baseRepo.findAllById(ids).stream()
+                .collect(Collectors.toMap(
+                        ProductBaseEntity::getId,
+                        mapper::toProductBase));
+    }
+
     // ---- LoadListingVariantPort ----
 
     @Override

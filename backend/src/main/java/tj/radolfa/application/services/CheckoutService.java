@@ -169,9 +169,20 @@ public class CheckoutService implements CheckoutUseCase {
                 .max(BigDecimal.ZERO);
         Money total = new Money(totalRaw);
 
+        // 7b. Batch-load variants and product bases (avoids N+1 in enrichToOrderItem)
+        Set<Long> variantIds = skuById.values().stream()
+                .map(Sku::getListingVariantId)
+                .collect(Collectors.toSet());
+        Map<Long, ListingVariant> variantById = loadListingVariantPort.findVariantsByIds(variantIds);
+
+        Set<Long> productIds = variantById.values().stream()
+                .map(ListingVariant::getProductBaseId)
+                .collect(Collectors.toSet());
+        Map<Long, ProductBase> productById = loadProductBasePort.findProductsByIds(productIds);
+
         // 8. Build order items
         List<OrderItem> orderItems = cart.getItems().stream()
-                .map(item -> enrichToOrderItem(item, skuById))
+                .map(item -> enrichToOrderItem(item, skuById, variantById, productById))
                 .toList();
 
         // 9. Persist order
@@ -282,17 +293,18 @@ public class CheckoutService implements CheckoutUseCase {
         return new LineResolution(loyaltyPrice.min(original), List.of());
     }
 
-    private OrderItem enrichToOrderItem(CartItem cartItem, Map<Long, Sku> skuById) {
+    private OrderItem enrichToOrderItem(CartItem cartItem,
+                                         Map<Long, Sku> skuById,
+                                         Map<Long, ListingVariant> variantById,
+                                         Map<Long, ProductBase> productById) {
         Sku sku = skuById.get(cartItem.getSkuId());
         if (sku == null) throw new IllegalStateException("SKU not found: " + cartItem.getSkuId());
 
-        ListingVariant variant = loadListingVariantPort.findVariantById(sku.getListingVariantId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "Variant not found: " + sku.getListingVariantId()));
+        ListingVariant variant = variantById.get(sku.getListingVariantId());
+        if (variant == null) throw new IllegalStateException("Variant not found: " + sku.getListingVariantId());
 
-        ProductBase product = loadProductBasePort.findById(variant.getProductBaseId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "Product not found: " + variant.getProductBaseId()));
+        ProductBase product = productById.get(variant.getProductBaseId());
+        if (product == null) throw new IllegalStateException("Product not found: " + variant.getProductBaseId());
 
         return new OrderItem(null, cartItem.getSkuId(), variant.getId(), sku.getSkuCode(),
                 product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot());
