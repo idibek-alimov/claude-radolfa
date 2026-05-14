@@ -4,8 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ListingVariantIndexedEvent;
 import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase;
-import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
@@ -31,18 +32,18 @@ public class AddVariantToProductService implements AddVariantToProductUseCase {
     private final LoadColorPort             loadColorPort;
     private final LoadListingVariantPort    loadVariantPort;
     private final SaveProductHierarchyPort  savePort;
-    private final ListingIndexPort          listingIndexPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AddVariantToProductService(LoadProductBasePort loadBasePort,
                                       LoadColorPort loadColorPort,
                                       LoadListingVariantPort loadVariantPort,
                                       SaveProductHierarchyPort savePort,
-                                      ListingIndexPort listingIndexPort) {
+                                      ApplicationEventPublisher eventPublisher) {
         this.loadBasePort     = loadBasePort;
         this.loadColorPort    = loadColorPort;
         this.loadVariantPort  = loadVariantPort;
         this.savePort         = savePort;
-        this.listingIndexPort = listingIndexPort;
+        this.eventPublisher   = eventPublisher;
     }
 
     @Override
@@ -85,27 +86,10 @@ public class AddVariantToProductService implements AddVariantToProductUseCase {
         LOG.info("[ADD-VARIANT] productBaseId={} variantId={} slug='{}' colorKey='{}'",
                 command.productBaseId(), saved.getId(), saved.getSlug(), color.colorKey());
 
-        // ES indexing — fire-and-forget, outside transaction boundary by design
-        try {
-            listingIndexPort.index(
-                    saved.getId(),
-                    command.productBaseId(),
-                    saved.getSlug(),
-                    base.getName(),
-                    base.getCategory(),
-                    color.colorKey(),
-                    color.hexCode(),
-                    null,
-                    List.of(),
-                    null,
-                    0,
-                    null,
-                    saved.getProductCode(),
-                    List.of());
-        } catch (Exception ex) {
-            LOG.error("[ADD-VARIANT] ES indexing failed for variant={}: {}",
-                    saved.getSlug(), ex.getMessage());
-        }
+        eventPublisher.publishEvent(new ListingVariantIndexedEvent(
+                saved.getId(), command.productBaseId(), saved.getSlug(),
+                base.getName(), base.getCategory(), color.colorKey(), color.hexCode(),
+                null, List.of(), null, 0, null, saved.getProductCode(), List.of()));
 
         return new Result(saved.getId(), saved.getSlug());
     }

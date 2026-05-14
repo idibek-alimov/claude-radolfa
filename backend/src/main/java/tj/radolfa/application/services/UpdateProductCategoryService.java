@@ -4,8 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ListingVariantIndexedEvent;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
-import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.readmodel.CategoryView;
 import tj.radolfa.application.ports.out.LoadColorPort;
@@ -40,7 +41,7 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
         private final LoadSkuPort loadSkuPort;
         private final LoadColorPort loadColorPort;
         private final SaveProductHierarchyPort savePort;
-        private final ListingIndexPort listingIndexPort;
+        private final ApplicationEventPublisher eventPublisher;
 
         public UpdateProductCategoryService(LoadProductBasePort loadProductBasePort,
                         LoadCategoryPort loadCategoryPort,
@@ -48,14 +49,14 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                         LoadSkuPort loadSkuPort,
                         LoadColorPort loadColorPort,
                         SaveProductHierarchyPort savePort,
-                        ListingIndexPort listingIndexPort) {
+                        ApplicationEventPublisher eventPublisher) {
                 this.loadProductBasePort = loadProductBasePort;
                 this.loadCategoryPort = loadCategoryPort;
                 this.loadListingVariantPort = loadListingVariantPort;
                 this.loadSkuPort = loadSkuPort;
                 this.loadColorPort = loadColorPort;
                 this.savePort = savePort;
-                this.listingIndexPort = listingIndexPort;
+                this.eventPublisher = eventPublisher;
         }
 
         @Override
@@ -80,16 +81,12 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                 // 3. Re-index all listing variants so the new category is reflected in search
                 List<ListingVariant> variants = loadListingVariantPort.findAllByProductBaseId(productBaseId);
                 for (ListingVariant variant : variants) {
-                        try {
-                                reindexVariant(variant, base.getName(), category.name());
-                        } catch (Exception ex) {
-                                LOG.error("[UPDATE-CATEGORY] ES re-index failed for variant id={}: {}",
-                                                variant.getId(), ex.getMessage());
-                        }
+                        eventPublisher.publishEvent(buildIndexEvent(variant, base.getName(), category.name()));
                 }
         }
 
-        private void reindexVariant(ListingVariant variant, String productName, String categoryName) {
+        private ListingVariantIndexedEvent buildIndexEvent(ListingVariant variant,
+                                                           String productName, String categoryName) {
                 List<Sku> skus = loadSkuPort.findSkusByVariantId(variant.getId());
 
                 Double minPrice = skus.stream()
@@ -113,20 +110,11 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                                 .filter(java.util.Objects::nonNull)
                                 .toList();
 
-                listingIndexPort.index(
-                                variant.getId(),
-                                variant.getProductBaseId(),
-                                variant.getSlug(),
-                                productName,
-                                categoryName,
-                                variant.getColorKey(),
-                                colorHexCode,
-                                variant.getWebDescription(),
-                                variant.getImages(),
-                                minPrice,
-                                totalStock,
-                                variant.getLastSyncAt(),
-                                variant.getProductCode(),
-                                skuCodes);
+                return new ListingVariantIndexedEvent(
+                                variant.getId(), variant.getProductBaseId(), variant.getSlug(),
+                                productName, categoryName, variant.getColorKey(), colorHexCode,
+                                variant.getWebDescription(), variant.getImages(),
+                                minPrice, totalStock, variant.getLastSyncAt(),
+                                variant.getProductCode(), skuCodes);
         }
 }

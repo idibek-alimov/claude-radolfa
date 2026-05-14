@@ -7,7 +7,8 @@ import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase.Command;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase.Command.SkuDefinition;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase.Command.VariantDefinition;
-import tj.radolfa.application.ports.out.ListingIndexPort;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ListingVariantIndexedEvent;
 import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadBrandPort.BrandView;
 import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort;
@@ -48,26 +49,30 @@ class CreateProductServiceTest {
 
     // ---- Fakes ----
 
-    private FakeLoadCategoryPort    fakeCategory;
-    private FakeLoadColorPort       fakeColor;
-    private FakeLoadBrandPort       fakeBrand;
-    private FakeLoadBlueprintPort   fakeBlueprint;
-    private FakeSaveHierarchyPort   fakeSave;
-    private FakeListingIndexPort    fakeIndex;
-    private CreateProductService    service;
+    private FakeLoadCategoryPort           fakeCategory;
+    private FakeLoadColorPort              fakeColor;
+    private FakeLoadBrandPort              fakeBrand;
+    private FakeLoadBlueprintPort          fakeBlueprint;
+    private FakeSaveHierarchyPort          fakeSave;
+    private List<ListingVariantIndexedEvent> publishedEvents;
+    private ApplicationEventPublisher      eventPublisher;
+    private CreateProductService           service;
 
     @BeforeEach
     void setUp() {
-        fakeCategory  = new FakeLoadCategoryPort();
-        fakeColor     = new FakeLoadColorPort();
-        fakeBrand     = new FakeLoadBrandPort();
-        fakeBlueprint = new FakeLoadBlueprintPort();
-        fakeSave      = new FakeSaveHierarchyPort();
-        fakeIndex     = new FakeListingIndexPort();
+        fakeCategory    = new FakeLoadCategoryPort();
+        fakeColor       = new FakeLoadColorPort();
+        fakeBrand       = new FakeLoadBrandPort();
+        fakeBlueprint   = new FakeLoadBlueprintPort();
+        fakeSave        = new FakeSaveHierarchyPort();
+        publishedEvents = new ArrayList<>();
+        eventPublisher  = event -> {
+            if (event instanceof ListingVariantIndexedEvent e) publishedEvents.add(e);
+        };
 
         service = new CreateProductService(
                 fakeCategory, fakeColor, fakeBrand,
-                fakeBlueprint, fakeSave, fakeIndex);
+                fakeBlueprint, fakeSave, eventPublisher);
 
         // Default "happy path" fixtures
         fakeCategory.store(new CategoryView(1L, "Clothing", "clothing", null, List.of()));
@@ -230,19 +235,19 @@ class CreateProductServiceTest {
     }
 
     @Test
-    @DisplayName("ES indexing is called once per variant (fire-and-forget)")
-    void execute_esIndex_calledOncePerVariant() {
+    @DisplayName("One index event is published per variant")
+    void execute_esIndex_oneEventPerVariant() {
         fakeColor.store(new ColorView(20L, "blue", "Blue", "#0000FF"));
         service.execute(commandWith(List.of(
                 variantDef(10L, List.of(skuDef("S", "19.99", 5))),
                 variantDef(20L, List.of(skuDef("M", "19.99", 5))))));
 
-        assertEquals(2, fakeIndex.indexCallCount);
+        assertEquals(2, publishedEvents.size());
     }
 
     @Test
-    @DisplayName("ES index payload carries productBaseId, description, and images from the variant")
-    void execute_esIndex_capturesProductBaseIdDescriptionAndImages() {
+    @DisplayName("Index event carries productBaseId, description, and images from the variant")
+    void execute_esIndex_eventCarriesProductBaseIdDescriptionAndImages() {
         VariantDefinition varDef = new VariantDefinition(
                 10L, "A lovely red dress", List.of(),
                 List.of("https://cdn.example.com/front.jpg", "https://cdn.example.com/back.jpg"),
@@ -250,24 +255,24 @@ class CreateProductServiceTest {
 
         service.execute(commandWith(List.of(varDef)));
 
-        assertNotNull(fakeIndex.capturedProductBaseId, "productBaseId must be non-null in ES payload");
-        assertEquals("A lovely red dress", fakeIndex.capturedDescription,
-                "ES payload description must match the variant webDescription");
-        assertNotNull(fakeIndex.capturedImages, "images must not be null in ES payload");
-        assertFalse(fakeIndex.capturedImages.isEmpty(), "ES payload images must not be empty when the variant has images");
+        assertEquals(1, publishedEvents.size());
+        ListingVariantIndexedEvent event = publishedEvents.get(0);
+        assertNotNull(event.productBaseId(), "productBaseId must be non-null in event");
+        assertEquals("A lovely red dress", event.description(), "event description must match webDescription");
+        assertNotNull(event.images(), "images must not be null in event");
+        assertFalse(event.images().isEmpty(), "event images must not be empty when the variant has images");
     }
 
     @Test
-    @DisplayName("ES indexing failure does not propagate — product is still created")
-    void execute_esIndexFailure_doesNotRollBack() {
-        fakeIndex.throwOnIndex = true;
-
+    @DisplayName("Product is created even when publisher has no listeners — service is decoupled from ES")
+    void execute_esDecoupled_productStillCreated() {
         Long id = service.execute(commandWith(List.of(
                 variantDef(10L, List.of(skuDef("S", "19.99", 5))))));
 
-        assertNotNull(id, "ProductBase ID must be returned even when ES indexing throws");
+        assertNotNull(id, "ProductBase ID must be returned");
         assertEquals(1, fakeSave.baseSaveCount);
         assertEquals(1, fakeSave.variantSaveCount);
+        assertEquals(1, publishedEvents.size(), "Event must still be published even without a listener");
     }
 
     // =========================================================
@@ -661,27 +666,4 @@ class CreateProductServiceTest {
         }
     }
 
-    static class FakeListingIndexPort implements ListingIndexPort {
-        int indexCallCount;
-        boolean throwOnIndex;
-        Long capturedProductBaseId;
-        String capturedDescription;
-        List<String> capturedImages;
-
-        @Override
-        public void index(Long variantId, Long productBaseId, String slug, String name,
-                          String category, String colorKey, String colorHexCode,
-                          String description, List<String> images,
-                          Double price, Integer totalStock,
-                          Instant lastSyncAt, String productCode, List<String> skuCodes) {
-            if (throwOnIndex) throw new RuntimeException("ES unavailable");
-            indexCallCount++;
-            this.capturedProductBaseId = productBaseId;
-            this.capturedDescription   = description;
-            this.capturedImages        = images;
-        }
-
-        @Override
-        public void delete(String slug) {}
-    }
 }

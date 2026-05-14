@@ -5,7 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase.Command;
 import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase.Result;
-import tj.radolfa.application.ports.out.ListingIndexPort;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ListingVariantIndexedEvent;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadColorPort.ColorView;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -36,21 +37,25 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class AddVariantToProductServiceTest {
 
-    private FakeLoadProductBasePort     fakeBase;
-    private FakeLoadColorPort           fakeColor;
-    private FakeLoadListingVariantPort  fakeVariant;
-    private FakeSaveHierarchyPort       fakeSave;
-    private FakeListingIndexPort        fakeIndex;
-    private AddVariantToProductService  service;
+    private FakeLoadProductBasePort           fakeBase;
+    private FakeLoadColorPort                 fakeColor;
+    private FakeLoadListingVariantPort        fakeVariant;
+    private FakeSaveHierarchyPort             fakeSave;
+    private List<ListingVariantIndexedEvent>  publishedEvents;
+    private ApplicationEventPublisher         eventPublisher;
+    private AddVariantToProductService        service;
 
     @BeforeEach
     void setUp() {
-        fakeBase    = new FakeLoadProductBasePort();
-        fakeColor   = new FakeLoadColorPort();
-        fakeVariant = new FakeLoadListingVariantPort();
-        fakeSave    = new FakeSaveHierarchyPort();
-        fakeIndex   = new FakeListingIndexPort();
-        service     = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, fakeIndex);
+        fakeBase        = new FakeLoadProductBasePort();
+        fakeColor       = new FakeLoadColorPort();
+        fakeVariant     = new FakeLoadListingVariantPort();
+        fakeSave        = new FakeSaveHierarchyPort();
+        publishedEvents = new java.util.ArrayList<>();
+        eventPublisher  = event -> {
+            if (event instanceof ListingVariantIndexedEvent e) publishedEvents.add(e);
+        };
+        service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher);
 
         // Default fixtures
         fakeBase.store(new ProductBase(1L, "INTERNAL-ABC123", "Winter Jacket", "Clothing", 1L, null));
@@ -81,21 +86,19 @@ class AddVariantToProductServiceTest {
     }
 
     @Test
-    @DisplayName("ES indexing is called once (fire-and-forget)")
-    void execute_esIndex_calledOnce() {
+    @DisplayName("One index event is published per variant")
+    void execute_esIndex_oneEventPublished() {
         service.execute(new Command(1L, 10L));
 
-        assertEquals(1, fakeIndex.indexCallCount);
+        assertEquals(1, publishedEvents.size());
     }
 
     @Test
-    @DisplayName("ES indexing failure does not propagate — variant is still saved")
-    void execute_esIndexFailure_doesNotRollback() {
-        fakeIndex.throwOnIndex = true;
-
+    @DisplayName("Variant is saved regardless — service is decoupled from ES listener")
+    void execute_esDecoupled_variantStillSaved() {
         Result result = service.execute(new Command(1L, 10L));
 
-        assertNotNull(result.variantId(), "variantId must be returned even when ES indexing throws");
+        assertNotNull(result.variantId(), "variantId must be returned");
         assertEquals(1, fakeSave.variantSaveCount);
     }
 
@@ -222,21 +225,4 @@ class AddVariantToProductServiceTest {
         public Sku saveSku(Sku sku, Long listingVariantId) { throw new UnsupportedOperationException(); }
     }
 
-    static class FakeListingIndexPort implements ListingIndexPort {
-        int indexCallCount;
-        boolean throwOnIndex;
-
-        @Override
-        public void index(Long variantId, Long productBaseId, String slug, String name,
-                          String category, String colorKey, String colorHexCode,
-                          String description, List<String> images,
-                          Double price, Integer totalStock,
-                          Instant lastSyncAt, String productCode, List<String> skuCodes) {
-            if (throwOnIndex) throw new RuntimeException("ES unavailable");
-            indexCallCount++;
-        }
-
-        @Override
-        public void delete(String slug) {}
-    }
 }
