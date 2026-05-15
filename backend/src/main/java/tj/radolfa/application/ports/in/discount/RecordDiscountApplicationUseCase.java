@@ -13,6 +13,7 @@ public interface RecordDiscountApplicationUseCase {
             String skuItemCode,
             int quantity,
             BigDecimal originalUnitPrice,
-            BigDecimal appliedUnitPrice
+            BigDecimal appliedUnitPrice,
+            Long userId
     ) {}
 }

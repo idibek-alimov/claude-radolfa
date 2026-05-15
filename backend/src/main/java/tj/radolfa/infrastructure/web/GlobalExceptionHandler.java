@@ -15,8 +15,9 @@ import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
-import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
 import tj.radolfa.domain.exception.InsufficientStockException;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.exception.TagInUseException;
 import tj.radolfa.domain.exception.UnauthorizedReviewException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -205,6 +206,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<MessageResponseDto> handleInsufficientStock(InsufficientStockException ex) {
         LOG.warn("[STOCK] Insufficient stock: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DiscountUsageCapExceededException.class)
+    public ResponseEntity<MessageResponseDto> handleDiscountUsageCapExceeded(DiscountUsageCapExceededException ex) {
+        LOG.warn("[DISCOUNT] Usage cap exceeded: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }

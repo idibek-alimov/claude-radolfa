@@ -213,7 +213,8 @@ public class CheckoutService implements CheckoutUseCase {
                                 savedItem.getSkuCode(),
                                 savedItem.getQuantity(),
                                 originalPrice,
-                                ad.reducedUnitPrice()
+                                ad.reducedUnitPrice(),
+                                command.userId()
                         )
                 );
             }

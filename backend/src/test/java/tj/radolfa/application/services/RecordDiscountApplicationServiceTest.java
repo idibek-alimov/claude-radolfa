@@ -4,18 +4,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.discount.RecordDiscountApplicationUseCase;
+import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
+import tj.radolfa.application.ports.out.QueryDiscountUsagePort;
 import tj.radolfa.application.ports.out.SaveDiscountApplicationPort;
+import tj.radolfa.domain.model.AmountType;
+import tj.radolfa.domain.model.Discount;
 import tj.radolfa.domain.model.DiscountApplication;
+import tj.radolfa.domain.model.DiscountType;
+import tj.radolfa.domain.model.SkuTarget;
+import tj.radolfa.domain.model.StackingPolicy;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RecordDiscountApplicationServiceTest {
 
-    // ---- Fake ----
+    // ---- Fakes ----
 
     static class FakeSaveDiscountApplicationPort implements SaveDiscountApplicationPort {
         private final List<DiscountApplication> stored = new ArrayList<>();
@@ -26,9 +37,26 @@ class RecordDiscountApplicationServiceTest {
             return application;
         }
 
-        List<DiscountApplication> stored() {
-            return stored;
+        List<DiscountApplication> stored() { return stored; }
+    }
+
+    /** Returns a discount with no caps — any lock request succeeds. */
+    static class AlwaysFoundNoCapsLockPort implements LockDiscountForUsagePort {
+        @Override
+        public Optional<Discount> lockById(Long discountId) {
+            DiscountType type = new DiscountType(1L, "SALE", 1, StackingPolicy.BEST_WINS);
+            return Optional.of(new Discount(discountId, type,
+                    List.of(new SkuTarget("ANY")), AmountType.PERCENT, BigDecimal.TEN,
+                    Instant.EPOCH, Instant.MAX, false, "Test", "#000", null, null, null, null));
         }
+    }
+
+    static class EmptyUsagePort implements QueryDiscountUsagePort {
+        @Override
+        public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+
+        @Override
+        public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long userId) { return Map.of(); }
     }
 
     // ---- Setup ----
@@ -39,7 +67,8 @@ class RecordDiscountApplicationServiceTest {
     @BeforeEach
     void setUp() {
         fakePort = new FakeSaveDiscountApplicationPort();
-        service  = new RecordDiscountApplicationService(fakePort);
+        service  = new RecordDiscountApplicationService(
+                new AlwaysFoundNoCapsLockPort(), new EmptyUsagePort(), fakePort);
     }
 
     // ---- Tests ----
@@ -52,7 +81,7 @@ class RecordDiscountApplicationServiceTest {
         int qty = 1;
 
         service.execute(new RecordDiscountApplicationUseCase.Command(
-                1L, 2L, 3L, "SKU-001", qty, original, applied));
+                1L, 2L, 3L, "SKU-001", qty, original, applied, null));
 
         assertEquals(1, fakePort.stored().size());
         DiscountApplication app = fakePort.stored().get(0);
@@ -75,7 +104,7 @@ class RecordDiscountApplicationServiceTest {
         int qty = 3;
 
         service.execute(new RecordDiscountApplicationUseCase.Command(
-                10L, 20L, 30L, "SKU-002", qty, original, applied));
+                10L, 20L, 30L, "SKU-002", qty, original, applied, null));
 
         DiscountApplication app = fakePort.stored().get(0);
         assertEquals(new BigDecimal("30.00"), app.discountAmount()); // (50-40)*3
@@ -87,7 +116,7 @@ class RecordDiscountApplicationServiceTest {
         BigDecimal price = new BigDecimal("75.00");
 
         service.execute(new RecordDiscountApplicationUseCase.Command(
-                5L, 6L, 7L, "SKU-003", 2, price, price));
+                5L, 6L, 7L, "SKU-003", 2, price, price, null));
 
         assertEquals(1, fakePort.stored().size());
         assertEquals(new BigDecimal("0.00"), fakePort.stored().get(0).discountAmount());

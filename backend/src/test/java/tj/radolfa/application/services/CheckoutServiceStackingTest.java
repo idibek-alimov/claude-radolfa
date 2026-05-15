@@ -11,6 +11,8 @@ import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
+import tj.radolfa.application.ports.out.QueryDiscountUsagePort;
 import tj.radolfa.application.ports.out.SaveDiscountApplicationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
@@ -146,8 +148,18 @@ class CheckoutServiceStackingTest {
 
     CheckoutService buildService(Map<String, List<Discount>> resolvedMap,
                                   FakeSaveDiscountApplicationPort fakeAppPort) {
+        LockDiscountForUsagePort noCapsLock = discountId -> {
+            DiscountType type = new DiscountType(discountId, "SALE", 1, StackingPolicy.STACKABLE);
+            return Optional.of(new Discount(discountId, type, List.of(new SkuTarget(SKU_CODE)),
+                    AmountType.PERCENT, BigDecimal.TEN,
+                    Instant.EPOCH, Instant.MAX, false, "Lock", "#000", null, null, null, null));
+        };
+        QueryDiscountUsagePort noUsage = new QueryDiscountUsagePort() {
+            @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+            @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long u) { return Map.of(); }
+        };
         RecordDiscountApplicationService recordService =
-                new RecordDiscountApplicationService(fakeAppPort);
+                new RecordDiscountApplicationService(noCapsLock, noUsage, fakeAppPort);
         return new CheckoutService(
                 FAKE_CART,
                 cart -> cart,

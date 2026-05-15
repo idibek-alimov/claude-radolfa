@@ -11,6 +11,8 @@ import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
+import tj.radolfa.application.ports.out.QueryDiscountUsagePort;
 import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveDiscountApplicationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
@@ -136,8 +138,13 @@ class CheckoutServiceDeliveryValidationTest {
     // ---- Builder ----
 
     static CheckoutService buildService(LoadPickpointPort loadPickpointPort) {
+        LockDiscountForUsagePort noLock = id -> Optional.empty();
+        QueryDiscountUsagePort noUsage = new QueryDiscountUsagePort() {
+            @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+            @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long u) { return Map.of(); }
+        };
         RecordDiscountApplicationService recordService =
-                new RecordDiscountApplicationService(NO_DISCOUNT_APP);
+                new RecordDiscountApplicationService(noLock, noUsage, NO_DISCOUNT_APP);
         return new CheckoutService(
                 FAKE_CART,
                 SAVE_CART,
