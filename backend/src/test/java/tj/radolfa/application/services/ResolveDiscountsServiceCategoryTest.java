@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -55,11 +57,12 @@ class ResolveDiscountsServiceCategoryTest {
         }
 
         @Override
-        public List<String> resolveSkuCodes(Map<Long, Boolean> categoryToIncludeDescendants) {
+        public Map<Long, Set<String>> resolveSkuCodes(Map<Long, Boolean> categoryToIncludeDescendants) {
             return categoryToIncludeDescendants.keySet().stream()
-                    .flatMap(id -> byCategory.getOrDefault(id, List.of()).stream())
-                    .distinct()
-                    .toList();
+                    .filter(byCategory::containsKey)
+                    .collect(Collectors.toMap(
+                            id -> id,
+                            id -> Set.copyOf(byCategory.get(id))));
         }
     }
 

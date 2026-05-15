@@ -146,14 +146,7 @@ public class ResolveDiscountsService implements ResolveDiscountsUseCase {
             }
         }
         if (toExpand.isEmpty()) return Map.of();
-
-        Map<Long, Set<String>> result = new HashMap<>();
-        for (Map.Entry<Long, Boolean> entry : toExpand.entrySet()) {
-            List<String> codes = expandCategoryTargetPort.resolveSkuCodes(
-                    Map.of(entry.getKey(), entry.getValue()));
-            result.put(entry.getKey(), new HashSet<>(codes));
-        }
-        return result;
+        return expandCategoryTargetPort.resolveSkuCodes(toExpand);
     }
 
     // ---- Gating ----

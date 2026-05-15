@@ -186,15 +186,18 @@ public class CheckoutService implements CheckoutUseCase {
                 .toList();
 
         // 9. Persist order
-        Order newOrder = new Order(null, command.userId(), null,
-                OrderStatus.PENDING, total, orderItems, Instant.now(),
-                pointsToRedeem, 0,
-                command.deliveryType(),
-                command.address(),
-                command.preferredTimeWindow(),
-                command.pickpointId(),
-                null, null, null,
-                null, null, null, null);
+        Order newOrder = new Order.Builder()
+                .userId(command.userId())
+                .status(OrderStatus.PENDING)
+                .totalAmount(total)
+                .items(orderItems)
+                .createdAt(Instant.now())
+                .loyaltyPointsRedeemed(pointsToRedeem)
+                .deliveryType(command.deliveryType())
+                .deliveryAddress(command.address())
+                .preferredTimeWindow(command.preferredTimeWindow())
+                .pickpointId(command.pickpointId())
+                .build();
         Order saved = saveOrderPort.save(newOrder);
 
         // 10. Record one discount_application row per stacked discount layer per line

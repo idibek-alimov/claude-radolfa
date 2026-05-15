@@ -31,7 +31,7 @@ class ResolveDiscountsServiceStackingTest {
 
     // ---- Fakes ----
 
-    static final ExpandCategoryTargetPort NO_EXPAND = cats -> List.of();
+    static final ExpandCategoryTargetPort NO_EXPAND = cats -> Map.of();
     static final LoadUserSegmentContextPort NO_SEGMENT = userId -> Optional.empty();
     static final QueryDiscountUsagePort NO_USAGE = new QueryDiscountUsagePort() {
         @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }

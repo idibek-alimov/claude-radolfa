@@ -72,7 +72,8 @@ class CreateProductServiceTest {
 
         service = new CreateProductService(
                 fakeCategory, fakeColor, fakeBrand,
-                fakeBlueprint, fakeSave, eventPublisher);
+                fakeBlueprint, fakeSave, eventPublisher,
+                new tj.radolfa.domain.service.BarcodeGenerator());
 
         // Default "happy path" fixtures
         fakeCategory.store(new CategoryView(1L, "Clothing", "clothing", null, List.of()));
@@ -116,7 +117,7 @@ class CreateProductServiceTest {
     }
 
     @Test
-    @DisplayName("SKU barcode is auto-generated with 'BC-' prefix; variant dimensions are persisted correctly")
+    @DisplayName("SKU barcode is auto-generated as a valid EAN-13 code; variant dimensions are persisted correctly")
     void execute_skuLogisticsFields_persistedCorrectly() {
         SkuDefinition sku = new SkuDefinition("XL", new Money(new BigDecimal("49.99")), 30);
         VariantDefinition varDef = new VariantDefinition(
@@ -126,8 +127,12 @@ class CreateProductServiceTest {
 
         Sku savedSku = fakeSave.lastSavedSku;
         assertNotNull(savedSku);
-        assertNotNull(savedSku.getBarcode());
-        assertTrue(savedSku.getBarcode().startsWith("BC-"), "Barcode must be auto-generated with 'BC-' prefix");
+        String barcode = savedSku.getBarcode();
+        assertNotNull(barcode);
+        assertEquals(13, barcode.length(), "EAN-13 barcode must be exactly 13 digits");
+        assertTrue(barcode.matches("\\d{13}"), "EAN-13 barcode must be all digits");
+        int expectedCheck = tj.radolfa.domain.service.BarcodeGenerator.checkDigit(barcode.substring(0, 12));
+        assertEquals(expectedCheck, barcode.charAt(12) - '0', "EAN-13 check digit must be valid");
         assertEquals("XL", savedSku.getSizeLabel());
         assertEquals(30, savedSku.getStockQuantity());
 

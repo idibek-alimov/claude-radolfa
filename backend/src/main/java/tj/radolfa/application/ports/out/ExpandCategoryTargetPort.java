@@ -1,13 +1,16 @@
 package tj.radolfa.application.ports.out;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface ExpandCategoryTargetPort {
 
     /**
-     * Resolves category targets into concrete SKU item codes in one batched query.
-     * Key = categoryId, value = includeDescendants flag.
+     * Resolves each requested root category to the set of SKU codes belonging to it
+     * (or its full subtree, when includeDescendants=true). Single DB round-trip.
+     *
+     * @return map from each requested rootId → distinct SKU codes under that root.
+     *         Roots with no matching SKUs are absent from the map.
      */
-    List<String> resolveSkuCodes(Map<Long, Boolean> categoryToIncludeDescendants);
+    Map<Long, Set<String>> resolveSkuCodes(Map<Long, Boolean> categoryToIncludeDescendants);
 }

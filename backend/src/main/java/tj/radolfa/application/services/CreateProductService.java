@@ -19,6 +19,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.service.BarcodeGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,19 +46,22 @@ public class CreateProductService implements CreateProductUseCase {
     private final LoadCategoryBlueprintPort loadBlueprintPort;
     private final SaveProductHierarchyPort  savePort;
     private final ApplicationEventPublisher eventPublisher;
+    private final BarcodeGenerator          barcodeGenerator;
 
     public CreateProductService(LoadCategoryPort loadCategoryPort,
                                 LoadColorPort loadColorPort,
                                 LoadBrandPort loadBrandPort,
                                 LoadCategoryBlueprintPort loadBlueprintPort,
                                 SaveProductHierarchyPort savePort,
-                                ApplicationEventPublisher eventPublisher) {
+                                ApplicationEventPublisher eventPublisher,
+                                BarcodeGenerator barcodeGenerator) {
         this.loadCategoryPort  = loadCategoryPort;
         this.loadColorPort     = loadColorPort;
         this.loadBrandPort     = loadBrandPort;
         this.loadBlueprintPort = loadBlueprintPort;
         this.savePort          = savePort;
         this.eventPublisher    = eventPublisher;
+        this.barcodeGenerator  = barcodeGenerator;
     }
 
     @Override
@@ -166,7 +170,7 @@ public class CreateProductService implements CreateProductUseCase {
             List<Sku> savedSkus = new ArrayList<>();
             for (Command.SkuDefinition def : variantDef.skus()) {
                 String skuCode  = "SKU-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
-                String barcode  = "BC-"  + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+                String barcode  = barcodeGenerator.next();
                 Sku sku = new Sku(
                         null,
                         savedVariant.getId(),

@@ -30,7 +30,7 @@ class ResolveDiscountsServiceUsageCapTest {
 
     // ---- Fakes ----
 
-    static final ExpandCategoryTargetPort NO_EXPAND = cats -> List.of();
+    static final ExpandCategoryTargetPort NO_EXPAND = cats -> Map.of();
     static final LoadUserSegmentContextPort NO_SEGMENT = userId -> Optional.empty();
 
     static Discount skuDiscount(Long id, String code, Integer capTotal, Integer capPerCustomer) {

@@ -53,7 +53,7 @@ class ResolveDiscountsServiceSegmentTest {
         @Override public Optional<Discount> findByCouponCode(String code) { return Optional.empty(); }
     }
 
-    static final ExpandCategoryTargetPort NO_EXPAND = cats -> List.of();
+    static final ExpandCategoryTargetPort NO_EXPAND = cats -> Map.of();
     static final QueryDiscountUsagePort NO_USAGE = new QueryDiscountUsagePort() {
         @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
         @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long userId) { return Map.of(); }
