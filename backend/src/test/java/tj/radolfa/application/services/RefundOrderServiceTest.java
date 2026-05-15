@@ -36,11 +36,11 @@ class RefundOrderServiceTest {
             "Manager", null, LoyaltyProfile.empty(), true, 1L);
 
     static Order orderWithStatus(OrderStatus status) {
-        return new Order(1L, 10L, null, status,
-                new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(1L).userId(10L).status(status)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .build();
     }
 
     static LoadOrderPort orderPort(Order order) {

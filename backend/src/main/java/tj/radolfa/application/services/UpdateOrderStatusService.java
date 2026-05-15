@@ -16,7 +16,7 @@ import java.time.LocalDate;
  * ADMIN-only service: transitions an order through the fulfilment pipeline.
  *
  * <p>Legal forward path: PENDING → PAID → SHIPPED → DELIVERED.
- * HOME orders transitioning to SHIPPED require {@code courierName}.
+ * HOME orders transitioning to SHIPPED require {@code courierId}.
  * Cancellation is handled separately by {@link CancelOrderService}.
  */
 @Service
@@ -45,16 +45,16 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 
         boolean toShipped   = command.newStatus() == OrderStatus.SHIPPED;
         boolean toDelivered = command.newStatus() == OrderStatus.DELIVERED;
-        String courierName    = toShipped ? command.courierName()           : order.courierName();
-        String trackingNumber = toShipped ? command.trackingNumber()        : order.trackingNumber();
-        LocalDate edd         = toShipped ? command.estimatedDeliveryDate() : order.estimatedDeliveryDate();
-        Instant now           = Instant.now();
-        Instant shippedAt     = toShipped   ? now : order.shippedAt();
-        Instant deliveredAt   = toDelivered ? now : order.deliveredAt();
+        Long      courierId     = toShipped ? command.courierId()             : order.courierId();
+        String trackingNumber   = toShipped ? command.trackingNumber()        : order.trackingNumber();
+        LocalDate edd           = toShipped ? command.estimatedDeliveryDate() : order.estimatedDeliveryDate();
+        Instant now             = Instant.now();
+        Instant shippedAt       = toShipped   ? now : order.shippedAt();
+        Instant deliveredAt     = toDelivered ? now : order.deliveredAt();
 
         Order updated = order.toBuilder()
                 .status(command.newStatus())
-                .courierName(courierName)
+                .courierId(courierId)
                 .trackingNumber(trackingNumber)
                 .estimatedDeliveryDate(edd)
                 .shippedAt(shippedAt)
@@ -67,8 +67,8 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     private void validateCourierFields(Order order, Command command) {
         if (command.newStatus() == OrderStatus.SHIPPED
                 && order.deliveryType() == DeliveryType.HOME
-                && (command.courierName() == null || command.courierName().isBlank())) {
-            throw new IllegalArgumentException("Courier name is required when shipping a home delivery");
+                && command.courierId() == null) {
+            throw new IllegalArgumentException("Courier ID is required when shipping a home delivery");
         }
     }
 

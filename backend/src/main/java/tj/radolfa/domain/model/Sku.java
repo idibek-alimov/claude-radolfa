@@ -1,5 +1,7 @@
 package tj.radolfa.domain.model;
 
+import java.math.BigDecimal;
+
 /**
  * A size/price variant — the actual purchasable unit.
  *
@@ -23,7 +25,11 @@ public class Sku {
     private Money   price;
 
     // Radolfa-managed logistics fields
-    private String  barcode;
+    private String     barcode;
+    private BigDecimal weightKg;
+    private Integer    lengthCm;
+    private Integer    widthCm;
+    private Integer    heightCm;
 
     public Sku(Long id,
                Long listingVariantId,
@@ -31,7 +37,11 @@ public class Sku {
                String sizeLabel,
                Integer stockQuantity,
                Money price,
-               String barcode) {
+               String barcode,
+               BigDecimal weightKg,
+               Integer lengthCm,
+               Integer widthCm,
+               Integer heightCm) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
         this.skuCode          = skuCode;
@@ -39,16 +49,33 @@ public class Sku {
         this.stockQuantity    = stockQuantity;
         this.price            = price;
         this.barcode          = barcode;
+        this.weightKg         = weightKg;
+        this.lengthCm         = lengthCm;
+        this.widthCm          = widthCm;
+        this.heightCm         = heightCm;
     }
 
-    /** Constructor without barcode. */
+    /** Constructor without logistics fields — preserves backward compatibility. */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price,
+               String barcode) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, barcode,
+             null, null, null, null);
+    }
+
+    /** Constructor without barcode or logistics fields. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price) {
-        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, null);
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, null,
+             null, null, null, null);
     }
 
     /**
@@ -67,11 +94,15 @@ public class Sku {
     }
 
     // ---- Getters ----
-    public Long    getId()               { return id; }
-    public Long    getListingVariantId() { return listingVariantId; }
-    public String  getSkuCode()          { return skuCode; }
-    public String  getSizeLabel()        { return sizeLabel; }
-    public Integer getStockQuantity()    { return stockQuantity; }
-    public Money   getPrice()            { return price; }
-    public String  getBarcode()          { return barcode; }
+    public Long       getId()               { return id; }
+    public Long       getListingVariantId() { return listingVariantId; }
+    public String     getSkuCode()          { return skuCode; }
+    public String     getSizeLabel()        { return sizeLabel; }
+    public Integer    getStockQuantity()    { return stockQuantity; }
+    public Money      getPrice()            { return price; }
+    public String     getBarcode()          { return barcode; }
+    public BigDecimal getWeightKg()         { return weightKg; }
+    public Integer    getLengthCm()         { return lengthCm; }
+    public Integer    getWidthCm()          { return widthCm; }
+    public Integer    getHeightCm()         { return heightCm; }
 }

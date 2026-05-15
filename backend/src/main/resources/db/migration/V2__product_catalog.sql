@@ -138,6 +138,10 @@ CREATE TABLE skus (
     stock_quantity     INTEGER        NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
     original_price     NUMERIC(12,2),
     barcode            VARCHAR(128)   UNIQUE,
+    weight_kg          NUMERIC(6,3),
+    length_cm          INTEGER,
+    width_cm           INTEGER,
+    height_cm          INTEGER,
     version            BIGINT         NOT NULL DEFAULT 0,
     created_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW()

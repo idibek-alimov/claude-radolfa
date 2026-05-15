@@ -117,11 +117,12 @@ class CheckoutServiceStackingTest {
                 .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
                         i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice()))
                 .toList();
-        return new Order(100L, order.userId(), null, OrderStatus.PENDING, order.totalAmount(),
-                itemsWithIds, order.createdAt(), 0, 0,
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(100L).userId(order.userId()).status(OrderStatus.PENDING)
+                .totalAmount(order.totalAmount()).items(itemsWithIds).createdAt(order.createdAt())
+                .deliveryType(order.deliveryType()).deliveryAddress(order.deliveryAddress())
+                .preferredTimeWindow(order.preferredTimeWindow()).pickpointId(order.pickpointId())
+                .build();
     };
 
     static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {

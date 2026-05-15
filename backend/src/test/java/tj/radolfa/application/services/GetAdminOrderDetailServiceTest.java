@@ -33,21 +33,20 @@ class GetAdminOrderDetailServiceTest {
             "Bob", null, LoyaltyProfile.empty(), true, 1L);
 
     static Order homeOrder() {
-        return new Order(10L, 1L, null, OrderStatus.PAID,
-                new Money(BigDecimal.valueOf(200)), List.of(),
-                Instant.now(), 0, 0,
-                DeliveryType.HOME, "Main St 1", "MORNING", null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(10L).userId(1L).status(OrderStatus.PAID)
+                .totalAmount(new Money(BigDecimal.valueOf(200))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Main St 1")
+                .preferredTimeWindow("MORNING")
+                .build();
     }
 
     static Order pickpointOrder(Long ppId) {
-        return new Order(11L, 1L, null, OrderStatus.PENDING,
-                new Money(BigDecimal.valueOf(150)), List.of(),
-                Instant.now(), 0, 0,
-                DeliveryType.PICKPOINT, null, null, ppId,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(11L).userId(1L).status(OrderStatus.PENDING)
+                .totalAmount(new Money(BigDecimal.valueOf(150))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(ppId)
+                .build();
     }
 
     static LoadOrderPort orderPort(Order order) {

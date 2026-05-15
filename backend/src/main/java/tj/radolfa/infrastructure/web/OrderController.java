@@ -118,7 +118,7 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
         updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
-                id, newStatus, body.courierName(), body.trackingNumber(), body.estimatedDeliveryDate()));
+                id, newStatus, body.courierId(), body.trackingNumber(), body.estimatedDeliveryDate()));
         return ResponseEntity.noContent().build();
     }
 
@@ -186,7 +186,7 @@ public class OrderController {
                 order.pickpointId(),
                 pickpoint != null ? pickpoint.name()    : null,
                 pickpoint != null ? pickpoint.address() : null,
-                order.courierName(),
+                null, // courier name — resolved via admin API only (Phase 9)
                 order.trackingNumber(),
                 order.estimatedDeliveryDate());
     }

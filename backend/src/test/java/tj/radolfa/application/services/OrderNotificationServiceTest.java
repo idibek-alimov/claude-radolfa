@@ -46,11 +46,11 @@ class OrderNotificationServiceTest {
     }
 
     static Order orderWithStatus(OrderStatus status) {
-        return new Order(42L, 7L, null, status,
-                new Money(BigDecimal.valueOf(100)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, null, null, null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(42L).userId(7L).status(status)
+                .totalAmount(new Money(BigDecimal.valueOf(100))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME)
+                .build();
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

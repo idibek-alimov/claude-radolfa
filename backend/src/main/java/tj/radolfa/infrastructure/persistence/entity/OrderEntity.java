@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+import tj.radolfa.domain.model.DeliveryAttemptReason;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
 
@@ -64,8 +65,8 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "pickpoint_id")
     private Long pickpointId;
 
-    @Column(name = "courier_name")
-    private String courierName;
+    @Column(name = "courier_id")
+    private Long courierId;
 
     @Column(name = "tracking_number")
     private String trackingNumber;
@@ -88,6 +89,24 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "refunded_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant refundedAt;
+
+    @Column(name = "out_for_delivery_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant outForDeliveryAt;
+
+    @Column(name = "delivery_attempted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant deliveryAttemptedAt;
+
+    @Column(name = "delivery_attempt_count", nullable = false)
+    private int deliveryAttemptCount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_attempt_reason", length = 32)
+    private DeliveryAttemptReason deliveryAttemptReason;
+
+    @Column(name = "delivery_photo_url", columnDefinition = "TEXT")
+    private String deliveryPhotoUrl;
 
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)

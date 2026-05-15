@@ -12,5 +12,6 @@ public interface GetAdminOrderDetailUseCase {
     record Result(Order order,
                   Optional<Pickpoint> pickpoint,
                   String userPhone,
-                  String userName) {}
+                  String userName,
+                  String courierName) {}
 }

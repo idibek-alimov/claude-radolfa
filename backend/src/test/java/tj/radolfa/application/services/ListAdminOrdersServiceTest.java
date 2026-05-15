@@ -18,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ListAdminOrdersServiceTest {
 
     private static Order order(Long id) {
-        return new Order(id, 1L, null, OrderStatus.PENDING,
-                new Money(BigDecimal.TEN), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(id).userId(1L).status(OrderStatus.PENDING)
+                .totalAmount(new Money(BigDecimal.TEN)).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .build();
     }
 
     private static LoadAdminOrdersPort.OrderRow row(Long id) {

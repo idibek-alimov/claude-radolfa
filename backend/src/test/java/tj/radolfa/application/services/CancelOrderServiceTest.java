@@ -38,11 +38,11 @@ class CancelOrderServiceTest {
             "Alice", null, LoyaltyProfile.empty(), true, 1L);
 
     static Order pendingOrder(Long ownerId) {
-        return new Order(1L, ownerId, null, OrderStatus.PENDING,
-                new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(1L).userId(ownerId).status(OrderStatus.PENDING)
+                .totalAmount(new Money(BigDecimal.valueOf(200))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .build();
     }
 
     static LoadOrderPort orderPort(Order order) {
@@ -161,11 +161,11 @@ class CancelOrderServiceTest {
     @Test
     @DisplayName("ADMIN cannot cancel an already-DELIVERED order")
     void adminCannotCancelDeliveredOrder_throws() {
-        Order delivered = new Order(1L, 10L, null, OrderStatus.DELIVERED,
-                new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        Order delivered = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.DELIVERED)
+                .totalAmount(new Money(BigDecimal.valueOf(200))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .build();
 
         CancelOrderService svc = service(delivered, ADMIN_USER,
                 new CapturingSaveOrderPort(), new CountingNotificationPort());

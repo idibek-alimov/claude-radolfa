@@ -120,7 +120,11 @@ public interface ProductHierarchyMapper {
                 entity.getSizeLabel(),
                 entity.getStockQuantity(),
                 Money.of(entity.getOriginalPrice()),
-                entity.getBarcode()
+                entity.getBarcode(),
+                entity.getWeightKg(),
+                entity.getLengthCm(),
+                entity.getWidthCm(),
+                entity.getHeightCm()
         );
     }
 
