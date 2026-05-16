@@ -274,8 +274,10 @@
       "status": {
         "PENDING":          "Ожидает",
         "PAID":             "Оплачен",
-        "SHIPPED":          "Отправлен",
-        "READY_FOR_PICKUP": "Готов к выдаче",
+        "SHIPPED":              "Отправлен",
+        "OUT_FOR_DELIVERY":     "Курьер в пути",
+        "DELIVERY_ATTEMPTED":   "Попытка доставки",
+        "READY_FOR_PICKUP":     "Готов к выдаче",
         "DELIVERED":        "Доставлен",
         "CANCELLED":        "Отменён",
         "REFUNDED":         "Возврат"
@@ -424,6 +426,9 @@
     "statusShipped": "Отправлен",
     "statusDelivered": "Доставлен",
     "statusCancelled": "Отменён",
+    "statusOutForDelivery": "Ваш заказ в пути",
+    "statusDeliveryAttempted": "Попытка доставки — повторим позже",
+    "statusReadyForPickupWithCode": "Готов к выдаче — покажите код на кассе",
     "orderPlaced": "Оформлен",
     "orderConfirmed": "Подтверждён",
     "orderShipped": "Отправлен",

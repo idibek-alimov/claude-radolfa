@@ -22,6 +22,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { cancelOrder } from "@/features/profile/api";
 import { addToCart } from "@/entities/cart";
+import { useDeliveryCode } from "@/entities/order/api";
 import { SubmitReviewForm } from "@/features/review-submission";
 import { getErrorMessage } from "@/shared/lib";
 import type { Order, OrderItem } from "@/features/profile/types";
@@ -280,10 +281,16 @@ function OrderDetailsAccordion({ order }: { order: Order }) {
 
 /* ── OrderHistoryCard ──────────────────────────────────────────── */
 
+const CODE_STATUSES = ["SHIPPED", "OUT_FOR_DELIVERY", "READY_FOR_PICKUP"] as const;
+
 export function OrderHistoryCard({ order }: { order: Order }) {
   const t = useTranslations("profile");
   const queryClient = useQueryClient();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [showCode, setShowCode]       = useState(false);
+
+  const needsCode = (CODE_STATUSES as readonly string[]).includes(order.status);
+  const { data: codeData } = useDeliveryCode(order.id, needsCode);
 
   const cancelMutation = useMutation({
     mutationFn: () => cancelOrder(order.id),
@@ -316,12 +323,22 @@ export function OrderHistoryCard({ order }: { order: Order }) {
                 ? "bg-red-100 text-red-800"
                 : order.status === "SHIPPED"
                 ? "bg-cyan-100 text-cyan-800"
+                : order.status === "OUT_FOR_DELIVERY"
+                ? "bg-blue-100 text-blue-800"
+                : order.status === "DELIVERY_ATTEMPTED"
+                ? "bg-amber-100 text-amber-800"
                 : order.status === "READY_FOR_PICKUP"
                 ? "bg-indigo-100 text-indigo-800"
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {order.status}
+            {order.status === "OUT_FOR_DELIVERY"
+              ? t("statusOutForDelivery")
+              : order.status === "DELIVERY_ATTEMPTED"
+              ? t("statusDeliveryAttempted")
+              : order.status === "READY_FOR_PICKUP"
+              ? t("statusReadyForPickupWithCode")
+              : order.status}
           </span>
           <span className="text-xs text-muted-foreground">
             {t("itemCount", { count: order.items.length })}
@@ -352,6 +369,28 @@ export function OrderHistoryCard({ order }: { order: Order }) {
           <p className="text-sm text-indigo-800 font-medium">
             {t("readyForPickupCallout")}
           </p>
+        </div>
+      )}
+
+      {/* Delivery / Pickup Code */}
+      {needsCode && codeData?.code && (
+        <div className="mt-3 rounded-xl border bg-muted/30 p-4 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            {order.status === "READY_FOR_PICKUP" ? "Pickup Code" : "Delivery Code"}
+          </p>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-2xl tracking-[0.5em] text-foreground select-all">
+              {showCode ? codeData.code : "••••••"}
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => setShowCode((v) => !v)}>
+              {showCode ? "Hide" : "Show Code"}
+            </Button>
+          </div>
+          {codeData.expiresAt && (
+            <p className="text-xs text-muted-foreground">
+              Valid until {new Date(codeData.expiresAt).toLocaleString()}
+            </p>
+          )}
         </div>
       )}
 

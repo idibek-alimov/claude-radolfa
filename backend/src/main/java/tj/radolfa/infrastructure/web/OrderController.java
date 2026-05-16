@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.GetMyOrdersUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
+import tj.radolfa.application.ports.in.order.GetDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
@@ -27,6 +28,7 @@ import tj.radolfa.infrastructure.web.dto.OrderDto;
 import tj.radolfa.infrastructure.web.dto.OrderItemDto;
 import tj.radolfa.infrastructure.web.dto.UpdateOrderStatusRequest;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +42,7 @@ public class OrderController {
     private final CheckoutUseCase          checkoutUseCase;
     private final CancelOrderUseCase       cancelOrderUseCase;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
+    private final GetDeliveryCodeUseCase   getDeliveryCodeUseCase;
     private final LoadListingVariantPort   loadListingVariantPort;
     private final LoadSkuPort              loadSkuPort;
     private final LoadReviewPort           loadReviewPort;
@@ -49,6 +52,7 @@ public class OrderController {
                            CheckoutUseCase checkoutUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
                            UpdateOrderStatusUseCase updateOrderStatusUseCase,
+                           GetDeliveryCodeUseCase getDeliveryCodeUseCase,
                            LoadListingVariantPort loadListingVariantPort,
                            LoadSkuPort loadSkuPort,
                            LoadReviewPort loadReviewPort,
@@ -57,6 +61,7 @@ public class OrderController {
         this.checkoutUseCase          = checkoutUseCase;
         this.cancelOrderUseCase       = cancelOrderUseCase;
         this.updateOrderStatusUseCase = updateOrderStatusUseCase;
+        this.getDeliveryCodeUseCase   = getDeliveryCodeUseCase;
         this.loadListingVariantPort   = loadListingVariantPort;
         this.loadSkuPort              = loadSkuPort;
         this.loadReviewPort           = loadReviewPort;
@@ -121,6 +126,17 @@ public class OrderController {
                 id, newStatus, body.courierId(), body.trackingNumber(), body.estimatedDeliveryDate()));
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{orderId}/delivery-code")
+    @Operation(summary = "Get the active delivery/pickup code for an order (authenticated owner only)")
+    public ResponseEntity<DeliveryCodeResponse> getDeliveryCode(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        var result = getDeliveryCodeUseCase.execute(orderId, user.userId());
+        return ResponseEntity.ok(new DeliveryCodeResponse(result.code(), result.expiresAt()));
+    }
+
+    record DeliveryCodeResponse(String code, Instant expiresAt) {}
 
     private OrderDto toDto(Order order) {
         List<Long> variantIds = order.items().stream()

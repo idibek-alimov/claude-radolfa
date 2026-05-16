@@ -274,8 +274,10 @@
       "status": {
         "PENDING":          "Интизор",
         "PAID":             "Пардохтшуда",
-        "SHIPPED":          "Фиристода шуд",
-        "READY_FOR_PICKUP": "Омода ба гирифтан",
+        "SHIPPED":              "Фиристода шуд",
+        "OUT_FOR_DELIVERY":     "Курьер дар роҳ аст",
+        "DELIVERY_ATTEMPTED":   "Кӯшиши расондан",
+        "READY_FOR_PICKUP":     "Омода ба гирифтан",
         "DELIVERED":        "Расонида шуд",
         "CANCELLED":        "Бекор шуд",
         "REFUNDED":         "Баргардонида шуд"
@@ -424,6 +426,9 @@
     "statusShipped": "Фиристода шуд",
     "statusDelivered": "Расонида шуд",
     "statusCancelled": "Бекор карда шуд",
+    "statusOutForDelivery": "Фармоиши шумо дар роҳ аст",
+    "statusDeliveryAttempted": "Кӯшиши расондан — дубора кӯшиш мекунем",
+    "statusReadyForPickupWithCode": "Барои гирифтан омода — рамзи худро нишон диҳед",
     "orderPlaced": "Қабул шуд",
     "orderConfirmed": "Тасдиқ шуд",
     "orderShipped": "Фиристода шуд",

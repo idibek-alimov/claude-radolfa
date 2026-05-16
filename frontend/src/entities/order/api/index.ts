@@ -103,6 +103,19 @@ export function useCancelOrder() {
   });
 }
 
+export function useDeliveryCode(orderId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ["delivery-code", orderId],
+    queryFn: () =>
+      apiClient
+        .get<{ code: string; expiresAt: string }>(`/api/v1/orders/${orderId}/delivery-code`)
+        .then((r) => r.data),
+    enabled,
+    staleTime: 60_000,
+    retry: false,
+  });
+}
+
 export function useRefundOrder() {
   const qc = useQueryClient();
   return useMutation({
