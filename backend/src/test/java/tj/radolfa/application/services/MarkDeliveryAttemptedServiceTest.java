@@ -65,9 +65,37 @@ class MarkDeliveryAttemptedServiceTest {
         };
     }
 
+    static class CapturingDeliveryEventPublisher
+            implements tj.radolfa.application.ports.out.DeliveryEventPublisher {
+        Long lastRetryLimitOrderId;
+        Long lastRetryLimitCourierId;
+        @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+        @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+        @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+        @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+        @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {
+            lastRetryLimitOrderId = o; lastRetryLimitCourierId = c;
+        }
+    }
+
+    static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
+            new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
+                @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+                @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+                @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+                @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+                @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
+            };
+
     static MarkDeliveryAttemptedService service(Order order, CapturingSaveOrderPort save) {
         return new MarkDeliveryAttemptedService(orderPort(order), save,
-                new OrderNotificationService(silentPort()), MAX);
+                new OrderNotificationService(silentPort()), NO_DELIVERY_EVENTS, MAX);
+    }
+
+    static MarkDeliveryAttemptedService service(Order order, CapturingSaveOrderPort save,
+                                                 tj.radolfa.application.ports.out.DeliveryEventPublisher pub) {
+        return new MarkDeliveryAttemptedService(orderPort(order), save,
+                new OrderNotificationService(silentPort()), pub, MAX);
     }
 
     @Test
@@ -148,5 +176,18 @@ class MarkDeliveryAttemptedServiceTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> svc.execute(new Command(999L, COURIER_ID, DeliveryAttemptReason.NO_ANSWER, null)));
+    }
+
+    @Test
+    @DisplayName("Reaching max attempts → publishDeliveryRetryLimitReached called with correct orderId + courierId")
+    void retryLimitReached_publishesWebSocketEvent() {
+        CapturingDeliveryEventPublisher pub  = new CapturingDeliveryEventPublisher();
+        CapturingSaveOrderPort          save = new CapturingSaveOrderPort();
+
+        service(outForDeliveryOrder(MAX - 1), save, pub)
+                .execute(new Command(1L, COURIER_ID, DeliveryAttemptReason.NO_ANSWER, null));
+
+        assertEquals(1L,         pub.lastRetryLimitOrderId);
+        assertEquals(COURIER_ID, pub.lastRetryLimitCourierId);
     }
 }

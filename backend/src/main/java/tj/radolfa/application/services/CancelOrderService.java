@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.loyalty.RestoreLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.ExpireOrderUseCase;
+import tj.radolfa.application.ports.out.DeliveryEventPublisher;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
@@ -13,6 +14,8 @@ import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+
+import java.util.Set;
 
 import java.time.Instant;
 
@@ -31,25 +34,31 @@ import java.time.Instant;
 @Service
 public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCase {
 
+    private static final Set<OrderStatus> COURIER_ACTIVE = Set.of(
+            OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERY_ATTEMPTED);
+
     private final LoadOrderPort                loadOrderPort;
     private final SaveOrderPort                saveOrderPort;
     private final LoadUserPort                 loadUserPort;
     private final StockAdjustmentPort          stockAdjustmentPort;
     private final RestoreLoyaltyPointsUseCase  restoreLoyaltyPointsUseCase;
     private final OrderNotificationService     orderNotificationService;
+    private final DeliveryEventPublisher       deliveryEventPublisher;
 
     public CancelOrderService(LoadOrderPort loadOrderPort,
                               SaveOrderPort saveOrderPort,
                               LoadUserPort loadUserPort,
                               StockAdjustmentPort stockAdjustmentPort,
                               RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase,
-                              OrderNotificationService orderNotificationService) {
+                              OrderNotificationService orderNotificationService,
+                              DeliveryEventPublisher deliveryEventPublisher) {
         this.loadOrderPort               = loadOrderPort;
         this.saveOrderPort               = saveOrderPort;
         this.loadUserPort                = loadUserPort;
         this.stockAdjustmentPort         = stockAdjustmentPort;
         this.restoreLoyaltyPointsUseCase = restoreLoyaltyPointsUseCase;
         this.orderNotificationService    = orderNotificationService;
+        this.deliveryEventPublisher      = deliveryEventPublisher;
     }
 
     @Override
@@ -115,5 +124,12 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
                 .build();
         saveOrderPort.save(cancelled);
         orderNotificationService.notify(cancelled);
+
+        // WebSocket push to affected field staff
+        if (COURIER_ACTIVE.contains(order.status()) && order.courierId() != null) {
+            deliveryEventPublisher.publishOrderCancelledToCourier(order.courierId(), order.id());
+        } else if (order.status() == OrderStatus.READY_FOR_PICKUP && order.pickpointId() != null) {
+            deliveryEventPublisher.publishOrderCancelledAtPickpoint(order.pickpointId(), order.id());
+        }
     }
 }

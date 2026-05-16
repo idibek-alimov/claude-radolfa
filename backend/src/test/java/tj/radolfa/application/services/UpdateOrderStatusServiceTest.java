@@ -101,14 +101,25 @@ class UpdateOrderStatusServiceTest {
         @Override public DeliveryCode execute(Long orderId) { this.lastOrderId = orderId; return null; }
     }
 
+    static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
+            new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
+                @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+                @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+                @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+                @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+                @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
+            };
+
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save) {
         return new UpdateOrderStatusService(orderPort(order), save,
-                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase());
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS);
     }
 
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save, NotificationPort notifPort) {
         return new UpdateOrderStatusService(orderPort(order), save,
-                new OrderNotificationService(notifPort), new FakeGenerateDeliveryCodeUseCase());
+                new OrderNotificationService(notifPort), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -328,7 +339,8 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = new UpdateOrderStatusService(
                 orderPort(pristine), save,
-                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase());
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS);
 
         svc.execute(new Command(42L, OrderStatus.SHIPPED,
                 99L, "TR-001", LocalDate.of(2026, 6, 1)));
@@ -367,7 +379,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = new UpdateOrderStatusService(
                 orderPort(attemptedOrder), save,
-                new OrderNotificationService(silentPort()), fakeCodeGen);
+                new OrderNotificationService(silentPort()), fakeCodeGen, NO_DELIVERY_EVENTS);
 
         svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
 

@@ -91,12 +91,21 @@ class RedirectToPickpointServiceTest {
         };
     }
 
+    static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
+            new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
+                @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+                @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+                @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+                @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+                @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
+            };
+
     static RedirectToPickpointService service(LoadOrderPort orderPort,
                                                CapturingSaveOrderPort save,
                                                LoadPickpointPort pickpointPort,
                                                GenerateDeliveryCodeUseCase codeUseCase) {
         return new RedirectToPickpointService(orderPort, save, pickpointPort,
-                codeUseCase, new OrderNotificationService(silentPort()));
+                codeUseCase, new OrderNotificationService(silentPort()), NO_DELIVERY_EVENTS);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

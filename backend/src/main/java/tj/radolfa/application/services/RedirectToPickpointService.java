@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
+import tj.radolfa.application.ports.out.DeliveryEventPublisher;
 import tj.radolfa.application.ports.in.order.RedirectToPickpointUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
@@ -21,17 +22,20 @@ public class RedirectToPickpointService implements RedirectToPickpointUseCase {
     private final LoadPickpointPort          loadPickpointPort;
     private final GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase;
     private final OrderNotificationService   orderNotificationService;
+    private final DeliveryEventPublisher     deliveryEventPublisher;
 
     public RedirectToPickpointService(LoadOrderPort loadOrderPort,
                                       SaveOrderPort saveOrderPort,
                                       LoadPickpointPort loadPickpointPort,
                                       GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase,
-                                      OrderNotificationService orderNotificationService) {
+                                      OrderNotificationService orderNotificationService,
+                                      DeliveryEventPublisher deliveryEventPublisher) {
         this.loadOrderPort              = loadOrderPort;
         this.saveOrderPort              = saveOrderPort;
         this.loadPickpointPort          = loadPickpointPort;
         this.generateDeliveryCodeUseCase = generateDeliveryCodeUseCase;
         this.orderNotificationService   = orderNotificationService;
+        this.deliveryEventPublisher      = deliveryEventPublisher;
     }
 
     @Override
@@ -72,5 +76,7 @@ public class RedirectToPickpointService implements RedirectToPickpointUseCase {
         generateDeliveryCodeUseCase.execute(command.orderId());
 
         orderNotificationService.notify(updated);
+
+        deliveryEventPublisher.publishNewOrderAtPickpoint(command.pickpointId(), command.orderId());
     }
 }

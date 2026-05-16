@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
+import tj.radolfa.application.ports.out.DeliveryEventPublisher;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.DeliveryType;
@@ -30,15 +31,18 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     private final SaveOrderPort              saveOrderPort;
     private final OrderNotificationService   orderNotificationService;
     private final GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase;
+    private final DeliveryEventPublisher     deliveryEventPublisher;
 
     public UpdateOrderStatusService(LoadOrderPort loadOrderPort,
                                     SaveOrderPort saveOrderPort,
                                     OrderNotificationService orderNotificationService,
-                                    GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase) {
+                                    GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase,
+                                    DeliveryEventPublisher deliveryEventPublisher) {
         this.loadOrderPort              = loadOrderPort;
         this.saveOrderPort              = saveOrderPort;
         this.orderNotificationService   = orderNotificationService;
         this.generateDeliveryCodeUseCase = generateDeliveryCodeUseCase;
+        this.deliveryEventPublisher      = deliveryEventPublisher;
     }
 
     @Override
@@ -77,6 +81,13 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         }
 
         orderNotificationService.notify(updated);
+
+        // WebSocket push to field staff
+        if (command.newStatus() == OrderStatus.SHIPPED && updated.courierId() != null) {
+            deliveryEventPublisher.publishOrderAssignedToCourier(updated.courierId(), updated.id());
+        } else if (command.newStatus() == OrderStatus.READY_FOR_PICKUP && updated.pickpointId() != null) {
+            deliveryEventPublisher.publishNewOrderAtPickpoint(updated.pickpointId(), updated.id());
+        }
     }
 
     private void validateCourierFields(Order order, Command command) {

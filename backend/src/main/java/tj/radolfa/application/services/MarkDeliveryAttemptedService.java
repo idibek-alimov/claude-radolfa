@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.order.MarkDeliveryAttemptedUseCase;
+import tj.radolfa.application.ports.out.DeliveryEventPublisher;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.exception.CourierAccessDeniedException;
@@ -23,15 +24,18 @@ public class MarkDeliveryAttemptedService implements MarkDeliveryAttemptedUseCas
     private final LoadOrderPort            loadOrderPort;
     private final SaveOrderPort            saveOrderPort;
     private final OrderNotificationService orderNotificationService;
+    private final DeliveryEventPublisher   deliveryEventPublisher;
     private final int                      maxAttempts;
 
     public MarkDeliveryAttemptedService(LoadOrderPort loadOrderPort,
                                         SaveOrderPort saveOrderPort,
                                         OrderNotificationService orderNotificationService,
+                                        DeliveryEventPublisher deliveryEventPublisher,
                                         @Value("${radolfa.delivery.max-attempts:3}") int maxAttempts) {
         this.loadOrderPort            = loadOrderPort;
         this.saveOrderPort            = saveOrderPort;
         this.orderNotificationService = orderNotificationService;
+        this.deliveryEventPublisher   = deliveryEventPublisher;
         this.maxAttempts              = maxAttempts;
     }
 
@@ -65,8 +69,9 @@ public class MarkDeliveryAttemptedService implements MarkDeliveryAttemptedUseCas
         orderNotificationService.notify(updated);
 
         if (newAttemptCount >= maxAttempts) {
-            log.warn("[DELIVERY] Retry limit reached for orderId={} count={} — admin alert pending",
+            log.warn("[DELIVERY] Retry limit reached for orderId={} count={}",
                     command.orderId(), newAttemptCount);
+            deliveryEventPublisher.publishDeliveryRetryLimitReached(command.orderId(), order.courierId());
         }
     }
 }

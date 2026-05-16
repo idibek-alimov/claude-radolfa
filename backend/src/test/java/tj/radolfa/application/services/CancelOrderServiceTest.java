@@ -91,7 +91,15 @@ class CancelOrderServiceTest {
         @Override public void setAbsolute(Long skuId, int qty) {}
     };
 
-    static final RestoreLoyaltyPointsUseCase NO_LOYALTY = (userId, pts) -> {};
+    static final RestoreLoyaltyPointsUseCase NO_LOYALTY        = (userId, pts) -> {};
+    static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
+            new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
+                @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+                @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+                @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+                @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+                @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
+            };
 
     static CancelOrderService service(Order order, User requester,
                                       CapturingSaveOrderPort save,
@@ -102,7 +110,8 @@ class CancelOrderServiceTest {
                 userPort(requester),
                 NO_STOCK,
                 NO_LOYALTY,
-                new OrderNotificationService(notifPort));
+                new OrderNotificationService(notifPort),
+                NO_DELIVERY_EVENTS);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

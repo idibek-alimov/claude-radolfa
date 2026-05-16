@@ -206,6 +206,11 @@ public class SecurityConfig {
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
 
                                                 // ============================================================
+                                                // WebSocket — auth enforced at STOMP layer, not HTTP
+                                                // ============================================================
+                                                .requestMatchers("/ws/**").permitAll()
+
+                                                // ============================================================
                                                 // Default: require authentication for all other endpoints
                                                 // ============================================================
                                                 .anyRequest().authenticated());
@@ -249,6 +254,7 @@ public class SecurityConfig {
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/api/**", configuration);
+                source.registerCorsConfiguration("/ws/**", configuration);
                 return source;
         }
 }
