@@ -14,6 +14,7 @@ import { Badge } from "@/shared/ui/badge";
 import { useLoyaltyTiers } from "@/entities/loyalty/api";
 import { changeUserRole, assignUserTier, setLoyaltyPermanent } from "../api";
 import type { UserDto } from "../types";
+import { UserRole } from "@/entities/user";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
 
@@ -27,8 +28,8 @@ interface ManageUserDialogProps {
   callerId: number | null;
 }
 
-type Role = "USER" | "MANAGER" | "ADMIN";
-const ALL_ROLES: Role[] = ["USER", "MANAGER", "ADMIN"];
+type AssignableRole = UserRole.USER | UserRole.MANAGER | UserRole.ADMIN;
+const ALL_ROLES: AssignableRole[] = [UserRole.USER, UserRole.MANAGER, UserRole.ADMIN];
 
 export function ManageUserDialog({
   open,
@@ -40,7 +41,7 @@ export function ManageUserDialog({
   const qc = useQueryClient();
   const { data: tiers = [] } = useLoyaltyTiers();
 
-  const [selectedRole, setSelectedRole] = useState<Role>(target.role);
+  const [selectedRole, setSelectedRole] = useState<AssignableRole>(target.role as AssignableRole);
   const [selectedTierId, setSelectedTierId] = useState<number | "">(
     target.loyalty.tier?.id ?? ""
   );

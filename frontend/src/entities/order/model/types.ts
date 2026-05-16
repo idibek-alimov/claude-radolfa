@@ -1,5 +1,5 @@
 // Synced from backend — do not edit manually
-export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "READY_FOR_PICKUP" | "DELIVERED" | "CANCELLED" | "REFUNDED";
+export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "DELIVERED" | "CANCELLED" | "REFUNDED";
 export type DeliveryType = "HOME" | "PICKPOINT";
 
 /** Minimal order item — only what the review form needs. */
@@ -61,6 +61,7 @@ export interface AdminOrderDetail {
   pickpointId: number | null;
   pickpointName: string | null;
   pickpointAddress: string | null;
+  courierId: number | null;
   courierName: string | null;
   trackingNumber: string | null;
   estimatedDeliveryDate: string | null;
@@ -68,6 +69,11 @@ export interface AdminOrderDetail {
   deliveredAt: string | null;
   cancelledAt: string | null;
   refundedAt: string | null;
+  outForDeliveryAt: string | null;
+  deliveryAttemptedAt: string | null;
+  deliveryAttemptCount: number;
+  deliveryAttemptReason: string | null;
+  deliveryPhotoUrl: string | null;
 }
 
 export interface RecentOrder {

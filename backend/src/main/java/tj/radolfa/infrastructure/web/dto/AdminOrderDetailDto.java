@@ -32,7 +32,12 @@ public record AdminOrderDetailDto(
         Instant shippedAt,
         Instant deliveredAt,
         Instant cancelledAt,
-        Instant refundedAt) {
+        Instant refundedAt,
+        Instant outForDeliveryAt,
+        Instant deliveryAttemptedAt,
+        int deliveryAttemptCount,
+        String deliveryAttemptReason,
+        String deliveryPhotoUrl) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
                                            List<AdminOrderItemDto> enrichedItems) {
@@ -62,7 +67,12 @@ public record AdminOrderDetailDto(
                 order.shippedAt(),
                 order.deliveredAt(),
                 order.cancelledAt(),
-                order.refundedAt()
+                order.refundedAt(),
+                order.outForDeliveryAt(),
+                order.deliveryAttemptedAt(),
+                order.deliveryAttemptCount(),
+                order.deliveryAttemptReason() != null ? order.deliveryAttemptReason().name() : null,
+                order.deliveryPhotoUrl()
         );
     }
 }

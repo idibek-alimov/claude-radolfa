@@ -1,6 +1,7 @@
 import type { User } from "@/entities/user";
+import type { OrderStatus } from "@/entities/order/model/types";
 
-export type { User };
+export type { User, OrderStatus };
 
 export interface OrderItem {
     productName: string;
@@ -17,7 +18,7 @@ export interface OrderItem {
 
 export interface Order {
     id: number;
-    status: 'PENDING' | 'PAID' | 'SHIPPED' | 'READY_FOR_PICKUP' | 'DELIVERED' | 'CANCELLED';
+    status: OrderStatus;
     totalAmount: number;
     items: OrderItem[];
     createdAt: string;

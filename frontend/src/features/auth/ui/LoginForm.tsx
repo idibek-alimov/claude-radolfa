@@ -31,10 +31,14 @@ export default function LoginForm() {
 
   const verifyOtpMutation = useMutation({
     mutationFn: verifyOtp,
-    onSuccess: () => {
-      // Cookie is set by the server via Set-Cookie header.
-      // No client-side token storage needed.
-      window.location.href = "/";
+    onSuccess: (auth) => {
+      const role = auth.user.role;
+      const target =
+        role === "COURIER" ? "/courier" :
+        role === "PICKPOINT_STAFF" ? "/pickpoint" :
+        role === "ADMIN" || role === "MANAGER" ? "/manage" :
+        "/";
+      window.location.href = target;
     },
     onError: (err: Error) => {
       setError(err.message || t("invalidOtp"));

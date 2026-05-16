@@ -1,12 +1,13 @@
 import type { LoyaltyProfile } from "@/entities/loyalty";
 import type { PaginatedResponse } from "@/shared/api/types";
+import { UserRole } from "@/entities/user";
 
 export type { PaginatedResponse };
 
 export interface UserDto {
   id: number;
   phone: string;
-  role: "USER" | "MANAGER" | "ADMIN";
+  role: UserRole;
   name?: string;
   email?: string;
   loyalty: LoyaltyProfile;
@@ -20,7 +21,7 @@ export interface ToggleStatusParams {
 
 export interface ChangeRoleParams {
   userId: number;
-  role: "USER" | "MANAGER" | "ADMIN";
+  role: UserRole;
 }
 
 export interface AssignTierParams {

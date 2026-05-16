@@ -18,7 +18,10 @@ public record UserDto(
         String name,
         String email,
         LoyaltyDto loyalty,
-        boolean enabled
+        boolean enabled,
+        Long pickpointId,
+        String vehicleType,
+        BigDecimal maxPayloadKg
 ) {
     public record RecentEarningDto(Long orderId, int pointsEarned, BigDecimal orderAmount, Instant orderedAt) {
         public static RecentEarningDto from(EarningEntry e) {
@@ -62,7 +65,10 @@ public record UserDto(
                 user.name(),
                 user.email(),
                 loyalty,
-                user.enabled()
+                user.enabled(),
+                user.pickpointId(),
+                user.vehicleType() != null ? user.vehicleType().name() : null,
+                user.maxPayloadKg()
         );
     }
 }
