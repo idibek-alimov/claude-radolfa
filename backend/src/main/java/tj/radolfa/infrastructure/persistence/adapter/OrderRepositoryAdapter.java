@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
+import tj.radolfa.application.ports.out.LoadCourierOrderStatsPort;
 import tj.radolfa.application.ports.out.LoadCourierOrdersPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPickpointOrdersPort;
@@ -19,13 +20,16 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
 import tj.radolfa.infrastructure.persistence.repository.OrderRepository;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort,
-        LoadCourierOrdersPort, LoadPickpointOrdersPort {
+        LoadCourierOrdersPort, LoadPickpointOrdersPort, LoadCourierOrderStatsPort {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
@@ -130,5 +134,16 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     public List<Order> loadByPickpointIdAndStatus(Long pickpointId, OrderStatus status) {
         return repository.findByPickpointIdAndStatusOrderByCreatedAtAsc(pickpointId, status)
                 .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public Map<Long, CourierOrderStats> loadStats(Instant todayStart) {
+        return repository.aggregateFleetStats(todayStart).stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> new CourierOrderStats(
+                                ((Number) row[1]).longValue(),
+                                ((Number) row[2]).longValue(),
+                                ((Number) row[3]).longValue())));
     }
 }

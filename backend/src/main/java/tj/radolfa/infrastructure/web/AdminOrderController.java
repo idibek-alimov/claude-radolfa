@@ -2,6 +2,8 @@ package tj.radolfa.infrastructure.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
 import tj.radolfa.application.ports.in.order.ListAdminOrdersUseCase;
+import tj.radolfa.application.ports.in.order.RedirectToPickpointUseCase;
 import tj.radolfa.application.ports.in.order.RefundOrderUseCase;
+import tj.radolfa.application.ports.in.order.RegenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.out.AdminOrderSummary;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -42,6 +46,8 @@ public class AdminOrderController {
     private final ListAdminOrdersUseCase      listAdminOrdersUseCase;
     private final GetAdminOrderDetailUseCase  getAdminOrderDetailUseCase;
     private final RefundOrderUseCase          refundOrderUseCase;
+    private final RedirectToPickpointUseCase  redirectToPickpointUseCase;
+    private final RegenerateDeliveryCodeUseCase regenerateDeliveryCodeUseCase;
     private final LoadListingVariantPort      loadListingVariantPort;
     private final LoadSkuPort                 loadSkuPort;
     private final LoadReviewPort              loadReviewPort;
@@ -50,16 +56,20 @@ public class AdminOrderController {
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
                                 GetAdminOrderDetailUseCase getAdminOrderDetailUseCase,
                                 RefundOrderUseCase refundOrderUseCase,
+                                RedirectToPickpointUseCase redirectToPickpointUseCase,
+                                RegenerateDeliveryCodeUseCase regenerateDeliveryCodeUseCase,
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
                                 LoadReviewPort loadReviewPort) {
-        this.getAdminOrderSummaryUseCase = getAdminOrderSummaryUseCase;
-        this.listAdminOrdersUseCase      = listAdminOrdersUseCase;
-        this.getAdminOrderDetailUseCase  = getAdminOrderDetailUseCase;
-        this.refundOrderUseCase          = refundOrderUseCase;
-        this.loadListingVariantPort      = loadListingVariantPort;
-        this.loadSkuPort                 = loadSkuPort;
-        this.loadReviewPort              = loadReviewPort;
+        this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
+        this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
+        this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
+        this.refundOrderUseCase             = refundOrderUseCase;
+        this.redirectToPickpointUseCase     = redirectToPickpointUseCase;
+        this.regenerateDeliveryCodeUseCase  = regenerateDeliveryCodeUseCase;
+        this.loadListingVariantPort         = loadListingVariantPort;
+        this.loadSkuPort                    = loadSkuPort;
+        this.loadReviewPort                 = loadReviewPort;
     }
 
     @GetMapping("/summary")
@@ -115,6 +125,25 @@ public class AdminOrderController {
         refundOrderUseCase.execute(id, user.userId(), reason);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/redirect-to-pickpoint")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Redirect a failed home delivery to a pickpoint (ADMIN only; DELIVERY_ATTEMPTED only)")
+    public ResponseEntity<Void> redirectToPickpoint(@PathVariable Long id,
+                                                    @Valid @RequestBody RedirectToPickpointRequest body) {
+        redirectToPickpointUseCase.execute(new RedirectToPickpointUseCase.Command(id, body.pickpointId()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/regenerate-delivery-code")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Regenerate an expired delivery code and re-send it to the customer (ADMIN only)")
+    public ResponseEntity<Void> regenerateDeliveryCode(@PathVariable Long id) {
+        regenerateDeliveryCodeUseCase.execute(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    record RedirectToPickpointRequest(@NotNull Long pickpointId) {}
 
     // ── Private helpers ───────────────────────────────────────────────────────
 

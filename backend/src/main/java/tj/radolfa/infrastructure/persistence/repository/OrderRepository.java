@@ -65,4 +65,17 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
 
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByPickpointIdAndStatusOrderByCreatedAtAsc(Long pickpointId, OrderStatus status);
+
+    // ── Fleet summary aggregation ─────────────────────────────────────────────
+
+    @Query(value = """
+            SELECT courier_id,
+                   SUM(CASE WHEN status = 'DELIVERED' AND delivered_at >= :since THEN 1 ELSE 0 END),
+                   SUM(CASE WHEN status IN ('SHIPPED', 'OUT_FOR_DELIVERY')           THEN 1 ELSE 0 END),
+                   SUM(CASE WHEN status = 'DELIVERY_ATTEMPTED'                       THEN 1 ELSE 0 END)
+            FROM orders
+            WHERE courier_id IS NOT NULL
+            GROUP BY courier_id
+            """, nativeQuery = true)
+    List<Object[]> aggregateFleetStats(@Param("since") Instant since);
 }
