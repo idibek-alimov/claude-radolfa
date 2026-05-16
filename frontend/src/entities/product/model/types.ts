@@ -180,4 +180,8 @@ export interface ProductCardSku {
   sizeLabel: string;
   stockQuantity: number;
   originalPrice: number;
+  weightKg?: number | null;
+  lengthCm?: number | null;
+  widthCm?:  number | null;
+  heightCm?: number | null;
 }

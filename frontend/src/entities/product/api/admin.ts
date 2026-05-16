@@ -78,6 +78,14 @@ export async function updateProductName(
   await apiClient.patch(`/api/v1/admin/products/${productBaseId}/name`, { name });
 }
 
+/** Update logistics dimensions of a single SKU (MANAGER+). */
+export async function updateSkuDimensions(
+  skuId: number,
+  body: { weightKg: number | null; lengthCm: number | null; widthCm: number | null; heightCm: number | null }
+): Promise<void> {
+  await apiClient.patch(`/api/v1/admin/skus/${skuId}/dimensions`, body);
+}
+
 /** Update the size label of a single SKU (MANAGER+). */
 export async function updateSkuSizeLabel(
   skuId: number,

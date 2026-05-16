@@ -79,7 +79,7 @@ export function OrderDetailDrawer({ orderId, onOpenChange }: Props) {
       {
         orderId,
         status: "SHIPPED",
-        courierName: courierName.trim(),
+        // courierName field removed — use ShipOrderModal on the full order detail page instead
         trackingNumber: trackingNumber.trim() || undefined,
         estimatedDeliveryDate: estimatedDeliveryDate || undefined,
       },

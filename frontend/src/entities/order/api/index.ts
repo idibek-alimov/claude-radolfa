@@ -54,19 +54,19 @@ export function useUpdateOrderStatus() {
     mutationFn: ({
       orderId,
       status,
-      courierName,
+      courierId,
       trackingNumber,
       estimatedDeliveryDate,
     }: {
       orderId: number;
       status: OrderStatus;
-      courierName?: string;
+      courierId?: number;
       trackingNumber?: string;
       estimatedDeliveryDate?: string;
     }) =>
       apiClient.patch(`/api/v1/orders/${orderId}/status`, {
         status,
-        courierName: courierName?.trim() || undefined,
+        courierId: courierId ?? undefined,
         trackingNumber: trackingNumber?.trim() || undefined,
         estimatedDeliveryDate: estimatedDeliveryDate || undefined,
       }),

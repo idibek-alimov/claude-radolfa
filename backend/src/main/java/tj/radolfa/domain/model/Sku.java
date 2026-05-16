@@ -93,6 +93,17 @@ public class Sku {
         this.sizeLabel = sizeLabel;
     }
 
+    /**
+     * MANAGER/ADMIN write path for logistics dimensions.
+     * Any null value clears that field.
+     */
+    public void updateLogistics(BigDecimal weightKg, Integer lengthCm, Integer widthCm, Integer heightCm) {
+        this.weightKg = weightKg;
+        this.lengthCm = lengthCm;
+        this.widthCm  = widthCm;
+        this.heightCm = heightCm;
+    }
+
     // ---- Getters ----
     public Long       getId()               { return id; }
     public Long       getListingVariantId() { return listingVariantId; }

@@ -23,6 +23,7 @@ import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
+import tj.radolfa.application.ports.in.product.UpdateSkuDimensionsUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
 import tj.radolfa.application.readmodel.ProductCardDto;
 import tj.radolfa.domain.exception.ImageProcessingException;
@@ -39,6 +40,7 @@ import tj.radolfa.infrastructure.web.dto.UpdateSkuSizeLabelRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateStockRequestDto;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +63,7 @@ public class ProductManagementController {
     private final UpdateProductStockUseCase updateProductStockUseCase;
     private final UpdateProductNameUseCase updateProductNameUseCase;
     private final UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase;
+    private final UpdateSkuDimensionsUseCase updateSkuDimensionsUseCase;
     private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
     private final GenericUploadImageUseCase genericUploadImageUseCase;
     private final FindCampaignsByProductUseCase findCampaignsByProductUseCase;
@@ -74,6 +77,7 @@ public class ProductManagementController {
             UpdateProductStockUseCase updateProductStockUseCase,
             UpdateProductNameUseCase updateProductNameUseCase,
             UpdateSkuSizeLabelUseCase updateSkuSizeLabelUseCase,
+            UpdateSkuDimensionsUseCase updateSkuDimensionsUseCase,
             UpdateProductCategoryUseCase updateProductCategoryUseCase,
             GenericUploadImageUseCase genericUploadImageUseCase,
             FindCampaignsByProductUseCase findCampaignsByProductUseCase) {
@@ -86,6 +90,7 @@ public class ProductManagementController {
         this.updateProductStockUseCase = updateProductStockUseCase;
         this.updateProductNameUseCase = updateProductNameUseCase;
         this.updateSkuSizeLabelUseCase = updateSkuSizeLabelUseCase;
+        this.updateSkuDimensionsUseCase = updateSkuDimensionsUseCase;
         this.updateProductCategoryUseCase = updateProductCategoryUseCase;
         this.genericUploadImageUseCase = genericUploadImageUseCase;
         this.findCampaignsByProductUseCase = findCampaignsByProductUseCase;
@@ -361,6 +366,23 @@ public class ProductManagementController {
         updateSkuSizeLabelUseCase.execute(skuId, request.sizeLabel());
         return ResponseEntity.ok(MessageResponseDto.success("SKU size label updated successfully."));
     }
+
+    /**
+     * PATCH /api/v1/admin/skus/{skuId}/dimensions
+     * Update logistics dimensions of a specific SKU. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Update SKU logistics dimensions (weight, length, width, height). MANAGER + ADMIN.")
+    @PatchMapping("/skus/{skuId}/dimensions")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> updateSkuDimensions(
+            @PathVariable Long skuId,
+            @RequestBody UpdateSkuDimensionsRequest request) {
+        updateSkuDimensionsUseCase.execute(new UpdateSkuDimensionsUseCase.Command(
+                skuId, request.weightKg(), request.lengthCm(), request.widthCm(), request.heightCm()));
+        return ResponseEntity.noContent().build();
+    }
+
+    record UpdateSkuDimensionsRequest(BigDecimal weightKg, Integer lengthCm, Integer widthCm, Integer heightCm) {}
 
     /**
      * PATCH /api/v1/admin/products/{productBaseId}/category

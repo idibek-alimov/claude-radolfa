@@ -274,11 +274,13 @@
       "status": {
         "PENDING":          "Pending",
         "PAID":             "Paid",
-        "SHIPPED":          "Shipped",
-        "READY_FOR_PICKUP": "Ready for pickup",
-        "DELIVERED":        "Delivered",
-        "CANCELLED":        "Cancelled",
-        "REFUNDED":         "Refunded"
+        "SHIPPED":              "Shipped",
+        "OUT_FOR_DELIVERY":     "Out for delivery",
+        "DELIVERY_ATTEMPTED":   "Delivery attempted",
+        "READY_FOR_PICKUP":     "Ready for pickup",
+        "DELIVERED":            "Delivered",
+        "CANCELLED":            "Cancelled",
+        "REFUNDED":             "Refunded"
       },
       "deliveryType": {
         "HOME": "Home",

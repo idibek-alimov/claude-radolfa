@@ -13,4 +13,5 @@ public record AdminOrderItemDto(
         String sizeLabel,
         String slug,
         boolean hasReviewed,
-        Integer currentStock) {}
+        Integer currentStock,
+        BigDecimal weightKg) {}
