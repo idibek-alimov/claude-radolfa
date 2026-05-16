@@ -6,7 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
+import tj.radolfa.application.ports.out.LoadCourierOrdersPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadPickpointOrdersPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
@@ -22,7 +24,8 @@ import java.util.Optional;
 import java.util.Set;
 
 @Component
-public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort {
+public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort,
+        LoadCourierOrdersPort, LoadPickpointOrdersPort {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
@@ -115,5 +118,17 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
 
         var saved = repository.save(entity);
         return mapper.toOrder(saved);
+    }
+
+    @Override
+    public List<Order> loadByCourierIdAndStatuses(Long courierId, List<OrderStatus> statuses) {
+        return repository.findByCourierIdAndStatusInOrderByCreatedAtAsc(courierId, statuses)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public List<Order> loadByPickpointIdAndStatus(Long pickpointId, OrderStatus status) {
+        return repository.findByPickpointIdAndStatusOrderByCreatedAtAsc(pickpointId, status)
+                .stream().map(mapper::toOrder).toList();
     }
 }

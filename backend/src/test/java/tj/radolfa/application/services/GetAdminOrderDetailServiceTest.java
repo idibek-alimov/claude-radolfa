@@ -65,6 +65,7 @@ class GetAdminOrderDetailServiceTest {
             @Override public Optional<User> loadById(Long id) { return Optional.of(FAKE_USER); }
             @Override public Optional<User> loadByPhone(String p) { return Optional.empty(); }
             @Override public List<User> findAllNonPermanent() { return List.of(); }
+            @Override public List<User> findByRoleAndEnabledTrue(tj.radolfa.domain.model.UserRole r) { return List.of(); }
         };
     }
 

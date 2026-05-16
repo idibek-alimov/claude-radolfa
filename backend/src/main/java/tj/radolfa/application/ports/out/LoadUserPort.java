@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.User;
+import tj.radolfa.domain.model.UserRole;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,7 @@ public interface LoadUserPort {
 
     /** Returns all users whose loyalty tier is NOT permanently locked. */
     List<User> findAllNonPermanent();
+
+    /** Returns all enabled users with the given role. */
+    List<User> findByRoleAndEnabledTrue(UserRole role);
 }

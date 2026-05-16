@@ -10,6 +10,7 @@ import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.application.ports.out.SearchUsersPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.User;
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.UserMapper;
 import tj.radolfa.infrastructure.persistence.repository.UserRepository;
@@ -73,5 +74,12 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
                 page,
                 size,
                 !result.hasNext());
+    }
+
+    @Override
+    public List<User> findByRoleAndEnabledTrue(UserRole role) {
+        return repository.findByRoleAndEnabledTrue(role).stream()
+                .map(mapper::toUser)
+                .toList();
     }
 }

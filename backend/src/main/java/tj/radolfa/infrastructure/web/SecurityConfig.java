@@ -142,6 +142,16 @@ public class SecurityConfig {
                                                 // ADMIN only: tag management
                                                 // ============================================================
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/admin/tags").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/users/couriers").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/users/pickpoint-staff").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/*/courier-details").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/*/pickpoint-assignment").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // COURIER / PICKPOINT_STAFF: field-staff endpoints
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/courier/**").hasRole("COURIER")
+                                                .requestMatchers("/api/v1/pickpoint/**").hasRole("PICKPOINT_STAFF")
 
                                                 // ============================================================
                                                 // MANAGER + ADMIN: product creation, content enrichment, discounts

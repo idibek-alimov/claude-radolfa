@@ -58,4 +58,11 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
             """, nativeQuery = true)
     boolean hasPurchasedVariant(@Param("userId") Long userId,
                                 @Param("listingVariantId") Long listingVariantId);
+
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    List<OrderEntity> findByCourierIdAndStatusInOrderByCreatedAtAsc(Long courierId,
+                                                                    Collection<OrderStatus> statuses);
+
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    List<OrderEntity> findByPickpointIdAndStatusOrderByCreatedAtAsc(Long pickpointId, OrderStatus status);
 }

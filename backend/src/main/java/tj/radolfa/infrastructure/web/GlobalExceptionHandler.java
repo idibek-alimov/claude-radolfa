@@ -10,6 +10,12 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tj.radolfa.domain.exception.CourierAccessDeniedException;
+import tj.radolfa.domain.exception.DeliveryCodeAlreadyUsedException;
+import tj.radolfa.domain.exception.DeliveryCodeAttemptsExhaustedException;
+import tj.radolfa.domain.exception.DeliveryCodeExpiredException;
+import tj.radolfa.domain.exception.DeliveryCodeMismatchException;
+import tj.radolfa.domain.exception.DeliveryCodeNotFoundException;
 import tj.radolfa.domain.exception.DiscountConflictException;
 import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.DuplicateReviewException;
@@ -238,6 +244,42 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleClientDisconnect(AsyncRequestNotUsableException ex) {
         LOG.debug("[NETWORK] Client disconnected mid-response: {}", ex.getMessage());
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(CourierAccessDeniedException.class)
+    public ResponseEntity<MessageResponseDto> handleCourierAccessDenied(CourierAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeNotFoundException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeNotFound(DeliveryCodeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeExpiredException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeExpired(DeliveryCodeExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.GONE)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeAlreadyUsedException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeAlreadyUsed(DeliveryCodeAlreadyUsedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeMismatchException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeMismatch(DeliveryCodeMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeAttemptsExhaustedException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeAttemptsExhausted(DeliveryCodeAttemptsExhaustedException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(MessageResponseDto.error(ex.getMessage()));
     }
 
     /**
