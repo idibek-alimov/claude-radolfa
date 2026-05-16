@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.domain.model.OrderStatus;
 
+import java.time.Instant;
+
 /**
  * Stub for {@link NotificationPort} — logs all calls to the console.
  *
@@ -35,5 +37,11 @@ public class NotificationPortStub implements NotificationPort {
     @Override
     public void sendReviewReplyNotification(Long userId, Long reviewId) {
         log.info("[NOTIFICATION STUB] Seller reply posted → userId={} reviewId={}", userId, reviewId);
+    }
+
+    @Override
+    public void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt) {
+        log.info("[NOTIFICATION STUB] Delivery code → userId={} orderId={} code={} expiresAt={}",
+                userId, orderId, code, expiresAt);
     }
 }

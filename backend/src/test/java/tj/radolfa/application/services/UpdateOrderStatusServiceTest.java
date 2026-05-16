@@ -2,10 +2,12 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase.Command;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.domain.model.DeliveryCode;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
@@ -77,6 +79,7 @@ class UpdateOrderStatusServiceTest {
         @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { updateCount++; lastStatus = s; }
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
     }
 
     static NotificationPort silentPort() {
@@ -85,17 +88,22 @@ class UpdateOrderStatusServiceTest {
             @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) {}
             @Override public void sendReviewApprovedNotification(Long u, Long r) {}
             @Override public void sendReviewReplyNotification(Long u, Long r) {}
+            @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
         };
+    }
+
+    static class FakeGenerateDeliveryCodeUseCase implements GenerateDeliveryCodeUseCase {
+        @Override public DeliveryCode execute(Long orderId) { return null; }
     }
 
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save) {
         return new UpdateOrderStatusService(orderPort(order), save,
-                new OrderNotificationService(silentPort()));
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase());
     }
 
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save, NotificationPort notifPort) {
         return new UpdateOrderStatusService(orderPort(order), save,
-                new OrderNotificationService(notifPort));
+                new OrderNotificationService(notifPort), new FakeGenerateDeliveryCodeUseCase());
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -315,7 +323,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = new UpdateOrderStatusService(
                 orderPort(pristine), save,
-                new OrderNotificationService(silentPort()));
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase());
 
         svc.execute(new Command(42L, OrderStatus.SHIPPED,
                 99L, "TR-001", LocalDate.of(2026, 6, 1)));

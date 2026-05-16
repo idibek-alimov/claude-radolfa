@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
@@ -22,16 +23,19 @@ import java.time.LocalDate;
 @Service
 public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 
-    private final LoadOrderPort            loadOrderPort;
-    private final SaveOrderPort            saveOrderPort;
-    private final OrderNotificationService orderNotificationService;
+    private final LoadOrderPort              loadOrderPort;
+    private final SaveOrderPort              saveOrderPort;
+    private final OrderNotificationService   orderNotificationService;
+    private final GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase;
 
     public UpdateOrderStatusService(LoadOrderPort loadOrderPort,
                                     SaveOrderPort saveOrderPort,
-                                    OrderNotificationService orderNotificationService) {
-        this.loadOrderPort            = loadOrderPort;
-        this.saveOrderPort            = saveOrderPort;
-        this.orderNotificationService = orderNotificationService;
+                                    OrderNotificationService orderNotificationService,
+                                    GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase) {
+        this.loadOrderPort              = loadOrderPort;
+        this.saveOrderPort              = saveOrderPort;
+        this.orderNotificationService   = orderNotificationService;
+        this.generateDeliveryCodeUseCase = generateDeliveryCodeUseCase;
     }
 
     @Override
@@ -61,6 +65,11 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
                 .deliveredAt(deliveredAt)
                 .build();
         saveOrderPort.save(updated);
+
+        if (command.newStatus() == OrderStatus.SHIPPED || command.newStatus() == OrderStatus.READY_FOR_PICKUP) {
+            generateDeliveryCodeUseCase.execute(updated.id());
+        }
+
         orderNotificationService.notify(updated);
     }
 

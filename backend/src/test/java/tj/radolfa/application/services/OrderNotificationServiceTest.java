@@ -36,6 +36,7 @@ class OrderNotificationServiceTest {
 
         @Override public void sendReviewApprovedNotification(Long userId, Long reviewId) {}
         @Override public void sendReviewReplyNotification(Long userId, Long reviewId) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
     }
 
     static class ThrowingNotificationPort implements NotificationPort {
@@ -43,6 +44,7 @@ class OrderNotificationServiceTest {
         @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { throw new RuntimeException("provider down"); }
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
     }
 
     static Order orderWithStatus(OrderStatus status) {

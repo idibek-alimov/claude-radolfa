@@ -2,6 +2,8 @@ package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.OrderStatus;
 
+import java.time.Instant;
+
 /**
  * Out-Port: send notifications to users.
  *
@@ -45,4 +47,14 @@ public interface NotificationPort {
      * @param reviewId the review that received a reply
      */
     void sendReviewReplyNotification(Long userId, Long reviewId);
+
+    /**
+     * Sends the 6-digit delivery verification code to the customer.
+     *
+     * @param userId    the recipient (customer)
+     * @param orderId   the order being handed off
+     * @param code      the 6-digit code
+     * @param expiresAt when the code expires
+     */
+    void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt);
 }

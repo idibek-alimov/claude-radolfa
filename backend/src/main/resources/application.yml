@@ -121,5 +121,8 @@ radolfa:
   discount:
     coupons:
       enabled: ${DISCOUNT_COUPONS_ENABLED:true}
+  delivery:
+    code-expiry-hours: 72
+    code-max-attempts: 5
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026

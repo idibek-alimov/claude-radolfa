@@ -147,5 +147,7 @@ class ReplyToReviewServiceTest {
         public void sendReviewReplyNotification(Long userId, Long reviewId) {
             replyNotifications.add(reviewId);
         }
+
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
     }
 }
