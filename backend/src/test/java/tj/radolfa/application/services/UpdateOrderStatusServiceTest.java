@@ -93,7 +93,8 @@ class UpdateOrderStatusServiceTest {
     }
 
     static class FakeGenerateDeliveryCodeUseCase implements GenerateDeliveryCodeUseCase {
-        @Override public DeliveryCode execute(Long orderId) { return null; }
+        Long lastOrderId;
+        @Override public DeliveryCode execute(Long orderId) { this.lastOrderId = orderId; return null; }
     }
 
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save) {
@@ -346,5 +347,28 @@ class UpdateOrderStatusServiceTest {
         assertEquals(OrderStatus.SHIPPED, out.status());
         assertEquals(99L,      out.courierId());
         assertEquals("TR-001", out.trackingNumber());
+    }
+
+    @Test
+    @DisplayName("Admin DELIVERY_ATTEMPTED → SHIPPED reschedule succeeds and triggers delivery code regeneration")
+    void deliveryAttemptedToShipped_rescheduleTriggersFreshCode() {
+        Order attemptedOrder = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.DELIVERY_ATTEMPTED)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .courierId(99L).deliveryAttemptCount(1)
+                .build();
+
+        FakeGenerateDeliveryCodeUseCase fakeCodeGen = new FakeGenerateDeliveryCodeUseCase();
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(attemptedOrder), save,
+                new OrderNotificationService(silentPort()), fakeCodeGen);
+
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
+
+        assertEquals(OrderStatus.SHIPPED, save.last().status());
+        assertEquals(1L, fakeCodeGen.lastOrderId,
+                "GenerateDeliveryCodeUseCase must be called with the rescheduled order id");
     }
 }

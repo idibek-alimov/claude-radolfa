@@ -16,9 +16,12 @@ import java.time.LocalDate;
 /**
  * ADMIN-only service: transitions an order through the fulfilment pipeline.
  *
- * <p>Legal forward path: PENDING → PAID → SHIPPED → DELIVERED.
+ * <p>Legal paths: PENDING → PAID → SHIPPED → DELIVERED (home) or READY_FOR_PICKUP → DELIVERED (pickpoint).
+ * Admin reschedule: DELIVERY_ATTEMPTED → SHIPPED (re-issues a fresh delivery code automatically).
  * HOME orders transitioning to SHIPPED require {@code courierId}.
  * Cancellation is handled separately by {@link CancelOrderService}.
+ * Courier-driven transitions (SHIPPED → OUT_FOR_DELIVERY, OUT_FOR_DELIVERY → DELIVERY_ATTEMPTED)
+ * are handled by {@code MarkOutForDeliveryService} and {@code MarkDeliveryAttemptedService}.
  */
 @Service
 public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
@@ -88,12 +91,13 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         }
         boolean pickpoint = order.deliveryType() == DeliveryType.PICKPOINT;
         boolean valid = switch (order.status()) {
-            case PENDING          -> to == OrderStatus.PAID;
-            case PAID             -> pickpoint ? to == OrderStatus.READY_FOR_PICKUP
-                                               : to == OrderStatus.SHIPPED;
-            case SHIPPED          -> !pickpoint && to == OrderStatus.DELIVERED;
-            case READY_FOR_PICKUP -> pickpoint  && to == OrderStatus.DELIVERED;
-            default               -> false;
+            case PENDING            -> to == OrderStatus.PAID;
+            case PAID               -> pickpoint ? to == OrderStatus.READY_FOR_PICKUP
+                                                 : to == OrderStatus.SHIPPED;
+            case SHIPPED            -> !pickpoint && to == OrderStatus.DELIVERED;
+            case READY_FOR_PICKUP   -> pickpoint  && to == OrderStatus.DELIVERED;
+            case DELIVERY_ATTEMPTED -> !pickpoint && to == OrderStatus.SHIPPED;
+            default                 -> false;
         };
         if (!valid) {
             throw new IllegalArgumentException(
