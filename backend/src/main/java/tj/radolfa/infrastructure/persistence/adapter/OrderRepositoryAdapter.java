@@ -22,6 +22,7 @@ import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
 import tj.radolfa.infrastructure.persistence.repository.OrderRepository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -133,8 +134,8 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     }
 
     @Override
-    public List<Order> loadByPickpointIdAndStatus(Long pickpointId, OrderStatus status) {
-        return repository.findByPickpointIdAndStatusOrderByCreatedAtAsc(pickpointId, status)
+    public List<Order> loadByPickpointIdAndStatuses(Long pickpointId, Collection<OrderStatus> statuses) {
+        return repository.findByPickpointIdAndStatusInOrderByCreatedAtAsc(pickpointId, statuses)
                 .stream().map(mapper::toOrder).toList();
     }
 

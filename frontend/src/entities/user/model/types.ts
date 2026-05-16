@@ -26,6 +26,7 @@ export interface User {
   loyalty: LoyaltyProfile | null;
   enabled: boolean;
   pickpointId?: number | null;
+  pickpointName?: string | null;
   vehicleType?: "BICYCLE" | "MOTORCYCLE" | "CAR" | "VAN" | null;
   maxPayloadKg?: number | null;
 }

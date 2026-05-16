@@ -13,6 +13,7 @@ import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
 import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
 import tj.radolfa.application.ports.in.loyalty.ToggleLoyaltyPermanentUseCase;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.services.GetRecentEarningsService;
 import tj.radolfa.domain.model.PageResult;
@@ -34,6 +35,7 @@ public class UserController {
     private final ToggleUserStatusUseCase     toggleUserStatusUseCase;
     private final ChangeUserRoleUseCase       changeUserRoleUseCase;
     private final LoadUserPort                loadUserPort;
+    private final LoadPickpointPort           loadPickpointPort;
     private final GetRecentEarningsService    getRecentEarningsService;
     private final AssignUserTierUseCase       assignUserTierUseCase;
     private final ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase;
@@ -43,6 +45,7 @@ public class UserController {
                           ToggleUserStatusUseCase toggleUserStatusUseCase,
                           ChangeUserRoleUseCase changeUserRoleUseCase,
                           LoadUserPort loadUserPort,
+                          LoadPickpointPort loadPickpointPort,
                           GetRecentEarningsService getRecentEarningsService,
                           AssignUserTierUseCase assignUserTierUseCase,
                           ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase) {
@@ -51,6 +54,7 @@ public class UserController {
         this.toggleUserStatusUseCase          = toggleUserStatusUseCase;
         this.changeUserRoleUseCase            = changeUserRoleUseCase;
         this.loadUserPort                     = loadUserPort;
+        this.loadPickpointPort                = loadPickpointPort;
         this.getRecentEarningsService         = getRecentEarningsService;
         this.assignUserTierUseCase            = assignUserTierUseCase;
         this.toggleLoyaltyPermanentUseCase    = toggleLoyaltyPermanentUseCase;
@@ -60,8 +64,15 @@ public class UserController {
     @Operation(summary = "Get my profile")
     public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal JwtAuthenticatedUser user) {
         return loadUserPort.loadById(user.userId())
-                .map(u -> ResponseEntity.ok(
-                        UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()))))
+                .map(u -> {
+                    String pickpointName = u.pickpointId() != null
+                            ? loadPickpointPort.findById(u.pickpointId())
+                                    .map(tj.radolfa.domain.model.Pickpoint::name)
+                                    .orElse(null)
+                            : null;
+                    return ResponseEntity.ok(
+                            UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()), pickpointName));
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

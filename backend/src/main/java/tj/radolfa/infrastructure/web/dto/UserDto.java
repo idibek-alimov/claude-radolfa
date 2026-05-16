@@ -21,7 +21,8 @@ public record UserDto(
         boolean enabled,
         Long pickpointId,
         String vehicleType,
-        BigDecimal maxPayloadKg
+        BigDecimal maxPayloadKg,
+        String pickpointName
 ) {
     public record RecentEarningDto(Long orderId, int pointsEarned, BigDecimal orderAmount, Instant orderedAt) {
         public static RecentEarningDto from(EarningEntry e) {
@@ -41,10 +42,14 @@ public record UserDto(
     ) {}
 
     public static UserDto fromDomain(User user) {
-        return fromDomain(user, List.of());
+        return fromDomain(user, List.of(), null);
     }
 
     public static UserDto fromDomain(User user, List<EarningEntry> recentEarnings) {
+        return fromDomain(user, recentEarnings, null);
+    }
+
+    public static UserDto fromDomain(User user, List<EarningEntry> recentEarnings, String pickpointName) {
         LoyaltyProfile lp = user.loyalty();
         LoyaltyDto loyalty = lp != null
                 ? new LoyaltyDto(
@@ -68,7 +73,8 @@ public record UserDto(
                 user.enabled(),
                 user.pickpointId(),
                 user.vehicleType() != null ? user.vehicleType().name() : null,
-                user.maxPayloadKg()
+                user.maxPayloadKg(),
+                pickpointName
         );
     }
 }

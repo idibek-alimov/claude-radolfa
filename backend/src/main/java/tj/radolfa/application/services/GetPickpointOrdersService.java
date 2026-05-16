@@ -8,6 +8,10 @@ import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,7 +36,17 @@ public class GetPickpointOrdersService implements GetPickpointOrdersUseCase {
                     "PICKPOINT_STAFF user " + staffUserId + " has no pickpointId assigned");
         }
 
-        return loadPickpointOrdersPort.loadByPickpointIdAndStatus(
-                user.pickpointId(), OrderStatus.READY_FOR_PICKUP);
+        List<Order> all = loadPickpointOrdersPort.loadByPickpointIdAndStatuses(
+                user.pickpointId(), List.of(OrderStatus.READY_FOR_PICKUP, OrderStatus.DELIVERED));
+
+        Instant startOfToday = LocalDate.now(ZoneOffset.UTC).atStartOfDay(ZoneOffset.UTC).toInstant();
+
+        return all.stream()
+                .filter(o -> o.status() == OrderStatus.READY_FOR_PICKUP
+                        || (o.status() == OrderStatus.DELIVERED
+                                && o.deliveredAt() != null
+                                && o.deliveredAt().isAfter(startOfToday)))
+                .sorted(Comparator.comparingInt(o -> o.status() == OrderStatus.DELIVERED ? 1 : 0))
+                .toList();
     }
 }

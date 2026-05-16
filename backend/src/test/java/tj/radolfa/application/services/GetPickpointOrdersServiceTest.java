@@ -12,10 +12,12 @@ import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GetPickpointOrdersServiceTest {
 
@@ -39,13 +41,13 @@ class GetPickpointOrdersServiceTest {
 
     static class FakeLoadPickpointOrdersPort implements LoadPickpointOrdersPort {
         Long capturedPickpointId;
-        OrderStatus capturedStatus;
+        Collection<OrderStatus> capturedStatuses;
         List<Order> result = List.of();
 
         @Override
-        public List<Order> loadByPickpointIdAndStatus(Long pickpointId, OrderStatus status) {
+        public List<Order> loadByPickpointIdAndStatuses(Long pickpointId, Collection<OrderStatus> statuses) {
             this.capturedPickpointId = pickpointId;
-            this.capturedStatus      = status;
+            this.capturedStatuses    = statuses;
             return result;
         }
     }
@@ -60,7 +62,8 @@ class GetPickpointOrdersServiceTest {
         svc.execute(5L);
 
         assertEquals(10L, port.capturedPickpointId);
-        assertEquals(OrderStatus.READY_FOR_PICKUP, port.capturedStatus);
+        assertTrue(port.capturedStatuses.contains(OrderStatus.READY_FOR_PICKUP));
+        assertTrue(port.capturedStatuses.contains(OrderStatus.DELIVERED));
     }
 
     @Test
