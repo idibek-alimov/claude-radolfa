@@ -86,6 +86,8 @@ class RedirectToPickpointServiceTest {
             @Override public void sendReviewApprovedNotification(Long u, Long r) {}
             @Override public void sendReviewReplyNotification(Long u, Long r) {}
             @Override public void sendDeliveryCode(Long u, Long o, String c, Instant e) {}
+            @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+            @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
         };
     }
 

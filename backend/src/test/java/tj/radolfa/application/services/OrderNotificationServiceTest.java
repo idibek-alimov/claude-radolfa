@@ -37,6 +37,8 @@ class OrderNotificationServiceTest {
         @Override public void sendReviewApprovedNotification(Long userId, Long reviewId) {}
         @Override public void sendReviewReplyNotification(Long userId, Long reviewId) {}
         @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static class ThrowingNotificationPort implements NotificationPort {
@@ -45,6 +47,8 @@ class OrderNotificationServiceTest {
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
         @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static Order orderWithStatus(OrderStatus status) {

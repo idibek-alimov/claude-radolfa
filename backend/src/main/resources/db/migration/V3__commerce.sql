@@ -38,6 +38,7 @@ CREATE TABLE orders (
     delivery_attempt_count   INT          NOT NULL DEFAULT 0,
     delivery_attempt_reason  VARCHAR(32),
     delivery_photo_url       TEXT,
+    ready_for_pickup_at      TIMESTAMPTZ,
     deleted_at               TIMESTAMPTZ,
     version                  BIGINT         NOT NULL DEFAULT 0,
     created_at               TIMESTAMPTZ    NOT NULL DEFAULT NOW(),

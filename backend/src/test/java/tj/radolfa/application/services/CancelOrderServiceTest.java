@@ -81,6 +81,8 @@ class CancelOrderServiceTest {
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
         @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {
@@ -174,5 +176,26 @@ class CancelOrderServiceTest {
 
         assertThrows(IllegalStateException.class,
                 () -> svc.execute(1L, ADMIN_USER.id(), null));
+    }
+
+    @Test
+    @DisplayName("System path (ExpireOrderUseCase) cancels READY_FOR_PICKUP — status CANCELLED, notification fired")
+    void systemExpiry_cancelsReadyForPickupOrder() {
+        Order readyForPickup = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.READY_FOR_PICKUP)
+                .totalAmount(new Money(BigDecimal.valueOf(300))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(5L)
+                .build();
+
+        CapturingSaveOrderPort   save  = new CapturingSaveOrderPort();
+        CountingNotificationPort notif = new CountingNotificationPort();
+        CancelOrderService svc = service(readyForPickup, ADMIN_USER, save, notif);
+
+        svc.execute(1L, "Pickup period expired");
+
+        assertEquals(OrderStatus.CANCELLED, save.last().status());
+        assertNotNull(save.last().cancelledAt());
+        assertEquals(1, notif.updateCount);
+        assertEquals(OrderStatus.CANCELLED, notif.lastStatus);
     }
 }

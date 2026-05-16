@@ -57,4 +57,22 @@ public interface NotificationPort {
      * @param expiresAt when the code expires
      */
     void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt);
+
+    /**
+     * Warns the customer that their pickpoint order will expire soon.
+     *
+     * @param userId       the recipient (customer)
+     * @param orderId      the READY_FOR_PICKUP order
+     * @param daysRemaining days until the order is auto-cancelled
+     */
+    void sendPickpointExpiryWarning(Long userId, Long orderId, int daysRemaining);
+
+    /**
+     * Notifies the customer that their pickpoint order has been auto-cancelled
+     * due to the pickup window expiring.
+     *
+     * @param userId  the recipient (customer)
+     * @param orderId the cancelled order
+     */
+    void sendPickpointOrderExpiredCancellation(Long userId, Long orderId);
 }

@@ -30,7 +30,8 @@ public record Order(
         Instant deliveryAttemptedAt,
         int deliveryAttemptCount,
         DeliveryAttemptReason deliveryAttemptReason,
-        String deliveryPhotoUrl) {
+        String deliveryPhotoUrl,
+        Instant readyForPickupAt) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);
@@ -49,7 +50,7 @@ public record Order(
                 .cancelledAt(cancelledAt).refundedAt(refundedAt)
                 .outForDeliveryAt(outForDeliveryAt).deliveryAttemptedAt(deliveryAttemptedAt)
                 .deliveryAttemptCount(deliveryAttemptCount).deliveryAttemptReason(deliveryAttemptReason)
-                .deliveryPhotoUrl(deliveryPhotoUrl);
+                .deliveryPhotoUrl(deliveryPhotoUrl).readyForPickupAt(readyForPickupAt);
     }
 
     public static final class Builder {
@@ -78,6 +79,7 @@ public record Order(
         private int deliveryAttemptCount;
         private DeliveryAttemptReason deliveryAttemptReason;
         private String deliveryPhotoUrl;
+        private Instant readyForPickupAt;
 
         public Builder id(Long v)                              { this.id = v; return this; }
         public Builder userId(Long v)                          { this.userId = v; return this; }
@@ -104,6 +106,7 @@ public record Order(
         public Builder deliveryAttemptCount(int v)             { this.deliveryAttemptCount = v; return this; }
         public Builder deliveryAttemptReason(DeliveryAttemptReason v) { this.deliveryAttemptReason = v; return this; }
         public Builder deliveryPhotoUrl(String v)              { this.deliveryPhotoUrl = v; return this; }
+        public Builder readyForPickupAt(Instant v)             { this.readyForPickupAt = v; return this; }
 
         public Order build() {
             return new Order(id, userId, externalOrderId, status, totalAmount, items, createdAt,
@@ -112,7 +115,7 @@ public record Order(
                     courierId, trackingNumber, estimatedDeliveryDate,
                     shippedAt, deliveredAt, cancelledAt, refundedAt,
                     outForDeliveryAt, deliveryAttemptedAt, deliveryAttemptCount,
-                    deliveryAttemptReason, deliveryPhotoUrl);
+                    deliveryAttemptReason, deliveryPhotoUrl, readyForPickupAt);
         }
     }
 }

@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Instant;
 import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.RedirectToPickpointUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
@@ -61,6 +62,7 @@ public class RedirectToPickpointService implements RedirectToPickpointUseCase {
                 .shippedAt(null)
                 .outForDeliveryAt(null)
                 .deliveryAttemptedAt(null)
+                .readyForPickupAt(Instant.now())
                 .build();
 
         saveOrderPort.save(updated);

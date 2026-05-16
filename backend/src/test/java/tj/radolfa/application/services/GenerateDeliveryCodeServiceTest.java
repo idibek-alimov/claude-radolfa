@@ -98,6 +98,9 @@ class GenerateDeliveryCodeServiceTest {
         public void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt) {
             deliveryCodeCalls.add(new DeliveryCodeCall(userId, orderId, code, expiresAt));
         }
+
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static GenerateDeliveryCodeService service(Order order,

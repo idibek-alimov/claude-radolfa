@@ -126,5 +126,6 @@ radolfa:
     code-max-attempts: 5
     max-attempts: 3
     pickpoint-storage-days: 7
+    pickpoint-expiry-warning-days: 2
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026

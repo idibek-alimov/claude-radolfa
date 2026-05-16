@@ -108,6 +108,9 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "delivery_photo_url", columnDefinition = "TEXT")
     private String deliveryPhotoUrl;
 
+    @Column(name = "ready_for_pickup_at")
+    private Instant readyForPickupAt;
+
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant deletedAt;

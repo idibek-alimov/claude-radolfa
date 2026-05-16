@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.application.ports.out.LoadCourierOrderStatsPort;
 import tj.radolfa.application.ports.out.LoadCourierOrdersPort;
+import tj.radolfa.application.ports.out.LoadExpiringPickpointOrdersPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPickpointOrdersPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
@@ -29,7 +30,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort,
-        LoadCourierOrdersPort, LoadPickpointOrdersPort, LoadCourierOrderStatsPort {
+        LoadCourierOrdersPort, LoadPickpointOrdersPort, LoadCourierOrderStatsPort,
+        LoadExpiringPickpointOrdersPort {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
@@ -133,6 +135,19 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     @Override
     public List<Order> loadByPickpointIdAndStatus(Long pickpointId, OrderStatus status) {
         return repository.findByPickpointIdAndStatusOrderByCreatedAtAsc(pickpointId, status)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public List<Order> findReadyForPickupOlderThan(Instant cutoff) {
+        return repository.findByStatusAndReadyForPickupAtLessThan(OrderStatus.READY_FOR_PICKUP, cutoff)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public List<Order> findReadyForPickupInWindow(Instant startInclusive, Instant endExclusive) {
+        return repository.findByStatusAndReadyForPickupAtBetween(
+                        OrderStatus.READY_FOR_PICKUP, startInclusive, endExclusive)
                 .stream().map(mapper::toOrder).toList();
     }
 

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.loyalty.RestoreLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
+import tj.radolfa.application.ports.in.order.ExpireOrderUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
@@ -18,14 +19,17 @@ import java.time.Instant;
 /**
  * Cancels an order and restores the reserved stock.
  *
- * <p>Rules:
+ * <p>Rules for user-driven cancellation:
  * <ul>
  *   <li>USER may only cancel their own PENDING orders.</li>
  *   <li>ADMIN may cancel any order that is not yet DELIVERED or already CANCELLED.</li>
  * </ul>
+ *
+ * <p>Also implements {@link ExpireOrderUseCase} for system-driven cancellations
+ * (e.g. pickpoint storage expiry) that bypass the requester role check.
  */
 @Service
-public class CancelOrderService implements CancelOrderUseCase {
+public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCase {
 
     private final LoadOrderPort                loadOrderPort;
     private final SaveOrderPort                saveOrderPort;
@@ -75,14 +79,32 @@ public class CancelOrderService implements CancelOrderUseCase {
             }
         }
 
-        // Restore stock for each item
+        cancelInternal(order, reason);
+    }
+
+    @Override
+    @Transactional
+    public void execute(Long orderId, String reason) {
+        Order order = loadOrderPort.loadById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+
+        if (order.status() == OrderStatus.DELIVERED
+                || order.status() == OrderStatus.CANCELLED
+                || order.status() == OrderStatus.REFUNDED) {
+            throw new IllegalStateException(
+                    "Cannot expire an order in terminal status: " + order.status());
+        }
+
+        cancelInternal(order, reason);
+    }
+
+    private void cancelInternal(Order order, String reason) {
         order.items().forEach(item -> {
             if (item.getSkuId() != null) {
                 stockAdjustmentPort.increment(item.getSkuId(), item.getQuantity());
             }
         });
 
-        // Restore loyalty points that were pessimistically deducted at checkout
         if (order.loyaltyPointsRedeemed() > 0) {
             restoreLoyaltyPointsUseCase.execute(order.userId(), order.loyaltyPointsRedeemed());
         }

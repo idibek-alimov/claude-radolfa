@@ -7,11 +7,7 @@ import tj.radolfa.domain.model.User;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-/**
- * View of an order for the pickpoint staff dashboard.
- * readyAt approximates from order.createdAt until a dedicated readyForPickupAt
- * timestamp is added in Phase 6.
- */
+/** View of an order for the pickpoint staff dashboard. */
 public record PickpointOrderDto(
         Long orderId,
         String customerFirstName,
@@ -22,7 +18,7 @@ public record PickpointOrderDto(
 
     public static PickpointOrderDto from(Order order, User customer, int storageDays) {
         String firstName = extractFirstName(customer.name());
-        Instant readyAt  = order.createdAt();
+        Instant readyAt  = order.readyForPickupAt() != null ? order.readyForPickupAt() : order.createdAt();
         Instant expiresAt = readyAt.plus(storageDays, ChronoUnit.DAYS);
         long hours = ChronoUnit.HOURS.between(Instant.now(), expiresAt);
         int daysLeft = (int) Math.max(0, (hours + 23) / 24);

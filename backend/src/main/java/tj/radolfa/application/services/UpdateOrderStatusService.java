@@ -50,14 +50,16 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         validateTransition(order, command.newStatus());
         validateCourierFields(order, command);
 
-        boolean toShipped   = command.newStatus() == OrderStatus.SHIPPED;
-        boolean toDelivered = command.newStatus() == OrderStatus.DELIVERED;
-        Long      courierId     = toShipped ? command.courierId()             : order.courierId();
-        String trackingNumber   = toShipped ? command.trackingNumber()        : order.trackingNumber();
-        LocalDate edd           = toShipped ? command.estimatedDeliveryDate() : order.estimatedDeliveryDate();
-        Instant now             = Instant.now();
-        Instant shippedAt       = toShipped   ? now : order.shippedAt();
-        Instant deliveredAt     = toDelivered ? now : order.deliveredAt();
+        boolean toShipped         = command.newStatus() == OrderStatus.SHIPPED;
+        boolean toDelivered       = command.newStatus() == OrderStatus.DELIVERED;
+        boolean toReadyForPickup  = command.newStatus() == OrderStatus.READY_FOR_PICKUP;
+        Long      courierId       = toShipped ? command.courierId()             : order.courierId();
+        String trackingNumber     = toShipped ? command.trackingNumber()        : order.trackingNumber();
+        LocalDate edd             = toShipped ? command.estimatedDeliveryDate() : order.estimatedDeliveryDate();
+        Instant now               = Instant.now();
+        Instant shippedAt         = toShipped        ? now : order.shippedAt();
+        Instant deliveredAt       = toDelivered       ? now : order.deliveredAt();
+        Instant readyForPickupAt  = toReadyForPickup  ? now : order.readyForPickupAt();
 
         Order updated = order.toBuilder()
                 .status(command.newStatus())
@@ -66,6 +68,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
                 .estimatedDeliveryDate(edd)
                 .shippedAt(shippedAt)
                 .deliveredAt(deliveredAt)
+                .readyForPickupAt(readyForPickupAt)
                 .build();
         saveOrderPort.save(updated);
 

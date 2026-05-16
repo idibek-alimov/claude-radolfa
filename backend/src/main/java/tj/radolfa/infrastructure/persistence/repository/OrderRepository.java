@@ -66,6 +66,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByPickpointIdAndStatusOrderByCreatedAtAsc(Long pickpointId, OrderStatus status);
 
+    // ── Pickpoint expiry queries ──────────────────────────────────────────────
+
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    List<OrderEntity> findByStatusAndReadyForPickupAtLessThan(OrderStatus status, Instant cutoff);
+
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    List<OrderEntity> findByStatusAndReadyForPickupAtBetween(OrderStatus status, Instant start, Instant end);
+
     // ── Fleet summary aggregation ─────────────────────────────────────────────
 
     @Query(value = """
