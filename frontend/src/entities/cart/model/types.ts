@@ -18,6 +18,7 @@ export interface Cart {
   totalAmount: number;
   itemCount: number;
   couponCode?: string;
+  pendingOrderId?: number | null;
 }
 
 export interface ApplyCouponResponse {

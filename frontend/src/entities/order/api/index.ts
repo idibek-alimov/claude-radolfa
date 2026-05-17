@@ -99,6 +99,7 @@ export function useCancelOrder() {
       qc.invalidateQueries({ queryKey: ["admin-order", vars.orderId] });
       qc.invalidateQueries({ queryKey: ["admin-order-summary"] });
       qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["cart"] });
     },
   });
 }
