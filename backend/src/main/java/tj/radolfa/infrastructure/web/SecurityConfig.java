@@ -184,7 +184,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "COURIER", "PICKPOINT_STAFF")
                                                 .requestMatchers("/api/v1/wishlist/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
 
