@@ -13,6 +13,8 @@ public interface DeliveryCodeJpaRepository extends JpaRepository<DeliveryCodeEnt
 
     Optional<DeliveryCodeEntity> findFirstByOrderIdAndUsedAtIsNullOrderByCreatedAtDesc(Long orderId);
 
+    Optional<DeliveryCodeEntity> findByCodeAndUsedAtIsNull(String code);
+
     @Modifying
     @Query("UPDATE DeliveryCodeEntity d SET d.usedAt = :now WHERE d.orderId = :orderId AND d.usedAt IS NULL")
     void markAllAsUsedByOrderId(@Param("orderId") Long orderId, @Param("now") Instant now);

@@ -148,6 +148,20 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     }
 
     @Override
+    public tj.radolfa.domain.model.PageResult<Order> loadByPickpointIdAndStatuses(
+            Long pickpointId,
+            Collection<OrderStatus> statuses,
+            org.springframework.data.domain.Pageable pageable) {
+        var page = repository.findByPickpointIdAndStatusIn(pickpointId, statuses, pageable);
+        return new tj.radolfa.domain.model.PageResult<>(
+                page.getContent().stream().map(mapper::toOrder).toList(),
+                page.getTotalElements(),
+                pageable.getPageNumber() + 1,  // convert 0-based to 1-based
+                pageable.getPageSize(),
+                page.isLast());
+    }
+
+    @Override
     public List<Order> findReadyForPickupOlderThan(Instant cutoff) {
         return repository.findByStatusAndReadyForPickupAtLessThan(OrderStatus.READY_FOR_PICKUP, cutoff)
                 .stream().map(mapper::toOrder).toList();

@@ -11,25 +11,38 @@ import java.time.temporal.ChronoUnit;
 public record PickpointOrderDto(
         Long orderId,
         String customerFirstName,
+        String customerPhone,
         OrderStatus status,
         Instant readyAt,
         Instant expiresAt,
-        int daysUntilExpiry) {
+        int daysUntilExpiry,
+        boolean overdue,
+        int daysOverdue) {
 
     public static PickpointOrderDto from(Order order, User customer, int storageDays) {
-        String firstName = extractFirstName(customer.name());
+        String firstName = extractFirstName(customer != null ? customer.name() : null);
+        String phone     = customer != null && customer.phone() != null ? customer.phone().value() : null;
         Instant readyAt  = order.readyForPickupAt() != null ? order.readyForPickupAt() : order.createdAt();
         Instant expiresAt = readyAt.plus(storageDays, ChronoUnit.DAYS);
-        long hours = ChronoUnit.HOURS.between(Instant.now(), expiresAt);
-        int daysLeft = (int) Math.max(0, (hours + 23) / 24);
+        Instant now = Instant.now();
+
+        boolean isOverdue = order.readyForPickupAt() != null && now.isAfter(expiresAt);
+        int daysOverdueVal = isOverdue
+                ? (int) ChronoUnit.DAYS.between(expiresAt, now)
+                : 0;
+        long hours = ChronoUnit.HOURS.between(now, expiresAt);
+        int daysLeft = isOverdue ? 0 : (int) Math.max(0, (hours + 23) / 24);
 
         return new PickpointOrderDto(
                 order.id(),
                 firstName,
+                phone,
                 order.status(),
                 readyAt,
                 expiresAt,
-                daysLeft);
+                daysLeft,
+                isOverdue,
+                daysOverdueVal);
     }
 
     private static String extractFirstName(String name) {

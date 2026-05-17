@@ -233,12 +233,14 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→SHIPPED throws (cross-track forbidden)")
-    void pickpointPaidToShipped_throws() {
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+    @DisplayName("PICKPOINT PAID→SHIPPED succeeds (staff-driven arrival flow requires SHIPPED as intermediate)")
+    void pickpointPaidToShipped_succeeds() {
+        var saveOrder = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), saveOrder);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null)));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+
+        assertEquals(OrderStatus.SHIPPED, saveOrder.last().status());
     }
 
     @Test

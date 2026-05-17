@@ -17,7 +17,9 @@ import java.time.LocalDate;
 /**
  * ADMIN-only service: transitions an order through the fulfilment pipeline.
  *
- * <p>Legal paths: PENDING → PAID → SHIPPED → DELIVERED (home) or READY_FOR_PICKUP → DELIVERED (pickpoint).
+ * <p>Legal paths: PENDING → PAID → SHIPPED → DELIVERED (home);
+ * PENDING → PAID → SHIPPED → READY_FOR_PICKUP → DELIVERED (pickpoint, staff-driven arrival);
+ * PENDING → PAID → READY_FOR_PICKUP → DELIVERED (pickpoint, direct admin path).
  * Admin reschedule: DELIVERY_ATTEMPTED → SHIPPED (re-issues a fresh delivery code automatically).
  * HOME orders transitioning to SHIPPED require {@code courierId}.
  * Cancellation is handled separately by {@link CancelOrderService}.
@@ -106,9 +108,10 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         boolean pickpoint = order.deliveryType() == DeliveryType.PICKPOINT;
         boolean valid = switch (order.status()) {
             case PENDING            -> to == OrderStatus.PAID;
-            case PAID               -> pickpoint ? to == OrderStatus.READY_FOR_PICKUP
+            case PAID               -> pickpoint ? (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP)
                                                  : to == OrderStatus.SHIPPED;
-            case SHIPPED            -> !pickpoint && to == OrderStatus.DELIVERED;
+            case SHIPPED            -> (!pickpoint && to == OrderStatus.DELIVERED)
+                                    || (pickpoint  && to == OrderStatus.READY_FOR_PICKUP);
             case READY_FOR_PICKUP   -> pickpoint  && to == OrderStatus.DELIVERED;
             case DELIVERY_ATTEMPTED -> !pickpoint && to == OrderStatus.SHIPPED;
             default                 -> false;

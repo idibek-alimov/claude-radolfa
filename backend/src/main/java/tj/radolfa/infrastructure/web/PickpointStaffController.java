@@ -7,10 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.order.ConfirmPickpointArrivalUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmWithDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.GetPickpointOrdersUseCase;
+import tj.radolfa.application.ports.in.order.VerifyPickupByCodeUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.PickpointOrderDto;
@@ -21,17 +24,23 @@ import java.util.List;
 @RequestMapping("/api/v1/pickpoint")
 public class PickpointStaffController {
 
-    private final GetPickpointOrdersUseCase      getPickpointOrdersUseCase;
-    private final ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase;
-    private final LoadUserPort                   loadUserPort;
-    private final int                            pickpointStorageDays;
+    private final GetPickpointOrdersUseCase       getPickpointOrdersUseCase;
+    private final ConfirmWithDeliveryCodeUseCase  confirmWithDeliveryCodeUseCase;
+    private final ConfirmPickpointArrivalUseCase  confirmPickpointArrivalUseCase;
+    private final VerifyPickupByCodeUseCase       verifyPickupByCodeUseCase;
+    private final LoadUserPort                    loadUserPort;
+    private final int                             pickpointStorageDays;
 
     public PickpointStaffController(GetPickpointOrdersUseCase getPickpointOrdersUseCase,
                                     ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase,
+                                    ConfirmPickpointArrivalUseCase confirmPickpointArrivalUseCase,
+                                    VerifyPickupByCodeUseCase verifyPickupByCodeUseCase,
                                     LoadUserPort loadUserPort,
                                     @Value("${radolfa.delivery.pickpoint-storage-days:7}") int pickpointStorageDays) {
         this.getPickpointOrdersUseCase    = getPickpointOrdersUseCase;
         this.confirmWithDeliveryCodeUseCase = confirmWithDeliveryCodeUseCase;
+        this.confirmPickpointArrivalUseCase = confirmPickpointArrivalUseCase;
+        this.verifyPickupByCodeUseCase    = verifyPickupByCodeUseCase;
         this.loadUserPort                 = loadUserPort;
         this.pickpointStorageDays         = pickpointStorageDays;
     }
@@ -40,16 +49,22 @@ public class PickpointStaffController {
 
     @GetMapping("/orders")
     @PreAuthorize("hasRole('PICKPOINT_STAFF')")
-    public ResponseEntity<List<PickpointOrderDto>> getMyOrders(
+    public ResponseEntity<PageResponse<PickpointOrderDto>> getMyOrders(
+            @RequestParam(required = false) List<OrderStatus> statuses,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "50") int size,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
-        List<Order> orders = getPickpointOrdersUseCase.execute(principal.userId());
 
-        List<PickpointOrderDto> dtos = orders.stream().map(order -> {
+        var result = getPickpointOrdersUseCase.execute(principal.userId(), statuses, page, size);
+
+        var dtos = result.content().stream().map(order -> {
             User customer = loadUserPort.loadById(order.userId()).orElse(null);
             return PickpointOrderDto.from(order, customer, pickpointStorageDays);
         }).toList();
 
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(PageResponse.from(
+                new tj.radolfa.domain.model.PageResult<>(
+                        dtos, result.totalElements(), result.number(), result.size(), result.last())));
     }
 
     @PostMapping("/orders/{orderId}/confirm")
@@ -60,6 +75,24 @@ public class PickpointStaffController {
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         confirmWithDeliveryCodeUseCase.execute(
                 new ConfirmWithDeliveryCodeUseCase.Command(orderId, body.code()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/orders/{orderId}/confirm-arrival")
+    @PreAuthorize("hasRole('PICKPOINT_STAFF')")
+    public ResponseEntity<Void> confirmArrival(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        confirmPickpointArrivalUseCase.execute(orderId, principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify-pickup")
+    @PreAuthorize("hasRole('PICKPOINT_STAFF')")
+    public ResponseEntity<Void> verifyPickup(
+            @Valid @RequestBody ConfirmRequest body,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        verifyPickupByCodeUseCase.execute(body.code(), principal.userId());
         return ResponseEntity.noContent().build();
     }
 }

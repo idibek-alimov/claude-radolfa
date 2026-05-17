@@ -1,6 +1,7 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.LoadDeliveryCodeByValuePort;
 import tj.radolfa.application.ports.out.LoadDeliveryCodePort;
 import tj.radolfa.application.ports.out.SaveDeliveryCodePort;
 import tj.radolfa.domain.model.DeliveryCode;
@@ -12,7 +13,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Component
-public class DeliveryCodeRepositoryAdapter implements LoadDeliveryCodePort, SaveDeliveryCodePort {
+public class DeliveryCodeRepositoryAdapter implements LoadDeliveryCodePort, LoadDeliveryCodeByValuePort, SaveDeliveryCodePort {
 
     private final DeliveryCodeJpaRepository repository;
     private final DeliveryCodeMapper        mapper;
@@ -21,6 +22,12 @@ public class DeliveryCodeRepositoryAdapter implements LoadDeliveryCodePort, Save
                                          DeliveryCodeMapper mapper) {
         this.repository = repository;
         this.mapper     = mapper;
+    }
+
+    @Override
+    public Optional<DeliveryCode> loadActiveByCode(String code) {
+        return repository.findByCodeAndUsedAtIsNull(code)
+                .map(mapper::toDomain);
     }
 
     @Override
