@@ -111,6 +111,15 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "ready_for_pickup_at")
     private Instant readyForPickupAt;
 
+    @Column(name = "return_initiated_at")
+    private Instant returnInitiatedAt;
+
+    @Column(name = "return_initiated_by_user_id")
+    private Long returnInitiatedByUserId;
+
+    @Column(name = "returned_to_warehouse_at")
+    private Instant returnedToWarehouseAt;
+
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant deletedAt;
