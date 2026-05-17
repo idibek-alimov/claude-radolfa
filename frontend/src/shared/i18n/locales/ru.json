@@ -601,7 +601,18 @@
     "noUsersMatching": "Пользователи по запросу «{search}» не найдены",
     "noUsersFound": "Пользователи не найдены.",
     "usersTotal": "{count} пользователей всего",
-    "page": "Страница {page}"
+    "page": "Страница {page}",
+    "tabCustomers": "Покупатели",
+    "tabManagers": "Менеджеры",
+    "tabCouriers": "Курьеры",
+    "tabPickpointStaff": "Сотрудники ПВЗ",
+    "addCourier": "Добавить курьера",
+    "addPickpointStaff": "Добавить сотрудника ПВЗ",
+    "editCourier": "Редактировать курьера",
+    "editPickpointStaff": "Редактировать сотрудника ПВЗ",
+    "tableVehicleType": "Транспорт",
+    "tableMaxPayload": "Макс. нагрузка",
+    "tablePickpoint": "ПВЗ"
   },
   "reviews": {
     "card": {

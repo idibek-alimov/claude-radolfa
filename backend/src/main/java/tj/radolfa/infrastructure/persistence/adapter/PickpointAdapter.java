@@ -59,6 +59,12 @@ public class PickpointAdapter implements LoadPickpointPort, SavePickpointPort,
         return repo.findById(id).map(this::toDomain);
     }
 
+    @Override
+    public List<Pickpoint> findAllByIds(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        return repo.findAllById(ids).stream().map(this::toDomain).toList();
+    }
+
     // ── SavePickpointPort ─────────────────────────────────────────────────────
 
     @Override

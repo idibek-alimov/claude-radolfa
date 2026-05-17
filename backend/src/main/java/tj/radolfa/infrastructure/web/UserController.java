@@ -5,10 +5,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.ChangeUserRoleUseCase;
 import tj.radolfa.application.ports.in.ListUsersUseCase;
+import tj.radolfa.application.services.ListUsersService;
 import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
 import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
@@ -85,17 +87,29 @@ public class UserController {
     }
 
     @GetMapping
-    @Operation(summary = "List all users (paginated, searchable)")
+    @Operation(summary = "List all users (paginated, searchable, filterable by role)")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<PageResponse<UserDto>> listUsers(
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) List<UserRole> role,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PageResult<tj.radolfa.domain.model.User> result = listUsersUseCase.execute(search, page, size);
+        PageResult<tj.radolfa.domain.model.User> result = listUsersUseCase.execute(search, role, page, size);
+
+        java.util.Map<Long, String> pickpointNames = (result instanceof ListUsersService.EnrichedPageResult<?> e)
+                ? e.pickpointNames
+                : java.util.Map.of();
 
         PageResult<UserDto> dtoResult = new PageResult<>(
-                result.content().stream().map(UserDto::fromDomain).toList(),
+                result.content().stream()
+                        .map(u -> {
+                            String ppName = u.pickpointId() != null
+                                    ? pickpointNames.get(u.pickpointId())
+                                    : null;
+                            return UserDto.fromDomain(u, java.util.List.of(), ppName);
+                        })
+                        .toList(),
                 result.totalElements(),
                 result.number(),
                 result.size(),

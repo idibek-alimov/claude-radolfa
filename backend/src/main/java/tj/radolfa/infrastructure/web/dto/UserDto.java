@@ -22,6 +22,9 @@ public record UserDto(
         Long pickpointId,
         String vehicleType,
         BigDecimal maxPayloadKg,
+        Integer maxLengthCm,
+        Integer maxWidthCm,
+        Integer maxHeightCm,
         String pickpointName
 ) {
     public record RecentEarningDto(Long orderId, int pointsEarned, BigDecimal orderAmount, Instant orderedAt) {
@@ -74,6 +77,9 @@ public record UserDto(
                 user.pickpointId(),
                 user.vehicleType() != null ? user.vehicleType().name() : null,
                 user.maxPayloadKg(),
+                user.maxLengthCm(),
+                user.maxWidthCm(),
+                user.maxHeightCm(),
                 pickpointName
         );
     }

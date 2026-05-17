@@ -12,6 +12,15 @@ export interface UserDto {
   email?: string;
   loyalty: LoyaltyProfile;
   enabled: boolean;
+  // Courier-specific fields
+  vehicleType?: string | null;
+  maxPayloadKg?: number | null;
+  maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  // Pickpoint staff field
+  pickpointId?: number | null;
+  pickpointName?: string | null;
 }
 
 export interface ToggleStatusParams {

@@ -601,7 +601,18 @@
     "noUsersMatching": "No users matching \"{search}\"",
     "noUsersFound": "No users found.",
     "usersTotal": "{count, plural, one {# user total} other {# users total}}",
-    "page": "Page {page}"
+    "page": "Page {page}",
+    "tabCustomers": "Customers",
+    "tabManagers": "Managers",
+    "tabCouriers": "Couriers",
+    "tabPickpointStaff": "Pickpoint Staff",
+    "addCourier": "Add Courier",
+    "addPickpointStaff": "Add Pickpoint Staff",
+    "editCourier": "Edit Courier",
+    "editPickpointStaff": "Edit Pickpoint Staff",
+    "tableVehicleType": "Vehicle",
+    "tableMaxPayload": "Max Payload",
+    "tablePickpoint": "Pickpoint"
   },
   "reviews": {
     "card": {

@@ -601,7 +601,18 @@
     "noUsersMatching": "Корбарон аз рӯи «{search}» ёфт нашуданд",
     "noUsersFound": "Корбарон ёфт нашуданд.",
     "usersTotal": "{count} корбарон ҷамъан",
-    "page": "Саҳифа {page}"
+    "page": "Саҳифа {page}",
+    "tabCustomers": "Харидорон",
+    "tabManagers": "Менеҷерон",
+    "tabCouriers": "Курьерон",
+    "tabPickpointStaff": "Кормандони ПВЗ",
+    "addCourier": "Иловаи курьер",
+    "addPickpointStaff": "Иловаи корманди ПВЗ",
+    "editCourier": "Таҳрири курьер",
+    "editPickpointStaff": "Таҳрири корманди ПВЗ",
+    "tableVehicleType": "Нақлиёт",
+    "tableMaxPayload": "Ҳадди бор",
+    "tablePickpoint": "ПВЗ"
   },
   "reviews": {
     "card": {
