@@ -10,7 +10,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.ChangeUserRoleUseCase;
 import tj.radolfa.application.ports.in.ListUsersUseCase;
-import tj.radolfa.application.services.ListUsersService;
 import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
 import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
@@ -97,9 +96,18 @@ public class UserController {
 
         PageResult<tj.radolfa.domain.model.User> result = listUsersUseCase.execute(search, role, page, size);
 
-        java.util.Map<Long, String> pickpointNames = (result instanceof ListUsersService.EnrichedPageResult<?> e)
-                ? e.pickpointNames
-                : java.util.Map.of();
+        // Batch-resolve pickpoint names for any PICKPOINT_STAFF users on this page
+        java.util.Set<Long> ppIds = result.content().stream()
+                .filter(u -> u.pickpointId() != null)
+                .map(tj.radolfa.domain.model.User::pickpointId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        java.util.Map<Long, String> pickpointNames = ppIds.isEmpty()
+                ? java.util.Map.of()
+                : loadPickpointPort.findAllByIds(ppIds).stream()
+                        .collect(java.util.stream.Collectors.toMap(
+                                tj.radolfa.domain.model.Pickpoint::id,
+                                tj.radolfa.domain.model.Pickpoint::name));
 
         PageResult<UserDto> dtoResult = new PageResult<>(
                 result.content().stream()
