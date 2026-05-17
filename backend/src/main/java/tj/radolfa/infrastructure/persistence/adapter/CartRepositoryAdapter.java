@@ -42,6 +42,11 @@ public class CartRepositoryAdapter implements LoadCartPort, SaveCartPort {
         return cartRepo.findById(cartId).map(mapper::toCart);
     }
 
+    @Override
+    public Optional<Cart> findByPendingOrderId(Long orderId) {
+        return cartRepo.findByPendingOrderId(orderId).map(mapper::toCart);
+    }
+
     // ---- SaveCartPort ----
 
     @Override
@@ -54,11 +59,13 @@ public class CartRepositoryAdapter implements LoadCartPort, SaveCartPort {
                     .orElseThrow(() -> new IllegalStateException("Cart not found: " + cart.getId()));
             entity.setStatus(cart.getStatus());
             entity.setCouponCode(cart.getCouponCode());
+            entity.setPendingOrderId(cart.getPendingOrderId());
         } else {
             entity = new CartEntity();
             entity.setUserId(cart.getUserId());
             entity.setStatus(cart.getStatus());
             entity.setCouponCode(cart.getCouponCode());
+            entity.setPendingOrderId(cart.getPendingOrderId());
         }
 
         // Merge items: update existing rows in-place, remove stale, insert new.

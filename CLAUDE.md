@@ -159,3 +159,5 @@ Three roles: `USER`, `MANAGER`, `ADMIN`. `ADMIN` is the only role that can edit 
 7. **Tests** — Which application service needs a fake-adapter test?
 
 **After implementation:** run `/audit-data` to validate Hexagonal + FSD compliance. Run `/review` for any security-sensitive code.
+
+**CRITICAL — Explicit permission required before any code is written:** Answering a design question (e.g. "Option A", "yes", "agreed") is NOT permission to implement. I must wait for an explicit instruction such as "go ahead", "implement it", or "just do it" before writing or modifying any code.

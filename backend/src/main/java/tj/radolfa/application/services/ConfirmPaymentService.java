@@ -7,8 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.loyalty.AwardLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.in.payment.ConfirmPaymentUseCase;
+import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPaymentPort;
+import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SavePaymentPort;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.Payment;
@@ -35,17 +37,23 @@ public class ConfirmPaymentService implements ConfirmPaymentUseCase {
     private final LoadOrderPort            loadOrderPort;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
     private final AwardLoyaltyPointsUseCase awardLoyaltyPointsUseCase;
+    private final LoadCartPort             loadCartPort;
+    private final SaveCartPort             saveCartPort;
 
     public ConfirmPaymentService(LoadPaymentPort loadPaymentPort,
                                  SavePaymentPort savePaymentPort,
                                  LoadOrderPort loadOrderPort,
                                  UpdateOrderStatusUseCase updateOrderStatusUseCase,
-                                 AwardLoyaltyPointsUseCase awardLoyaltyPointsUseCase) {
+                                 AwardLoyaltyPointsUseCase awardLoyaltyPointsUseCase,
+                                 LoadCartPort loadCartPort,
+                                 SaveCartPort saveCartPort) {
         this.loadPaymentPort          = loadPaymentPort;
         this.savePaymentPort          = savePaymentPort;
         this.loadOrderPort            = loadOrderPort;
         this.updateOrderStatusUseCase = updateOrderStatusUseCase;
         this.awardLoyaltyPointsUseCase = awardLoyaltyPointsUseCase;
+        this.loadCartPort             = loadCartPort;
+        this.saveCartPort             = saveCartPort;
     }
 
     @Override
@@ -74,5 +82,11 @@ public class ConfirmPaymentService implements ConfirmPaymentUseCase {
                 .orElseThrow(() -> new IllegalStateException("Order not found: " + payment.orderId()))
                 .userId();
         awardLoyaltyPointsUseCase.execute(userId, payment.orderId());
+
+        // Finalize cart — mark CHECKED_OUT now that payment is confirmed
+        loadCartPort.findByPendingOrderId(payment.orderId()).ifPresent(cart -> {
+            cart.checkout();
+            saveCartPort.save(cart);
+        });
     }
 }

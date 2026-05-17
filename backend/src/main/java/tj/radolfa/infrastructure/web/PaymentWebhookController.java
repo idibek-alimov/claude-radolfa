@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.payment.ConfirmPaymentUseCase;
+import tj.radolfa.application.ports.in.payment.FailPaymentUseCase;
 import tj.radolfa.infrastructure.security.WebhookSignatureValidator;
 
 import java.nio.charset.StandardCharsets;
@@ -23,11 +24,14 @@ import java.nio.charset.StandardCharsets;
 public class PaymentWebhookController {
 
     private final ConfirmPaymentUseCase        confirmPaymentUseCase;
+    private final FailPaymentUseCase           failPaymentUseCase;
     private final WebhookSignatureValidator    signatureValidator;
 
     public PaymentWebhookController(ConfirmPaymentUseCase confirmPaymentUseCase,
+                                    FailPaymentUseCase failPaymentUseCase,
                                     WebhookSignatureValidator signatureValidator) {
         this.confirmPaymentUseCase = confirmPaymentUseCase;
+        this.failPaymentUseCase    = failPaymentUseCase;
         this.signatureValidator    = signatureValidator;
     }
 
@@ -48,6 +52,26 @@ public class PaymentWebhookController {
         }
 
         confirmPaymentUseCase.execute(transactionId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/payment/failure")
+    @Operation(summary = "Payment provider webhook — records a failed payment")
+    public ResponseEntity<Void> handlePaymentFailure(
+            @RequestBody String rawPayload,
+            @RequestParam(required = false) String transactionId,
+            @RequestHeader(value = "X-Webhook-Signature", required = false) String signature) {
+
+        if (transactionId == null || transactionId.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        byte[] payloadBytes = rawPayload.getBytes(StandardCharsets.UTF_8);
+        if (!signatureValidator.isValid(payloadBytes, signature)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        failPaymentUseCase.execute(transactionId);
         return ResponseEntity.ok().build();
     }
 }

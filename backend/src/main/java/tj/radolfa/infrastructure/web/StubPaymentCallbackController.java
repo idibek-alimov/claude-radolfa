@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.payment.ConfirmPaymentUseCase;
+import tj.radolfa.application.ports.in.payment.FailPaymentUseCase;
 
 import java.net.URI;
 
@@ -25,9 +26,12 @@ import java.net.URI;
 public class StubPaymentCallbackController {
 
     private final ConfirmPaymentUseCase confirmPaymentUseCase;
+    private final FailPaymentUseCase   failPaymentUseCase;
 
-    public StubPaymentCallbackController(ConfirmPaymentUseCase confirmPaymentUseCase) {
+    public StubPaymentCallbackController(ConfirmPaymentUseCase confirmPaymentUseCase,
+                                         FailPaymentUseCase failPaymentUseCase) {
         this.confirmPaymentUseCase = confirmPaymentUseCase;
+        this.failPaymentUseCase    = failPaymentUseCase;
     }
 
     @GetMapping("/confirm")
@@ -38,6 +42,17 @@ public class StubPaymentCallbackController {
         confirmPaymentUseCase.execute(tx);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create("/payment/return?orderId=" + orderId))
+                .build();
+    }
+
+    @GetMapping("/fail")
+    public ResponseEntity<Void> fail(
+            @RequestParam String tx,
+            @RequestParam Long orderId) {
+
+        failPaymentUseCase.execute(tx);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("/payment/return?orderId=" + orderId + "&status=failed"))
                 .build();
     }
 }

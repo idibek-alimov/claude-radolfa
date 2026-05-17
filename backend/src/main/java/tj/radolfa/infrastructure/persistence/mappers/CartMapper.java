@@ -24,7 +24,8 @@ public class CartMapper {
                 items,
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
-                entity.getCouponCode()
+                entity.getCouponCode(),
+                entity.getPendingOrderId()
         );
     }
 

@@ -175,7 +175,14 @@ class CheckoutServiceStackingTest {
                 (userId, pts) -> Money.ZERO,
                 query -> resolvedMap,
                 recordService,
-                FAKE_LOAD_PICKPOINT
+                FAKE_LOAD_PICKPOINT,
+                new tj.radolfa.application.ports.out.LoadOrderPort() {
+                    @Override public java.util.List<tj.radolfa.domain.model.Order> loadByUserId(Long id) { return java.util.List.of(); }
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Order> loadById(Long id) { return java.util.Optional.empty(); }
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Order> loadByExternalOrderId(String s) { return java.util.Optional.empty(); }
+                    @Override public java.util.List<tj.radolfa.domain.model.Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
+                },
+                (orderId, reason) -> {}            // ExpireOrderUseCase
         );
     }
 

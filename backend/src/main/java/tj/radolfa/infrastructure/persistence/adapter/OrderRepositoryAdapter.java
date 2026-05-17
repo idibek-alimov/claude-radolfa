@@ -74,6 +74,14 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
                 .toList();
     }
 
+    @Override
+    public List<Order> findExpiredPending(Instant cutoff) {
+        return repository.findByStatusAndCreatedAtLessThan(OrderStatus.PENDING, cutoff)
+                .stream()
+                .map(mapper::toOrder)
+                .toList();
+    }
+
     private static final Set<String> SORTABLE = Set.of("createdAt", "totalAmount", "status", "id");
 
     @Override

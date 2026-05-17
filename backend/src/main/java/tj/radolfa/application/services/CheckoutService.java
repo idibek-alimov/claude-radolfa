@@ -2,10 +2,13 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import tj.radolfa.application.ports.in.discount.RecordDiscountApplicationUseCase;
 import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
 import tj.radolfa.application.ports.in.loyalty.RedeemLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
+import tj.radolfa.application.ports.in.order.ExpireOrderUseCase;
+import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
@@ -34,6 +37,7 @@ import tj.radolfa.domain.service.LoyaltyCalculator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +59,11 @@ public class CheckoutService implements CheckoutUseCase {
     private final ResolveDiscountsUseCase          resolveDiscountsUseCase;
     private final RecordDiscountApplicationUseCase recordDiscountApplicationUseCase;
     private final LoadPickpointPort                loadPickpointPort;
+    private final LoadOrderPort                    loadOrderPort;
+    private final ExpireOrderUseCase               expireOrderUseCase;
+
+    @Value("${radolfa.payment.pending-timeout-minutes:30}")
+    private int pendingTimeoutMinutes;
 
     public CheckoutService(LoadCartPort loadCartPort,
                            SaveCartPort saveCartPort,
@@ -68,7 +77,9 @@ public class CheckoutService implements CheckoutUseCase {
                            RedeemLoyaltyPointsUseCase redeemLoyaltyPointsUseCase,
                            ResolveDiscountsUseCase resolveDiscountsUseCase,
                            RecordDiscountApplicationUseCase recordDiscountApplicationUseCase,
-                           LoadPickpointPort loadPickpointPort) {
+                           LoadPickpointPort loadPickpointPort,
+                           LoadOrderPort loadOrderPort,
+                           ExpireOrderUseCase expireOrderUseCase) {
         this.loadCartPort                    = loadCartPort;
         this.saveCartPort                    = saveCartPort;
         this.loadSkuPort                     = loadSkuPort;
@@ -82,6 +93,8 @@ public class CheckoutService implements CheckoutUseCase {
         this.resolveDiscountsUseCase         = resolveDiscountsUseCase;
         this.recordDiscountApplicationUseCase = recordDiscountApplicationUseCase;
         this.loadPickpointPort               = loadPickpointPort;
+        this.loadOrderPort                   = loadOrderPort;
+        this.expireOrderUseCase              = expireOrderUseCase;
     }
 
     @Override
@@ -100,6 +113,27 @@ public class CheckoutService implements CheckoutUseCase {
                         "No active cart for user: " + command.userId()));
         if (cart.isEmpty()) {
             throw new IllegalStateException("Cannot checkout with an empty cart");
+        }
+
+        // 2b. Pending-order guard — prevent double checkout within the payment window
+        if (cart.getPendingOrderId() != null) {
+            Order linked = loadOrderPort.loadById(cart.getPendingOrderId()).orElse(null);
+            if (linked != null && linked.status() == OrderStatus.PENDING) {
+                Instant cutoff = Instant.now().minus(pendingTimeoutMinutes, ChronoUnit.MINUTES);
+                if (linked.createdAt().isAfter(cutoff)) {
+                    throw new IllegalStateException(
+                            "You already have a pending payment. Complete or cancel it before placing a new order.");
+                }
+                // Stale PENDING — auto-cancel and continue
+                expireOrderUseCase.execute(linked.id(), "Payment window expired");
+            } else {
+                // Order already PAID/CANCELLED — clear the stale link and continue
+                cart.unlinkOrder();
+                saveCartPort.save(cart);
+                // Reload to pick up fresh state
+                cart = loadCartPort.findActiveByUserId(command.userId())
+                        .orElseThrow(() -> new IllegalStateException("No active cart for user: " + command.userId()));
+            }
         }
 
         // 3. Load all SKUs in one batch, then re-validate stock
@@ -228,8 +262,8 @@ public class CheckoutService implements CheckoutUseCase {
             stockAdjustmentPort.decrement(item.getSkuId(), item.getQuantity());
         }
 
-        // 12. Transition cart to CHECKED_OUT
-        cart.checkout();
+        // 12. Link cart to the pending order — cart stays ACTIVE until payment confirmed
+        cart.linkOrder(saved.id());
         saveCartPort.save(cart);
 
         return new Result(saved.id(), subtotal, tierDiscount, pointsDiscount, total);

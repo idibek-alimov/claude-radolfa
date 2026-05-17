@@ -6,8 +6,10 @@ import tj.radolfa.application.ports.in.loyalty.RestoreLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.ExpireOrderUseCase;
 import tj.radolfa.application.ports.out.DeliveryEventPublisher;
+import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.Order;
@@ -44,6 +46,8 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
     private final RestoreLoyaltyPointsUseCase  restoreLoyaltyPointsUseCase;
     private final OrderNotificationService     orderNotificationService;
     private final DeliveryEventPublisher       deliveryEventPublisher;
+    private final LoadCartPort                 loadCartPort;
+    private final SaveCartPort                 saveCartPort;
 
     public CancelOrderService(LoadOrderPort loadOrderPort,
                               SaveOrderPort saveOrderPort,
@@ -51,7 +55,9 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
                               StockAdjustmentPort stockAdjustmentPort,
                               RestoreLoyaltyPointsUseCase restoreLoyaltyPointsUseCase,
                               OrderNotificationService orderNotificationService,
-                              DeliveryEventPublisher deliveryEventPublisher) {
+                              DeliveryEventPublisher deliveryEventPublisher,
+                              LoadCartPort loadCartPort,
+                              SaveCartPort saveCartPort) {
         this.loadOrderPort               = loadOrderPort;
         this.saveOrderPort               = saveOrderPort;
         this.loadUserPort                = loadUserPort;
@@ -59,6 +65,8 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
         this.restoreLoyaltyPointsUseCase = restoreLoyaltyPointsUseCase;
         this.orderNotificationService    = orderNotificationService;
         this.deliveryEventPublisher      = deliveryEventPublisher;
+        this.loadCartPort                = loadCartPort;
+        this.saveCartPort                = saveCartPort;
     }
 
     @Override
@@ -124,6 +132,12 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
                 .build();
         saveOrderPort.save(cancelled);
         orderNotificationService.notify(cancelled);
+
+        // Release the cart so the user can re-checkout with the same items
+        loadCartPort.findByPendingOrderId(order.id()).ifPresent(cart -> {
+            cart.unlinkOrder();
+            saveCartPort.save(cart);
+        });
 
         // WebSocket push to affected field staff
         if (COURIER_ACTIVE.contains(order.status()) && order.courierId() != null) {

@@ -111,7 +111,12 @@ class CancelOrderServiceTest {
                 NO_STOCK,
                 NO_LOYALTY,
                 new OrderNotificationService(notifPort),
-                NO_DELIVERY_EVENTS);
+                NO_DELIVERY_EVENTS,
+                new tj.radolfa.application.ports.out.LoadCartPort() {
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Cart> findActiveByUserId(Long id) { return java.util.Optional.empty(); }
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Cart> findById(Long id) { return java.util.Optional.empty(); }
+                },
+                cart -> cart);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

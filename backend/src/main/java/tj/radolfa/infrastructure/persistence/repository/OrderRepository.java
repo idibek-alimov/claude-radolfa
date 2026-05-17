@@ -90,4 +90,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
             GROUP BY courier_id
             """, nativeQuery = true)
     List<Object[]> aggregateFleetStats(@Param("since") Instant since);
+
+    // ── Abandoned payment sweep ───────────────────────────────────────────────
+
+    @EntityGraph(attributePaths = {"items"})
+    List<OrderEntity> findByStatusAndCreatedAtLessThan(OrderStatus status, Instant cutoff);
 }
