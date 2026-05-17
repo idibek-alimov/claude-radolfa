@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -123,17 +124,37 @@ public class PickpointAdapter implements LoadPickpointPort, SavePickpointPort,
 
     @Override
     public List<PickpointHours> replaceAll(Long pickpointId, List<PickpointHours> hours) {
-        hoursRepo.deleteAllByPickpointId(pickpointId);
-        List<PickpointHoursEntity> entities = hours.stream()
+        Map<Short, PickpointHoursEntity> existing = hoursRepo
+                .findAllByPickpointIdOrderByDayOfWeek(pickpointId)
+                .stream()
+                .collect(Collectors.toMap(PickpointHoursEntity::getDayOfWeek, e -> e));
+
+        Set<Short> incomingDays = hours.stream()
+                .map(h -> (short) h.dayOfWeek())
+                .collect(Collectors.toSet());
+
+        // Delete rows for days removed from the schedule
+        List<PickpointHoursEntity> toDelete = existing.values().stream()
+                .filter(e -> !incomingDays.contains(e.getDayOfWeek()))
+                .toList();
+        if (!toDelete.isEmpty()) {
+            hoursRepo.deleteAll(toDelete);
+        }
+
+        // Update existing rows in-place; insert only genuinely new days
+        List<PickpointHoursEntity> toSave = hours.stream()
                 .map(h -> {
-                    PickpointHoursEntity e = new PickpointHoursEntity();
+                    short day = (short) h.dayOfWeek();
+                    PickpointHoursEntity e = existing.getOrDefault(day, new PickpointHoursEntity());
                     e.setPickpointId(pickpointId);
-                    e.setDayOfWeek((short) h.dayOfWeek());
+                    e.setDayOfWeek(day);
                     e.setOpenTime(h.openTime());
                     e.setCloseTime(h.closeTime());
                     return e;
-                }).toList();
-        return hoursRepo.saveAll(entities).stream().map(this::hoursToDomain).toList();
+                })
+                .toList();
+
+        return hoursRepo.saveAll(toSave).stream().map(this::hoursToDomain).toList();
     }
 
     // ── Mapping ───────────────────────────────────────────────────────────────
