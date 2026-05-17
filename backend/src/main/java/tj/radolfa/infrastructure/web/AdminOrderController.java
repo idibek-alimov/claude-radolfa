@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
+import tj.radolfa.application.ports.in.order.InitiateReturnToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.ListAdminOrdersUseCase;
 import tj.radolfa.application.ports.in.order.RedirectToPickpointUseCase;
 import tj.radolfa.application.ports.in.order.RefundOrderUseCase;
@@ -42,15 +43,16 @@ import java.util.Objects;
 @Tag(name = "Admin — Orders", description = "Admin-only order management endpoints")
 public class AdminOrderController {
 
-    private final GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase;
-    private final ListAdminOrdersUseCase      listAdminOrdersUseCase;
-    private final GetAdminOrderDetailUseCase  getAdminOrderDetailUseCase;
-    private final RefundOrderUseCase          refundOrderUseCase;
-    private final RedirectToPickpointUseCase  redirectToPickpointUseCase;
-    private final RegenerateDeliveryCodeUseCase regenerateDeliveryCodeUseCase;
-    private final LoadListingVariantPort      loadListingVariantPort;
-    private final LoadSkuPort                 loadSkuPort;
-    private final LoadReviewPort              loadReviewPort;
+    private final GetAdminOrderSummaryUseCase    getAdminOrderSummaryUseCase;
+    private final ListAdminOrdersUseCase         listAdminOrdersUseCase;
+    private final GetAdminOrderDetailUseCase     getAdminOrderDetailUseCase;
+    private final RefundOrderUseCase             refundOrderUseCase;
+    private final RedirectToPickpointUseCase     redirectToPickpointUseCase;
+    private final RegenerateDeliveryCodeUseCase  regenerateDeliveryCodeUseCase;
+    private final InitiateReturnToWarehouseUseCase initiateReturnUseCase;
+    private final LoadListingVariantPort         loadListingVariantPort;
+    private final LoadSkuPort                    loadSkuPort;
+    private final LoadReviewPort                 loadReviewPort;
 
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
@@ -58,6 +60,7 @@ public class AdminOrderController {
                                 RefundOrderUseCase refundOrderUseCase,
                                 RedirectToPickpointUseCase redirectToPickpointUseCase,
                                 RegenerateDeliveryCodeUseCase regenerateDeliveryCodeUseCase,
+                                InitiateReturnToWarehouseUseCase initiateReturnUseCase,
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
                                 LoadReviewPort loadReviewPort) {
@@ -67,6 +70,7 @@ public class AdminOrderController {
         this.refundOrderUseCase             = refundOrderUseCase;
         this.redirectToPickpointUseCase     = redirectToPickpointUseCase;
         this.regenerateDeliveryCodeUseCase  = regenerateDeliveryCodeUseCase;
+        this.initiateReturnUseCase          = initiateReturnUseCase;
         this.loadListingVariantPort         = loadListingVariantPort;
         this.loadSkuPort                    = loadSkuPort;
         this.loadReviewPort                 = loadReviewPort;
@@ -140,6 +144,16 @@ public class AdminOrderController {
     @Operation(summary = "Regenerate an expired delivery code and re-send it to the customer (ADMIN only)")
     public ResponseEntity<Void> regenerateDeliveryCode(@PathVariable Long id) {
         regenerateDeliveryCodeUseCase.execute(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/initiate-return")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Initiate return to warehouse for an overdue pickpoint order (MANAGER + ADMIN)")
+    public ResponseEntity<Void> initiateReturn(
+            @PathVariable Long id,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        initiateReturnUseCase.execute(id, principal.userId());
         return ResponseEntity.noContent().build();
     }
 

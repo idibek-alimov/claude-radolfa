@@ -8,8 +8,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.ConfirmPickpointArrivalUseCase;
+import tj.radolfa.application.ports.in.order.ConfirmReturnedToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmWithDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.GetPickpointOrdersUseCase;
+import tj.radolfa.application.ports.in.order.InitiateReturnToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.VerifyPickupByCodeUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.Order;
@@ -24,25 +26,31 @@ import java.util.List;
 @RequestMapping("/api/v1/pickpoint")
 public class PickpointStaffController {
 
-    private final GetPickpointOrdersUseCase       getPickpointOrdersUseCase;
-    private final ConfirmWithDeliveryCodeUseCase  confirmWithDeliveryCodeUseCase;
-    private final ConfirmPickpointArrivalUseCase  confirmPickpointArrivalUseCase;
-    private final VerifyPickupByCodeUseCase       verifyPickupByCodeUseCase;
-    private final LoadUserPort                    loadUserPort;
-    private final int                             pickpointStorageDays;
+    private final GetPickpointOrdersUseCase          getPickpointOrdersUseCase;
+    private final ConfirmWithDeliveryCodeUseCase     confirmWithDeliveryCodeUseCase;
+    private final ConfirmPickpointArrivalUseCase     confirmPickpointArrivalUseCase;
+    private final VerifyPickupByCodeUseCase          verifyPickupByCodeUseCase;
+    private final InitiateReturnToWarehouseUseCase   initiateReturnUseCase;
+    private final ConfirmReturnedToWarehouseUseCase  confirmReturnedUseCase;
+    private final LoadUserPort                       loadUserPort;
+    private final int                                pickpointStorageDays;
 
     public PickpointStaffController(GetPickpointOrdersUseCase getPickpointOrdersUseCase,
                                     ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase,
                                     ConfirmPickpointArrivalUseCase confirmPickpointArrivalUseCase,
                                     VerifyPickupByCodeUseCase verifyPickupByCodeUseCase,
+                                    InitiateReturnToWarehouseUseCase initiateReturnUseCase,
+                                    ConfirmReturnedToWarehouseUseCase confirmReturnedUseCase,
                                     LoadUserPort loadUserPort,
                                     @Value("${radolfa.delivery.pickpoint-storage-days:7}") int pickpointStorageDays) {
-        this.getPickpointOrdersUseCase    = getPickpointOrdersUseCase;
+        this.getPickpointOrdersUseCase      = getPickpointOrdersUseCase;
         this.confirmWithDeliveryCodeUseCase = confirmWithDeliveryCodeUseCase;
         this.confirmPickpointArrivalUseCase = confirmPickpointArrivalUseCase;
-        this.verifyPickupByCodeUseCase    = verifyPickupByCodeUseCase;
-        this.loadUserPort                 = loadUserPort;
-        this.pickpointStorageDays         = pickpointStorageDays;
+        this.verifyPickupByCodeUseCase      = verifyPickupByCodeUseCase;
+        this.initiateReturnUseCase          = initiateReturnUseCase;
+        this.confirmReturnedUseCase         = confirmReturnedUseCase;
+        this.loadUserPort                   = loadUserPort;
+        this.pickpointStorageDays           = pickpointStorageDays;
     }
 
     record ConfirmRequest(@NotBlank String code) {}
@@ -93,6 +101,24 @@ public class PickpointStaffController {
             @Valid @RequestBody ConfirmRequest body,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         verifyPickupByCodeUseCase.execute(body.code(), principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/orders/{orderId}/initiate-return")
+    @PreAuthorize("hasRole('PICKPOINT_STAFF')")
+    public ResponseEntity<Void> initiateReturn(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        initiateReturnUseCase.execute(orderId, principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/orders/{orderId}/confirm-returned")
+    @PreAuthorize("hasRole('PICKPOINT_STAFF')")
+    public ResponseEntity<Void> confirmReturned(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        confirmReturnedUseCase.execute(orderId, principal.userId());
         return ResponseEntity.noContent().build();
     }
 }

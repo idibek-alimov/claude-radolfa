@@ -75,4 +75,13 @@ public interface NotificationPort {
      * @param orderId the cancelled order
      */
     void sendPickpointOrderExpiredCancellation(Long userId, Long orderId);
+
+    /**
+     * Notifies the customer that their uncollected pickpoint order is being returned
+     * to the warehouse. Triggered when staff or admin manually initiates the return.
+     *
+     * @param userId  the recipient (customer)
+     * @param orderId the order being returned
+     */
+    default void sendReturnInitiatedNotification(Long userId, Long orderId) {}
 }

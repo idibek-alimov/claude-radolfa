@@ -59,4 +59,9 @@ public class NotificationPortStub implements NotificationPort {
         log.info("[NOTIFICATION STUB] Pickpoint order expired cancellation → userId={} orderId={}",
                 userId, orderId);
     }
+
+    @Override
+    public void sendReturnInitiatedNotification(Long userId, Long orderId) {
+        log.info("[NOTIFICATION STUB] Return initiated → userId={} orderId={}", userId, orderId);
+    }
 }

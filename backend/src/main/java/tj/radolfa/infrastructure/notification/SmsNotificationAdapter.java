@@ -72,4 +72,11 @@ public class SmsNotificationAdapter implements NotificationPort {
         log.warn("[SMS PLACEHOLDER] Would send pickpoint-expired cancellation to userId={} orderId={}",
                 userId, orderId);
     }
+
+    @Override
+    public void sendReturnInitiatedNotification(Long userId, Long orderId) {
+        // TODO: loadUserPort.loadById(userId).map(u -> u.phone().value()) → send SMS
+        log.warn("[SMS PLACEHOLDER] Would send return-initiated notification to userId={} orderId={}",
+                userId, orderId);
+    }
 }
