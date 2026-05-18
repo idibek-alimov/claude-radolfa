@@ -64,4 +64,9 @@ public class NotificationPortStub implements NotificationPort {
     public void sendReturnInitiatedNotification(Long userId, Long orderId) {
         log.info("[NOTIFICATION STUB] Return initiated → userId={} orderId={}", userId, orderId);
     }
+
+    @Override
+    public void sendCustomerReturnReceivedNotification(Long userId, Long orderId) {
+        log.info("[NOTIFICATION STUB] Customer return received → userId={} orderId={}", userId, orderId);
+    }
 }

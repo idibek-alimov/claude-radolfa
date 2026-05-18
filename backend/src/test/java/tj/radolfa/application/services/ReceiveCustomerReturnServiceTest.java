@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.in.order.ReceiveCustomerReturnUseCase;
 import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveCustomerReturnPort;
 import tj.radolfa.domain.exception.OrderNotAtPickpointException;
 import tj.radolfa.domain.exception.OrderNotDeliveredException;
@@ -121,11 +122,34 @@ class ReceiveCustomerReturnServiceTest {
         CustomerReturn last() { return saved.get(saved.size() - 1); }
     }
 
+    static class CapturingNotificationPort implements NotificationPort {
+        final List<Long[]> returnReceivedCalls = new ArrayList<>();
+        @Override public void sendCustomerReturnReceivedNotification(Long uid, Long oid) {
+            returnReceivedCalls.add(new Long[]{uid, oid});
+        }
+        @Override public void sendOrderConfirmation(Long u, Long o) {}
+        @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) {}
+        @Override public void sendReviewApprovedNotification(Long u, Long r) {}
+        @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
+    }
+
     static ReceiveCustomerReturnService service(Order order, User staff,
                                                   List<CustomerReturn> existing,
                                                   CapturingSavePort save) {
         return new ReceiveCustomerReturnService(
-                orderPort(order), userPort(staff), returnPort(existing), save);
+                orderPort(order), userPort(staff), returnPort(existing), save,
+                new CapturingNotificationPort());
+    }
+
+    static ReceiveCustomerReturnService service(Order order, User staff,
+                                                  List<CustomerReturn> existing,
+                                                  CapturingSavePort save,
+                                                  CapturingNotificationPort notif) {
+        return new ReceiveCustomerReturnService(
+                orderPort(order), userPort(staff), returnPort(existing), save, notif);
     }
 
     static ReceiveCustomerReturnUseCase.Command command(Long itemId, int qty) {
@@ -243,5 +267,18 @@ class ReceiveCustomerReturnServiceTest {
         assertThrows(ResourceNotFoundException.class,
                 () -> service(null, staffUser(), List.of(), new CapturingSavePort())
                         .execute(command(ITEM_A_ID, 1)));
+    }
+
+    @Test
+    @DisplayName("Valid return → sendCustomerReturnReceivedNotification called with order's userId and orderId")
+    void validReturn_sendsNotification() {
+        var save  = new CapturingSavePort();
+        var notif = new CapturingNotificationPort();
+        var order = deliveredPickpointOrder(List.of(itemA(1)));
+        service(order, staffUser(), List.of(), save, notif).execute(command(ITEM_A_ID, 1));
+
+        assertEquals(1, notif.returnReceivedCalls.size());
+        assertEquals(order.userId(), notif.returnReceivedCalls.get(0)[0]);
+        assertEquals(ORDER_ID, notif.returnReceivedCalls.get(0)[1]);
     }
 }

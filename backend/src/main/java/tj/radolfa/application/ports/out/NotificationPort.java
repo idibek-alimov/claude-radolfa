@@ -84,4 +84,13 @@ public interface NotificationPort {
      * @param orderId the order being returned
      */
     default void sendReturnInitiatedNotification(Long userId, Long orderId) {}
+
+    /**
+     * Notifies the customer that their walk-in return has been received at the pickup point.
+     * Triggered when pickpoint staff logs a customer return.
+     *
+     * @param userId  the recipient (customer)
+     * @param orderId the returned order
+     */
+    default void sendCustomerReturnReceivedNotification(Long userId, Long orderId) {}
 }

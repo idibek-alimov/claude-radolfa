@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.in.order.ReceiveCustomerReturnUseCase;
 import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveCustomerReturnPort;
 import tj.radolfa.domain.exception.OrderNotAtPickpointException;
 import tj.radolfa.domain.exception.OrderNotDeliveredException;
@@ -31,15 +32,18 @@ public class ReceiveCustomerReturnService implements ReceiveCustomerReturnUseCas
     private final LoadUserPort            loadUserPort;
     private final LoadCustomerReturnPort  loadCustomerReturnPort;
     private final SaveCustomerReturnPort  saveCustomerReturnPort;
+    private final NotificationPort        notificationPort;
 
     public ReceiveCustomerReturnService(LoadOrderPort loadOrderPort,
                                         LoadUserPort loadUserPort,
                                         LoadCustomerReturnPort loadCustomerReturnPort,
-                                        SaveCustomerReturnPort saveCustomerReturnPort) {
+                                        SaveCustomerReturnPort saveCustomerReturnPort,
+                                        NotificationPort notificationPort) {
         this.loadOrderPort          = loadOrderPort;
         this.loadUserPort           = loadUserPort;
         this.loadCustomerReturnPort = loadCustomerReturnPort;
         this.saveCustomerReturnPort = saveCustomerReturnPort;
+        this.notificationPort       = notificationPort;
     }
 
     @Override
@@ -113,6 +117,8 @@ public class ReceiveCustomerReturnService implements ReceiveCustomerReturnUseCas
                 CustomerReturnStatus.RECEIVED,
                 null, null, null, null, null, null);
 
-        return saveCustomerReturnPort.save(customerReturn);
+        CustomerReturn saved = saveCustomerReturnPort.save(customerReturn);
+        notificationPort.sendCustomerReturnReceivedNotification(order.userId(), saved.getOrderId());
+        return saved;
     }
 }
