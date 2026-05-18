@@ -56,10 +56,13 @@ export interface CourierOrder {
 export interface PickpointOrder {
   orderId: number;
   customerFirstName: string;
+  customerPhone: string;
   status: OrderStatus;
   readyAt: string;
   expiresAt: string;
   daysUntilExpiry: number;
+  overdue: boolean;
+  daysOverdue: number;
 }
 
 export interface CourierFleetEntry {

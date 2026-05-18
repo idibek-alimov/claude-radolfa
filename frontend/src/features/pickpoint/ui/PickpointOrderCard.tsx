@@ -6,7 +6,8 @@ import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import type { PickpointOrder } from "@/entities/user";
-import { PickupConfirmModal } from "./PickupConfirmModal";
+import { PickupVerifyModal } from "./PickupVerifyModal";
+import { InitiateReturnConfirmDialog } from "./InitiateReturnConfirmDialog";
 
 interface Props {
   order: PickpointOrder;
@@ -30,7 +31,8 @@ function ExpiryChip({ days }: { days: number }) {
 }
 
 export function PickpointOrderCard({ order }: Props) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [verifyOpen, setVerifyOpen]           = useState(false);
+  const [initiateReturnOpen, setInitiateOpen] = useState(false);
   const isAwaiting = order.status === "READY_FOR_PICKUP";
 
   return (
@@ -50,19 +52,43 @@ export function PickpointOrderCard({ order }: Props) {
         <span>Ready since {new Date(order.readyAt).toLocaleDateString()}</span>
       </div>
 
-      {/* Expiry chip — only for awaiting orders */}
-      {isAwaiting && <ExpiryChip days={order.daysUntilExpiry} />}
-
-      {/* Action */}
+      {/* Overdue or expiry chip */}
       {isAwaiting && (
-        <Button className="w-full h-12" onClick={() => setConfirmOpen(true)}>
-          Confirm Pickup
-        </Button>
+        order.overdue ? (
+          <span className="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+            Overdue · {order.daysOverdue}d
+          </span>
+        ) : (
+          <ExpiryChip days={order.daysUntilExpiry} />
+        )
       )}
 
-      <PickupConfirmModal
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
+      {/* Actions */}
+      {isAwaiting && (
+        <div className="space-y-2">
+          <Button className="w-full h-12" onClick={() => setVerifyOpen(true)}>
+            Confirm Pickup
+          </Button>
+          {order.overdue && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setInitiateOpen(true)}
+            >
+              Initiate Return
+            </Button>
+          )}
+        </div>
+      )}
+
+      <PickupVerifyModal
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
+      />
+
+      <InitiateReturnConfirmDialog
+        open={initiateReturnOpen}
+        onClose={() => setInitiateOpen(false)}
         orderId={order.orderId}
       />
     </div>

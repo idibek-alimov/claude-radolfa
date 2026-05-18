@@ -5,15 +5,34 @@ import { cn } from "@/shared/lib/utils";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useAuth } from "@/features/auth";
-import { usePickpointOrders } from "@/features/pickpoint/api";
+import {
+  usePickpointOrders,
+  usePickpointCustomerReturns,
+} from "@/features/pickpoint/api";
 import { useDeliverySocket } from "@/shared/lib/useDeliverySocket";
 import type { PickpointOrder } from "@/entities/user";
+import { IncomingPackageCard } from "./IncomingPackageCard";
 import { PickpointOrderCard } from "./PickpointOrderCard";
+import { ReturnInProgressCard } from "./ReturnInProgressCard";
+import { CustomerReturnsTab } from "./CustomerReturnsTab";
 
-function TabBadge({ count }: { count: number }) {
+function TabBadge({
+  count,
+  tone = "default",
+}: {
+  count: number;
+  tone?: "default" | "amber";
+}) {
   if (count === 0) return null;
   return (
-    <span className="ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none bg-primary/10 text-primary">
+    <span
+      className={cn(
+        "ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none",
+        tone === "amber"
+          ? "bg-amber-100 text-amber-700"
+          : "bg-primary/10 text-primary",
+      )}
+    >
       {count}
     </span>
   );
@@ -27,19 +46,28 @@ function EmptyTab({ message }: { message: string }) {
   );
 }
 
-function OrderList({ orders, emptyMessage }: { orders: PickpointOrder[]; emptyMessage: string }) {
+function OrderList<T extends PickpointOrder>({
+  orders,
+  emptyMessage,
+  renderCard,
+}: {
+  orders: T[];
+  emptyMessage: string;
+  renderCard: (order: T) => React.ReactNode;
+}) {
   if (orders.length === 0) return <EmptyTab message={emptyMessage} />;
-  return (
-    <div className="space-y-4">
-      {orders.map((o) => <PickpointOrderCard key={o.orderId} order={o} />)}
-    </div>
-  );
+  return <div className="space-y-4">{orders.map(renderCard)}</div>;
 }
 
 export function PickpointDashboardPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { data: orders = [], isLoading } = usePickpointOrders();
+
+  const incoming        = usePickpointOrders(["SHIPPED"]);
+  const awaiting        = usePickpointOrders(["READY_FOR_PICKUP"]);
+  const returnsInProg   = usePickpointOrders(["RETURN_INITIATED"]);
+  const customerReturns = usePickpointCustomerReturns("RECEIVED");
+  const history         = usePickpointOrders(["DELIVERED", "RETURNED_TO_WAREHOUSE"]);
 
   const topic = user?.pickpointId
     ? `/topic/pickpoint/${user.pickpointId}`
@@ -47,11 +75,21 @@ export function PickpointDashboardPage() {
 
   const { connected } = useDeliverySocket({
     topic,
-    onMessage: () => qc.invalidateQueries({ queryKey: ["pickpoint-orders"] }),
+    onMessage: () => {
+      qc.invalidateQueries({ queryKey: ["pickpoint-orders"] });
+      qc.invalidateQueries({ queryKey: ["pickpoint-customer-returns"] });
+    },
   });
 
-  const awaiting = orders.filter((o) => o.status === "READY_FOR_PICKUP");
-  const history  = orders.filter((o) => o.status === "DELIVERED");
+  const isLoading =
+    incoming.isLoading ||
+    awaiting.isLoading ||
+    returnsInProg.isLoading ||
+    customerReturns.isLoading ||
+    history.isLoading;
+
+  const awaitingOrders = awaiting.data?.content ?? [];
+  const hasOverdue     = awaitingOrders.some((o) => o.overdue);
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,12 +100,17 @@ export function PickpointDashboardPage() {
             {user?.pickpointName ?? "My Pickpoint"}
           </h1>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className={cn("h-2 w-2 rounded-full", connected ? "bg-green-500" : "bg-zinc-400")} />
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full",
+                connected ? "bg-green-500" : "bg-zinc-400",
+              )}
+            />
             {connected ? "Live" : "Reconnecting…"}
           </span>
         </div>
 
-        {/* Loading */}
+        {/* Loading skeleton */}
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -76,22 +119,65 @@ export function PickpointDashboardPage() {
           </div>
         ) : (
           <Tabs defaultValue="awaiting">
-            <TabsList className="w-full">
-              <TabsTrigger value="awaiting" className="flex-1">
-                Awaiting Pickup
-                <TabBadge count={awaiting.length} />
+            <TabsList className="w-full grid grid-cols-5">
+              <TabsTrigger value="incoming" className="flex-1 text-xs px-1">
+                Incoming
+                <TabBadge count={incoming.data?.totalElements ?? 0} />
               </TabsTrigger>
-              <TabsTrigger value="history" className="flex-1">
+              <TabsTrigger value="awaiting" className="flex-1 text-xs px-1">
+                Awaiting
+                <TabBadge
+                  count={awaiting.data?.totalElements ?? 0}
+                  tone={hasOverdue ? "amber" : "default"}
+                />
+              </TabsTrigger>
+              <TabsTrigger value="returns" className="flex-1 text-xs px-1">
+                Returns
+                <TabBadge count={returnsInProg.data?.totalElements ?? 0} />
+              </TabsTrigger>
+              <TabsTrigger value="customer-returns" className="flex-1 text-xs px-1">
+                Walk-in
+                <TabBadge count={customerReturns.data?.totalElements ?? 0} />
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex-1 text-xs px-1">
                 History
-                <TabBadge count={history.length} />
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="awaiting" className="mt-4">
-              <OrderList orders={awaiting} emptyMessage="No orders awaiting pickup." />
+            <TabsContent value="incoming" className="mt-4">
+              <OrderList
+                orders={incoming.data?.content ?? []}
+                emptyMessage="No incoming packages."
+                renderCard={(o) => <IncomingPackageCard key={o.orderId} order={o} />}
+              />
             </TabsContent>
+
+            <TabsContent value="awaiting" className="mt-4">
+              <OrderList
+                orders={awaitingOrders}
+                emptyMessage="No orders awaiting pickup."
+                renderCard={(o) => <PickpointOrderCard key={o.orderId} order={o} />}
+              />
+            </TabsContent>
+
+            <TabsContent value="returns" className="mt-4">
+              <OrderList
+                orders={returnsInProg.data?.content ?? []}
+                emptyMessage="No returns in progress."
+                renderCard={(o) => <ReturnInProgressCard key={o.orderId} order={o} />}
+              />
+            </TabsContent>
+
+            <TabsContent value="customer-returns" className="mt-4">
+              <CustomerReturnsTab />
+            </TabsContent>
+
             <TabsContent value="history" className="mt-4">
-              <OrderList orders={history} emptyMessage="No pickups completed today." />
+              <OrderList
+                orders={history.data?.content ?? []}
+                emptyMessage="No completed orders."
+                renderCard={(o) => <PickpointOrderCard key={o.orderId} order={o} />}
+              />
             </TabsContent>
           </Tabs>
         )}

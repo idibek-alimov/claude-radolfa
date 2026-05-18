@@ -12,4 +12,11 @@ export type {
   UpdatePickpointPayload,
   PickpointHours,
   UpsertPickpointHoursPayload,
+  ReturnReason,
+  CustomerReturnStatus,
+  CustomerReturnItem,
+  CustomerReturn,
+  ReturnableOrder,
+  ReturnableItem,
+  CreateCustomerReturnPayload,
 } from "./model/types";

@@ -11,13 +11,12 @@ import {
 } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { useConfirmPickup } from "@/features/pickpoint/api";
+import { useVerifyPickup } from "@/features/pickpoint/api";
 import { getErrorMessage } from "@/shared/lib";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  orderId: number;
 }
 
 function classifyError(err: unknown): string {
@@ -26,11 +25,11 @@ function classifyError(err: unknown): string {
   if (msg.includes("expired")) return "This code has expired. Ask an admin to regenerate it.";
   if (msg.includes("max") || msg.includes("attempts")) return "Too many failed attempts. Contact an admin.";
   if (msg.includes("already used") || msg.includes("used")) return "This code has already been used.";
-  return getErrorMessage(err, "Failed to confirm pickup");
+  return getErrorMessage(err, "Failed to verify pickup");
 }
 
-export function PickupConfirmModal({ open, onClose, orderId }: Props) {
-  const confirm = useConfirmPickup();
+export function PickupVerifyModal({ open, onClose }: Props) {
+  const verify = useVerifyPickup();
   const [code, setCode]   = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -38,23 +37,20 @@ export function PickupConfirmModal({ open, onClose, orderId }: Props) {
     if (open) { setCode(""); setError(null); }
   }, [open]);
 
-  function handleConfirm() {
+  function handleVerify() {
     if (code.length !== 6) { setError("Enter the 6-digit code."); return; }
     setError(null);
-    confirm.mutate(
-      { orderId, code },
-      {
-        onSuccess: () => { toast.success("Pickup confirmed!"); onClose(); },
-        onError: (err) => setError(classifyError(err)),
-      }
-    );
+    verify.mutate(code, {
+      onSuccess: () => { toast.success("Pickup verified!"); onClose(); },
+      onError: (err) => setError(classifyError(err)),
+    });
   }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Confirm Pickup</DialogTitle>
+          <DialogTitle>Verify Pickup</DialogTitle>
         </DialogHeader>
 
         <div className="py-3 space-y-4">
@@ -69,7 +65,7 @@ export function PickupConfirmModal({ open, onClose, orderId }: Props) {
             autoFocus
             value={code}
             onChange={(e) => { setCode(e.target.value.replace(/\D/g, "")); setError(null); }}
-            onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+            onKeyDown={(e) => e.key === "Enter" && handleVerify()}
             className="text-center text-2xl tracking-[0.5em] h-14 font-mono"
             placeholder="000000"
           />
@@ -77,9 +73,9 @@ export function PickupConfirmModal({ open, onClose, orderId }: Props) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={confirm.isPending}>Cancel</Button>
-          <Button onClick={handleConfirm} disabled={confirm.isPending || code.length !== 6}>
-            {confirm.isPending ? "Confirming…" : "Confirm"}
+          <Button variant="outline" onClick={onClose} disabled={verify.isPending}>Cancel</Button>
+          <Button onClick={handleVerify} disabled={verify.isPending || code.length !== 6}>
+            {verify.isPending ? "Verifying…" : "Confirm"}
           </Button>
         </DialogFooter>
       </DialogContent>
