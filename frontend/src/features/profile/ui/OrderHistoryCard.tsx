@@ -23,6 +23,7 @@ import { Button } from "@/shared/ui/button";
 import { cancelOrder } from "@/features/profile/api";
 import { addToCart } from "@/entities/cart";
 import { useDeliveryCode } from "@/entities/order/api";
+import { PickupCodeDisplay } from "@/entities/order/ui/PickupCodeDisplay";
 import { SubmitReviewForm } from "@/features/review-submission";
 import { getErrorMessage } from "@/shared/lib";
 import type { Order, OrderItem } from "@/features/profile/types";
@@ -378,14 +379,18 @@ export function OrderHistoryCard({ order }: { order: Order }) {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {order.status === "READY_FOR_PICKUP" ? "Pickup Code" : "Delivery Code"}
           </p>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-2xl tracking-[0.5em] text-foreground select-all">
-              {showCode ? codeData.code : "••••••"}
-            </span>
-            <Button variant="ghost" size="sm" onClick={() => setShowCode((v) => !v)}>
-              {showCode ? "Hide" : "Show Code"}
-            </Button>
-          </div>
+          {order.status === "READY_FOR_PICKUP" && order.deliveryType === "PICKPOINT" ? (
+            <PickupCodeDisplay code={codeData.code} />
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-2xl tracking-[0.5em] text-foreground select-all">
+                {showCode ? codeData.code : "••••••"}
+              </span>
+              <Button variant="ghost" size="sm" onClick={() => setShowCode((v) => !v)}>
+                {showCode ? "Hide" : "Show Code"}
+              </Button>
+            </div>
+          )}
           {codeData.expiresAt && (
             <p className="text-xs text-muted-foreground">
               Valid until {new Date(codeData.expiresAt).toLocaleString()}
