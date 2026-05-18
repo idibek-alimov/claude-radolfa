@@ -18,7 +18,7 @@ public class GetAllCustomerReturnsService implements GetAllCustomerReturnsUseCas
 
     @Override
     @Transactional(readOnly = true)
-    public PageResult<CustomerReturn> execute(int page, int size) {
-        return loadCustomerReturnPort.loadAllPaged(page, size);
+    public PageResult<CustomerReturn> execute(int page, int size, String search) {
+        return loadCustomerReturnPort.loadAllPaged(page, size, search);
     }
 }

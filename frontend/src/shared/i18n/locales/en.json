@@ -280,7 +280,9 @@
         "READY_FOR_PICKUP":     "Ready for pickup",
         "DELIVERED":            "Delivered",
         "CANCELLED":            "Cancelled",
-        "REFUNDED":             "Refunded"
+        "REFUNDED":             "Refunded",
+        "RETURN_INITIATED":      "Return initiated",
+        "RETURNED_TO_WAREHOUSE": "Returned to warehouse"
       },
       "deliveryType": {
         "HOME": "Home",

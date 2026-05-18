@@ -34,7 +34,9 @@ const STATUS_OPTIONS: Array<{ value: OrderStatus | "ALL"; label: string }> = [
   { value: "PAID",      label: "status.PAID" },
   { value: "SHIPPED",          label: "status.SHIPPED" },
   { value: "READY_FOR_PICKUP", label: "status.READY_FOR_PICKUP" },
-  { value: "DELIVERED",        label: "status.DELIVERED" },
+  { value: "DELIVERED",             label: "status.DELIVERED" },
+  { value: "RETURN_INITIATED",      label: "status.RETURN_INITIATED" },
+  { value: "RETURNED_TO_WAREHOUSE", label: "status.RETURNED_TO_WAREHOUSE" },
   { value: "CANCELLED", label: "status.CANCELLED" },
 ];
 

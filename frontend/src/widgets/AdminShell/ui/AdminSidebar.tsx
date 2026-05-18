@@ -10,14 +10,15 @@ import { cn } from "@/shared/lib";
 import type { AdminNavItem } from "../model/types";
 import { fetchAdminQuestionCount } from "@/entities/question";
 
-function isActive(href: string, pathname: string) {
+function isActive(href: string, pathname: string, exact?: boolean) {
   if (href === "/manage") return pathname === "/manage";
+  if (exact) return pathname === href;
   return pathname.startsWith(href);
 }
 
 function NavItem({ item, collapsed, badgeCount = 0 }: { item: AdminNavItem; collapsed: boolean; badgeCount?: number }) {
   const pathname = usePathname();
-  const active = isActive(item.href, pathname);
+  const active = isActive(item.href, pathname, item.exact);
 
   return (
     // Wrapper for CSS tooltip — `group` scoped here

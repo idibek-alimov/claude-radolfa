@@ -21,12 +21,14 @@ import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.CustomerReturnItem;
 import tj.radolfa.domain.model.ListingVariant;
+import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
@@ -69,6 +71,7 @@ public class AdminOrderController {
     private final LoadListingVariantPort         loadListingVariantPort;
     private final LoadSkuPort                    loadSkuPort;
     private final LoadReviewPort                 loadReviewPort;
+    private final LoadPickpointPort              loadPickpointPort;
 
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
@@ -83,7 +86,8 @@ public class AdminOrderController {
                                 LoadUserPort loadUserPort,
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
-                                LoadReviewPort loadReviewPort) {
+                                LoadReviewPort loadReviewPort,
+                                LoadPickpointPort loadPickpointPort) {
         this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
@@ -98,6 +102,7 @@ public class AdminOrderController {
         this.loadListingVariantPort         = loadListingVariantPort;
         this.loadSkuPort                    = loadSkuPort;
         this.loadReviewPort                 = loadReviewPort;
+        this.loadPickpointPort              = loadPickpointPort;
     }
 
     @GetMapping("/summary")
@@ -187,14 +192,17 @@ public class AdminOrderController {
     @Operation(summary = "Paginated list of all customer returns across all pickup points (MANAGER + ADMIN)")
     public ResponseEntity<PageResponse<CustomerReturnDto>> listAllCustomerReturns(
             @RequestParam(defaultValue = "1")  int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false)    String search) {
 
-        var result = getAllCustomerReturnsUseCase.execute(page, size);
+        var result = getAllCustomerReturnsUseCase.execute(page, size, search);
 
         var dtos = result.content().stream().map(r -> {
             Order order    = loadOrderPort.loadById(r.getOrderId()).orElseThrow();
             User  customer = loadUserPort.loadById(order.userId()).orElse(null);
-            return CustomerReturnDto.from(r, order, customer);
+            Pickpoint pickpoint = r.getPickpointId() != null
+                    ? loadPickpointPort.findById(r.getPickpointId()).orElse(null) : null;
+            return CustomerReturnDto.from(r, order, customer, pickpoint);
         }).toList();
 
         return ResponseEntity.ok(PageResponse.from(

@@ -84,6 +84,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByStatusAndReadyForPickupAtBetween(OrderStatus status, Instant start, Instant end);
 
+    // ── Pickpoint summary aggregation ────────────────────────────────────────
+
+    @Query(value = """
+            SELECT pickpoint_id,
+                   SUM(CASE WHEN status='SHIPPED'         THEN 1 ELSE 0 END),
+                   SUM(CASE WHEN status='READY_FOR_PICKUP' THEN 1 ELSE 0 END),
+                   SUM(CASE WHEN status='READY_FOR_PICKUP' AND ready_for_pickup_at < :cutoff THEN 1 ELSE 0 END),
+                   SUM(CASE WHEN status='RETURN_INITIATED'  THEN 1 ELSE 0 END)
+            FROM orders
+            WHERE pickpoint_id IS NOT NULL
+            GROUP BY pickpoint_id
+            """, nativeQuery = true)
+    List<Object[]> countByPickpointAndStatus(@Param("cutoff") Instant cutoff);
+
     // ── Fleet summary aggregation ─────────────────────────────────────────────
 
     @Query(value = """

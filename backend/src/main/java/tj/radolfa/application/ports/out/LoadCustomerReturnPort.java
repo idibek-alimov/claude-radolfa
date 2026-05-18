@@ -11,5 +11,5 @@ public interface LoadCustomerReturnPort {
     Optional<CustomerReturn> loadById(Long id);
     List<CustomerReturn> loadAllByOrderId(Long orderId);
     PageResult<CustomerReturn> loadByPickpointIdAndStatus(Long pickpointId, CustomerReturnStatus status, int page, int size);
-    PageResult<CustomerReturn> loadAllPaged(int page, int size);
+    PageResult<CustomerReturn> loadAllPaged(int page, int size, String search);
 }

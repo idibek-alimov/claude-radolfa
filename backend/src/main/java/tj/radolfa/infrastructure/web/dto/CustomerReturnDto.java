@@ -5,6 +5,7 @@ import tj.radolfa.domain.model.CustomerReturnStatus;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
+import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.User;
 
 import java.time.Instant;
@@ -18,6 +19,7 @@ public record CustomerReturnDto(
         Long orderId,
         String customerName,
         String customerPhone,
+        String pickpointName,
         CustomerReturnStatus status,
         Instant receivedAt,
         Instant sentToWarehouseAt,
@@ -26,12 +28,16 @@ public record CustomerReturnDto(
         Money totalRefundAmount) {
 
     public static CustomerReturnDto from(CustomerReturn r, Order order, User customer) {
+        return from(r, order, customer, null);
+    }
+
+    public static CustomerReturnDto from(CustomerReturn r, Order order, User customer, Pickpoint pickpoint) {
         Map<Long, OrderItem> orderItemMap = order.items().stream()
                 .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
 
         List<CustomerReturnItemDto> itemDtos = r.getItems().stream().map(ri -> {
             OrderItem oi = orderItemMap.get(ri.orderItemId());
-            Money unitPrice   = oi != null ? oi.getPrice() : Money.ZERO;
+            Money unitPrice    = oi != null ? oi.getPrice() : Money.ZERO;
             Money refundAmount = unitPrice.multiply(ri.quantity());
             String productName = oi != null ? oi.getProductName() : null;
             String skuCode     = oi != null ? oi.getSkuCode()     : null;
@@ -47,10 +53,12 @@ public record CustomerReturnDto(
 
         String name  = customer != null ? customer.name() : null;
         String phone = customer != null && customer.phone() != null ? customer.phone().value() : null;
+        String pickpointName = pickpoint != null ? pickpoint.name() : null;
 
         return new CustomerReturnDto(
                 r.getId(), r.getOrderId(),
                 name, phone,
+                pickpointName,
                 r.getStatus(),
                 r.getReceivedAt(),
                 r.getSentToWarehouseAt(),

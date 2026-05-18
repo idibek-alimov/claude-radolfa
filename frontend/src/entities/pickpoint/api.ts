@@ -6,6 +6,7 @@ import type {
   UpdatePickpointPayload,
   PickpointHours,
   UpsertPickpointHoursPayload,
+  PickpointSummary,
 } from "./model/types";
 
 export function useActivePickpoints() {
@@ -14,6 +15,16 @@ export function useActivePickpoints() {
     queryFn: () =>
       apiClient.get<Pickpoint[]>("/api/v1/pickpoints").then((r) => r.data),
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ── Admin — Pickpoint summaries ───────────────────────────────────────────
+
+export function usePickpointSummaries() {
+  return useQuery({
+    queryKey: ["pickpoint-summaries"],
+    queryFn: () =>
+      apiClient.get<PickpointSummary[]>("/api/v1/admin/pickpoints/summary").then((r) => r.data),
   });
 }
 

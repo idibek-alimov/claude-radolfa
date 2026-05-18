@@ -83,9 +83,11 @@ public class CustomerReturnJpaAdapter implements SaveCustomerReturnPort, LoadCus
     }
 
     @Override
-    public PageResult<CustomerReturn> loadAllPaged(int page, int size) {
-        var pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "receivedAt"));
-        Page<CustomerReturnEntity> result = repository.findAll(pageable);
+    public PageResult<CustomerReturn> loadAllPaged(int page, int size, String search) {
+        String normalized = (search == null) ? "" : search.trim();
+        // native query manages its own ordering via received_at column name
+        var pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "received_at"));
+        Page<CustomerReturnEntity> result = repository.findAllWithSearch(normalized, pageable);
         return toPageResult(result, page);
     }
 

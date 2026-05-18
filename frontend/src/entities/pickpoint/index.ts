@@ -1,6 +1,7 @@
 export {
   useActivePickpoints,
   useAdminPickpoints,
+  usePickpointSummaries,
   useCreatePickpoint,
   useUpdatePickpoint,
   usePickpointHours,
@@ -19,4 +20,5 @@ export type {
   ReturnableOrder,
   ReturnableItem,
   CreateCustomerReturnPayload,
+  PickpointSummary,
 } from "./model/types";

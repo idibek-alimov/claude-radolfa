@@ -83,12 +83,23 @@ export interface CustomerReturn {
   orderId: number;
   customerName: string | null;
   customerPhone: string | null;
+  pickpointName: string | null;
   status: CustomerReturnStatus;
   receivedAt: string;
   sentToWarehouseAt: string | null;
   items: CustomerReturnItem[];
   notes: string | null;
   totalRefundAmount: number;
+}
+
+export interface PickpointSummary {
+  pickpointId: number;
+  name: string;
+  incoming: number;
+  awaitingPickup: number;
+  overdue: number;
+  returnInProgress: number;
+  customerReturns: number;
 }
 
 // Shape returned by GET /api/v1/pickpoint/orders/{id}/for-return

@@ -47,7 +47,7 @@ class ConfirmCustomerReturnSentServiceTest {
             @Override public PageResult<CustomerReturn> loadByPickpointIdAndStatus(Long p, CustomerReturnStatus s, int pg, int sz) {
                 return new PageResult<>(List.of(), 0, 1, sz, true);
             }
-            @Override public PageResult<CustomerReturn> loadAllPaged(int pg, int sz) {
+            @Override public PageResult<CustomerReturn> loadAllPaged(int pg, int sz, String search) {
                 return new PageResult<>(List.of(), 0, 1, sz, true);
             }
         };

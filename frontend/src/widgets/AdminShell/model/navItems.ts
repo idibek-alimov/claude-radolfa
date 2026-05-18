@@ -13,6 +13,8 @@ import {
   Sparkles,
   ShoppingBag,
   Truck,
+  Settings,
+  PackageMinus,
 } from "lucide-react";
 import type { AdminNavGroup } from "./types";
 
@@ -38,7 +40,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/manage/orders",      label: "Orders",      icon: ShoppingBag },
       { href: "/manage/fleet",       label: "Fleet",       icon: Truck,       adminOnly: true },
       { href: "/manage/discounts",   label: "Discounts",   icon: Percent },
-      { href: "/manage/pickpoints",  label: "Pickpoints",  icon: MapPin, adminOnly: true },
+      { href: "/manage/pickpoints",         label: "Pickpoints",       icon: MapPin,       exact: true },
+      { href: "/manage/pickpoints/manage",  label: "Pickpoint Settings", icon: Settings,   adminOnly: true },
+      { href: "/manage/pickpoints/returns", label: "Returns Queue",    icon: PackageMinus },
     ],
   },
   {
