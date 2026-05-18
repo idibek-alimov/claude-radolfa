@@ -280,7 +280,9 @@
         "READY_FOR_PICKUP":     "Готов к выдаче",
         "DELIVERED":        "Доставлен",
         "CANCELLED":        "Отменён",
-        "REFUNDED":         "Возврат",\n        "RETURN_INITIATED":      "Возврат инициирован",\n        "RETURNED_TO_WAREHOUSE": "Возвращено на склад"
+        "REFUNDED":              "Возврат",
+        "RETURN_INITIATED":      "Возврат инициирован",
+        "RETURNED_TO_WAREHOUSE": "Возвращено на склад"
       },
       "deliveryType": {
         "HOME": "На дом",
