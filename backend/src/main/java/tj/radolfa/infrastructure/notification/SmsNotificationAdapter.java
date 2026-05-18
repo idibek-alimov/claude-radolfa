@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.NotificationPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.time.Instant;
@@ -85,5 +86,12 @@ public class SmsNotificationAdapter implements NotificationPort {
         // TODO: loadUserPort.loadById(userId).map(u -> u.phone().value()) → send SMS
         log.warn("[SMS PLACEHOLDER] Would send customer-return-received notification to userId={} orderId={}",
                 userId, orderId);
+    }
+
+    @Override
+    public void sendRefundApprovedNotification(Long userId, Long orderId, Money refundAmount) {
+        // TODO: loadUserPort.loadById(userId).map(u -> u.phone().value()) → send SMS
+        log.warn("[SMS PLACEHOLDER] Would send refund-approved notification to userId={} orderId={} amount={}",
+                userId, orderId, refundAmount);
     }
 }

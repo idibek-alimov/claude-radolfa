@@ -24,6 +24,7 @@ import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.exception.RefundFailedException;
 import tj.radolfa.domain.exception.TagInUseException;
 import tj.radolfa.domain.exception.UnauthorizedReviewException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -280,6 +281,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<MessageResponseDto> handleDeliveryCodeAttemptsExhausted(DeliveryCodeAttemptsExhaustedException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles payment gateway refund failures.
+     * Returns 502 Bad Gateway so the admin UI can distinguish a gateway error from a validation error.
+     */
+    @ExceptionHandler(RefundFailedException.class)
+    public ResponseEntity<MessageResponseDto> handleRefundFailed(RefundFailedException ex) {
+        LOG.error("[REFUND] Gateway refund failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(MessageResponseDto.error("Refund failed: " + ex.getMessage()));
     }
 
     /**

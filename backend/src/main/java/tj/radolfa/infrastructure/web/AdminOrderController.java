@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.order.ApproveRefundUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
 import tj.radolfa.application.ports.in.order.GetAllCustomerReturnsUseCase;
@@ -72,6 +73,7 @@ public class AdminOrderController {
     private final LoadSkuPort                    loadSkuPort;
     private final LoadReviewPort                 loadReviewPort;
     private final LoadPickpointPort              loadPickpointPort;
+    private final ApproveRefundUseCase           approveRefundUseCase;
 
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
@@ -87,7 +89,8 @@ public class AdminOrderController {
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
                                 LoadReviewPort loadReviewPort,
-                                LoadPickpointPort loadPickpointPort) {
+                                LoadPickpointPort loadPickpointPort,
+                                ApproveRefundUseCase approveRefundUseCase) {
         this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
@@ -103,6 +106,7 @@ public class AdminOrderController {
         this.loadSkuPort                    = loadSkuPort;
         this.loadReviewPort                 = loadReviewPort;
         this.loadPickpointPort              = loadPickpointPort;
+        this.approveRefundUseCase           = approveRefundUseCase;
     }
 
     @GetMapping("/summary")
@@ -207,6 +211,15 @@ public class AdminOrderController {
 
         return ResponseEntity.ok(PageResponse.from(
                 new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @PostMapping("/customer-returns/{returnId}/approve-refund")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Approve and process the refund for a customer return (ADMIN only)")
+    public ResponseEntity<Void> approveRefund(@PathVariable Long returnId,
+                                              @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        approveRefundUseCase.execute(returnId, principal.userId());
+        return ResponseEntity.noContent().build();
     }
 
     record RedirectToPickpointRequest(@NotNull Long pickpointId) {}

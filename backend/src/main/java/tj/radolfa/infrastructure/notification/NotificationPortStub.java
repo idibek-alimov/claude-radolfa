@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.NotificationPort;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.time.Instant;
@@ -68,5 +69,10 @@ public class NotificationPortStub implements NotificationPort {
     @Override
     public void sendCustomerReturnReceivedNotification(Long userId, Long orderId) {
         log.info("[NOTIFICATION STUB] Customer return received → userId={} orderId={}", userId, orderId);
+    }
+
+    @Override
+    public void sendRefundApprovedNotification(Long userId, Long orderId, Money refundAmount) {
+        log.info("[NOTIFICATION STUB] Refund approved → userId={} orderId={} amount={}", userId, orderId, refundAmount);
     }
 }

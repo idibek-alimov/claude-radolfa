@@ -18,6 +18,7 @@ import {
 import { getErrorMessage } from "@/shared/lib";
 import type { CustomerReturn, CustomerReturnStatus } from "@/entities/pickpoint";
 import { useAdminCustomerReturns } from "../api";
+import { ApproveRefundDialog } from "./ApproveRefundDialog";
 
 const PAGE_SIZE = 20;
 
@@ -56,6 +57,7 @@ export function CustomerReturnsQueuePage() {
   const [page, setPage]               = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebounced] = useState("");
+  const [approving, setApproving]     = useState<CustomerReturn | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -143,14 +145,31 @@ export function CustomerReturnsQueuePage() {
                     <StatusBadge status={r.status} />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled
-                      className="text-xs"
-                    >
-                      Approve &amp; Refund
-                    </Button>
+                    {r.status === "SENT_TO_WAREHOUSE" && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => setApproving(r)}
+                      >
+                        Approve &amp; Refund
+                      </Button>
+                    )}
+                    {r.status === "REFUND_APPROVED" && (
+                      <Button variant="outline" size="sm" disabled className="text-xs">
+                        Processing…
+                      </Button>
+                    )}
+                    {r.status === "REFUNDED" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled
+                        className="text-xs text-green-700"
+                      >
+                        Refunded ✓
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -183,6 +202,14 @@ export function CustomerReturnsQueuePage() {
             </div>
           </div>
         </>
+      )}
+
+      {approving && (
+        <ApproveRefundDialog
+          open={true}
+          onClose={() => setApproving(null)}
+          customerReturn={approving}
+        />
       )}
     </div>
   );

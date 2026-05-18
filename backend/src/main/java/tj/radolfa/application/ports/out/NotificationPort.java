@@ -1,5 +1,6 @@
 package tj.radolfa.application.ports.out;
 
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.time.Instant;
@@ -93,4 +94,13 @@ public interface NotificationPort {
      * @param orderId the returned order
      */
     default void sendCustomerReturnReceivedNotification(Long userId, Long orderId) {}
+
+    /**
+     * Notifies the customer that their walk-in return refund has been approved and is being processed.
+     *
+     * @param userId       the recipient (customer)
+     * @param orderId      the returned order
+     * @param refundAmount the amount to be refunded
+     */
+    default void sendRefundApprovedNotification(Long userId, Long orderId, Money refundAmount) {}
 }
