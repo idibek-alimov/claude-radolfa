@@ -37,10 +37,12 @@ public record AdminOrderDetailDto(
         Instant deliveryAttemptedAt,
         int deliveryAttemptCount,
         String deliveryAttemptReason,
-        String deliveryPhotoUrl) {
+        String deliveryPhotoUrl,
+        List<CustomerReturnSummary> customerReturns) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
-                                           List<AdminOrderItemDto> enrichedItems) {
+                                           List<AdminOrderItemDto> enrichedItems,
+                                           List<CustomerReturnSummary> customerReturns) {
         Order order = result.order();
         Pickpoint pp = result.pickpoint().orElse(null);
 
@@ -72,7 +74,8 @@ public record AdminOrderDetailDto(
                 order.deliveryAttemptedAt(),
                 order.deliveryAttemptCount(),
                 order.deliveryAttemptReason() != null ? order.deliveryAttemptReason().name() : null,
-                order.deliveryPhotoUrl()
+                order.deliveryPhotoUrl(),
+                customerReturns
         );
     }
 }

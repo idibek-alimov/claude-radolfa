@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
+import tj.radolfa.application.ports.in.order.GetAllCustomerReturnsUseCase;
 import tj.radolfa.application.ports.in.order.InitiateReturnToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.ListAdminOrdersUseCase;
 import tj.radolfa.application.ports.in.order.RedirectToPickpointUseCase;
@@ -17,19 +18,28 @@ import tj.radolfa.application.ports.in.order.RefundOrderUseCase;
 import tj.radolfa.application.ports.in.order.RegenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.out.AdminOrderSummary;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
+import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.domain.model.CustomerReturn;
+import tj.radolfa.domain.model.CustomerReturnItem;
 import tj.radolfa.domain.model.ListingVariant;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.web.dto.AdminOrderDetailDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderItemDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderListDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderSummaryDto;
+import tj.radolfa.infrastructure.web.dto.CustomerReturnDto;
+import tj.radolfa.infrastructure.web.dto.CustomerReturnSummary;
 import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
 import tj.radolfa.infrastructure.web.dto.RefundOrderRequest;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -37,6 +47,8 @@ import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticat
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin/orders")
@@ -50,6 +62,10 @@ public class AdminOrderController {
     private final RedirectToPickpointUseCase     redirectToPickpointUseCase;
     private final RegenerateDeliveryCodeUseCase  regenerateDeliveryCodeUseCase;
     private final InitiateReturnToWarehouseUseCase initiateReturnUseCase;
+    private final GetAllCustomerReturnsUseCase   getAllCustomerReturnsUseCase;
+    private final LoadCustomerReturnPort         loadCustomerReturnPort;
+    private final LoadOrderPort                  loadOrderPort;
+    private final LoadUserPort                   loadUserPort;
     private final LoadListingVariantPort         loadListingVariantPort;
     private final LoadSkuPort                    loadSkuPort;
     private final LoadReviewPort                 loadReviewPort;
@@ -61,6 +77,10 @@ public class AdminOrderController {
                                 RedirectToPickpointUseCase redirectToPickpointUseCase,
                                 RegenerateDeliveryCodeUseCase regenerateDeliveryCodeUseCase,
                                 InitiateReturnToWarehouseUseCase initiateReturnUseCase,
+                                GetAllCustomerReturnsUseCase getAllCustomerReturnsUseCase,
+                                LoadCustomerReturnPort loadCustomerReturnPort,
+                                LoadOrderPort loadOrderPort,
+                                LoadUserPort loadUserPort,
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
                                 LoadReviewPort loadReviewPort) {
@@ -71,6 +91,10 @@ public class AdminOrderController {
         this.redirectToPickpointUseCase     = redirectToPickpointUseCase;
         this.regenerateDeliveryCodeUseCase  = regenerateDeliveryCodeUseCase;
         this.initiateReturnUseCase          = initiateReturnUseCase;
+        this.getAllCustomerReturnsUseCase    = getAllCustomerReturnsUseCase;
+        this.loadCustomerReturnPort         = loadCustomerReturnPort;
+        this.loadOrderPort                  = loadOrderPort;
+        this.loadUserPort                   = loadUserPort;
         this.loadListingVariantPort         = loadListingVariantPort;
         this.loadSkuPort                    = loadSkuPort;
         this.loadReviewPort                 = loadReviewPort;
@@ -116,7 +140,8 @@ public class AdminOrderController {
     public ResponseEntity<AdminOrderDetailDto> getOrder(@PathVariable Long id) {
         GetAdminOrderDetailUseCase.Result result = getAdminOrderDetailUseCase.execute(id);
         List<AdminOrderItemDto> items = enrichItems(result.order());
-        return ResponseEntity.ok(AdminOrderDetailDto.from(result, items));
+        List<CustomerReturnSummary> returnSummaries = buildReturnSummaries(id, result.order());
+        return ResponseEntity.ok(AdminOrderDetailDto.from(result, items, returnSummaries));
     }
 
     @PostMapping("/{id}/refund")
@@ -155,6 +180,25 @@ public class AdminOrderController {
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         initiateReturnUseCase.execute(id, principal.userId());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/customer-returns")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Paginated list of all customer returns across all pickup points (MANAGER + ADMIN)")
+    public ResponseEntity<PageResponse<CustomerReturnDto>> listAllCustomerReturns(
+            @RequestParam(defaultValue = "1")  int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        var result = getAllCustomerReturnsUseCase.execute(page, size);
+
+        var dtos = result.content().stream().map(r -> {
+            Order order    = loadOrderPort.loadById(r.getOrderId()).orElseThrow();
+            User  customer = loadUserPort.loadById(order.userId()).orElse(null);
+            return CustomerReturnDto.from(r, order, customer);
+        }).toList();
+
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
     }
 
     record RedirectToPickpointRequest(@NotNull Long pickpointId) {}
@@ -221,5 +265,19 @@ public class AdminOrderController {
                 summary.totalOrders(), summary.todayOrders(),
                 summary.revenueToday(), summary.revenueThisMonth(),
                 recentOrders);
+    }
+
+    private List<CustomerReturnSummary> buildReturnSummaries(Long orderId, Order order) {
+        Map<Long, OrderItem> orderItemMap = order.items().stream()
+                .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
+
+        return loadCustomerReturnPort.loadAllByOrderId(orderId).stream().map(r -> {
+            Money total = r.getItems().stream().map(item -> {
+                OrderItem oi = orderItemMap.get(item.orderItemId());
+                Money unit = oi != null ? oi.getPrice() : Money.ZERO;
+                return unit.multiply(item.quantity());
+            }).reduce(Money.ZERO, Money::add);
+            return new CustomerReturnSummary(r.getId(), r.getStatus(), r.getReceivedAt(), r.getItems().size(), total);
+        }).toList();
     }
 }
