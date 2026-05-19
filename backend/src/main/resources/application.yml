@@ -127,6 +127,8 @@ radolfa:
     max-attempts: 3
     pickpoint-storage-days: 7
     pickpoint-expiry-warning-days: 2
+    code-lockout-threshold: 20    # Failed attempts at one pickpoint before lockout
+    code-lockout-minutes: 30      # Duration of lockout once threshold hit
   payment:
     pending-timeout-minutes: 30    # Cancel PENDING orders older than this
     sweep-interval-ms: 900000      # Check every 15 minutes

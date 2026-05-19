@@ -57,7 +57,7 @@ public class GenerateDeliveryCodeService
 
         saveDeliveryCodePort.invalidateAllForOrder(orderId);
 
-        String  code      = String.format("%06d", RANDOM.nextInt(1_000_000));
+        String  code      = String.format("%08d", RANDOM.nextInt(100_000_000));
         Instant expiresAt = Instant.now().plus(codeExpiryHours, ChronoUnit.HOURS);
         DeliveryCode newCode = new DeliveryCode(null, orderId, code, expiresAt, null, 0, Instant.now());
         DeliveryCode saved   = saveDeliveryCodePort.save(newCode);

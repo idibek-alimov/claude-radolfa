@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tj.radolfa.domain.exception.CourierAccessDeniedException;
+import tj.radolfa.domain.exception.PickpointCodeLockoutException;
 import tj.radolfa.domain.exception.DeliveryCodeAlreadyUsedException;
 import tj.radolfa.domain.exception.DeliveryCodeAttemptsExhaustedException;
 import tj.radolfa.domain.exception.DeliveryCodeExpiredException;
@@ -279,6 +280,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DeliveryCodeAttemptsExhaustedException.class)
     public ResponseEntity<MessageResponseDto> handleDeliveryCodeAttemptsExhausted(DeliveryCodeAttemptsExhaustedException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PickpointCodeLockoutException.class)
+    public ResponseEntity<MessageResponseDto> handlePickpointCodeLockout(PickpointCodeLockoutException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }

@@ -113,7 +113,7 @@ class GenerateDeliveryCodeServiceTest {
     // ── Tests ────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("SHIPPED order → 6-digit code generated, saved, and SMS notification sent")
+    @DisplayName("SHIPPED order → 8-digit code generated, saved, and SMS notification sent")
     void shippedOrder_codeGeneratedAndSmsSent() {
         CapturingSaveDeliveryCodePort save  = new CapturingSaveDeliveryCodePort();
         CapturingNotificationPort     notif = new CapturingNotificationPort();
@@ -123,8 +123,8 @@ class GenerateDeliveryCodeServiceTest {
         DeliveryCode result = svc.execute(1L);
 
         assertNotNull(result);
-        assertTrue(result.getCode().matches("[0-9]{6}"),
-                "Code must be 6 digits, was: " + result.getCode());
+        assertTrue(result.getCode().matches("[0-9]{8}"),
+                "Code must be 8 digits, was: " + result.getCode());
         assertEquals(1, save.saveCallCount);
         assertEquals(1, save.invalidated.size());
         assertEquals(1, notif.deliveryCodeCalls.size());
@@ -143,7 +143,7 @@ class GenerateDeliveryCodeServiceTest {
         DeliveryCode result = svc.execute(1L);
 
         assertNotNull(result);
-        assertTrue(result.getCode().matches("[0-9]{6}"));
+        assertTrue(result.getCode().matches("[0-9]{8}"));
         assertEquals(1, save.saveCallCount);
         assertEquals(1, notif.deliveryCodeCalls.size());
     }

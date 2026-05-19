@@ -23,7 +23,7 @@ public class DeliveryCodeEntity extends BaseAuditEntity {
     @Column(name = "order_id", nullable = false)
     private Long orderId;
 
-    @Column(name = "code", nullable = false, length = 6)
+    @Column(name = "code", nullable = false, length = 8)
     private String code;
 
     @Column(name = "expires_at", nullable = false)
