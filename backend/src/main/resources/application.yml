@@ -129,6 +129,6 @@ radolfa:
     pickpoint-expiry-warning-days: 2
   payment:
     pending-timeout-minutes: 30    # Cancel PENDING orders older than this
-    sweep-interval-ms: 300000      # Check every 5 minutes
+    sweep-interval-ms: 900000      # Check every 15 minutes
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026
