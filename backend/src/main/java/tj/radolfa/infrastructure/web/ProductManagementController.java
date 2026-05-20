@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import org.springframework.web.multipart.MultipartFile;
 import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.discount.FindCampaignsByProductUseCase;
@@ -315,12 +317,13 @@ public class ProductManagementController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updateStock(
             @PathVariable Long skuId,
-            @RequestBody UpdateStockRequestDto request) {
+            @RequestBody UpdateStockRequestDto request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
         if (request.quantity() != null) {
-            updateProductStockUseCase.setAbsolute(skuId, request.quantity());
+            updateProductStockUseCase.setAbsolute(skuId, request.quantity(), principal.userId());
         } else {
-            updateProductStockUseCase.adjust(skuId, request.delta());
+            updateProductStockUseCase.adjust(skuId, request.delta(), principal.userId());
         }
         return ResponseEntity.ok(MessageResponseDto.success("Stock updated successfully."));
     }

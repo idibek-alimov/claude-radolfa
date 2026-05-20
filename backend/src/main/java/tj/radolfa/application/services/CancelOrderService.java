@@ -12,6 +12,7 @@ import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
+import tj.radolfa.domain.model.InventoryTransactionType;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.User;
@@ -103,7 +104,7 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
             }
         }
 
-        cancelInternal(order, reason);
+        cancelInternal(order, reason, requesterId);
     }
 
     @Override
@@ -119,13 +120,14 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
                     "Cannot expire an order in terminal status: " + order.status());
         }
 
-        cancelInternal(order, reason);
+        cancelInternal(order, reason, null);
     }
 
-    private void cancelInternal(Order order, String reason) {
+    private void cancelInternal(Order order, String reason, Long actorUserId) {
         order.items().forEach(item -> {
             if (item.getSkuId() != null) {
-                stockAdjustmentPort.increment(item.getSkuId(), item.getQuantity());
+                stockAdjustmentPort.increment(item.getSkuId(), item.getQuantity(),
+                        InventoryTransactionType.CANCELLATION, "ORDER", order.id(), actorUserId);
             }
         });
 

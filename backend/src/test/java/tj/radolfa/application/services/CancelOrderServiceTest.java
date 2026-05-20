@@ -9,6 +9,8 @@ import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.DeliveryType;
+import tj.radolfa.domain.model.InventoryTransactionType;
+import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
@@ -38,11 +40,20 @@ class CancelOrderServiceTest {
             "Alice", null, LoyaltyProfile.empty(), true, 1L);
 
     static Order pendingOrder(Long ownerId) {
+        return pendingOrderWithItems(ownerId, List.of());
+    }
+
+    static Order pendingOrderWithItems(Long ownerId, List<OrderItem> items) {
         return new Order.Builder()
                 .id(1L).userId(ownerId).status(OrderStatus.PENDING)
                 .totalAmount(new Money(BigDecimal.valueOf(200))).createdAt(Instant.now())
                 .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .items(items)
                 .build();
+    }
+
+    static OrderItem orderItem(Long skuId) {
+        return new OrderItem(1L, skuId, null, "SKU-1", "Product", 2, new Money(BigDecimal.TEN));
     }
 
     static LoadOrderPort orderPort(Order order) {
@@ -91,6 +102,24 @@ class CancelOrderServiceTest {
         @Override public void setAbsolute(Long skuId, int qty) {}
     };
 
+    static class CapturingStockAdjustmentPort implements StockAdjustmentPort {
+        Long capturedActorUserId = null;
+        Long capturedReferenceId = null;
+        InventoryTransactionType capturedType = null;
+
+        @Override public void decrement(Long skuId, int qty) {}
+        @Override public void increment(Long skuId, int qty) {}
+        @Override public void setAbsolute(Long skuId, int qty) {}
+
+        @Override
+        public void increment(Long skuId, int qty, InventoryTransactionType type,
+                              String refType, Long refId, Long actorUserId) {
+            this.capturedActorUserId = actorUserId;
+            this.capturedReferenceId = refId;
+            this.capturedType = type;
+        }
+    }
+
     static final RestoreLoyaltyPointsUseCase NO_LOYALTY        = (userId, pts) -> {};
     static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
             new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
@@ -104,11 +133,18 @@ class CancelOrderServiceTest {
     static CancelOrderService service(Order order, User requester,
                                       CapturingSaveOrderPort save,
                                       NotificationPort notifPort) {
+        return service(order, requester, save, notifPort, NO_STOCK);
+    }
+
+    static CancelOrderService service(Order order, User requester,
+                                      CapturingSaveOrderPort save,
+                                      NotificationPort notifPort,
+                                      StockAdjustmentPort stockPort) {
         return new CancelOrderService(
                 orderPort(order),
                 save,
                 userPort(requester),
-                NO_STOCK,
+                stockPort,
                 NO_LOYALTY,
                 new OrderNotificationService(notifPort),
                 NO_DELIVERY_EVENTS,
@@ -211,5 +247,33 @@ class CancelOrderServiceTest {
         assertNotNull(save.last().cancelledAt());
         assertEquals(1, notif.updateCount);
         assertEquals(OrderStatus.CANCELLED, notif.lastStatus);
+    }
+
+    @Test
+    @DisplayName("User-driven cancel threads requesterId as actorUserId in stock increment")
+    void userDrivenCancel_passesRequesterIdToStockIncrement() {
+        CapturingStockAdjustmentPort capStock = new CapturingStockAdjustmentPort();
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        Order orderWithItem = pendingOrderWithItems(REGULAR_USER.id(), List.of(orderItem(10L)));
+
+        service(orderWithItem, REGULAR_USER, save, new CountingNotificationPort(), capStock)
+                .execute(1L, REGULAR_USER.id(), "changed mind");
+
+        assertEquals(REGULAR_USER.id(), capStock.capturedActorUserId);
+        assertEquals(InventoryTransactionType.CANCELLATION, capStock.capturedType);
+    }
+
+    @Test
+    @DisplayName("System-driven expiry passes null actorUserId in stock increment")
+    void systemExpiry_passesNullActorUserIdToStockIncrement() {
+        CapturingStockAdjustmentPort capStock = new CapturingStockAdjustmentPort();
+        Order orderWithItem = pendingOrderWithItems(REGULAR_USER.id(), List.of(orderItem(10L)));
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+
+        service(orderWithItem, ADMIN_USER, save, new CountingNotificationPort(), capStock)
+                .execute(1L, "payment window expired");
+
+        assertNull(capStock.capturedActorUserId, "System expiry must record null actor");
+        assertEquals(InventoryTransactionType.CANCELLATION, capStock.capturedType);
     }
 }

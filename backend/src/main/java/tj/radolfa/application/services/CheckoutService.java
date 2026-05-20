@@ -259,7 +259,8 @@ public class CheckoutService implements CheckoutUseCase {
 
         // 11. Decrement stock
         for (CartItem item : cart.getItems()) {
-            stockAdjustmentPort.decrement(item.getSkuId(), item.getQuantity());
+            stockAdjustmentPort.decrement(item.getSkuId(), item.getQuantity(),
+                    saved.id(), command.userId());
         }
 
         // 12. Link cart to the pending order — cart stays ACTIVE until payment confirmed

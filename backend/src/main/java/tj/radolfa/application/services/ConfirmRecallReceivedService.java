@@ -11,6 +11,7 @@ import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.model.InventoryTransactionType;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.User;
@@ -76,7 +77,8 @@ public class ConfirmRecallReceivedService implements ConfirmRecallReceivedUseCas
 
         order.items().forEach(item -> {
             if (item.getSkuId() != null) {
-                stockAdjustmentPort.increment(item.getSkuId(), item.getQuantity());
+                stockAdjustmentPort.increment(item.getSkuId(), item.getQuantity(),
+                        InventoryTransactionType.RECALL_RETURN, "ORDER", order.id(), actorUserId);
             }
         });
 

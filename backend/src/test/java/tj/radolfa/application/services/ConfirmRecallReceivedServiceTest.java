@@ -11,6 +11,7 @@ import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.*;
+import tj.radolfa.domain.model.InventoryTransactionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -112,9 +113,20 @@ class ConfirmRecallReceivedServiceTest {
     static class CapturingStockAdjustmentPort implements StockAdjustmentPort {
         record Increment(Long skuId, int qty) {}
         final List<Increment> increments = new ArrayList<>();
+        InventoryTransactionType lastType = null;
+        Long lastActorUserId = null;
+
         @Override public void increment(Long skuId, int qty) { increments.add(new Increment(skuId, qty)); }
         @Override public void decrement(Long skuId, int qty) {}
         @Override public void setAbsolute(Long skuId, int qty) {}
+
+        @Override
+        public void increment(Long skuId, int qty, InventoryTransactionType type,
+                              String refType, Long refId, Long actorUserId) {
+            increments.add(new Increment(skuId, qty));
+            lastType = type;
+            lastActorUserId = actorUserId;
+        }
     }
 
     static class CapturingRestoreLoyaltyPort implements RestoreLoyaltyPointsUseCase {
@@ -252,5 +264,17 @@ class ConfirmRecallReceivedServiceTest {
 
         assertTrue(loyalty.called);
         assertEquals(100, loyalty.restoredPoints);
+    }
+
+    @Test
+    @DisplayName("Stock increment uses RECALL_RETURN type and passes actorUserId")
+    void stockIncrement_usesRecallReturnTypeWithActor() {
+        var stock = new CapturingStockAdjustmentPort();
+        service(recalledOrderWithItems(0), courierUser(), new CapturingSaveOrderPort(), stock,
+                new CapturingRestoreLoyaltyPort())
+                .execute(ORDER_ID, COURIER_ID);
+
+        assertEquals(InventoryTransactionType.RECALL_RETURN, stock.lastType);
+        assertEquals(COURIER_ID, stock.lastActorUserId);
     }
 }
