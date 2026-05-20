@@ -16,6 +16,7 @@ import tj.radolfa.domain.exception.ReturnItemQuantityExceededException;
 import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.CustomerReturnItem;
 import tj.radolfa.domain.model.CustomerReturnStatus;
+import tj.radolfa.domain.model.Resellability;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
@@ -103,7 +104,8 @@ public class ReceiveCustomerReturnService implements ReceiveCustomerReturnUseCas
                         + " exceeds remaining returnable quantity "
                         + (orderItem.getQuantity() - already));
             }
-            return new CustomerReturnItem(null, null, cmd.orderItemId(), cmd.quantity(), cmd.reason(), cmd.notes());
+            return new CustomerReturnItem(null, null, cmd.orderItemId(), cmd.quantity(),
+                    cmd.reason(), cmd.notes(), Resellability.PENDING_REVIEW);
         }).toList();
 
         CustomerReturn customerReturn = new CustomerReturn(

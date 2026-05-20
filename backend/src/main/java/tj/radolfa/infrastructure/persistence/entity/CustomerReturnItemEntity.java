@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import tj.radolfa.domain.model.Resellability;
 import tj.radolfa.domain.model.ReturnReason;
 
 @Entity
@@ -35,4 +36,8 @@ public class CustomerReturnItemEntity extends BaseAuditEntity {
 
     @Column(name = "notes", length = 500)
     private String notes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resellability", nullable = false, length = 20)
+    private Resellability resellability = Resellability.PENDING_REVIEW;
 }

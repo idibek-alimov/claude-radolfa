@@ -14,8 +14,13 @@ import tj.radolfa.infrastructure.persistence.entity.CustomerReturnItemEntity;
 import tj.radolfa.infrastructure.persistence.mappers.CustomerReturnMapper;
 import tj.radolfa.infrastructure.persistence.repository.CustomerReturnJpaRepository;
 
+import tj.radolfa.domain.model.CustomerReturnItem;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class CustomerReturnJpaAdapter implements SaveCustomerReturnPort, LoadCustomerReturnPort {
@@ -58,6 +63,15 @@ public class CustomerReturnJpaAdapter implements SaveCustomerReturnPort, LoadCus
         existing.setRefundApprovedByAdminId(customerReturn.getRefundApprovedByAdminId());
         existing.setGatewayRefundId(customerReturn.getGatewayRefundId());
         existing.setRefundedAt(customerReturn.getRefundedAt());
+        // Sync item resellability (set during warehouse review)
+        Map<Long, CustomerReturnItem> domainItemsById = customerReturn.getItems().stream()
+                .collect(Collectors.toMap(CustomerReturnItem::id, Function.identity()));
+        existing.getItems().forEach(itemEntity -> {
+            CustomerReturnItem domainItem = domainItemsById.get(itemEntity.getId());
+            if (domainItem != null) {
+                itemEntity.setResellability(domainItem.resellability());
+            }
+        });
         return mapper.toDomain(repository.save(existing));
     }
 

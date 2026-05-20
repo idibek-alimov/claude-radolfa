@@ -13,6 +13,7 @@ import tj.radolfa.domain.exception.RefundFailedException;
 import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.CustomerReturnItem;
 import tj.radolfa.domain.model.CustomerReturnStatus;
+import tj.radolfa.domain.model.Resellability;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
@@ -62,7 +63,7 @@ class ApproveRefundServiceTest {
     }
 
     static List<CustomerReturnItem> singleItem(Long orderItemId) {
-        return List.of(new CustomerReturnItem(1L, RETURN_ID, orderItemId, 1, ReturnReason.DAMAGED, null));
+        return List.of(new CustomerReturnItem(1L, RETURN_ID, orderItemId, 1, ReturnReason.DAMAGED, null, Resellability.PENDING_REVIEW));
     }
 
     static Payment payment() {
@@ -249,8 +250,8 @@ class ApproveRefundServiceTest {
                 item(ORDER_ITEM_2, new BigDecimal("30.00"), 2));
         // return: item1 qty=1, item2 qty=1 → 50.00 + 30.00 = 80.00
         var returnItems = List.of(
-                new CustomerReturnItem(1L, RETURN_ID, ORDER_ITEM_1, 1, ReturnReason.DAMAGED, null),
-                new CustomerReturnItem(2L, RETURN_ID, ORDER_ITEM_2, 1, ReturnReason.WRONG_ITEM, null));
+                new CustomerReturnItem(1L, RETURN_ID, ORDER_ITEM_1, 1, ReturnReason.DAMAGED, null, Resellability.PENDING_REVIEW),
+                new CustomerReturnItem(2L, RETURN_ID, ORDER_ITEM_2, 1, ReturnReason.WRONG_ITEM, null, Resellability.PENDING_REVIEW));
         var customerReturn = returnWith(CustomerReturnStatus.SENT_TO_WAREHOUSE, returnItems);
         var processPort = new ConfigurableProcessRefundPort(true, null);
 

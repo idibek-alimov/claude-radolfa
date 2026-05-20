@@ -11,5 +11,6 @@ public record CustomerReturnItem(
         Long         orderItemId,
         int          quantity,
         ReturnReason reason,
-        String       notes
+        String       notes,
+        Resellability resellability
 ) {}

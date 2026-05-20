@@ -14,6 +14,7 @@ import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.exception.ReturnAlreadyExistsException;
 import tj.radolfa.domain.exception.ReturnItemQuantityExceededException;
 import tj.radolfa.domain.model.*;
+import tj.radolfa.domain.model.Resellability;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -64,7 +65,7 @@ class ReceiveCustomerReturnServiceTest {
     static CustomerReturn receivedReturn(Long itemId, int qty) {
         return new CustomerReturn(1L, ORDER_ID, PICKPOINT_ID, STAFF_ID, Instant.now(),
                 null,
-                List.of(new CustomerReturnItem(null, 1L, itemId, qty, ReturnReason.DAMAGED, null)),
+                List.of(new CustomerReturnItem(null, 1L, itemId, qty, ReturnReason.DAMAGED, null, Resellability.PENDING_REVIEW)),
                 CustomerReturnStatus.RECEIVED,
                 null, null, null, null, null, null);
     }
@@ -72,7 +73,7 @@ class ReceiveCustomerReturnServiceTest {
     static CustomerReturn sentReturn(Long itemId, int qty) {
         var r = new CustomerReturn(2L, ORDER_ID, PICKPOINT_ID, STAFF_ID, Instant.now(),
                 null,
-                List.of(new CustomerReturnItem(null, 2L, itemId, qty, ReturnReason.DAMAGED, null)),
+                List.of(new CustomerReturnItem(null, 2L, itemId, qty, ReturnReason.DAMAGED, null, Resellability.PENDING_REVIEW)),
                 CustomerReturnStatus.RECEIVED,
                 null, null, null, null, null, null);
         r.markSentToWarehouse(STAFF_ID);

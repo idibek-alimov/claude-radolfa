@@ -28,6 +28,7 @@ CREATE TABLE customer_return_items (
     quantity        INT          NOT NULL CHECK (quantity > 0),
     reason          VARCHAR(30)  NOT NULL,
     notes           VARCHAR(500),
+    resellability   VARCHAR(20)  NOT NULL DEFAULT 'PENDING_REVIEW',
     version         BIGINT       NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()

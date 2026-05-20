@@ -6,8 +6,11 @@ import tj.radolfa.application.ports.in.order.ConfirmReturnedToWarehouseUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.exception.PickpointAccessDeniedException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.model.InventoryTransactionType;
+import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 
 import java.time.Instant;
@@ -15,16 +18,19 @@ import java.time.Instant;
 @Service
 public class ConfirmReturnedToWarehouseService implements ConfirmReturnedToWarehouseUseCase {
 
-    private final LoadOrderPort loadOrderPort;
-    private final SaveOrderPort saveOrderPort;
-    private final LoadUserPort  loadUserPort;
+    private final LoadOrderPort       loadOrderPort;
+    private final SaveOrderPort       saveOrderPort;
+    private final LoadUserPort        loadUserPort;
+    private final StockAdjustmentPort stockAdjustmentPort;
 
     public ConfirmReturnedToWarehouseService(LoadOrderPort loadOrderPort,
                                               SaveOrderPort saveOrderPort,
-                                              LoadUserPort loadUserPort) {
-        this.loadOrderPort = loadOrderPort;
-        this.saveOrderPort = saveOrderPort;
-        this.loadUserPort  = loadUserPort;
+                                              LoadUserPort loadUserPort,
+                                              StockAdjustmentPort stockAdjustmentPort) {
+        this.loadOrderPort       = loadOrderPort;
+        this.saveOrderPort       = saveOrderPort;
+        this.loadUserPort        = loadUserPort;
+        this.stockAdjustmentPort = stockAdjustmentPort;
     }
 
     @Override
@@ -45,9 +51,18 @@ public class ConfirmReturnedToWarehouseService implements ConfirmReturnedToWareh
                     "Staff " + staffUserId + " is not assigned to pickpoint " + order.pickpointId());
         }
 
-        saveOrderPort.save(order.toBuilder()
+        Order savedOrder = saveOrderPort.save(order.toBuilder()
                 .status(OrderStatus.RETURNED_TO_WAREHOUSE)
                 .returnedToWarehouseAt(Instant.now())
                 .build());
+
+        // Restore stock — package was never opened by the customer
+        savedOrder.items().forEach(item -> {
+            if (item.getSkuId() != null) {
+                stockAdjustmentPort.increment(item.getSkuId(), item.getQuantity(),
+                        InventoryTransactionType.RETURN_RESTORE,
+                        "ORDER", savedOrder.id(), staffUserId);
+            }
+        });
     }
 }

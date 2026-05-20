@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.exception.PickpointAccessDeniedException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.*;
+import tj.radolfa.domain.model.InventoryTransactionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -69,9 +71,37 @@ class ConfirmReturnedToWarehouseServiceTest {
         Order last() { return saved.get(saved.size() - 1); }
     }
 
+    static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {
+        @Override public void decrement(Long skuId, int qty) {}
+        @Override public void increment(Long skuId, int qty) {}
+        @Override public void setAbsolute(Long skuId, int qty) {}
+    };
+
+    static class CapturingStockAdjustmentPort implements StockAdjustmentPort {
+        record IncrementCall(Long skuId, int qty, InventoryTransactionType type) {}
+        final List<IncrementCall> calls = new ArrayList<>();
+
+        @Override public void decrement(Long skuId, int qty) {}
+        @Override public void increment(Long skuId, int qty) {}
+        @Override public void setAbsolute(Long skuId, int qty) {}
+
+        @Override
+        public void increment(Long skuId, int qty, InventoryTransactionType type,
+                              String refType, Long refId, Long actorUserId) {
+            calls.add(new IncrementCall(skuId, qty, type));
+        }
+    }
+
     static ConfirmReturnedToWarehouseService service(Order order, User staff,
                                                       CapturingSaveOrderPort saveOrder) {
-        return new ConfirmReturnedToWarehouseService(orderPort(order), saveOrder, userPort(staff));
+        return service(order, staff, saveOrder, NO_STOCK);
+    }
+
+    static ConfirmReturnedToWarehouseService service(Order order, User staff,
+                                                      CapturingSaveOrderPort saveOrder,
+                                                      StockAdjustmentPort stockPort) {
+        return new ConfirmReturnedToWarehouseService(orderPort(order), saveOrder,
+                userPort(staff), stockPort);
     }
 
     // ── Tests ────────────────────────────────────────────────────────────────
@@ -121,5 +151,51 @@ class ConfirmReturnedToWarehouseServiceTest {
         assertThrows(ResourceNotFoundException.class,
                 () -> service(null, staffUser(PICKPOINT_ID),
                         new CapturingSaveOrderPort()).execute(999L, 99L));
+    }
+
+    @Test
+    @DisplayName("Order with 2 items → stock incremented twice with RETURN_RESTORE type")
+    void orderWithItems_stockRestoredForEach() {
+        var item1 = new OrderItem(1L, 101L, null, "SKU-A", "Widget", 2,
+                new Money(BigDecimal.TEN));
+        var item2 = new OrderItem(2L, 102L, null, "SKU-B", "Gadget", 1,
+                new Money(BigDecimal.TEN));
+        Order orderWithItems = new Order.Builder()
+                .id(ORDER_ID).userId(10L).status(OrderStatus.RETURN_INITIATED)
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(PICKPOINT_ID)
+                .totalAmount(new Money(BigDecimal.valueOf(150))).createdAt(Instant.now())
+                .items(List.of(item1, item2))
+                .build();
+
+        var capStock = new CapturingStockAdjustmentPort();
+        service(orderWithItems, staffUser(PICKPOINT_ID), new CapturingSaveOrderPort(), capStock)
+                .execute(ORDER_ID, 99L);
+
+        assertEquals(2, capStock.calls.size());
+        assertTrue(capStock.calls.stream().allMatch(c -> c.type() == InventoryTransactionType.RETURN_RESTORE));
+        assertTrue(capStock.calls.stream().anyMatch(c -> c.skuId().equals(101L) && c.qty() == 2));
+        assertTrue(capStock.calls.stream().anyMatch(c -> c.skuId().equals(102L) && c.qty() == 1));
+    }
+
+    @Test
+    @DisplayName("Item with null skuId → stock increment skipped for that item")
+    void itemWithNullSkuId_incrementSkipped() {
+        var itemWithSku    = new OrderItem(1L, 101L, null, "SKU-A", "Widget", 3,
+                new Money(BigDecimal.TEN));
+        var itemWithoutSku = new OrderItem(2L, null, null, "SKU-DEL", "Deleted", 1,
+                new Money(BigDecimal.TEN));
+        Order orderWithItems = new Order.Builder()
+                .id(ORDER_ID).userId(10L).status(OrderStatus.RETURN_INITIATED)
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(PICKPOINT_ID)
+                .totalAmount(new Money(BigDecimal.valueOf(150))).createdAt(Instant.now())
+                .items(List.of(itemWithSku, itemWithoutSku))
+                .build();
+
+        var capStock = new CapturingStockAdjustmentPort();
+        service(orderWithItems, staffUser(PICKPOINT_ID), new CapturingSaveOrderPort(), capStock)
+                .execute(ORDER_ID, 99L);
+
+        assertEquals(1, capStock.calls.size());
+        assertEquals(101L, capStock.calls.get(0).skuId());
     }
 }

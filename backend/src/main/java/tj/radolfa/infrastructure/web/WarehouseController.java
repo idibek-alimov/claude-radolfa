@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptByIdUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptsUseCase;
+import tj.radolfa.application.ports.in.warehouse.ReviewCustomerReturnItemsUseCase;
 import tj.radolfa.domain.model.InventoryTransaction;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.StockReceipt;
@@ -25,6 +26,7 @@ import tj.radolfa.infrastructure.persistence.adapter.InventoryTransactionJpaAdap
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CreateStockReceiptRequestDto;
 import tj.radolfa.infrastructure.web.dto.InventoryTransactionDto;
+import tj.radolfa.infrastructure.web.dto.ReviewReturnItemsRequestDto;
 import tj.radolfa.infrastructure.web.dto.StockReceiptDto;
 
 import java.util.List;
@@ -35,10 +37,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WarehouseController {
 
-    private final InventoryTransactionJpaAdapter inventoryTransactionAdapter;
-    private final CreateStockReceiptUseCase      createStockReceiptUseCase;
-    private final GetStockReceiptsUseCase        getStockReceiptsUseCase;
-    private final GetStockReceiptByIdUseCase     getStockReceiptByIdUseCase;
+    private final InventoryTransactionJpaAdapter     inventoryTransactionAdapter;
+    private final CreateStockReceiptUseCase          createStockReceiptUseCase;
+    private final GetStockReceiptsUseCase            getStockReceiptsUseCase;
+    private final GetStockReceiptByIdUseCase         getStockReceiptByIdUseCase;
+    private final ReviewCustomerReturnItemsUseCase   reviewCustomerReturnItemsUseCase;
 
     // ── Inventory history ─────────────────────────────────────────────────────
 
@@ -95,5 +98,24 @@ public class WarehouseController {
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<StockReceiptDto> getReceipt(@PathVariable Long id) {
         return ResponseEntity.ok(StockReceiptDto.from(getStockReceiptByIdUseCase.execute(id)));
+    }
+
+    // ── Customer return resellability review ──────────────────────────────────
+
+    @PostMapping("/customer-returns/{returnId}/review-items")
+    @Operation(summary = "Review resellability of items in a walk-in return")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> reviewReturnItems(
+            @PathVariable Long returnId,
+            @RequestBody @Valid ReviewReturnItemsRequestDto request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        var command = new ReviewCustomerReturnItemsUseCase.Command(
+                returnId, principal.userId(),
+                request.reviews().stream()
+                        .map(r -> new ReviewCustomerReturnItemsUseCase.ItemReview(
+                                r.orderItemId(), r.resellability()))
+                        .toList());
+        reviewCustomerReturnItemsUseCase.execute(command);
+        return ResponseEntity.noContent().build();
     }
 }
