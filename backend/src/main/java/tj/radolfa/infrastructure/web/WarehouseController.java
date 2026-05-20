@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptByIdUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptsUseCase;
+import tj.radolfa.application.ports.in.warehouse.LookupSkuByBarcodeUseCase;
 import tj.radolfa.application.ports.in.warehouse.ReviewCustomerReturnItemsUseCase;
 import tj.radolfa.domain.model.InventoryTransaction;
 import tj.radolfa.domain.model.PageResult;
@@ -27,6 +28,7 @@ import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticat
 import tj.radolfa.infrastructure.web.dto.CreateStockReceiptRequestDto;
 import tj.radolfa.infrastructure.web.dto.InventoryTransactionDto;
 import tj.radolfa.infrastructure.web.dto.ReviewReturnItemsRequestDto;
+import tj.radolfa.infrastructure.web.dto.SkuLookupDto;
 import tj.radolfa.infrastructure.web.dto.StockReceiptDto;
 
 import java.util.List;
@@ -42,6 +44,7 @@ public class WarehouseController {
     private final GetStockReceiptsUseCase            getStockReceiptsUseCase;
     private final GetStockReceiptByIdUseCase         getStockReceiptByIdUseCase;
     private final ReviewCustomerReturnItemsUseCase   reviewCustomerReturnItemsUseCase;
+    private final LookupSkuByBarcodeUseCase          lookupSkuByBarcodeUseCase;
 
     // ── Inventory history ─────────────────────────────────────────────────────
 
@@ -59,6 +62,16 @@ public class WarehouseController {
                 .toList();
         return ResponseEntity.ok(PageResponse.from(
                 new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    // ── Barcode lookup ────────────────────────────────────────────────────────
+
+    @GetMapping("/skus/by-barcode")
+    @Operation(summary = "Look up a SKU by its barcode (scanner-driven)")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<SkuLookupDto> lookupByBarcode(@RequestParam String code) {
+        LookupSkuByBarcodeUseCase.Result result = lookupSkuByBarcodeUseCase.execute(code);
+        return ResponseEntity.ok(SkuLookupDto.from(result.sku(), result.productName()));
     }
 
     // ── Stock receipts ────────────────────────────────────────────────────────

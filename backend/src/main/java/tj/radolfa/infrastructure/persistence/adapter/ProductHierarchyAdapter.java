@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
+import tj.radolfa.application.ports.out.LoadSkuByBarcodePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.SaveListingVariantPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 @Component
 public class ProductHierarchyAdapter
         implements LoadProductBasePort, LoadListingVariantPort, LoadSkuPort,
-        SaveProductHierarchyPort, SaveListingVariantPort {
+        LoadSkuByBarcodePort, SaveProductHierarchyPort, SaveListingVariantPort {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductHierarchyAdapter.class);
 
@@ -246,6 +247,14 @@ public class ProductHierarchyAdapter
         return skuRepo.findAllById(ids).stream()
                 .map(mapper::toSku)
                 .toList();
+    }
+
+    // ---- LoadSkuByBarcodePort ----
+
+    @Override
+    public Optional<Sku> findByBarcode(String barcode) {
+        if (barcode == null || barcode.isBlank()) return Optional.empty();
+        return skuRepo.findByBarcode(barcode).map(mapper::toSku);
     }
 
     // ---- SaveProductHierarchyPort ----
