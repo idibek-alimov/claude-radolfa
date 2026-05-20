@@ -7,7 +7,7 @@
 | Phase | Description | Status |
 |---|---|---|
 | 1 | Inventory Transaction Ledger | ✅ Complete |
-| 2 | Stock Receipt Document | 🔍 Pending |
+| 2 | Stock Receipt Document | ✅ Complete |
 | 3 | Return Stock Restoration + Resellability Review | 🔍 Pending |
 | 4 | Barcode Scanning Endpoint | 🔍 Pending |
 | 5 | Warehouse Location System | 🔍 Pending |
