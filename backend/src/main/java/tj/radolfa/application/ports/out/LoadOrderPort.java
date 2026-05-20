@@ -1,12 +1,17 @@
 package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.Order;
+import tj.radolfa.domain.model.PageResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 public interface LoadOrderPort {
     List<Order> loadByUserId(Long userId);
+
+    default PageResult<Order> loadByUserIdPaged(Long userId, int page, int size) {
+        return new PageResult<>(List.of(), 0, page, size, true);
+    }
 
     Optional<Order> loadById(Long id);
 

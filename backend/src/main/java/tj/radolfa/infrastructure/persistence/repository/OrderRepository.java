@@ -1,5 +1,6 @@
 package tj.radolfa.infrastructure.persistence.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
                                           org.springframework.data.jpa.repository.JpaSpecificationExecutor<OrderEntity> {
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByUser_IdOrderByCreatedAtDesc(Long userId);
+
+    Page<OrderEntity> findByUser_IdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
     Optional<OrderEntity> findByExternalOrderId(String externalOrderId);
 

@@ -91,6 +91,14 @@ public class CustomerReturnJpaAdapter implements SaveCustomerReturnPort, LoadCus
         return toPageResult(result, page);
     }
 
+    @Override
+    public PageResult<CustomerReturn> loadByUserId(Long userId, int page, int size) {
+        var pageable = PageRequest.of(page - 1, size);
+        Page<CustomerReturnEntity> result =
+                repository.findAllByUserIdOrderByReceivedAtDesc(userId, pageable);
+        return toPageResult(result, page);
+    }
+
     private PageResult<CustomerReturn> toPageResult(Page<CustomerReturnEntity> page, int pageNumber) {
         List<CustomerReturn> content = page.getContent().stream().map(mapper::toDomain).toList();
         return new PageResult<>(content, page.getTotalElements(), pageNumber, page.getSize(), page.isLast());

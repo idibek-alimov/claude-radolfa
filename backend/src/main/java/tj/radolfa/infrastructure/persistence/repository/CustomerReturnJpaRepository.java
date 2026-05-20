@@ -39,4 +39,21 @@ public interface CustomerReturnJpaRepository extends JpaRepository<CustomerRetur
 
     @Query("SELECT cr.pickpointId, COUNT(cr) FROM CustomerReturnEntity cr WHERE cr.status = :status GROUP BY cr.pickpointId")
     List<Object[]> countByStatusGroupByPickpoint(@Param("status") CustomerReturnStatus status);
+
+    @Query(
+        value = """
+            SELECT cr.* FROM customer_returns cr
+            INNER JOIN orders o ON cr.order_id = o.id
+            WHERE o.user_id = :userId
+            ORDER BY cr.received_at DESC
+            """,
+        countQuery = """
+            SELECT COUNT(cr.id) FROM customer_returns cr
+            INNER JOIN orders o ON cr.order_id = o.id
+            WHERE o.user_id = :userId
+            """,
+        nativeQuery = true
+    )
+    Page<CustomerReturnEntity> findAllByUserIdOrderByReceivedAtDesc(
+            @Param("userId") Long userId, Pageable pageable);
 }
