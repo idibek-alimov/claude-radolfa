@@ -34,7 +34,12 @@ public record Order(
         Instant readyForPickupAt,
         Instant returnInitiatedAt,
         Long returnInitiatedByUserId,
-        Instant returnedToWarehouseAt) {
+        Instant returnedToWarehouseAt,
+        Instant recallRequestedAt,
+        Long recallRequestedByUserId,
+        String recallReason,
+        Instant recallConfirmedAt,
+        Long recallConfirmedByUserId) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);
@@ -55,7 +60,12 @@ public record Order(
                 .deliveryAttemptCount(deliveryAttemptCount).deliveryAttemptReason(deliveryAttemptReason)
                 .deliveryPhotoUrl(deliveryPhotoUrl).readyForPickupAt(readyForPickupAt)
                 .returnInitiatedAt(returnInitiatedAt).returnInitiatedByUserId(returnInitiatedByUserId)
-                .returnedToWarehouseAt(returnedToWarehouseAt);
+                .returnedToWarehouseAt(returnedToWarehouseAt)
+                .recallRequestedAt(recallRequestedAt)
+                .recallRequestedByUserId(recallRequestedByUserId)
+                .recallReason(recallReason)
+                .recallConfirmedAt(recallConfirmedAt)
+                .recallConfirmedByUserId(recallConfirmedByUserId);
     }
 
     public static final class Builder {
@@ -88,6 +98,11 @@ public record Order(
         private Instant returnInitiatedAt;
         private Long    returnInitiatedByUserId;
         private Instant returnedToWarehouseAt;
+        private Instant recallRequestedAt;
+        private Long    recallRequestedByUserId;
+        private String  recallReason;
+        private Instant recallConfirmedAt;
+        private Long    recallConfirmedByUserId;
 
         public Builder id(Long v)                              { this.id = v; return this; }
         public Builder userId(Long v)                          { this.userId = v; return this; }
@@ -118,6 +133,11 @@ public record Order(
         public Builder returnInitiatedAt(Instant v)           { this.returnInitiatedAt = v; return this; }
         public Builder returnInitiatedByUserId(Long v)        { this.returnInitiatedByUserId = v; return this; }
         public Builder returnedToWarehouseAt(Instant v)       { this.returnedToWarehouseAt = v; return this; }
+        public Builder recallRequestedAt(Instant v)           { this.recallRequestedAt = v; return this; }
+        public Builder recallRequestedByUserId(Long v)        { this.recallRequestedByUserId = v; return this; }
+        public Builder recallReason(String v)                 { this.recallReason = v; return this; }
+        public Builder recallConfirmedAt(Instant v)           { this.recallConfirmedAt = v; return this; }
+        public Builder recallConfirmedByUserId(Long v)        { this.recallConfirmedByUserId = v; return this; }
 
         public Order build() {
             return new Order(id, userId, externalOrderId, status, totalAmount, items, createdAt,
@@ -127,7 +147,9 @@ public record Order(
                     shippedAt, deliveredAt, cancelledAt, refundedAt,
                     outForDeliveryAt, deliveryAttemptedAt, deliveryAttemptCount,
                     deliveryAttemptReason, deliveryPhotoUrl, readyForPickupAt,
-                    returnInitiatedAt, returnInitiatedByUserId, returnedToWarehouseAt);
+                    returnInitiatedAt, returnInitiatedByUserId, returnedToWarehouseAt,
+                    recallRequestedAt, recallRequestedByUserId, recallReason,
+                    recallConfirmedAt, recallConfirmedByUserId);
         }
     }
 }

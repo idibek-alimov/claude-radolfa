@@ -18,6 +18,7 @@ import tj.radolfa.domain.exception.DeliveryCodeExpiredException;
 import tj.radolfa.domain.exception.DeliveryCodeMismatchException;
 import tj.radolfa.domain.exception.DeliveryCodeNotFoundException;
 import tj.radolfa.domain.exception.DiscountConflictException;
+import tj.radolfa.domain.exception.OrderRecallNotAllowedException;
 import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
@@ -288,6 +289,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<MessageResponseDto> handlePickpointCodeLockout(PickpointCodeLockoutException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(OrderRecallNotAllowedException.class)
+    public ResponseEntity<MessageResponseDto> handleOrderRecallNotAllowed(OrderRecallNotAllowedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(MessageResponseDto.error(ex.getMessage()));
     }
 
     /**

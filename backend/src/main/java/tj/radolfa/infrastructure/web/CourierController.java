@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.order.ConfirmRecallReceivedUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmWithDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.GetCourierOrdersUseCase;
 import tj.radolfa.application.ports.in.order.MarkDeliveryAttemptedUseCase;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class CourierController {
 
     private final GetCourierOrdersUseCase       getCourierOrdersUseCase;
+    private final ConfirmRecallReceivedUseCase   confirmRecallReceivedUseCase;
     private final MarkOutForDeliveryUseCase      markOutForDeliveryUseCase;
     private final ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase;
     private final MarkDeliveryAttemptedUseCase   markDeliveryAttemptedUseCase;
@@ -41,12 +43,14 @@ public class CourierController {
     private final LoadSkuPort                    loadSkuPort;
 
     public CourierController(GetCourierOrdersUseCase getCourierOrdersUseCase,
+                             ConfirmRecallReceivedUseCase confirmRecallReceivedUseCase,
                              MarkOutForDeliveryUseCase markOutForDeliveryUseCase,
                              ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase,
                              MarkDeliveryAttemptedUseCase markDeliveryAttemptedUseCase,
                              LoadUserPort loadUserPort,
                              LoadSkuPort loadSkuPort) {
         this.getCourierOrdersUseCase      = getCourierOrdersUseCase;
+        this.confirmRecallReceivedUseCase = confirmRecallReceivedUseCase;
         this.markOutForDeliveryUseCase    = markOutForDeliveryUseCase;
         this.confirmWithDeliveryCodeUseCase = confirmWithDeliveryCodeUseCase;
         this.markDeliveryAttemptedUseCase = markDeliveryAttemptedUseCase;
@@ -119,6 +123,15 @@ public class CourierController {
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         markDeliveryAttemptedUseCase.execute(new MarkDeliveryAttemptedUseCase.Command(
                 orderId, principal.userId(), body.reason(), body.photoUrl()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/orders/{orderId}/confirm-recall")
+    @PreAuthorize("hasRole('COURIER')")
+    public ResponseEntity<Void> confirmRecall(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        confirmRecallReceivedUseCase.execute(orderId, principal.userId());
         return ResponseEntity.noContent().build();
     }
 }

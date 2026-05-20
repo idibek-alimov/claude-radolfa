@@ -154,8 +154,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/pickpoint/**").hasRole("PICKPOINT_STAFF")
 
                                                 // ============================================================
-                                                // ADMIN only: refund approval (must precede the catch-all below)
+                                                // ADMIN only: recall initiation and refund approval
+                                                // (must precede the MANAGER+ADMIN catch-all below)
                                                 // ============================================================
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/orders/*/request-recall")
+                                                    .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/admin/orders/customer-returns/*/approve-refund")
                                                     .hasRole("ADMIN")
 

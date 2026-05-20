@@ -53,6 +53,20 @@ public class DeliveryWebSocketEventPublisher implements DeliveryEventPublisher {
                 DeliveryEvent.retryLimit(orderId, courierId)));
     }
 
+    @Override
+    public void publishOrderRecallToCourier(Long courierId, Long orderId) {
+        send(() -> messaging.convertAndSendToUser(
+                courierId.toString(), "/queue/delivery",
+                DeliveryEvent.of("ORDER_RECALL_REQUESTED", orderId)));
+    }
+
+    @Override
+    public void publishOrderRecallToPickpoint(Long pickpointId, Long orderId) {
+        send(() -> messaging.convertAndSend(
+                "/topic/pickpoint/" + pickpointId,
+                DeliveryEvent.of("ORDER_RECALL_REQUESTED", orderId)));
+    }
+
     private void send(Runnable action) {
         try {
             action.run();

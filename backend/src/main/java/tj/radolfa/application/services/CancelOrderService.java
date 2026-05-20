@@ -81,6 +81,13 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
         boolean isAdmin = requester.role() == UserRole.ADMIN;
 
         if (isAdmin) {
+            Set<OrderStatus> requireRecall = Set.of(
+                    OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.READY_FOR_PICKUP);
+            if (requireRecall.contains(order.status())) {
+                throw new IllegalStateException(
+                        "Order in status " + order.status() + " cannot be cancelled directly. " +
+                        "Use the Recall flow (POST /api/v1/admin/orders/{id}/request-recall) instead.");
+            }
             if (order.status() == OrderStatus.DELIVERED
                     || order.status() == OrderStatus.CANCELLED) {
                 throw new IllegalStateException(

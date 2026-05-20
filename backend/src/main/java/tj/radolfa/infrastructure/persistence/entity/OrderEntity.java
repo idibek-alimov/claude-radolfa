@@ -120,6 +120,21 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "returned_to_warehouse_at")
     private Instant returnedToWarehouseAt;
 
+    @Column(name = "recall_requested_at")
+    private Instant recallRequestedAt;
+
+    @Column(name = "recall_requested_by_user_id")
+    private Long recallRequestedByUserId;
+
+    @Column(name = "recall_reason")
+    private String recallReason;
+
+    @Column(name = "recall_confirmed_at")
+    private Instant recallConfirmedAt;
+
+    @Column(name = "recall_confirmed_by_user_id")
+    private Long recallConfirmedByUserId;
+
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant deletedAt;

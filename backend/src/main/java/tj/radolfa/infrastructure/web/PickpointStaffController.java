@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.ConfirmCustomerReturnSentUseCase;
+import tj.radolfa.application.ports.in.order.ConfirmRecallReceivedUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmPickpointArrivalUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmReturnedToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmWithDeliveryCodeUseCase;
@@ -45,6 +46,7 @@ public class PickpointStaffController {
     private final GetPickpointCustomerReturnsUseCase getPickpointCustomerReturnsUseCase;
     private final ReceiveCustomerReturnUseCase       receiveCustomerReturnUseCase;
     private final ConfirmCustomerReturnSentUseCase   confirmCustomerReturnSentUseCase;
+    private final ConfirmRecallReceivedUseCase        confirmRecallReceivedUseCase;
     private final LoadOrderPort                      loadOrderPort;
     private final LoadUserPort                       loadUserPort;
     private final int                                pickpointStorageDays;
@@ -59,6 +61,7 @@ public class PickpointStaffController {
                                     GetPickpointCustomerReturnsUseCase getPickpointCustomerReturnsUseCase,
                                     ReceiveCustomerReturnUseCase receiveCustomerReturnUseCase,
                                     ConfirmCustomerReturnSentUseCase confirmCustomerReturnSentUseCase,
+                                    ConfirmRecallReceivedUseCase confirmRecallReceivedUseCase,
                                     LoadOrderPort loadOrderPort,
                                     LoadUserPort loadUserPort,
                                     @Value("${radolfa.delivery.pickpoint-storage-days:7}") int pickpointStorageDays) {
@@ -72,6 +75,7 @@ public class PickpointStaffController {
         this.getPickpointCustomerReturnsUseCase = getPickpointCustomerReturnsUseCase;
         this.receiveCustomerReturnUseCase       = receiveCustomerReturnUseCase;
         this.confirmCustomerReturnSentUseCase   = confirmCustomerReturnSentUseCase;
+        this.confirmRecallReceivedUseCase       = confirmRecallReceivedUseCase;
         this.loadOrderPort                      = loadOrderPort;
         this.loadUserPort                       = loadUserPort;
         this.pickpointStorageDays               = pickpointStorageDays;
@@ -211,6 +215,15 @@ public class PickpointStaffController {
             @PathVariable Long returnId,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         confirmCustomerReturnSentUseCase.execute(returnId, principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/orders/{orderId}/confirm-recall")
+    @PreAuthorize("hasRole('PICKPOINT_STAFF')")
+    public ResponseEntity<Void> confirmRecall(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        confirmRecallReceivedUseCase.execute(orderId, principal.userId());
         return ResponseEntity.noContent().build();
     }
 

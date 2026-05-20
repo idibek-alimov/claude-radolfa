@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.ApproveRefundUseCase;
+import tj.radolfa.application.ports.in.order.RequestOrderRecallUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
 import tj.radolfa.application.ports.in.order.GetAllCustomerReturnsUseCase;
@@ -74,6 +75,7 @@ public class AdminOrderController {
     private final LoadReviewPort                 loadReviewPort;
     private final LoadPickpointPort              loadPickpointPort;
     private final ApproveRefundUseCase           approveRefundUseCase;
+    private final RequestOrderRecallUseCase      requestOrderRecallUseCase;
 
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
@@ -90,7 +92,8 @@ public class AdminOrderController {
                                 LoadSkuPort loadSkuPort,
                                 LoadReviewPort loadReviewPort,
                                 LoadPickpointPort loadPickpointPort,
-                                ApproveRefundUseCase approveRefundUseCase) {
+                                ApproveRefundUseCase approveRefundUseCase,
+                                RequestOrderRecallUseCase requestOrderRecallUseCase) {
         this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
@@ -107,6 +110,20 @@ public class AdminOrderController {
         this.loadReviewPort                 = loadReviewPort;
         this.loadPickpointPort              = loadPickpointPort;
         this.approveRefundUseCase           = approveRefundUseCase;
+        this.requestOrderRecallUseCase      = requestOrderRecallUseCase;
+    }
+
+    record RecallOrderRequest(@jakarta.validation.constraints.NotBlank String reason) {}
+
+    @PostMapping("/{orderId}/request-recall")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Initiate a physical recall for an in-transit or at-pickpoint order (ADMIN only)")
+    public ResponseEntity<Void> requestRecall(
+            @PathVariable Long orderId,
+            @RequestBody @Valid RecallOrderRequest request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        requestOrderRecallUseCase.execute(orderId, principal.userId(), request.reason());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/summary")

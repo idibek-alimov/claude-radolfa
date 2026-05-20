@@ -16,4 +16,10 @@ public interface DeliveryEventPublisher {
 
     /** Pushes a retry-limit-reached alert to the admin panel. */
     void publishDeliveryRetryLimitReached(Long orderId, Long courierId);
+
+    /** Notifies a courier that their order has been recalled by admin. */
+    default void publishOrderRecallToCourier(Long courierId, Long orderId) {}
+
+    /** Notifies pickpoint staff that a waiting order has been recalled by admin. */
+    default void publishOrderRecallToPickpoint(Long pickpointId, Long orderId) {}
 }
