@@ -32,11 +32,11 @@ CREATE TABLE warehouse_bins (
     UNIQUE (shelf_id, code)
 );
 
--- skus is created back in V2 — warehouse_bins didn't exist then, so the FK
--- must be added now as an ALTER. ON DELETE SET NULL means deleting a bin
--- leaves orphaned SKUs (their bin_id becomes NULL) rather than blocking deletion.
+-- Prod: adds bin_id to the existing skus table with the FK now that warehouse_bins exists.
+-- Dev fresh install: bin_id was already added in V2 (no FK, since warehouse_bins didn't
+-- exist at V2 time) — IF NOT EXISTS makes this a no-op so the migration still passes.
 ALTER TABLE skus
-    ADD COLUMN bin_id BIGINT REFERENCES warehouse_bins(id) ON DELETE SET NULL;
+    ADD COLUMN IF NOT EXISTS bin_id BIGINT REFERENCES warehouse_bins(id) ON DELETE SET NULL;
 
 CREATE INDEX idx_skus_bin_id      ON skus(bin_id);
 CREATE INDEX idx_shelves_zone_id  ON warehouse_shelves(zone_id);

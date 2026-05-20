@@ -142,6 +142,7 @@ CREATE TABLE skus (
     length_cm          INTEGER,
     width_cm           INTEGER,
     height_cm          INTEGER,
+    bin_id             BIGINT,
     version            BIGINT         NOT NULL DEFAULT 0,
     created_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW()
