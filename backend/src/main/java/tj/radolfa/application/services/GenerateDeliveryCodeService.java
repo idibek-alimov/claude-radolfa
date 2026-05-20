@@ -9,7 +9,6 @@ import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.RegenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
-import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveDeliveryCodePort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.DeliveryCode;
@@ -26,22 +25,22 @@ public class GenerateDeliveryCodeService
     private static final Logger log = LoggerFactory.getLogger(GenerateDeliveryCodeService.class);
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private final LoadOrderPort        loadOrderPort;
-    private final LoadUserPort         loadUserPort;
-    private final SaveDeliveryCodePort saveDeliveryCodePort;
-    private final NotificationPort     notificationPort;
-    private final int                  codeExpiryHours;
+    private final LoadOrderPort                  loadOrderPort;
+    private final LoadUserPort                   loadUserPort;
+    private final SaveDeliveryCodePort           saveDeliveryCodePort;
+    private final DeliveryCodeNotificationService deliveryCodeNotificationService;
+    private final int                            codeExpiryHours;
 
     public GenerateDeliveryCodeService(LoadOrderPort loadOrderPort,
                                        LoadUserPort loadUserPort,
                                        SaveDeliveryCodePort saveDeliveryCodePort,
-                                       NotificationPort notificationPort,
+                                       DeliveryCodeNotificationService deliveryCodeNotificationService,
                                        @Value("${radolfa.delivery.code-expiry-hours:72}") int codeExpiryHours) {
-        this.loadOrderPort        = loadOrderPort;
-        this.loadUserPort         = loadUserPort;
-        this.saveDeliveryCodePort = saveDeliveryCodePort;
-        this.notificationPort     = notificationPort;
-        this.codeExpiryHours      = codeExpiryHours;
+        this.loadOrderPort                   = loadOrderPort;
+        this.loadUserPort                    = loadUserPort;
+        this.saveDeliveryCodePort            = saveDeliveryCodePort;
+        this.deliveryCodeNotificationService = deliveryCodeNotificationService;
+        this.codeExpiryHours                 = codeExpiryHours;
     }
 
     @Override
@@ -63,7 +62,7 @@ public class GenerateDeliveryCodeService
         DeliveryCode saved   = saveDeliveryCodePort.save(newCode);
 
         loadUserPort.loadById(order.userId()).ifPresentOrElse(
-                user -> notificationPort.sendDeliveryCode(user.id(), orderId, code, expiresAt),
+                user -> deliveryCodeNotificationService.send(user.id(), orderId, code, expiresAt),
                 ()   -> log.warn("User not found for order id={}, delivery code not sent via SMS", orderId)
         );
 

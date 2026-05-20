@@ -2,6 +2,10 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.retry.backoff.NoBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
+import tj.radolfa.application.ports.out.AdminAlertPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.NotificationPort;
@@ -22,7 +26,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -103,11 +106,23 @@ class GenerateDeliveryCodeServiceTest {
         @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
+    static class RecordingAdminAlertPort implements AdminAlertPort {
+        @Override public void sendNotificationFailureAlert(String t, Long u, Long r, String e) {}
+    }
+
+    static RetryTemplate noRetry() {
+        RetryTemplate t = new RetryTemplate();
+        t.setRetryPolicy(new SimpleRetryPolicy(1));
+        t.setBackOffPolicy(new NoBackOffPolicy());
+        return t;
+    }
+
     static GenerateDeliveryCodeService service(Order order,
                                                CapturingSaveDeliveryCodePort save,
-                                               NotificationPort notif) {
+                                               CapturingNotificationPort notif) {
+        var deliveryNotif = new DeliveryCodeNotificationService(notif, new RecordingAdminAlertPort(), noRetry());
         return new GenerateDeliveryCodeService(
-                orderPort(order), userPort(CUSTOMER), save, notif, 72);
+                orderPort(order), userPort(CUSTOMER), save, deliveryNotif, 72);
     }
 
     // ── Tests ────────────────────────────────────────────────────────────────
@@ -162,9 +177,11 @@ class GenerateDeliveryCodeServiceTest {
     @Test
     @DisplayName("Order not found → throws ResourceNotFoundException")
     void orderNotFound_throwsResourceNotFoundException() {
+        var deliveryNotif = new DeliveryCodeNotificationService(
+                new CapturingNotificationPort(), new RecordingAdminAlertPort(), noRetry());
         GenerateDeliveryCodeService svc = new GenerateDeliveryCodeService(
                 orderPort(null), userPort(CUSTOMER),
-                new CapturingSaveDeliveryCodePort(), new CapturingNotificationPort(), 72);
+                new CapturingSaveDeliveryCodePort(), deliveryNotif, 72);
 
         assertThrows(ResourceNotFoundException.class, () -> svc.execute(999L));
     }
