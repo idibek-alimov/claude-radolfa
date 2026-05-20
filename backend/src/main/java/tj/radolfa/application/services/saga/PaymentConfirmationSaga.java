@@ -2,6 +2,7 @@ package tj.radolfa.application.services.saga;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.SaveSagaLogPort;
 import tj.radolfa.application.services.saga.steps.AwardLoyaltyPointsStep;
@@ -22,7 +23,7 @@ public class PaymentConfirmationSaga {
     private final List<SagaStep<PaymentConfirmationContext>> steps;
     private final SaveSagaLogPort sagaLogPort;
 
-    // Spring-wired constructor
+    @Autowired
     public PaymentConfirmationSaga(MarkPaymentCompletedStep markPaymentCompleted,
                                     MarkOrderPaidStep markOrderPaid,
                                     AwardLoyaltyPointsStep awardLoyaltyPoints,
