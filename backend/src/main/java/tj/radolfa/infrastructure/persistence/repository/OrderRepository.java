@@ -76,6 +76,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
             Collection<OrderStatus> statuses,
             org.springframework.data.domain.Pageable pageable);
 
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    org.springframework.data.domain.Page<OrderEntity> findByCourierIdAndStatusIn(
+            Long courierId,
+            Collection<OrderStatus> statuses,
+            org.springframework.data.domain.Pageable pageable);
+
     // ── Pickpoint expiry queries ──────────────────────────────────────────────
 
     @EntityGraph(attributePaths = {"items", "items.sku"})

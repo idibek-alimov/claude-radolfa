@@ -17,6 +17,8 @@ import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.DeliveryAttemptReason;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
+import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -52,29 +54,41 @@ public class CourierController {
         this.loadSkuPort                  = loadSkuPort;
     }
 
+    private static final List<OrderStatus> DEFAULT_STATUSES = List.of(
+            OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERY_ATTEMPTED);
+
     record ConfirmRequest(@NotBlank String code) {}
 
     record AttemptRequest(@NotNull DeliveryAttemptReason reason, String photoUrl) {}
 
     @GetMapping("/orders")
     @PreAuthorize("hasRole('COURIER')")
-    public ResponseEntity<List<CourierOrderDto>> getMyOrders(
+    public ResponseEntity<PageResponse<CourierOrderDto>> getMyOrders(
+            @RequestParam(required = false) List<OrderStatus> status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
-        List<Order> orders = getCourierOrdersUseCase.execute(principal.userId());
 
-        Set<Long> skuIds = orders.stream()
+        List<OrderStatus> statuses = (status == null || status.isEmpty())
+                ? DEFAULT_STATUSES
+                : status;
+
+        PageResult<Order> result = getCourierOrdersUseCase.execute(principal.userId(), statuses, page, size);
+
+        Set<Long> skuIds = result.content().stream()
                 .flatMap(o -> o.items() == null ? java.util.stream.Stream.empty() : o.items().stream())
                 .map(OrderItem::getSkuId)
                 .filter(id -> id != null)
                 .collect(Collectors.toSet());
         Map<Long, Sku> skuMap = loadSkuPort.findAllByIdsAsMap(skuIds);
 
-        List<CourierOrderDto> dtos = orders.stream().map(order -> {
+        List<CourierOrderDto> dtos = result.content().stream().map(order -> {
             User customer = loadUserPort.loadById(order.userId()).orElse(null);
             return CourierOrderDto.from(order, customer, skuMap);
         }).toList();
 
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
     }
 
     @PostMapping("/orders/{orderId}/collect")

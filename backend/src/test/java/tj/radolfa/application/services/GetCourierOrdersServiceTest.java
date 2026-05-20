@@ -7,6 +7,7 @@ import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PageResult;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,87 +18,105 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GetCourierOrdersServiceTest {
 
+    // ── Fake ─────────────────────────────────────────────────────────────────
+
     static class CapturingLoadCourierOrdersPort implements LoadCourierOrdersPort {
         List<OrderStatus> capturedStatuses;
-        List<Order> result = List.of();
+        int capturedPage;
+        int capturedSize;
+        PageResult<Order> result = new PageResult<>(List.of(), 0, 1, 20, true);
 
         @Override
-        public List<Order> loadByCourierIdAndStatuses(Long courierId, List<OrderStatus> statuses) {
-            this.capturedStatuses = new ArrayList<>(statuses);
+        public List<Order> loadByCourierIdAndStatuses(Long id, List<OrderStatus> s) {
+            return result.content();
+        }
+
+        @Override
+        public PageResult<Order> loadByCourierIdAndStatusesPaged(Long id,
+                                                                  List<OrderStatus> s,
+                                                                  int p, int sz) {
+            this.capturedStatuses = new ArrayList<>(s);
+            this.capturedPage     = p;
+            this.capturedSize     = sz;
             return result;
         }
     }
 
-    static Order order(Long id, OrderStatus status, Instant createdAt) {
+    static Order order(Long id, OrderStatus status) {
         return new Order.Builder()
                 .id(id).userId(1L).status(status)
-                .totalAmount(new Money(BigDecimal.ZERO)).createdAt(createdAt)
+                .totalAmount(new Money(BigDecimal.ZERO)).createdAt(Instant.now())
                 .deliveryType(DeliveryType.HOME).build();
     }
 
+    // ── Tests ─────────────────────────────────────────────────────────────────
+
     @Test
-    @DisplayName("Fetches with statuses DELIVERY_ATTEMPTED, OUT_FOR_DELIVERY, SHIPPED")
-    void execute_callsPortWithCorrectStatuses() {
+    @DisplayName("Passes caller-supplied statuses and pagination params to the port")
+    void execute_passesStatusesAndPageParams() {
         var port = new CapturingLoadCourierOrdersPort();
         var svc  = new GetCourierOrdersService(port);
 
-        svc.execute(99L);
+        svc.execute(99L, List.of(OrderStatus.SHIPPED), 1, 10);
 
-        assertTrue(port.capturedStatuses.contains(OrderStatus.DELIVERY_ATTEMPTED));
-        assertTrue(port.capturedStatuses.contains(OrderStatus.OUT_FOR_DELIVERY));
+        assertEquals(List.of(OrderStatus.SHIPPED), port.capturedStatuses);
+        assertEquals(1,  port.capturedPage);
+        assertEquals(10, port.capturedSize);
+    }
+
+    @Test
+    @DisplayName("Multiple statuses forwarded correctly")
+    void execute_multipleStatuses() {
+        var port = new CapturingLoadCourierOrdersPort();
+        var svc  = new GetCourierOrdersService(port);
+
+        var statuses = List.of(
+                OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERY_ATTEMPTED);
+        svc.execute(99L, statuses, 1, 20);
+
         assertTrue(port.capturedStatuses.contains(OrderStatus.SHIPPED));
+        assertTrue(port.capturedStatuses.contains(OrderStatus.OUT_FOR_DELIVERY));
+        assertTrue(port.capturedStatuses.contains(OrderStatus.DELIVERY_ATTEMPTED));
     }
 
     @Test
-    @DisplayName("Sort order: DELIVERY_ATTEMPTED first, then OUT_FOR_DELIVERY, then SHIPPED; ties by createdAt asc")
-    void execute_sortOrderCorrect() {
-        var port = new CapturingLoadCourierOrdersPort();
-        Instant t1 = Instant.parse("2026-01-01T00:00:00Z");
-        Instant t2 = Instant.parse("2026-01-02T00:00:00Z");
-        Instant t3 = Instant.parse("2026-01-03T00:00:00Z");
-
-        port.result = List.of(
-                order(3L, OrderStatus.SHIPPED, t1),
-                order(1L, OrderStatus.DELIVERY_ATTEMPTED, t2),
-                order(2L, OrderStatus.OUT_FOR_DELIVERY, t3)
-        );
-        var svc = new GetCourierOrdersService(port);
-
-        List<Order> result = svc.execute(99L);
-
-        assertEquals(3, result.size());
-        assertEquals(OrderStatus.DELIVERY_ATTEMPTED, result.get(0).status());
-        assertEquals(OrderStatus.OUT_FOR_DELIVERY,   result.get(1).status());
-        assertEquals(OrderStatus.SHIPPED,            result.get(2).status());
-    }
-
-    @Test
-    @DisplayName("Same status sorted by createdAt ascending")
-    void execute_sameStatusSortedByCreatedAt() {
-        var port = new CapturingLoadCourierOrdersPort();
-        Instant early = Instant.parse("2026-01-01T00:00:00Z");
-        Instant late  = Instant.parse("2026-01-05T00:00:00Z");
-
-        port.result = List.of(
-                order(2L, OrderStatus.SHIPPED, late),
-                order(1L, OrderStatus.SHIPPED, early)
-        );
-        var svc = new GetCourierOrdersService(port);
-
-        List<Order> result = svc.execute(99L);
-
-        assertEquals(1L, result.get(0).id());
-        assertEquals(2L, result.get(1).id());
-    }
-
-    @Test
-    @DisplayName("Empty order list returns empty list")
-    void execute_empty() {
+    @DisplayName("Page 2 with size 5 forwarded to port correctly")
+    void execute_page2Size5() {
         var port = new CapturingLoadCourierOrdersPort();
         var svc  = new GetCourierOrdersService(port);
 
-        List<Order> result = svc.execute(99L);
+        svc.execute(99L, List.of(OrderStatus.OUT_FOR_DELIVERY), 2, 5);
 
-        assertTrue(result.isEmpty());
+        assertEquals(2, port.capturedPage);
+        assertEquals(5, port.capturedSize);
+    }
+
+    @Test
+    @DisplayName("Service returns PageResult from port unchanged")
+    void execute_returnsPortResultUnchanged() {
+        var port = new CapturingLoadCourierOrdersPort();
+        var o1 = order(1L, OrderStatus.SHIPPED);
+        port.result = new PageResult<>(List.of(o1), 3, 2, 2, true);
+        var svc = new GetCourierOrdersService(port);
+
+        var result = svc.execute(99L, List.of(OrderStatus.SHIPPED), 2, 2);
+
+        assertEquals(1,  result.content().size());
+        assertEquals(3L, result.totalElements());
+        assertEquals(2,  result.number());
+        assertEquals(2,  result.size());
+        assertTrue(result.last());
+    }
+
+    @Test
+    @DisplayName("Empty result from port → empty PageResult returned")
+    void execute_emptyResult() {
+        var port = new CapturingLoadCourierOrdersPort();
+        var svc  = new GetCourierOrdersService(port);
+
+        var result = svc.execute(99L, List.of(OrderStatus.SHIPPED), 1, 20);
+
+        assertTrue(result.content().isEmpty());
+        assertEquals(0, result.totalElements());
     }
 }

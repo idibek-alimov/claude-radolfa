@@ -142,6 +142,20 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     }
 
     @Override
+    public PageResult<Order> loadByCourierIdAndStatusesPaged(Long courierId,
+                                                              List<OrderStatus> statuses,
+                                                              int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").ascending());
+        var pg = repository.findByCourierIdAndStatusIn(courierId, statuses, pageable);
+        return new PageResult<>(
+                pg.getContent().stream().map(mapper::toOrder).toList(),
+                pg.getTotalElements(),
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pg.isLast());
+    }
+
+    @Override
     public List<Order> loadByPickpointIdAndStatuses(Long pickpointId, Collection<OrderStatus> statuses) {
         return repository.findByPickpointIdAndStatusInOrderByCreatedAtAsc(pickpointId, statuses)
                 .stream().map(mapper::toOrder).toList();
