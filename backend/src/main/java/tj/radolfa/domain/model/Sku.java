@@ -31,6 +31,10 @@ public class Sku {
     private Integer    widthCm;
     private Integer    heightCm;
 
+    // Warehouse location (Phase 5) — nullable, assigned by admin
+    private Long binId;
+
+    /** Full constructor including warehouse bin assignment. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
@@ -41,7 +45,8 @@ public class Sku {
                BigDecimal weightKg,
                Integer lengthCm,
                Integer widthCm,
-               Integer heightCm) {
+               Integer heightCm,
+               Long binId) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
         this.skuCode          = skuCode;
@@ -53,6 +58,23 @@ public class Sku {
         this.lengthCm         = lengthCm;
         this.widthCm          = widthCm;
         this.heightCm         = heightCm;
+        this.binId            = binId;
+    }
+
+    /** Constructor without bin — preserves pre-Phase-5 callers. */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price,
+               String barcode,
+               BigDecimal weightKg,
+               Integer lengthCm,
+               Integer widthCm,
+               Integer heightCm) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, barcode,
+             weightKg, lengthCm, widthCm, heightCm, null);
     }
 
     /** Constructor without logistics fields — preserves backward compatibility. */
@@ -104,6 +126,11 @@ public class Sku {
         this.heightCm = heightCm;
     }
 
+    /** MANAGER/ADMIN write path for warehouse bin. Null clears the assignment. */
+    public void assignToBin(Long binId) {
+        this.binId = binId;
+    }
+
     // ---- Getters ----
     public Long       getId()               { return id; }
     public Long       getListingVariantId() { return listingVariantId; }
@@ -116,4 +143,5 @@ public class Sku {
     public Integer    getLengthCm()         { return lengthCm; }
     public Integer    getWidthCm()          { return widthCm; }
     public Integer    getHeightCm()         { return heightCm; }
+    public Long       getBinId()            { return binId; }
 }

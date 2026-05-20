@@ -106,6 +106,7 @@ public interface ProductHierarchyMapper {
 
     @Mapping(target = "listingVariant", ignore = true)
     @Mapping(target = "originalPrice", source = "price", qualifiedByName = "moneyToBigDecimal")
+    @Mapping(target = "bin", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -124,7 +125,8 @@ public interface ProductHierarchyMapper {
                 entity.getWeightKg(),
                 entity.getLengthCm(),
                 entity.getWidthCm(),
-                entity.getHeightCm()
+                entity.getHeightCm(),
+                entity.getBin() != null ? entity.getBin().getId() : null
         );
     }
 

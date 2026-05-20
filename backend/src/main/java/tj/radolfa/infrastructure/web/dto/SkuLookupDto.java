@@ -11,7 +11,7 @@ public record SkuLookupDto(
         int    stockQuantity,
         String binLocation
 ) {
-    public static SkuLookupDto from(Sku sku, String productName) {
+    public static SkuLookupDto from(Sku sku, String productName, String binLocation) {
         return new SkuLookupDto(
                 sku.getId(),
                 sku.getSkuCode(),
@@ -19,6 +19,6 @@ public record SkuLookupDto(
                 productName,
                 sku.getSizeLabel(),
                 sku.getStockQuantity() != null ? sku.getStockQuantity() : 0,
-                null);
+                binLocation);
     }
 }

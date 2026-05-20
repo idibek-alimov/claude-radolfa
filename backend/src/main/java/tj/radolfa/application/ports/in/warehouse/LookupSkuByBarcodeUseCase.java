@@ -4,7 +4,7 @@ import tj.radolfa.domain.model.Sku;
 
 public interface LookupSkuByBarcodeUseCase {
 
-    record Result(Sku sku, String productName) {}
+    record Result(Sku sku, String productName, String binLocation) {}
 
     Result execute(String barcode);
 }
