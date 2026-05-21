@@ -497,7 +497,22 @@
       "RECALL_REQUESTED":    "Recall Requested"
     },
     "returnInProgressBanner": "Your return is being processed. We will notify you once it reaches the warehouse.",
-    "recallRequestedBanner": "This order has been recalled by the store. Our courier will collect it from the pickup point."
+    "recallRequestedBanner": "This order has been recalled by the store. Our courier will collect it from the pickup point.",
+    "returnsTab": "Returns",
+    "myReturns": "My Returns",
+    "noReturns": "You have no return requests.",
+    "returnLabel": "Return",
+    "forOrder": "for order",
+    "refundAmount": "Refund",
+    "viewOrder": "View Order",
+    "showing": "Showing",
+    "of": "of",
+    "returnStatus": {
+      "received": "Received",
+      "sentToWarehouse": "Sent to Warehouse",
+      "refundApproved": "Refund Approved",
+      "refunded": "Refunded"
+    }
   },
   "pickupCode": {
     "scanCaption": "Show this code or let staff scan the QR at the counter.",

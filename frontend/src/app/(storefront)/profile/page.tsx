@@ -8,6 +8,7 @@ import { useAuth } from "@/features/auth";
 import { getMyOrders, updateProfile } from "@/features/profile/api";
 import { OrderHistoryCard } from "@/features/profile/ui/OrderHistoryCard";
 import { ReviewProgressCard } from "@/features/profile/ui/ReviewProgressCard";
+import { CustomerReturnsListPage } from "@/features/profile/ui/CustomerReturnsListPage";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -21,6 +22,7 @@ import {
   Check,
   Package,
   Pencil,
+  RotateCcw,
   X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -259,6 +261,10 @@ export default function ProfilePage() {
                 <Star className="h-4 w-4" />
                 {t("tabLoyalty")}
               </TabsTrigger>
+              <TabsTrigger value="returns" className="gap-1.5">
+                <RotateCcw className="h-4 w-4" />
+                {t("returnsTab")}
+              </TabsTrigger>
             </TabsList>
 
             {/* Account Tab — inline editing */}
@@ -323,6 +329,11 @@ export default function ProfilePage() {
             {/* Loyalty Tab */}
             <TabsContent value="loyalty">
               {loyalty && <LoyaltyDashboard loyalty={loyalty} />}
+            </TabsContent>
+
+            {/* Returns Tab */}
+            <TabsContent value="returns">
+              <CustomerReturnsListPage />
             </TabsContent>
           </Tabs>
         </div>

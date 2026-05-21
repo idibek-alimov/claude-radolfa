@@ -1,5 +1,6 @@
 import type { User } from "@/entities/user";
 import type { OrderStatus } from "@/entities/order/model/types";
+import type { CustomerReturnStatus } from "@/entities/pickpoint";
 
 export type { User, OrderStatus };
 
@@ -36,4 +37,22 @@ export interface Order {
 export interface UpdateProfileRequest {
     name: string;
     email: string;
+}
+
+export interface MyReturnItem {
+  productName: string;
+  quantity: number;
+  refundAmount: number;
+  reason: string;
+}
+
+export interface MyReturn {
+  returnId: number;
+  orderId: number;
+  status: CustomerReturnStatus;
+  receivedAt: string;
+  sentToWarehouseAt: string | null;
+  refundedAt: string | null;
+  totalRefundAmount: number | null;
+  items: MyReturnItem[];
 }
