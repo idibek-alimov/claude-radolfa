@@ -353,7 +353,11 @@ export function OrderHistoryCard({ order }: { order: Order }) {
             {order.status === "READY_FOR_PICKUP" ? "Pickup Code" : "Delivery Code"}
           </p>
           {order.status === "READY_FOR_PICKUP" && order.deliveryType === "PICKPOINT" ? (
-            <PickupCodeDisplay code={codeData.code} />
+            <PickupCodeDisplay
+              code={codeData.code}
+              pickpointName={order.pickpointName}
+              pickpointAddress={order.pickpointAddress}
+            />
           ) : (
             <div className="flex items-center gap-3">
               <span className="font-mono text-2xl tracking-[0.5em] text-foreground select-all">

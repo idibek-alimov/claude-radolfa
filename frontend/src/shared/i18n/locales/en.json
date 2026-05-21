@@ -499,6 +499,10 @@
     "returnInProgressBanner": "Your return is being processed. We will notify you once it reaches the warehouse.",
     "recallRequestedBanner": "This order has been recalled by the store. Our courier will collect it from the pickup point."
   },
+  "pickupCode": {
+    "scanCaption": "Show this code or let staff scan the QR at the counter.",
+    "pickupLocation": "Pickup location"
+  },
   "cart": {
     "title": "Your Cart",
     "cartHeading": "Shopping Cart",

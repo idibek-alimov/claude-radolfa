@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 
 interface Props {
   code: string;
+  pickpointName?: string | null;
+  pickpointAddress?: string | null;
 }
 
-export function PickupCodeDisplay({ code }: Props) {
+export function PickupCodeDisplay({ code, pickpointName, pickpointAddress }: Props) {
   const [revealed, setRevealed] = useState(false);
+  const t = useTranslations("pickupCode");
 
   return (
     <div className="space-y-3">
@@ -38,8 +42,18 @@ export function PickupCodeDisplay({ code }: Props) {
             <QRCodeSVG value={code} size={180} level="M" />
           </div>
           <p className="text-xs text-muted-foreground text-center">
-            Show this code or let staff scan the QR at the counter.
+            {t("scanCaption")}
           </p>
+          {(pickpointName || pickpointAddress) && (
+            <div className="mt-3 rounded-lg border bg-muted/50 px-3 py-2 text-left">
+              {pickpointName && (
+                <p className="text-sm font-medium">{pickpointName}</p>
+              )}
+              {pickpointAddress && (
+                <p className="text-xs text-muted-foreground">{pickpointAddress}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

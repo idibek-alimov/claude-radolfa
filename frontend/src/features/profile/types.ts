@@ -28,6 +28,9 @@ export interface Order {
     courierName: string | null;
     trackingNumber: string | null;
     estimatedDeliveryDate: string | null;
+    pickpointName: string | null;
+    pickpointAddress: string | null;
+    deliveryAddress: string | null;
 }
 
 export interface UpdateProfileRequest {
