@@ -150,6 +150,7 @@ CREATE TABLE skus (
 
 CREATE INDEX idx_skus_variant_id ON skus (listing_variant_id);
 CREATE INDEX idx_skus_sku_code   ON skus (sku_code);
+CREATE INDEX idx_skus_bin_id     ON skus (bin_id);
 
 -- ----------------------------------------------------------------
 -- Product tags  (replaces hard-coded top_selling / featured flags)

@@ -32,12 +32,5 @@ CREATE TABLE warehouse_bins (
     UNIQUE (shelf_id, code)
 );
 
--- Prod: adds bin_id to the existing skus table with the FK now that warehouse_bins exists.
--- Dev fresh install: bin_id was already added in V2 (no FK, since warehouse_bins didn't
--- exist at V2 time) — IF NOT EXISTS makes this a no-op so the migration still passes.
-ALTER TABLE skus
-    ADD COLUMN IF NOT EXISTS bin_id BIGINT REFERENCES warehouse_bins(id) ON DELETE SET NULL;
-
-CREATE INDEX idx_skus_bin_id      ON skus(bin_id);
 CREATE INDEX idx_shelves_zone_id  ON warehouse_shelves(zone_id);
 CREATE INDEX idx_bins_shelf_id    ON warehouse_bins(shelf_id);
