@@ -38,11 +38,16 @@ public record AdminOrderDetailDto(
         int deliveryAttemptCount,
         String deliveryAttemptReason,
         String deliveryPhotoUrl,
+        Instant readyForPickupAt,
+        String pickpointConfirmedByUserName,
+        boolean pickpointOverdue,
         List<CustomerReturnSummary> customerReturns) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
                                            List<AdminOrderItemDto> enrichedItems,
-                                           List<CustomerReturnSummary> customerReturns) {
+                                           List<CustomerReturnSummary> customerReturns,
+                                           String pickpointConfirmedByUserName,
+                                           boolean pickpointOverdue) {
         Order order = result.order();
         Pickpoint pp = result.pickpoint().orElse(null);
 
@@ -75,6 +80,9 @@ public record AdminOrderDetailDto(
                 order.deliveryAttemptCount(),
                 order.deliveryAttemptReason() != null ? order.deliveryAttemptReason().name() : null,
                 order.deliveryPhotoUrl(),
+                order.readyForPickupAt(),
+                pickpointConfirmedByUserName,
+                pickpointOverdue,
                 customerReturns
         );
     }

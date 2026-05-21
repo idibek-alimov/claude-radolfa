@@ -337,7 +337,20 @@
         "loyaltyPoints": "Баллҳои бонус",
         "redeemed": "Истифодашуда",
         "awarded": "Илова шуд",
-        "ptsShort": "балл"
+        "ptsShort": "балл",
+        "customerReturns": "Баргардониҳо",
+        "returnLabel": "Баргардонӣ",
+        "items": "мол",
+        "arrivedAt": "Ба нуқтаи таҳвил расид",
+        "confirmedBy": "Тасдиқ кард",
+        "pickupAddress": "Суроғаи нуқтаи таҳвил",
+        "pickpointOverdue": "Мӯҳлат гузашт",
+        "returnStatus": {
+          "RECEIVED": "Қабул шуд",
+          "SENT_TO_WAREHOUSE": "Ба анбор фиристода шуд",
+          "REFUND_APPROVED": "Баргардонидан тасдиқ шуд",
+          "REFUNDED": "Маблағ баргардонида шуд"
+        }
       },
       "shipModal": {
         "cancel": "Бекор кардан",

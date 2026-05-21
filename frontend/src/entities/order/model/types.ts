@@ -87,6 +87,9 @@ export interface AdminOrderDetail {
   deliveryAttemptCount: number;
   deliveryAttemptReason: string | null;
   deliveryPhotoUrl: string | null;
+  readyForPickupAt: string | null;
+  pickpointConfirmedByUserName: string | null;
+  pickpointOverdue: boolean;
 }
 
 export interface RecentOrder {

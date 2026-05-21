@@ -337,7 +337,20 @@
         "loyaltyPoints": "Бонусные баллы",
         "redeemed": "Списано",
         "awarded": "Начислено",
-        "ptsShort": "балл."
+        "ptsShort": "балл.",
+        "customerReturns": "Возвраты",
+        "returnLabel": "Возврат",
+        "items": "товаров",
+        "arrivedAt": "Поступило в пункт выдачи",
+        "confirmedBy": "Подтвердил",
+        "pickupAddress": "Адрес пункта выдачи",
+        "pickpointOverdue": "Просрочено",
+        "returnStatus": {
+          "RECEIVED": "Принят",
+          "SENT_TO_WAREHOUSE": "Отправлен на склад",
+          "REFUND_APPROVED": "Возврат одобрен",
+          "REFUNDED": "Средства возвращены"
+        }
       },
       "shipModal": {
         "cancel": "Отмена",

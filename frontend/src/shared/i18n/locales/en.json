@@ -337,7 +337,20 @@
         "loyaltyPoints": "Loyalty Points",
         "redeemed": "Redeemed",
         "awarded": "Awarded",
-        "ptsShort": "pts"
+        "ptsShort": "pts",
+        "customerReturns": "Customer Returns",
+        "returnLabel": "Return",
+        "items": "items",
+        "arrivedAt": "Arrived at Pickup Point",
+        "confirmedBy": "Confirmed by",
+        "pickupAddress": "Pickup Address",
+        "pickpointOverdue": "Overdue",
+        "returnStatus": {
+          "RECEIVED": "Received",
+          "SENT_TO_WAREHOUSE": "Sent to Warehouse",
+          "REFUND_APPROVED": "Refund Approved",
+          "REFUNDED": "Refunded"
+        }
       },
       "shipModal": {
         "cancel": "Cancel",

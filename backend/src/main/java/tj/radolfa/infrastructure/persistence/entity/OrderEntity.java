@@ -135,6 +135,9 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "recall_confirmed_by_user_id")
     private Long recallConfirmedByUserId;
 
+    @Column(name = "pickpoint_confirmed_by_user_id")
+    private Long pickpointConfirmedByUserId;
+
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant deletedAt;

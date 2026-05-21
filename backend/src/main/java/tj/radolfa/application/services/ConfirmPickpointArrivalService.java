@@ -61,6 +61,7 @@ public class ConfirmPickpointArrivalService implements ConfirmPickpointArrivalUs
         Order updated = order.toBuilder()
                 .status(OrderStatus.READY_FOR_PICKUP)
                 .readyForPickupAt(Instant.now())
+                .pickpointConfirmedByUserId(staffUserId)
                 .build();
         saveOrderPort.save(updated);
 

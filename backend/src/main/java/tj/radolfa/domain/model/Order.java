@@ -39,7 +39,8 @@ public record Order(
         Long recallRequestedByUserId,
         String recallReason,
         Instant recallConfirmedAt,
-        Long recallConfirmedByUserId) {
+        Long recallConfirmedByUserId,
+        Long pickpointConfirmedByUserId) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);
@@ -65,7 +66,8 @@ public record Order(
                 .recallRequestedByUserId(recallRequestedByUserId)
                 .recallReason(recallReason)
                 .recallConfirmedAt(recallConfirmedAt)
-                .recallConfirmedByUserId(recallConfirmedByUserId);
+                .recallConfirmedByUserId(recallConfirmedByUserId)
+                .pickpointConfirmedByUserId(pickpointConfirmedByUserId);
     }
 
     public static final class Builder {
@@ -103,6 +105,7 @@ public record Order(
         private String  recallReason;
         private Instant recallConfirmedAt;
         private Long    recallConfirmedByUserId;
+        private Long    pickpointConfirmedByUserId;
 
         public Builder id(Long v)                              { this.id = v; return this; }
         public Builder userId(Long v)                          { this.userId = v; return this; }
@@ -136,8 +139,9 @@ public record Order(
         public Builder recallRequestedAt(Instant v)           { this.recallRequestedAt = v; return this; }
         public Builder recallRequestedByUserId(Long v)        { this.recallRequestedByUserId = v; return this; }
         public Builder recallReason(String v)                 { this.recallReason = v; return this; }
-        public Builder recallConfirmedAt(Instant v)           { this.recallConfirmedAt = v; return this; }
-        public Builder recallConfirmedByUserId(Long v)        { this.recallConfirmedByUserId = v; return this; }
+        public Builder recallConfirmedAt(Instant v)            { this.recallConfirmedAt = v; return this; }
+        public Builder recallConfirmedByUserId(Long v)         { this.recallConfirmedByUserId = v; return this; }
+        public Builder pickpointConfirmedByUserId(Long v)      { this.pickpointConfirmedByUserId = v; return this; }
 
         public Order build() {
             return new Order(id, userId, externalOrderId, status, totalAmount, items, createdAt,
@@ -149,7 +153,8 @@ public record Order(
                     deliveryAttemptReason, deliveryPhotoUrl, readyForPickupAt,
                     returnInitiatedAt, returnInitiatedByUserId, returnedToWarehouseAt,
                     recallRequestedAt, recallRequestedByUserId, recallReason,
-                    recallConfirmedAt, recallConfirmedByUserId);
+                    recallConfirmedAt, recallConfirmedByUserId,
+                    pickpointConfirmedByUserId);
         }
     }
 }

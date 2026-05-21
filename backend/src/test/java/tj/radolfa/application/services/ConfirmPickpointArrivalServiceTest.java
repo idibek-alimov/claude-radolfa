@@ -110,6 +110,7 @@ class ConfirmPickpointArrivalServiceTest {
 
         assertEquals(OrderStatus.READY_FOR_PICKUP, saveOrder.last().status());
         assertNotNull(saveOrder.last().readyForPickupAt());
+        assertEquals(99L, saveOrder.last().pickpointConfirmedByUserId());
         assertEquals(1, genCode.calledForOrders.size());
         assertEquals(1, events.pickpointEvents.size());
         assertEquals(PICKPOINT_ID, events.pickpointEvents.get(0)[0]);

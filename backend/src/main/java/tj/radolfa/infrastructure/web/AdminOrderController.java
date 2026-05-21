@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.ApproveRefundUseCase;
+import tj.radolfa.application.ports.in.order.GetCustomerReturnsForOrderUseCase;
 import tj.radolfa.application.ports.in.order.RequestOrderRecallUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
@@ -48,6 +49,10 @@ import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
 import tj.radolfa.infrastructure.web.dto.RefundOrderRequest;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,8 +79,12 @@ public class AdminOrderController {
     private final LoadSkuPort                    loadSkuPort;
     private final LoadReviewPort                 loadReviewPort;
     private final LoadPickpointPort              loadPickpointPort;
-    private final ApproveRefundUseCase           approveRefundUseCase;
-    private final RequestOrderRecallUseCase      requestOrderRecallUseCase;
+    private final ApproveRefundUseCase                approveRefundUseCase;
+    private final RequestOrderRecallUseCase           requestOrderRecallUseCase;
+    private final GetCustomerReturnsForOrderUseCase   getCustomerReturnsForOrderUseCase;
+
+    @Value("${radolfa.delivery.pickpoint-storage-days:7}")
+    private int pickpointStorageDays;
 
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
@@ -93,7 +102,8 @@ public class AdminOrderController {
                                 LoadReviewPort loadReviewPort,
                                 LoadPickpointPort loadPickpointPort,
                                 ApproveRefundUseCase approveRefundUseCase,
-                                RequestOrderRecallUseCase requestOrderRecallUseCase) {
+                                RequestOrderRecallUseCase requestOrderRecallUseCase,
+                                GetCustomerReturnsForOrderUseCase getCustomerReturnsForOrderUseCase) {
         this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
@@ -109,8 +119,9 @@ public class AdminOrderController {
         this.loadSkuPort                    = loadSkuPort;
         this.loadReviewPort                 = loadReviewPort;
         this.loadPickpointPort              = loadPickpointPort;
-        this.approveRefundUseCase           = approveRefundUseCase;
-        this.requestOrderRecallUseCase      = requestOrderRecallUseCase;
+        this.approveRefundUseCase                  = approveRefundUseCase;
+        this.requestOrderRecallUseCase             = requestOrderRecallUseCase;
+        this.getCustomerReturnsForOrderUseCase     = getCustomerReturnsForOrderUseCase;
     }
 
     record RecallOrderRequest(@jakarta.validation.constraints.NotBlank String reason) {}
@@ -166,9 +177,42 @@ public class AdminOrderController {
     @Operation(summary = "Get full order detail including delivery info and items (ADMIN only)")
     public ResponseEntity<AdminOrderDetailDto> getOrder(@PathVariable Long id) {
         GetAdminOrderDetailUseCase.Result result = getAdminOrderDetailUseCase.execute(id);
-        List<AdminOrderItemDto> items = enrichItems(result.order());
-        List<CustomerReturnSummary> returnSummaries = buildReturnSummaries(id, result.order());
-        return ResponseEntity.ok(AdminOrderDetailDto.from(result, items, returnSummaries));
+        Order order = result.order();
+        List<AdminOrderItemDto> items = enrichItems(order);
+        List<CustomerReturnSummary> returnSummaries = buildReturnSummaries(id, order);
+
+        String pickpointConfirmedByUserName = order.pickpointConfirmedByUserId() != null
+                ? loadUserPort.loadById(order.pickpointConfirmedByUserId())
+                              .map(User::name).orElse(null)
+                : null;
+
+        boolean pickpointOverdue = order.status() == OrderStatus.READY_FOR_PICKUP
+                && order.readyForPickupAt() != null
+                && order.readyForPickupAt().plus(pickpointStorageDays, ChronoUnit.DAYS)
+                        .isBefore(Instant.now());
+
+        return ResponseEntity.ok(AdminOrderDetailDto.from(
+                result, items, returnSummaries, pickpointConfirmedByUserName, pickpointOverdue));
+    }
+
+    @GetMapping("/{id}/customer-returns")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Customer returns associated with a specific order (MANAGER + ADMIN)")
+    public ResponseEntity<List<CustomerReturnDto>> getCustomerReturnsForOrder(@PathVariable Long id) {
+        List<CustomerReturn> returns = getCustomerReturnsForOrderUseCase.execute(id);
+        if (returns.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        Order order = loadOrderPort.loadById(id).orElseThrow();
+        User customer = loadUserPort.loadById(order.userId()).orElse(null);
+
+        List<CustomerReturnDto> dtos = returns.stream().map(r -> {
+            Pickpoint pickpoint = r.getPickpointId() != null
+                    ? loadPickpointPort.findById(r.getPickpointId()).orElse(null) : null;
+            return CustomerReturnDto.from(r, order, customer, pickpoint);
+        }).toList();
+
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping("/{id}/refund")

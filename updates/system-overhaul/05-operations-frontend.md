@@ -7,7 +7,7 @@
 | Phase | Description | Status |
 |---|---|---|
 | 1 | Admin Order Tabs + Bypass Fix | ✅ Complete |
-| 2 | Admin Order Detail Enhancements | 🔍 Pending |
+| 2 | Admin Order Detail Enhancements | ✅ Complete |
 | 3 | Pickpoint Staff Dashboard Improvements | 🔍 Pending |
 | 4 | Courier Dashboard Server-Side Wiring | 🔍 Pending |
 

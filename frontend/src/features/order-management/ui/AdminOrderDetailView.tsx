@@ -17,10 +17,12 @@ import {
 } from "@/shared/ui/breadcrumb";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage, formatDate, formatPrice } from "@/shared/lib";
 import { useAuth } from "@/features/auth";
 import type { AdminOrderDetail, OrderStatus } from "@/entities/order";
 import { useRegenerateDeliveryCode } from "@/features/fleet/api";
+import { useAdminCustomerReturnsForOrder } from "../api";
+import { SectionCard } from "@/shared/ui/section-card";
 import { FulfillmentTimeline } from "./FulfillmentTimeline";
 import { OrderItemsStockTable } from "./OrderItemsStockTable";
 import { ShipOrderModal } from "./ShipOrderModal";
@@ -53,15 +55,13 @@ function nextStatusFor(order: AdminOrderDetail): OrderStatus | null {
   }
 }
 
-// ── Section card ────────────────────────────────────────────────────────────
+// ── Info row ────────────────────────────────────────────────────────────────
 
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border bg-card p-5 space-y-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        {title}
-      </p>
-      {children}
+    <div className="flex justify-between gap-3 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-right">{value}</span>
     </div>
   );
 }
@@ -78,6 +78,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const isAdmin = user?.role === "ADMIN";
 
   const { data: order, isLoading } = useAdminOrder(orderId);
+  const { data: customerReturns = [] } = useAdminCustomerReturnsForOrder(orderId);
   const updateStatus = useUpdateOrderStatus();
   const regenerateCode = useRegenerateDeliveryCode();
 
@@ -245,6 +246,30 @@ export function AdminOrderDetailView({ orderId }: Props) {
         <div className="space-y-4">
           <OrderItemsStockTable items={order.items} />
 
+          {/* Customer Returns */}
+          {customerReturns.length > 0 && (
+            <SectionCard title={t("detail.customerReturns")}>
+              <div className="space-y-3">
+                {customerReturns.map((ret) => (
+                  <div key={ret.id} className="flex items-center justify-between text-sm">
+                    <div className="space-y-0.5">
+                      <p className="font-medium">{t("detail.returnLabel")} #{ret.id}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {ret.items.length} {t("detail.items")} ·{" "}
+                        {t(`detail.returnStatus.${ret.status}` as Parameters<typeof t>[0])}
+                      </p>
+                    </div>
+                    {ret.totalRefundAmount != null && (
+                      <span className="text-sm font-medium text-green-700">
+                        {formatPrice(ret.totalRefundAmount)}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
           {/* Financials */}
           <div className="rounded-xl border bg-card p-5 space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
@@ -296,10 +321,21 @@ export function AdminOrderDetailView({ orderId }: Props) {
             ) : order.deliveryType === "PICKPOINT" ? (
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                <div className="space-y-0.5 text-sm">
+                <div className="space-y-1 text-sm flex-1">
                   <p className="font-medium">{order.pickpointName ?? t("detail.pickupPoint")}</p>
                   {order.pickpointAddress && (
                     <p className="text-xs text-muted-foreground">{order.pickpointAddress}</p>
+                  )}
+                  {order.readyForPickupAt && (
+                    <InfoRow label={t("detail.arrivedAt")} value={formatDate(order.readyForPickupAt)} />
+                  )}
+                  {order.pickpointConfirmedByUserName && (
+                    <InfoRow label={t("detail.confirmedBy")} value={order.pickpointConfirmedByUserName} />
+                  )}
+                  {order.pickpointOverdue && (
+                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">
+                      {t("detail.pickpointOverdue")}
+                    </span>
                   )}
                 </div>
               </div>
