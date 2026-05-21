@@ -11,9 +11,11 @@ import tj.radolfa.domain.model.PageResult;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ListAdminOrdersServiceTest {
 
@@ -35,13 +37,13 @@ class ListAdminOrdersServiceTest {
     @DisplayName("Unknown sortBy falls back to createdAt")
     void unknownSortBy_fallsBackToCreatedAt() {
         String[] capturedSortBy = new String[1];
-        LoadAdminOrdersPort spy = (search, statusFilter, sortBy, sortDir, page, size) -> {
+        LoadAdminOrdersPort spy = (search, statuses, sortBy, sortDir, page, size) -> {
             capturedSortBy[0] = sortBy;
             return new PageResult<>(List.of(), 0, page, size, true);
         };
 
         ListAdminOrdersService service = new ListAdminOrdersService(spy);
-        service.execute("", null, "DROP TABLE", "DESC", 1, 20);
+        service.execute("", List.of(), "DROP TABLE", "DESC", 1, 20);
 
         assertEquals("createdAt", capturedSortBy[0]);
     }
@@ -50,13 +52,13 @@ class ListAdminOrdersServiceTest {
     @DisplayName("Valid sortBy (totalAmount) is forwarded as-is")
     void validSortBy_forwarded() {
         String[] capturedSortBy = new String[1];
-        LoadAdminOrdersPort spy = (search, statusFilter, sortBy, sortDir, page, size) -> {
+        LoadAdminOrdersPort spy = (search, statuses, sortBy, sortDir, page, size) -> {
             capturedSortBy[0] = sortBy;
             return new PageResult<>(List.of(), 0, page, size, true);
         };
 
         ListAdminOrdersService service = new ListAdminOrdersService(spy);
-        service.execute("", null, "totalAmount", "ASC", 1, 20);
+        service.execute("", List.of(), "totalAmount", "ASC", 1, 20);
 
         assertEquals("totalAmount", capturedSortBy[0]);
     }
@@ -65,13 +67,13 @@ class ListAdminOrdersServiceTest {
     @DisplayName("sortDir defaults to DESC when unknown value is passed")
     void unknownSortDir_defaultsToDesc() {
         String[] capturedDir = new String[1];
-        LoadAdminOrdersPort spy = (search, statusFilter, sortBy, sortDir, page, size) -> {
+        LoadAdminOrdersPort spy = (search, statuses, sortBy, sortDir, page, size) -> {
             capturedDir[0] = sortDir;
             return new PageResult<>(List.of(), 0, page, size, true);
         };
 
         ListAdminOrdersService service = new ListAdminOrdersService(spy);
-        service.execute("", null, "createdAt", "RANDOM", 1, 20);
+        service.execute("", List.of(), "createdAt", "RANDOM", 1, 20);
 
         assertEquals("DESC", capturedDir[0]);
     }
@@ -82,15 +84,51 @@ class ListAdminOrdersServiceTest {
     @DisplayName("Size cap enforced at 100")
     void sizeCap_enforcedAt100() {
         int[] capturedSize = new int[1];
-        LoadAdminOrdersPort spy = (search, statusFilter, sortBy, sortDir, page, size) -> {
+        LoadAdminOrdersPort spy = (search, statuses, sortBy, sortDir, page, size) -> {
             capturedSize[0] = size;
             return new PageResult<>(List.of(), 0, page, size, true);
         };
 
         ListAdminOrdersService service = new ListAdminOrdersService(spy);
-        service.execute("", null, "createdAt", "DESC", 1, 9999);
+        service.execute("", List.of(), "createdAt", "DESC", 1, 9999);
 
         assertEquals(100, capturedSize[0]);
+    }
+
+    // ── Statuses filter ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("Statuses list is forwarded to port as-is")
+    void statusesList_forwardedToPort() {
+        @SuppressWarnings("unchecked")
+        Collection<OrderStatus>[] capturedStatuses = new Collection[1];
+        LoadAdminOrdersPort spy = (search, statuses, sortBy, sortDir, page, size) -> {
+            capturedStatuses[0] = statuses;
+            return new PageResult<>(List.of(), 0, page, size, true);
+        };
+
+        ListAdminOrdersService service = new ListAdminOrdersService(spy);
+        service.execute("", List.of(OrderStatus.PENDING, OrderStatus.PAID), "createdAt", "DESC", 1, 20);
+
+        assertEquals(2, capturedStatuses[0].size());
+        assertTrue(capturedStatuses[0].contains(OrderStatus.PENDING));
+        assertTrue(capturedStatuses[0].contains(OrderStatus.PAID));
+    }
+
+    @Test
+    @DisplayName("Null statuses are forwarded as empty list")
+    void nullStatuses_forwardedAsEmptyList() {
+        @SuppressWarnings("unchecked")
+        Collection<OrderStatus>[] capturedStatuses = new Collection[1];
+        LoadAdminOrdersPort spy = (search, statuses, sortBy, sortDir, page, size) -> {
+            capturedStatuses[0] = statuses;
+            return new PageResult<>(List.of(), 0, page, size, true);
+        };
+
+        ListAdminOrdersService service = new ListAdminOrdersService(spy);
+        service.execute("", null, "createdAt", "DESC", 1, 20);
+
+        assertTrue(capturedStatuses[0].isEmpty());
     }
 
     // ── Happy path ────────────────────────────────────────────────────────────
@@ -99,12 +137,12 @@ class ListAdminOrdersServiceTest {
     @DisplayName("Result is passed through from port unchanged")
     void resultPassedThrough() {
         List<LoadAdminOrdersPort.OrderRow> rows = List.of(row(1L), row(2L));
-        LoadAdminOrdersPort port = (search, statusFilter, sortBy, sortDir, page, size) ->
+        LoadAdminOrdersPort port = (search, statuses, sortBy, sortDir, page, size) ->
                 new PageResult<>(rows, 2, page, size, true);
 
         ListAdminOrdersService service = new ListAdminOrdersService(port);
         PageResult<LoadAdminOrdersPort.OrderRow> result =
-                service.execute("", null, "createdAt", "DESC", 1, 20);
+                service.execute("", List.of(), "createdAt", "DESC", 1, 20);
 
         assertEquals(2, result.totalElements());
         assertEquals(2, result.content().size());

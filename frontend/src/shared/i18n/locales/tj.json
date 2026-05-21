@@ -392,6 +392,10 @@
         "refunding": "Баргардонида истода…",
         "confirm": "Баргардонидан"
       },
+      "tabNeedsAction": "Амал лозим",
+      "tabInFulfillment": "Дар ҷараён",
+      "tabCompleted": "Анҷом ёфта",
+      "awaitingArrivalCallout": "Дар интизори тасдиқи расидани бастаи коркунони нуқтаи таҳвил.",
       "empty": "Фармоишҳо ёфт нашуданд.",
       "page": "Саҳ. {page}",
       "total": "{count} фармоиш"

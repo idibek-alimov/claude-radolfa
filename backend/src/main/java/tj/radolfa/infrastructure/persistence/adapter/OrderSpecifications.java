@@ -10,6 +10,7 @@ import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 class OrderSpecifications {
@@ -23,10 +24,10 @@ class OrderSpecifications {
      * because {@code user} is {@code @ManyToOne} — no collection fetch involved).
      * For the count query it falls back to a plain join.
      *
-     * @param search       matches phone (LIKE) or order id (exact). Null/blank = all.
-     * @param statusFilter null = all statuses.
+     * @param search   matches phone (LIKE) or order id (exact). Null/blank = all.
+     * @param statuses empty or null = all statuses.
      */
-    static Specification<OrderEntity> adminSearch(String search, OrderStatus statusFilter) {
+    static Specification<OrderEntity> adminSearch(String search, Collection<OrderStatus> statuses) {
         return (root, query, cb) -> {
 
             Join<OrderEntity, UserEntity> userJoin;
@@ -52,8 +53,8 @@ class OrderSpecifications {
                 }
             }
 
-            if (statusFilter != null) {
-                predicates.add(cb.equal(root.get("status"), statusFilter));
+            if (statuses != null && !statuses.isEmpty()) {
+                predicates.add(root.get("status").in(statuses));
             }
 
             return predicates.isEmpty()

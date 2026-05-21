@@ -98,7 +98,7 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     private static final Set<String> SORTABLE = Set.of("createdAt", "totalAmount", "status", "id");
 
     @Override
-    public PageResult<OrderRow> search(String search, OrderStatus statusFilter,
+    public PageResult<OrderRow> search(String search, Collection<OrderStatus> statuses,
                                        String sortBy, String sortDir,
                                        int page, int size) {
         String col = SORTABLE.contains(sortBy) ? sortBy : "createdAt";
@@ -107,7 +107,7 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
 
         PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by(dir, col));
         Page<OrderEntity> result = repository.findAll(
-                OrderSpecifications.adminSearch(search, statusFilter), pageRequest);
+                OrderSpecifications.adminSearch(search, statuses), pageRequest);
 
         List<OrderRow> rows = result.getContent().stream()
                 .map(e -> new OrderRow(

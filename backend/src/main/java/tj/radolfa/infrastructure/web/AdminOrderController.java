@@ -136,17 +136,18 @@ public class AdminOrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Paginated list of all orders with optional search and status filter (ADMIN only)")
+    @Operation(summary = "Paginated list of all orders with optional search and statuses filter (ADMIN only)")
     public ResponseEntity<PageResponse<AdminOrderListDto>> listOrders(
-            @RequestParam(defaultValue = "")      String search,
-            @RequestParam(required = false)       OrderStatus status,
+            @RequestParam(defaultValue = "")          String search,
+            @RequestParam(required = false)           List<OrderStatus> statuses,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC")  String sortDir,
-            @RequestParam(defaultValue = "1")     int page,
-            @RequestParam(defaultValue = "20")    int size) {
+            @RequestParam(defaultValue = "DESC")      String sortDir,
+            @RequestParam(defaultValue = "1")         int page,
+            @RequestParam(defaultValue = "20")        int size) {
 
         PageResult<LoadAdminOrdersPort.OrderRow> result =
-                listAdminOrdersUseCase.execute(search, status, sortBy, sortDir, page, size);
+                listAdminOrdersUseCase.execute(search, statuses != null ? statuses : List.of(),
+                        sortBy, sortDir, page, size);
 
         PageResult<AdminOrderListDto> dtoPage = new PageResult<>(
                 result.content().stream()

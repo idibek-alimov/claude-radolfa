@@ -47,7 +47,7 @@ function nextStatusFor(order: AdminOrderDetail): OrderStatus | null {
   const isPickpoint = order.deliveryType === "PICKPOINT";
   switch (order.status) {
     case "PENDING":          return "PAID";
-    case "PAID":             return isPickpoint ? "READY_FOR_PICKUP" : null; // HOME: courier drives SHIPPED
+    case "PAID":             return null; // HOME: use Ship button; PICKPOINT: must arrive physically first
     case "READY_FOR_PICKUP": return "DELIVERED";
     default:                 return null;
   }
@@ -166,6 +166,12 @@ export function AdminOrderDetailView({ orderId }: Props) {
             {order.userName && <span className="ml-1">· {order.userName}</span>}
           </p>
         </div>
+
+        {order.status === "SHIPPED" && order.deliveryType === "PICKPOINT" && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            {t("awaitingArrivalCallout")}
+          </div>
+        )}
 
         {hasAnyButton && (
           <div className="flex items-center justify-end gap-2 flex-wrap">

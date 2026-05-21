@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { keepPreviousData } from "@tanstack/react-query";
 import {
   Table,
   TableHeader,
@@ -15,40 +14,54 @@ import {
 } from "@/shared/ui/table";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrders } from "@/entities/order";
-import type { AdminOrderListItem, OrderStatus } from "@/entities/order";
+import type { AdminOrderListItem } from "@/entities/order";
 import { useDynamicPageSize } from "@/shared/lib";
 
-const STATUS_OPTIONS: Array<{ value: OrderStatus | "ALL"; label: string }> = [
-  { value: "ALL", label: "statusAll" },
-  { value: "PENDING",   label: "status.PENDING" },
-  { value: "PAID",      label: "status.PAID" },
-  { value: "SHIPPED",          label: "status.SHIPPED" },
-  { value: "READY_FOR_PICKUP", label: "status.READY_FOR_PICKUP" },
-  { value: "DELIVERED",             label: "status.DELIVERED" },
-  { value: "RETURN_INITIATED",      label: "status.RETURN_INITIATED" },
-  { value: "RETURNED_TO_WAREHOUSE", label: "status.RETURNED_TO_WAREHOUSE" },
-  { value: "CANCELLED", label: "status.CANCELLED" },
-];
+const TAB_GROUPS = {
+  "needs-action": {
+    label: "tabNeedsAction",
+    statuses: ["PENDING", "PAID", "DELIVERY_ATTEMPTED", "RETURN_INITIATED", "RECALL_REQUESTED"],
+  },
+  "in-fulfillment": {
+    label: "tabInFulfillment",
+    statuses: ["SHIPPED", "OUT_FOR_DELIVERY", "READY_FOR_PICKUP", "RETURNED_TO_WAREHOUSE"],
+  },
+  "completed": {
+    label: "tabCompleted",
+    statuses: ["DELIVERED", "CANCELLED", "REFUNDED"],
+  },
+} as const;
+
+type TabKey = keyof typeof TAB_GROUPS;
+
+const NEEDS_ACTION_CSV   = TAB_GROUPS["needs-action"].statuses.join(",");
+const IN_FULFILLMENT_CSV = TAB_GROUPS["in-fulfillment"].statuses.join(",");
+const COMPLETED_CSV      = TAB_GROUPS["completed"].statuses.join(",");
+
+function TabBadge({ count }: { count: number | undefined }) {
+  if (!count) return null;
+  return (
+    <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold leading-none">
+      {count}
+    </span>
+  );
+}
 
 export function OrderManagementTable() {
   const t = useTranslations("manage.orders");
 
-  const router = useRouter();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeTab = (searchParams.get("tab") ?? "needs-action") as TabKey;
 
   const [page, setPage]                 = useState(1);
   const [searchQuery, setSearchQuery]   = useState("");
   const [debouncedSearch, setDebounced] = useState("");
-  const [statusFilter, setStatus]       = useState<OrderStatus | "">("");
 
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const cardRef     = useRef<HTMLDivElement>(null);
@@ -63,14 +76,27 @@ export function OrderManagementTable() {
     }, 300);
   }, []);
 
+  const activeStatuses = TAB_GROUPS[activeTab].statuses.join(",");
+
   const { data, isLoading } = useAdminOrders({
     page,
     search: debouncedSearch,
-    status: statusFilter,
+    statuses: activeStatuses,
     sortBy: "createdAt",
     sortDir: "DESC",
     size: pageSize,
   });
+
+  // Lightweight count queries for the other two tabs
+  const { data: needsActionData }   = useAdminOrders({ page: 1, size: 1, statuses: NEEDS_ACTION_CSV });
+  const { data: inFulfillmentData } = useAdminOrders({ page: 1, size: 1, statuses: IN_FULFILLMENT_CSV });
+  const { data: completedData }     = useAdminOrders({ page: 1, size: 1, statuses: COMPLETED_CSV });
+
+  const tabCounts: Record<TabKey, number | undefined> = {
+    "needs-action":   needsActionData?.totalElements,
+    "in-fulfillment": inFulfillmentData?.totalElements,
+    "completed":      completedData?.totalElements,
+  };
 
   const orders: AdminOrderListItem[] = data?.content ?? [];
 
@@ -82,9 +108,28 @@ export function OrderManagementTable() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* Toolbar */}
-      <div className="mb-4 flex items-center gap-3 flex-wrap">
-        <div className="relative max-w-sm flex-1">
+      {/* Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setPage(1);
+          router.replace(`?tab=${v}`);
+        }}
+        className="mb-4"
+      >
+        <TabsList>
+          {(Object.entries(TAB_GROUPS) as [TabKey, typeof TAB_GROUPS[TabKey]][]).map(([key, group]) => (
+            <TabsTrigger key={key} value={key}>
+              {t(group.label as Parameters<typeof t>[0])}
+              <TabBadge count={tabCounts[key]} />
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      {/* Search */}
+      <div className="mb-4">
+        <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchQuery}
@@ -93,21 +138,6 @@ export function OrderManagementTable() {
             className="pl-9"
           />
         </div>
-        <Select
-          value={statusFilter || "ALL"}
-          onValueChange={(v) => { setStatus(v === "ALL" ? "" : v as OrderStatus); setPage(1); }}
-        >
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("statusAll")} />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {t(opt.label as Parameters<typeof t>[0])}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Table */}

@@ -392,6 +392,10 @@
         "refunding": "Возврат…",
         "confirm": "Возврат заказа"
       },
+      "tabNeedsAction": "Требует действий",
+      "tabInFulfillment": "В процессе",
+      "tabCompleted": "Завершено",
+      "awaitingArrivalCallout": "Ожидание подтверждения поступления посылки сотрудником пункта выдачи.",
       "empty": "Заказы не найдены.",
       "page": "Стр. {page}",
       "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}"

@@ -13,21 +13,21 @@ export const fetchMyDeliveredOrders = (): Promise<DeliveredOrder[]> =>
 
 export function useAdminOrders(params: {
   page: number;
-  search: string;
-  status: OrderStatus | "";
-  sortBy: string;
-  sortDir: string;
+  search?: string;
+  statuses?: string;
+  sortBy?: string;
+  sortDir?: string;
   size: number;
 }) {
-  const { page, search, status, sortBy, sortDir, size } = params;
+  const { page, search = "", statuses, sortBy = "createdAt", sortDir = "DESC", size } = params;
   return useQuery({
-    queryKey: ["admin-orders", page, search, status, sortBy, sortDir, size],
+    queryKey: ["admin-orders", page, search, statuses, sortBy, sortDir, size],
     queryFn: () =>
       apiClient
         .get<PaginatedResponse<AdminOrderListItem>>("/api/v1/admin/orders", {
           params: {
             page, size, search,
-            ...(status ? { status } : {}),
+            ...(statuses ? { statuses } : {}),
             sortBy,
             sortDir,
           },

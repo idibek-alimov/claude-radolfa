@@ -392,6 +392,10 @@
         "refunding": "Refunding…",
         "confirm": "Refund Order"
       },
+      "tabNeedsAction": "Needs Action",
+      "tabInFulfillment": "In Fulfillment",
+      "tabCompleted": "Completed",
+      "awaitingArrivalCallout": "Awaiting pickup point staff to confirm package arrival.",
       "empty": "No orders found.",
       "page": "Page {page}",
       "total": "{count, plural, one {# order total} other {# orders total}}"
