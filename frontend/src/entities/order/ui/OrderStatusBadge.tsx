@@ -15,10 +15,17 @@ const STATUS_STYLES: Record<string, string> = {
   DELIVERY_ATTEMPTED:    "bg-amber-50  text-amber-700   ring-1 ring-amber-200",
   RETURN_INITIATED:      "bg-amber-50  text-amber-700   ring-1 ring-amber-200",
   RETURNED_TO_WAREHOUSE: "bg-slate-100 text-slate-700   ring-1 ring-slate-200",
+  RECALL_REQUESTED:      "bg-orange-100 text-orange-800 ring-1 ring-orange-200",
 };
 
-export function OrderStatusBadge({ status }: { status: string }) {
-  const t = useTranslations("manage.orders.status");
+export function OrderStatusBadge({
+  status,
+  namespace = "manage.orders.status",
+}: {
+  status: string;
+  namespace?: "manage.orders.status" | "profile.status";
+}) {
+  const t = useTranslations(namespace);
   const style = STATUS_STYLES[status] ?? "bg-zinc-100 text-zinc-600 ring-1 ring-zinc-200";
   const label = STATUS_STYLES[status]
     ? t(status as Parameters<typeof t>[0])

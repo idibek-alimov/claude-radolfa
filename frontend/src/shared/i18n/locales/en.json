@@ -282,7 +282,8 @@
         "CANCELLED":            "Cancelled",
         "REFUNDED":             "Refunded",
         "RETURN_INITIATED":      "Return initiated",
-        "RETURNED_TO_WAREHOUSE": "Returned to warehouse"
+        "RETURNED_TO_WAREHOUSE": "Returned to warehouse",
+        "RECALL_REQUESTED":      "Recall Requested"
       },
       "deliveryType": {
         "HOME": "Home",
@@ -480,7 +481,23 @@
     "estimatedDeliveryLabel": "Estimated delivery",
     "statusReadyForPickup": "Ready for pickup",
     "orderReadyForPickup": "Ready",
-    "readyForPickupCallout": "Your parcel is waiting at the pickup point"
+    "readyForPickupCallout": "Your parcel is waiting at the pickup point",
+    "status": {
+      "PENDING":             "Pending",
+      "PAID":                "Paid",
+      "SHIPPED":             "Shipped",
+      "OUT_FOR_DELIVERY":    "Out for Delivery",
+      "DELIVERY_ATTEMPTED":  "Delivery Attempted",
+      "READY_FOR_PICKUP":    "Ready for Pickup",
+      "DELIVERED":           "Delivered",
+      "CANCELLED":           "Cancelled",
+      "RETURN_INITIATED":    "Being Returned",
+      "RETURNED_TO_WAREHOUSE": "Returned to Warehouse",
+      "REFUNDED":            "Refunded",
+      "RECALL_REQUESTED":    "Recall Requested"
+    },
+    "returnInProgressBanner": "Your return is being processed. We will notify you once it reaches the warehouse.",
+    "recallRequestedBanner": "This order has been recalled by the store. Our courier will collect it from the pickup point."
   },
   "cart": {
     "title": "Your Cart",

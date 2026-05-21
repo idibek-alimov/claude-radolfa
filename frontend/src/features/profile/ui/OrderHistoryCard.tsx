@@ -23,6 +23,7 @@ import { Button } from "@/shared/ui/button";
 import { cancelOrder } from "@/features/profile/api";
 import { addToCart } from "@/entities/cart";
 import { useDeliveryCode } from "@/entities/order/api";
+import { OrderStatusBadge } from "@/entities/order";
 import { PickupCodeDisplay } from "@/entities/order/ui/PickupCodeDisplay";
 import { SubmitReviewForm } from "@/features/review-submission";
 import { getErrorMessage } from "@/shared/lib";
@@ -312,35 +313,7 @@ export function OrderHistoryCard({ order }: { order: Order }) {
           <span className="font-medium text-sm">
             {t("orderNumber", { id: order.id })}
           </span>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              order.status === "PENDING"
-                ? "bg-yellow-100 text-yellow-800"
-                : order.status === "PAID"
-                ? "bg-emerald-100 text-emerald-800"
-                : order.status === "DELIVERED"
-                ? "bg-green-100 text-green-800"
-                : order.status === "CANCELLED"
-                ? "bg-red-100 text-red-800"
-                : order.status === "SHIPPED"
-                ? "bg-cyan-100 text-cyan-800"
-                : order.status === "OUT_FOR_DELIVERY"
-                ? "bg-blue-100 text-blue-800"
-                : order.status === "DELIVERY_ATTEMPTED"
-                ? "bg-amber-100 text-amber-800"
-                : order.status === "READY_FOR_PICKUP"
-                ? "bg-indigo-100 text-indigo-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {order.status === "OUT_FOR_DELIVERY"
-              ? t("statusOutForDelivery")
-              : order.status === "DELIVERY_ATTEMPTED"
-              ? t("statusDeliveryAttempted")
-              : order.status === "READY_FOR_PICKUP"
-              ? t("statusReadyForPickupWithCode")
-              : order.status}
-          </span>
+          <OrderStatusBadge status={order.status} namespace="profile.status" />
           <span className="text-xs text-muted-foreground">
             {t("itemCount", { count: order.items.length })}
           </span>
@@ -396,6 +369,18 @@ export function OrderHistoryCard({ order }: { order: Order }) {
               Valid until {new Date(codeData.expiresAt).toLocaleString()}
             </p>
           )}
+        </div>
+      )}
+
+      {/* Return / Recall banners */}
+      {(order.status === "RETURN_INITIATED" || order.status === "RETURNED_TO_WAREHOUSE") && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {t("returnInProgressBanner")}
+        </div>
+      )}
+      {order.status === "RECALL_REQUESTED" && (
+        <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+          {t("recallRequestedBanner")}
         </div>
       )}
 

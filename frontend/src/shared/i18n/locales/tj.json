@@ -282,7 +282,8 @@
         "CANCELLED":        "Бекор шуд",
         "REFUNDED":              "Баргардонида шуд",
         "RETURN_INITIATED":      "Баргашт оғоз ёфт",
-        "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд"
+        "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд",
+        "RECALL_REQUESTED":      "Дархости барқарорсозӣ"
       },
       "deliveryType": {
         "HOME": "Ба хона",
@@ -480,7 +481,23 @@
     "estimatedDeliveryLabel": "Санаи тахминии расонидан",
     "statusReadyForPickup": "Омода ба гирифтан",
     "orderReadyForPickup": "Омода",
-    "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст"
+    "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст",
+    "status": {
+      "PENDING":               "Дар интизорӣ",
+      "PAID":                  "Пардохт шуд",
+      "SHIPPED":               "Фиристода шуд",
+      "OUT_FOR_DELIVERY":      "Дар роҳ аст",
+      "DELIVERY_ATTEMPTED":    "Кӯшиши расондан",
+      "READY_FOR_PICKUP":      "Омода ба гирифтан",
+      "DELIVERED":             "Расонида шуд",
+      "CANCELLED":             "Бекор карда шуд",
+      "RETURN_INITIATED":      "Баргардонидан идома дорад",
+      "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд",
+      "REFUNDED":              "Маблағ баргардонида шуд",
+      "RECALL_REQUESTED":      "Дархости барқарорсозӣ"
+    },
+    "returnInProgressBanner": "Баргардонидани шумо коркард мешавад. Мо шуморо огоҳ мекунем, ки чӣ вақт ба анбор мерасад.",
+    "recallRequestedBanner": "Ин фармоиш аз ҷониби мағоза бозхонда шуд. Курьери мо онро аз нуқтаи таҳвил мегирад."
   },
   "cart": {
     "title": "Сабади шумо",
