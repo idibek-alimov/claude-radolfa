@@ -1,21 +1,8 @@
 import type { User } from "@/entities/user";
-import type { OrderStatus } from "@/entities/order/model/types";
+import type { OrderStatus, OrderItem } from "@/entities/order/model/types";
 import type { CustomerReturnStatus } from "@/entities/pickpoint";
 
-export type { User, OrderStatus };
-
-export interface OrderItem {
-    productName: string;
-    quantity: number;
-    price: number;
-    skuId?: number | null;
-    listingVariantId?: number | null;
-    imageUrl?: string | null;
-    skuCode?: string | null;
-    sizeLabel?: string | null;
-    slug?: string | null;
-    hasReviewed: boolean;
-}
+export type { User, OrderStatus, OrderItem };
 
 export interface Order {
     id: number;

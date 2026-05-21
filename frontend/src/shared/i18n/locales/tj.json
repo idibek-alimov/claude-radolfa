@@ -512,7 +512,33 @@
       "sentToWarehouse": "Ба анбор фиристода шуд",
       "refundApproved": "Баргардонидан тасдиқ шуд",
       "refunded": "Маблағ баргардонида шуд"
-    }
+    },
+    "noOrders": "Фармоишҳо ёфт нашуданд."
+  },
+  "orderDetail": {
+    "backToOrders": "Фармоишҳои ман",
+    "orderNumber": "Фармоиш",
+    "notFound": "Фармоиш ёфт нашуд.",
+    "items": "Молҳо",
+    "pricing": "Нарх",
+    "loyaltyDiscount": "Тахфифи баллҳо",
+    "total": "Ҷамъ",
+    "pickupPoint": "Нуқтаи таҳвил",
+    "courierInfo": "Расонидан",
+    "trackingNumber": "Рақами пайгирӣ",
+    "estimatedDelivery": "Санаи тахминӣ",
+    "returnInfo": "Баргардонӣ",
+    "returnStatus": "Ҳолат",
+    "returnReason": "Сабаб",
+    "refundAmount": "Баргардонидани маблағ",
+    "activity": "Таърих",
+    "ordered": "Фармоиш дода шуд",
+    "shipped": "Фиристода шуд",
+    "delivered": "Расонида шуд",
+    "cancelled": "Бекор карда шуд",
+    "refunded": "Маблағ баргардонида шуд",
+    "returnInProgressBanner": "Баргардонидани шумо коркард мешавад.",
+    "recallRequestedBanner": "Ин фармоиш аз ҷониби мағоза бозхонда шуд."
   },
   "pickupCode": {
     "scanCaption": "Ин рамзро нишон диҳед ё ба коркунон иҷозат диҳед, ки рамзи QR-ро скан кунанд.",

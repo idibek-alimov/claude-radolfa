@@ -1,5 +1,18 @@
 // Synced from backend — do not edit manually
 export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "RETURN_INITIATED" | "RETURNED_TO_WAREHOUSE" | "DELIVERED" | "CANCELLED" | "REFUNDED" | "RECALL_REQUESTED";
+
+export interface OrderItem {
+  productName: string;
+  quantity: number;
+  price: number;
+  skuId?: number | null;
+  listingVariantId?: number | null;
+  imageUrl?: string | null;
+  skuCode?: string | null;
+  sizeLabel?: string | null;
+  slug?: string | null;
+  hasReviewed: boolean;
+}
 export type DeliveryType = "HOME" | "PICKPOINT";
 
 /** Minimal order item — only what the review form needs. */

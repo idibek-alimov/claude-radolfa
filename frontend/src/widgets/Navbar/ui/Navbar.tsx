@@ -136,14 +136,14 @@ function DesktopAuth() {
   const tp = useTranslations("profile");
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
-  const { data: orders } = useQuery({
-    queryKey: ["my-orders"],
-    queryFn: getMyOrders,
+  const { data: ordersPage } = useQuery({
+    queryKey: ["my-orders", 1, 1],
+    queryFn: () => getMyOrders(1, 1),
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
   });
 
-  const latestOrder = orders?.[0];
+  const latestOrder = ordersPage?.content[0];
 
   const handleLogout = async () => {
     setLogoutDialogOpen(false);

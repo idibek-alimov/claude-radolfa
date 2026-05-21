@@ -512,7 +512,33 @@
       "sentToWarehouse": "Sent to Warehouse",
       "refundApproved": "Refund Approved",
       "refunded": "Refunded"
-    }
+    },
+    "noOrders": "No orders found."
+  },
+  "orderDetail": {
+    "backToOrders": "My Orders",
+    "orderNumber": "Order",
+    "notFound": "Order not found.",
+    "items": "Items",
+    "pricing": "Pricing",
+    "loyaltyDiscount": "Loyalty Discount",
+    "total": "Total",
+    "pickupPoint": "Pickup Point",
+    "courierInfo": "Delivery",
+    "trackingNumber": "Tracking Number",
+    "estimatedDelivery": "Estimated Delivery",
+    "returnInfo": "Return",
+    "returnStatus": "Status",
+    "returnReason": "Reason",
+    "refundAmount": "Refund",
+    "activity": "Activity",
+    "ordered": "Ordered",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled",
+    "refunded": "Refunded",
+    "returnInProgressBanner": "Your return is being processed.",
+    "recallRequestedBanner": "This order has been recalled by the store."
   },
   "pickupCode": {
     "scanCaption": "Show this code or let staff scan the QR at the counter.",

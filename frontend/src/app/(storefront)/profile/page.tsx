@@ -5,22 +5,20 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import ProtectedRoute from "@/shared/components/ProtectedRoute";
 import { useAuth } from "@/features/auth";
-import { getMyOrders, updateProfile } from "@/features/profile/api";
-import { OrderHistoryCard } from "@/features/profile/ui/OrderHistoryCard";
+import { updateProfile } from "@/features/profile/api";
 import { ReviewProgressCard } from "@/features/profile/ui/ReviewProgressCard";
+import { ProfileOrdersTab } from "@/features/profile/ui/ProfileOrdersTab";
 import { CustomerReturnsListPage } from "@/features/profile/ui/CustomerReturnsListPage";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { getErrorMessage } from "@/shared/lib";
 import {
   User,
   ShoppingBag,
   Star,
   Check,
-  Package,
   Pencil,
   RotateCcw,
   X,
@@ -156,14 +154,6 @@ export default function ProfilePage() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "account";
 
-  const {
-    data: orders = [],
-    isLoading: loadingOrders,
-  } = useQuery({
-    queryKey: ["my-orders"],
-    queryFn: getMyOrders,
-  });
-
   const handleFieldSave = useCallback(
     async (field: "name" | "email", value: string) => {
       const data = {
@@ -296,33 +286,14 @@ export default function ProfilePage() {
               </div>
             </TabsContent>
 
-            {/* Orders Tab — with timeline */}
+            {/* Orders Tab */}
             <TabsContent value="orders">
               <div className="bg-card rounded-xl border shadow-sm p-6 sm:p-8">
                 <h2 className="text-lg font-semibold text-foreground mb-4">
                   {t("orderHistory")}
                 </h2>
                 <ReviewProgressCard />
-                {loadingOrders ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton key={i} className="h-32 w-full rounded-lg" />
-                    ))}
-                  </div>
-                ) : orders.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-                    <p className="text-muted-foreground text-sm">
-                      {t("noOrdersFound")}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {orders.map((order) => (
-                      <OrderHistoryCard key={order.id} order={order} />
-                    ))}
-                  </div>
-                )}
+                <ProfileOrdersTab />
               </div>
             </TabsContent>
 

@@ -5,9 +5,23 @@ import type { PaginatedResponse } from "@/shared/api/types";
 import { Order, UpdateProfileRequest, User } from "./types";
 import type { MyReturn } from "./types";
 
-export async function getMyOrders(): Promise<Order[]> {
-    const response = await apiClient.get<Order[]>("/api/v1/orders/my-orders");
-    return response.data;
+export async function getMyOrders(
+  page: number,
+  size: number = 10
+): Promise<PaginatedResponse<Order>> {
+  const response = await apiClient.get<PaginatedResponse<Order>>(
+    "/api/v1/orders/my-orders",
+    { params: { page, size } }
+  );
+  return response.data;
+}
+
+export function useMyOrders(page: number, size: number = 10) {
+  return useQuery({
+    queryKey: ["my-orders", page, size],
+    queryFn: () => getMyOrders(page, size),
+    placeholderData: keepPreviousData,
+  });
 }
 
 export async function updateProfile(data: UpdateProfileRequest): Promise<User> {
@@ -36,5 +50,24 @@ export function useMyReturns(page: number, size: number = 10) {
     queryKey: ["my-returns", page, size],
     queryFn: () => getMyReturns(page, size),
     placeholderData: keepPreviousData,
+  });
+}
+
+export interface ReviewProgress {
+  totalOrders: number;
+  reviewedOrders: number;
+}
+
+async function getMyReviewProgress(): Promise<ReviewProgress> {
+  const response = await apiClient.get<ReviewProgress>(
+    "/api/v1/orders/my-review-progress"
+  );
+  return response.data;
+}
+
+export function useMyReviewProgress() {
+  return useQuery({
+    queryKey: ["my-review-progress"],
+    queryFn: getMyReviewProgress,
   });
 }

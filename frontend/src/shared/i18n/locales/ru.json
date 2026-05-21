@@ -512,7 +512,33 @@
       "sentToWarehouse": "Отправлен на склад",
       "refundApproved": "Возврат одобрен",
       "refunded": "Средства возвращены"
-    }
+    },
+    "noOrders": "Заказы не найдены."
+  },
+  "orderDetail": {
+    "backToOrders": "Мои заказы",
+    "orderNumber": "Заказ",
+    "notFound": "Заказ не найден.",
+    "items": "Товары",
+    "pricing": "Сумма",
+    "loyaltyDiscount": "Скидка баллами",
+    "total": "Итого",
+    "pickupPoint": "Пункт выдачи",
+    "courierInfo": "Доставка",
+    "trackingNumber": "Номер отслеживания",
+    "estimatedDelivery": "Ожидаемая дата",
+    "returnInfo": "Возврат",
+    "returnStatus": "Статус",
+    "returnReason": "Причина",
+    "refundAmount": "Возврат средств",
+    "activity": "История",
+    "ordered": "Оформлен",
+    "shipped": "Отправлен",
+    "delivered": "Доставлен",
+    "cancelled": "Отменён",
+    "refunded": "Возвращён",
+    "returnInProgressBanner": "Ваш возврат обрабатывается.",
+    "recallRequestedBanner": "Этот заказ был отозван магазином."
   },
   "pickupCode": {
     "scanCaption": "Покажите этот код или дайте сотруднику отсканировать QR-код.",
