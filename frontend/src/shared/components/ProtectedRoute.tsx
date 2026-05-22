@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: "USER" | "MANAGER" | "ADMIN" | "COURIER" | "PICKPOINT_STAFF";
+    requiredRole?: "USER" | "MANAGER" | "ADMIN" | "COURIER" | "PICKPOINT_STAFF" | "WAREHOUSE_MANAGER";
 }
 
 const ROLE_HIERARCHY: Record<string, number> = {
@@ -15,7 +15,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
     ADMIN: 2,
 };
 
-const LATERAL_ROLES = new Set(["COURIER", "PICKPOINT_STAFF"]);
+const LATERAL_ROLES = new Set(["COURIER", "PICKPOINT_STAFF", "WAREHOUSE_MANAGER"]);
 
 function hasRequiredRole(
     userRole: string | undefined,
@@ -23,6 +23,8 @@ function hasRequiredRole(
 ): boolean {
     if (!requiredRole) return true;
     if (!userRole) return false;
+    // ADMIN always passes any gate
+    if (userRole === "ADMIN") return true;
     if (LATERAL_ROLES.has(requiredRole)) return userRole === requiredRole;
     return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[requiredRole] ?? 0);
 }

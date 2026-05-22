@@ -106,6 +106,14 @@ public class CustomerReturnJpaAdapter implements SaveCustomerReturnPort, LoadCus
     }
 
     @Override
+    public PageResult<CustomerReturn> loadByStatus(CustomerReturnStatus status, int page, int size) {
+        var pageable = PageRequest.of(page - 1, size);
+        Page<CustomerReturnEntity> result =
+                repository.findByStatusOrderBySentToWarehouseAtDesc(status, pageable);
+        return toPageResult(result, page);
+    }
+
+    @Override
     public PageResult<CustomerReturn> loadByUserId(Long userId, int page, int size) {
         var pageable = PageRequest.of(page - 1, size);
         Page<CustomerReturnEntity> result =

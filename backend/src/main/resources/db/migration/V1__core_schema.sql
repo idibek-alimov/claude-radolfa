@@ -16,7 +16,7 @@
 -- Lookups
 -- ----------------------------------------------------------------
 CREATE TABLE roles (
-    name VARCHAR(16) PRIMARY KEY
+    name VARCHAR(20) PRIMARY KEY
 );
 
 CREATE TABLE order_statuses (
@@ -24,7 +24,7 @@ CREATE TABLE order_statuses (
 );
 
 -- Seed lookup values (present in all environments)
-INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC'), ('COURIER'), ('PICKPOINT_STAFF');
+INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC'), ('COURIER'), ('PICKPOINT_STAFF'), ('WAREHOUSE_MANAGER');
 INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('SHIPPED'), ('OUT_FOR_DELIVERY'), ('DELIVERY_ATTEMPTED'), ('RECALL_REQUESTED'), ('READY_FOR_PICKUP'), ('RETURN_INITIATED'), ('RETURNED_TO_WAREHOUSE'), ('DELIVERED'), ('CANCELLED'), ('REFUNDED');
 
 -- ----------------------------------------------------------------
@@ -51,7 +51,7 @@ CREATE INDEX idx_loyalty_tiers_display_order ON loyalty_tiers (display_order);
 CREATE TABLE users (
     id                     BIGSERIAL    PRIMARY KEY,
     phone                  VARCHAR(32)  NOT NULL UNIQUE,
-    role                   VARCHAR(16)  NOT NULL REFERENCES roles(name),
+    role                   VARCHAR(20)  NOT NULL REFERENCES roles(name),
     name                   VARCHAR(255),
     email                  VARCHAR(255) UNIQUE,
     enabled                BOOLEAN      NOT NULL DEFAULT TRUE,

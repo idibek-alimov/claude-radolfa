@@ -43,11 +43,12 @@ VALUES
 -- 3. USERS
 -- ================================================================
 
-INSERT INTO users (phone, role, loyalty_points) VALUES
-    ('+992901234567', 'USER',    20),
-    ('+992902345678', 'MANAGER', 30),
-    ('+992903456789', 'ADMIN',   50),
-    ('+992904567890', 'USER',    5200);
+INSERT INTO users (phone, role, name, loyalty_points) VALUES
+    ('+992901234567', 'USER',              NULL,              20),
+    ('+992902345678', 'MANAGER',           NULL,              30),
+    ('+992903456789', 'ADMIN',             NULL,              50),
+    ('+992904567890', 'USER',              NULL,              5200),
+    ('+992905678901', 'WAREHOUSE_MANAGER', 'Warehouse Staff', 0);
 
 -- User 1: Gold tier, close to Platinum
 UPDATE users SET

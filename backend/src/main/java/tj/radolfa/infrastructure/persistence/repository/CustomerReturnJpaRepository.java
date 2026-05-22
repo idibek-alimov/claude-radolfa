@@ -16,6 +16,8 @@ public interface CustomerReturnJpaRepository extends JpaRepository<CustomerRetur
 
     Page<CustomerReturnEntity> findByPickpointIdAndStatus(Long pickpointId, CustomerReturnStatus status, Pageable pageable);
 
+    Page<CustomerReturnEntity> findByStatusOrderBySentToWarehouseAtDesc(CustomerReturnStatus status, Pageable pageable);
+
     @Query(
         value = """
             SELECT cr.* FROM customer_returns cr
