@@ -68,16 +68,16 @@ public class CourierController {
     @GetMapping("/orders")
     @PreAuthorize("hasRole('COURIER')")
     public ResponseEntity<PageResponse<CourierOrderDto>> getMyOrders(
-            @RequestParam(required = false) List<OrderStatus> status,
+            @RequestParam(required = false) List<OrderStatus> statuses,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
-        List<OrderStatus> statuses = (status == null || status.isEmpty())
+        List<OrderStatus> resolvedStatuses = (statuses == null || statuses.isEmpty())
                 ? DEFAULT_STATUSES
-                : status;
+                : statuses;
 
-        PageResult<Order> result = getCourierOrdersUseCase.execute(principal.userId(), statuses, page, size);
+        PageResult<Order> result = getCourierOrdersUseCase.execute(principal.userId(), resolvedStatuses, page, size);
 
         Set<Long> skuIds = result.content().stream()
                 .flatMap(o -> o.items() == null ? java.util.stream.Stream.empty() : o.items().stream())

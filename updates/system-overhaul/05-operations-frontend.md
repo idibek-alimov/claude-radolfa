@@ -9,7 +9,7 @@
 | 1 | Admin Order Tabs + Bypass Fix | ✅ Complete |
 | 2 | Admin Order Detail Enhancements | ✅ Complete |
 | 3 | Pickpoint Staff Dashboard Improvements | ✅ Complete |
-| 4 | Courier Dashboard Server-Side Wiring | 🔍 Pending |
+| 4 | Courier Dashboard Server-Side Wiring | ✅ Complete |
 
 ---
 

@@ -942,5 +942,20 @@
     "noOrders": "No orders in this category.",
     "awaitingPickup": "Awaiting customer pickup",
     "enRoute": "En route — awaiting arrival confirmation"
+  },
+  "courier": {
+    "title": "My Deliveries",
+    "tab": {
+      "toCollect": "To Collect",
+      "inTransit": "In Transit",
+      "attempted": "Attempted"
+    },
+    "showing": "Showing",
+    "of": "of",
+    "noOrders": "No orders in this category.",
+    "collectOrder": "I've Collected This Order",
+    "recordAttempt": "Record Another Attempt",
+    "attemptReason": "Attempt reason",
+    "attemptPhoto": "Upload photo (optional)"
   }
 }

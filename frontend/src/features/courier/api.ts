@@ -1,6 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
 import type { CourierOrder } from "@/entities/user";
+import type { PaginatedResponse } from "@/shared/api/types";
+import type { OrderStatus } from "@/entities/order/model/types";
 
 export const DELIVERY_ATTEMPT_REASONS = [
   "NO_ANSWER",
@@ -12,13 +14,17 @@ export const DELIVERY_ATTEMPT_REASONS = [
 
 export type DeliveryAttemptReason = (typeof DELIVERY_ATTEMPT_REASONS)[number];
 
-export function useCourierOrders() {
+export function useCourierOrders(statuses: OrderStatus[], page: number, size: number = 20) {
   return useQuery({
-    queryKey: ["courier-orders"],
+    queryKey: ["courier-orders", statuses.join(","), page, size],
     queryFn: () =>
       apiClient
-        .get<CourierOrder[]>("/api/v1/courier/orders")
+        .get<PaginatedResponse<CourierOrder>>("/api/v1/courier/orders", {
+          params: { statuses: statuses.join(","), page, size },
+        })
         .then((r) => r.data),
+    placeholderData: keepPreviousData,
+    enabled: statuses.length > 0,
   });
 }
 
