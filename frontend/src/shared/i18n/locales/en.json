@@ -957,5 +957,32 @@
     "recordAttempt": "Record Another Attempt",
     "attemptReason": "Attempt reason",
     "attemptPhoto": "Upload photo (optional)"
+  },
+  "warehouse": {
+    "title": "Warehouse",
+    "nav": {
+      "lookup": "Lookup",
+      "receipts": "Stock Receipts",
+      "structure": "Structure",
+      "returns": "Returns Queue"
+    },
+    "common": {
+      "scan": "Scan barcode",
+      "loading": "Loading…",
+      "empty": "No results.",
+      "search": "Search",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirm": "Confirm",
+      "back": "Back",
+      "submit": "Submit",
+      "placeholderBody": "This screen will be built in a later phase.",
+      "logout": "Sign out"
+    },
+    "receipts": {
+      "new": "New Receipt",
+      "detail": { "title": "Stock Receipt" }
+    }
   }
 }
