@@ -18,19 +18,28 @@ import tj.radolfa.application.ports.in.order.InitiateReturnToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.LookUpOrderForReturnUseCase;
 import tj.radolfa.application.ports.in.order.ReceiveCustomerReturnUseCase;
 import tj.radolfa.application.ports.in.order.VerifyPickupByCodeUseCase;
+import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.CustomerReturnStatus;
+import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CreateCustomerReturnRequestDto;
 import tj.radolfa.infrastructure.web.dto.CustomerReturnDto;
 import tj.radolfa.infrastructure.web.dto.PickpointOrderDto;
+import tj.radolfa.infrastructure.web.dto.PickpointOrderItemDto;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/pickpoint")
@@ -49,6 +58,8 @@ public class PickpointStaffController {
     private final ConfirmRecallReceivedUseCase        confirmRecallReceivedUseCase;
     private final LoadOrderPort                      loadOrderPort;
     private final LoadUserPort                       loadUserPort;
+    private final LoadSkuPort                        loadSkuPort;
+    private final LoadListingVariantPort             loadListingVariantPort;
     private final int                                pickpointStorageDays;
 
     public PickpointStaffController(GetPickpointOrdersUseCase getPickpointOrdersUseCase,
@@ -64,6 +75,8 @@ public class PickpointStaffController {
                                     ConfirmRecallReceivedUseCase confirmRecallReceivedUseCase,
                                     LoadOrderPort loadOrderPort,
                                     LoadUserPort loadUserPort,
+                                    LoadSkuPort loadSkuPort,
+                                    LoadListingVariantPort loadListingVariantPort,
                                     @Value("${radolfa.delivery.pickpoint-storage-days:7}") int pickpointStorageDays) {
         this.getPickpointOrdersUseCase          = getPickpointOrdersUseCase;
         this.confirmWithDeliveryCodeUseCase     = confirmWithDeliveryCodeUseCase;
@@ -78,6 +91,8 @@ public class PickpointStaffController {
         this.confirmRecallReceivedUseCase       = confirmRecallReceivedUseCase;
         this.loadOrderPort                      = loadOrderPort;
         this.loadUserPort                       = loadUserPort;
+        this.loadSkuPort                        = loadSkuPort;
+        this.loadListingVariantPort             = loadListingVariantPort;
         this.pickpointStorageDays               = pickpointStorageDays;
     }
 
@@ -97,14 +112,56 @@ public class PickpointStaffController {
 
         var result = getPickpointOrdersUseCase.execute(principal.userId(), statuses, page, size);
 
+        // Batch-load Sku and ListingVariant for all items across the page (2 queries total).
+        Set<Long> skuIds = result.content().stream()
+                .flatMap(o -> o.items().stream())
+                .map(OrderItem::getSkuId)
+                .collect(Collectors.toSet());
+        Set<Long> variantIds = result.content().stream()
+                .flatMap(o -> o.items().stream())
+                .map(OrderItem::getListingVariantId)
+                .collect(Collectors.toSet());
+        Map<Long, Sku>            skus     = loadSkuPort.findAllByIdsAsMap(skuIds);
+        Map<Long, ListingVariant> variants = loadListingVariantPort.findVariantsByIds(variantIds);
+
         var dtos = result.content().stream().map(order -> {
             User customer = loadUserPort.loadById(order.userId()).orElse(null);
-            return PickpointOrderDto.from(order, customer, pickpointStorageDays);
+            return buildPickpointOrderDto(order, customer, skus, variants);
         }).toList();
 
         return ResponseEntity.ok(PageResponse.from(
                 new tj.radolfa.domain.model.PageResult<>(
                         dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    private PickpointOrderDto buildPickpointOrderDto(Order order,
+                                                      User customer,
+                                                      Map<Long, Sku> skus,
+                                                      Map<Long, ListingVariant> variants) {
+        List<PickpointOrderItemDto> itemDtos = order.items().stream().map(item -> {
+            Sku sku = skus.get(item.getSkuId());
+            ListingVariant variant = variants.get(item.getListingVariantId());
+            String sizeLabel = sku != null ? sku.getSizeLabel() : null;
+            String imageUrl  = (variant != null && !variant.getImages().isEmpty())
+                    ? variant.getImages().get(0) : null;
+            return new PickpointOrderItemDto(
+                    item.getProductName(), item.getSkuCode(), sizeLabel, imageUrl, item.getQuantity());
+        }).toList();
+
+        int totalItemCount = order.items().stream().mapToInt(OrderItem::getQuantity).sum();
+
+        BigDecimal totalWeightKg = order.items().stream()
+                .filter(item -> {
+                    Sku sku = skus.get(item.getSkuId());
+                    return sku != null && sku.getWeightKg() != null;
+                })
+                .map(item -> skus.get(item.getSkuId()).getWeightKg()
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (totalWeightKg.compareTo(BigDecimal.ZERO) == 0) totalWeightKg = null;
+
+        return PickpointOrderDto.from(order, customer, pickpointStorageDays,
+                itemDtos, totalItemCount, totalWeightKg);
     }
 
     @PostMapping("/orders/{orderId}/confirm")

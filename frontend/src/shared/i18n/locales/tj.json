@@ -918,5 +918,29 @@
         "short": "Якҷоякунанда"
       }
     }
+  },
+  "pickpoint": {
+    "orderLabel": "Фармоиш",
+    "selectOrder": "Интихоби фармоиш",
+    "items": "молҳо",
+    "showMore": "+{count} боз",
+    "showLess": "Камтар нишон деҳ",
+    "selectedCount": "{count} интихоб шуд",
+    "confirmSelected": "Расидани ({count}) тасдиқ кунед",
+    "confirmedToast": "Тасдиқ шуд: {count} фармоиш",
+    "confirming": "Тасдиқ мешавад…",
+    "tab": {
+      "incoming": "Воридшаванда",
+      "awaiting": "Дар интизор",
+      "returns": "Баргаштҳо",
+      "customerReturns": "Баргашти мустақим",
+      "history": "Таърих"
+    },
+    "confirmArrival": "Расиданро тасдиқ кунед",
+    "readySince": "Аз {date} омода",
+    "overdue": "Муддат гузашт · {days}р",
+    "noOrders": "Дар ин категория фармоиш нест.",
+    "awaitingPickup": "Интизори гирифтан аст",
+    "enRoute": "Дар роҳ — интизори тасдиқи расидан"
   }
 }

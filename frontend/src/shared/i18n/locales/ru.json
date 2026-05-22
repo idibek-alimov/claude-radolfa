@@ -918,5 +918,29 @@
         "short": "Суммируемая"
       }
     }
+  },
+  "pickpoint": {
+    "orderLabel": "Заказ",
+    "selectOrder": "Выбрать заказ",
+    "items": "товаров",
+    "showMore": "+{count} ещё",
+    "showLess": "Свернуть",
+    "selectedCount": "{count} выбрано",
+    "confirmSelected": "Подтвердить прибытие ({count})",
+    "confirmedToast": "Подтверждено заказов: {count}",
+    "confirming": "Подтверждение…",
+    "tab": {
+      "incoming": "Входящие",
+      "awaiting": "Ожидают",
+      "returns": "Возвраты",
+      "customerReturns": "Самовозврат",
+      "history": "История"
+    },
+    "confirmArrival": "Подтвердить прибытие",
+    "readySince": "Готово с {date}",
+    "overdue": "Просрочено · {days}д",
+    "noOrders": "Заказов в этой категории нет.",
+    "awaitingPickup": "Ожидает получения",
+    "enRoute": "В пути — ожидание подтверждения прибытия"
   }
 }

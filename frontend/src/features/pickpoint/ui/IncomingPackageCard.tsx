@@ -1,48 +1,92 @@
 "use client";
 
-import { Package } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/shared/ui/button";
-import { useConfirmArrival } from "@/features/pickpoint/api";
-import { getErrorMessage } from "@/shared/lib";
+import { useState } from "react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { cn } from "@/shared/lib/utils";
 import type { PickpointOrder } from "@/entities/user";
+
+const COLLAPSED_ITEM_LIMIT = 3;
 
 interface Props {
   order: PickpointOrder;
+  selected: boolean;
+  onToggle: (orderId: number) => void;
 }
 
-export function IncomingPackageCard({ order }: Props) {
-  const confirm = useConfirmArrival();
-
-  function handleConfirmArrival() {
-    confirm.mutate(order.orderId, {
-      onSuccess: () =>
-        toast.success("Arrival confirmed — pickup code sent to customer."),
-      onError: (err) =>
-        toast.error(getErrorMessage(err, "Failed to confirm arrival")),
-    });
-  }
+export function IncomingPackageCard({ order, selected, onToggle }: Props) {
+  const t = useTranslations("pickpoint");
+  const [expanded, setExpanded] = useState(false);
+  const visibleItems = expanded
+    ? order.items
+    : order.items.slice(0, COLLAPSED_ITEM_LIMIT);
 
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold">Order #{order.orderId}</span>
-        <Package className="h-4 w-4 text-muted-foreground" />
+    <div
+      className={cn(
+        "rounded-xl border bg-card p-4 transition-colors",
+        selected && "border-primary/50 bg-primary/5",
+      )}
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm font-semibold">
+            {t("orderLabel")} #{order.orderId}
+          </p>
+          <p className="text-xs text-muted-foreground">{order.customerFirstName}</p>
+        </div>
+        <Checkbox
+          checked={selected}
+          onCheckedChange={() => onToggle(order.orderId)}
+          aria-label={t("selectOrder")}
+        />
       </div>
 
-      <p className="text-sm font-medium">{order.customerFirstName}</p>
+      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+        <span>
+          {order.totalItemCount} {t("items")}
+        </span>
+        {order.totalWeightKg != null && <span>{order.totalWeightKg} kg</span>}
+      </div>
 
-      <p className="text-xs text-muted-foreground">
-        En route — awaiting arrival confirmation
-      </p>
-
-      <Button
-        className="w-full h-12"
-        onClick={handleConfirmArrival}
-        disabled={confirm.isPending}
-      >
-        {confirm.isPending ? "Confirming…" : "Confirm Arrival"}
-      </Button>
+      {order.items.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {visibleItems.map((item, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs">
+              {item.imageUrl && (
+                <Image
+                  src={item.imageUrl}
+                  alt={item.productName}
+                  width={24}
+                  height={24}
+                  unoptimized
+                  className="rounded object-cover shrink-0"
+                />
+              )}
+              <span className="flex-1 truncate">{item.productName}</span>
+              {item.sizeLabel && (
+                <span className="shrink-0 text-muted-foreground">
+                  {item.sizeLabel}
+                </span>
+              )}
+              <span className="shrink-0">× {item.quantity}</span>
+            </div>
+          ))}
+          {order.items.length > COLLAPSED_ITEM_LIMIT && (
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded
+                ? t("showLess")
+                : t("showMore", {
+                    count: order.items.length - COLLAPSED_ITEM_LIMIT,
+                  })}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

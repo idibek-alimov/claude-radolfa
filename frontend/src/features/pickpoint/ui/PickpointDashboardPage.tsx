@@ -1,15 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useAuth } from "@/features/auth";
 import {
   usePickpointOrders,
   usePickpointCustomerReturns,
+  useConfirmArrival,
 } from "@/features/pickpoint/api";
 import { useDeliverySocket } from "@/shared/lib/useDeliverySocket";
+import { getErrorMessage } from "@/shared/lib";
 import type { PickpointOrder } from "@/entities/user";
 import { IncomingPackageCard } from "./IncomingPackageCard";
 import { PickpointOrderCard } from "./PickpointOrderCard";
@@ -62,6 +68,16 @@ function OrderList<T extends PickpointOrder>({
 export function PickpointDashboardPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const t = useTranslations("pickpoint");
+  const confirmArrival = useConfirmArrival();
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  const toggleOrder = (id: number) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const incoming        = usePickpointOrders(["SHIPPED"]);
   const awaiting        = usePickpointOrders(["READY_FOR_PICKUP"]);
@@ -118,44 +134,71 @@ export function PickpointDashboardPage() {
             ))}
           </div>
         ) : (
-          <Tabs defaultValue="awaiting">
-            <TabsList className="w-full grid grid-cols-5">
-              <TabsTrigger value="incoming" className="flex-1 text-xs px-1">
-                Incoming
+          <Tabs
+            defaultValue="awaiting"
+            onValueChange={() => setSelectedIds(new Set())}
+          >
+            <TabsList className="flex w-full gap-2 overflow-x-auto pb-1 scrollbar-hide bg-transparent p-0 h-auto">
+              <TabsTrigger
+                value="incoming"
+                className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t("tab.incoming")}
                 <TabBadge count={incoming.data?.totalElements ?? 0} />
               </TabsTrigger>
-              <TabsTrigger value="awaiting" className="flex-1 text-xs px-1">
-                Awaiting
+              <TabsTrigger
+                value="awaiting"
+                className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t("tab.awaiting")}
                 <TabBadge
                   count={awaiting.data?.totalElements ?? 0}
                   tone={hasOverdue ? "amber" : "default"}
                 />
               </TabsTrigger>
-              <TabsTrigger value="returns" className="flex-1 text-xs px-1">
-                Returns
+              <TabsTrigger
+                value="returns"
+                className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t("tab.returns")}
                 <TabBadge count={returnsInProg.data?.totalElements ?? 0} />
               </TabsTrigger>
-              <TabsTrigger value="customer-returns" className="flex-1 text-xs px-1">
-                Walk-in
+              <TabsTrigger
+                value="customer-returns"
+                className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t("tab.customerReturns")}
                 <TabBadge count={customerReturns.data?.totalElements ?? 0} />
               </TabsTrigger>
-              <TabsTrigger value="history" className="flex-1 text-xs px-1">
-                History
+              <TabsTrigger
+                value="history"
+                className="shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t("tab.history")}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="incoming" className="mt-4">
-              <OrderList
-                orders={incoming.data?.content ?? []}
-                emptyMessage="No incoming packages."
-                renderCard={(o) => <IncomingPackageCard key={o.orderId} order={o} />}
-              />
+              {(incoming.data?.content ?? []).length === 0 ? (
+                <EmptyTab message={t("noOrders")} />
+              ) : (
+                <div className="space-y-4">
+                  {(incoming.data?.content ?? []).map((o) => (
+                    <IncomingPackageCard
+                      key={o.orderId}
+                      order={o}
+                      selected={selectedIds.has(o.orderId)}
+                      onToggle={toggleOrder}
+                    />
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="awaiting" className="mt-4">
               <OrderList
                 orders={awaitingOrders}
-                emptyMessage="No orders awaiting pickup."
+                emptyMessage={t("noOrders")}
                 renderCard={(o) => <PickpointOrderCard key={o.orderId} order={o} />}
               />
             </TabsContent>
@@ -163,7 +206,7 @@ export function PickpointDashboardPage() {
             <TabsContent value="returns" className="mt-4">
               <OrderList
                 orders={returnsInProg.data?.content ?? []}
-                emptyMessage="No returns in progress."
+                emptyMessage={t("noOrders")}
                 renderCard={(o) => <ReturnInProgressCard key={o.orderId} order={o} />}
               />
             </TabsContent>
@@ -175,11 +218,44 @@ export function PickpointDashboardPage() {
             <TabsContent value="history" className="mt-4">
               <OrderList
                 orders={history.data?.content ?? []}
-                emptyMessage="No completed orders."
+                emptyMessage={t("noOrders")}
                 renderCard={(o) => <PickpointOrderCard key={o.orderId} order={o} />}
               />
             </TabsContent>
           </Tabs>
+        )}
+
+        {selectedIds.size > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background p-3 shadow-lg">
+            <div className="mx-auto flex max-w-lg items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                {t("selectedCount", { count: selectedIds.size })}
+              </span>
+              <Button
+                size="sm"
+                disabled={confirmArrival.isPending}
+                onClick={async () => {
+                  try {
+                    await Promise.all(
+                      [...selectedIds].map((id) =>
+                        confirmArrival.mutateAsync(id),
+                      ),
+                    );
+                    toast.success(
+                      t("confirmedToast", { count: selectedIds.size }),
+                    );
+                    setSelectedIds(new Set());
+                  } catch (err) {
+                    toast.error(getErrorMessage(err));
+                  }
+                }}
+              >
+                {confirmArrival.isPending
+                  ? t("confirming")
+                  : t("confirmSelected", { count: selectedIds.size })}
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>

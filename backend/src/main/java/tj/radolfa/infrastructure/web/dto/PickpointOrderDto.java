@@ -4,8 +4,10 @@ import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.User;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /** View of an order for the pickpoint staff dashboard. */
 public record PickpointOrderDto(
@@ -17,9 +19,17 @@ public record PickpointOrderDto(
         Instant expiresAt,
         int daysUntilExpiry,
         boolean overdue,
-        int daysOverdue) {
+        int daysOverdue,
+        int totalItemCount,
+        BigDecimal totalWeightKg,
+        List<PickpointOrderItemDto> items) {
 
-    public static PickpointOrderDto from(Order order, User customer, int storageDays) {
+    public static PickpointOrderDto from(Order order,
+                                         User customer,
+                                         int storageDays,
+                                         List<PickpointOrderItemDto> items,
+                                         int totalItemCount,
+                                         BigDecimal totalWeightKg) {
         String firstName = extractFirstName(customer != null ? customer.name() : null);
         String phone     = customer != null && customer.phone() != null ? customer.phone().value() : null;
         Instant readyAt  = order.readyForPickupAt() != null ? order.readyForPickupAt() : order.createdAt();
@@ -42,7 +52,10 @@ public record PickpointOrderDto(
                 expiresAt,
                 daysLeft,
                 isOverdue,
-                daysOverdueVal);
+                daysOverdueVal,
+                totalItemCount,
+                totalWeightKg,
+                items);
     }
 
     private static String extractFirstName(String name) {

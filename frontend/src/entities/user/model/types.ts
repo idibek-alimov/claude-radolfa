@@ -53,6 +53,14 @@ export interface CourierOrder {
   outForDeliveryAt: string | null;
 }
 
+export interface PickpointOrderItem {
+  productName: string;
+  skuCode: string;
+  sizeLabel: string | null;
+  imageUrl: string | null;
+  quantity: number;
+}
+
 export interface PickpointOrder {
   orderId: number;
   customerFirstName: string;
@@ -63,6 +71,9 @@ export interface PickpointOrder {
   daysUntilExpiry: number;
   overdue: boolean;
   daysOverdue: number;
+  totalItemCount: number;
+  totalWeightKg: number | null;
+  items: PickpointOrderItem[];
 }
 
 export interface CourierFleetEntry {

@@ -918,5 +918,29 @@
         "short": "Stackable"
       }
     }
+  },
+  "pickpoint": {
+    "orderLabel": "Order",
+    "selectOrder": "Select order",
+    "items": "items",
+    "showMore": "+{count} more",
+    "showLess": "Show less",
+    "selectedCount": "{count} selected",
+    "confirmSelected": "Confirm Arrival ({count})",
+    "confirmedToast": "{count} order(s) confirmed",
+    "confirming": "Confirming…",
+    "tab": {
+      "incoming": "Incoming",
+      "awaiting": "Awaiting",
+      "returns": "Returns",
+      "customerReturns": "Walk-in Returns",
+      "history": "History"
+    },
+    "confirmArrival": "Confirm Arrival",
+    "readySince": "Ready since {date}",
+    "overdue": "Overdue · {days}d",
+    "noOrders": "No orders in this category.",
+    "awaitingPickup": "Awaiting customer pickup",
+    "enRoute": "En route — awaiting arrival confirmation"
   }
 }
