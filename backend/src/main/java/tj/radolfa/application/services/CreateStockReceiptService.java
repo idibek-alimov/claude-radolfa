@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.SaveStockReceiptPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
@@ -31,17 +32,20 @@ public class CreateStockReceiptService implements CreateStockReceiptUseCase {
     private final LoadListingVariantPort   loadListingVariantPort;
     private final LoadProductBasePort      loadProductBasePort;
     private final StockAdjustmentPort      stockAdjustmentPort;
+    private final LoadWarehousePort        loadWarehousePort;
 
     public CreateStockReceiptService(SaveStockReceiptPort saveStockReceiptPort,
                                      LoadSkuPort loadSkuPort,
                                      LoadListingVariantPort loadListingVariantPort,
                                      LoadProductBasePort loadProductBasePort,
-                                     StockAdjustmentPort stockAdjustmentPort) {
+                                     StockAdjustmentPort stockAdjustmentPort,
+                                     LoadWarehousePort loadWarehousePort) {
         this.saveStockReceiptPort   = saveStockReceiptPort;
         this.loadSkuPort            = loadSkuPort;
         this.loadListingVariantPort = loadListingVariantPort;
         this.loadProductBasePort    = loadProductBasePort;
         this.stockAdjustmentPort    = stockAdjustmentPort;
+        this.loadWarehousePort      = loadWarehousePort;
     }
 
     @Override
@@ -83,7 +87,8 @@ public class CreateStockReceiptService implements CreateStockReceiptUseCase {
                 })
                 .toList();
 
-        StockReceipt receipt = new StockReceipt(null, command.adminUserId(), Instant.now(),
+        Long warehouseId = loadWarehousePort.findDefault().id();
+        StockReceipt receipt = new StockReceipt(null, command.adminUserId(), warehouseId, Instant.now(),
                 command.supplierReference(), command.notes(), StockReceiptStatus.COMPLETED, items);
 
         StockReceipt saved = saveStockReceiptPort.save(receipt);

@@ -8,6 +8,7 @@ public class StockReceipt {
 
     private final Long                  id;
     private final Long                  createdByUserId;
+    private final Long                  warehouseId;
     private final Instant               createdAt;
     private final String                supplierReference;
     private final String                notes;
@@ -17,6 +18,7 @@ public class StockReceipt {
 
     public StockReceipt(Long id,
                         Long createdByUserId,
+                        Long warehouseId,
                         Instant createdAt,
                         String supplierReference,
                         String notes,
@@ -24,6 +26,7 @@ public class StockReceipt {
                         List<StockReceiptItem> items) {
         this.id                = id;
         this.createdByUserId   = createdByUserId;
+        this.warehouseId       = warehouseId;
         this.createdAt         = createdAt;
         this.supplierReference = supplierReference;
         this.notes             = notes;
@@ -37,6 +40,7 @@ public class StockReceipt {
 
     public Long                   getId()                { return id; }
     public Long                   getCreatedByUserId()   { return createdByUserId; }
+    public Long                   getWarehouseId()       { return warehouseId; }
     public Instant                getCreatedAt()         { return createdAt; }
     public String                 getSupplierReference() { return supplierReference; }
     public String                 getNotes()             { return notes; }

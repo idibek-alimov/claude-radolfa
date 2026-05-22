@@ -5,8 +5,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.out.AtomicStockPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.RecordInventoryTransactionPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
+import tj.radolfa.domain.model.Warehouse;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.model.InventoryTransaction;
 import tj.radolfa.domain.model.InventoryTransactionType;
@@ -14,6 +16,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Sku;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,12 +43,22 @@ class UpdateProductStockServiceTest {
     private FakeRecordInventoryTransactionPort ledgerPort;
     private UpdateProductStockService        service;
 
+    static final LoadWarehousePort FAKE_WAREHOUSE = new LoadWarehousePort() {
+        @Override public Warehouse findDefault() {
+            return new Warehouse(1L, "MAIN", "Main Warehouse", true, Instant.now());
+        }
+        @Override public Optional<Warehouse> findById(Long id) {
+            return id == 1L ? Optional.of(findDefault()) : Optional.empty();
+        }
+    };
+
     @BeforeEach
     void setUp() {
         atomicStockPort = new InMemoryAtomicStockPort();
         loadSkuPort     = new InMemoryLoadSkuPort();
         ledgerPort      = new FakeRecordInventoryTransactionPort();
-        service = new UpdateProductStockService(loadSkuPort, NO_SAVE, atomicStockPort, ledgerPort);
+        service = new UpdateProductStockService(loadSkuPort, NO_SAVE, atomicStockPort, ledgerPort,
+                FAKE_WAREHOUSE);
     }
 
     // ── decrement (legacy signature) ──────────────────────────────────────────

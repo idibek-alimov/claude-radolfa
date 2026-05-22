@@ -30,6 +30,9 @@ public class InventoryTransactionEntity {
     @Column(name = "sku_id", nullable = false)
     private Long skuId;
 
+    @Column(name = "warehouse_id", nullable = false)
+    private Long warehouseId;
+
     @Column(nullable = false)
     private int delta;
 

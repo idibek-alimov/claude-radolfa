@@ -7,7 +7,7 @@
 | Phase | Description | Status |
 |---|---|---|
 | 1 | Backend Foundation: `WAREHOUSE_MANAGER` Role + Returns Queue Endpoint | ✅ Complete |
-| 2 | Multi-Warehouse Schema Prep (DB-only, business-simple) | 🔍 Pending |
+| 2 | Multi-Warehouse Schema Prep (DB-only, business-simple) | ✅ Complete |
 | 3 | Frontend Shell: `/warehouse` Layout, Routing, i18n, Role Guard | 🔍 Pending |
 | 4 | Barcode Lookup + Inline Bin Reassignment + Inventory Ledger | 🔍 Pending |
 | 5 | Stock Receipts (List + Create + Full Detail Page) | 🔍 Pending |

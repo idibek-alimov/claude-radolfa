@@ -25,6 +25,7 @@ public class InventoryTransactionJpaAdapter implements RecordInventoryTransactio
         var entity = new InventoryTransactionEntity(
                 null,
                 tx.skuId(),
+                tx.warehouseId(),
                 tx.delta(),
                 tx.type(),
                 tx.referenceType(),
@@ -50,6 +51,7 @@ public class InventoryTransactionJpaAdapter implements RecordInventoryTransactio
         return new InventoryTransaction(
                 e.getId(),
                 e.getSkuId(),
+                e.getWarehouseId(),
                 e.getDelta(),
                 e.getType(),
                 e.getReferenceType(),

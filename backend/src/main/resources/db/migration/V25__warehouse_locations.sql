@@ -3,9 +3,10 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE TABLE warehouse_zones (
-    id         BIGSERIAL    PRIMARY KEY,
-    code       VARCHAR(20)  NOT NULL UNIQUE,
-    label      VARCHAR(100),
+    id           BIGSERIAL    PRIMARY KEY,
+    warehouse_id BIGINT       NOT NULL DEFAULT 1 REFERENCES warehouses(id) ON DELETE RESTRICT,
+    code         VARCHAR(20)  NOT NULL UNIQUE,
+    label        VARCHAR(100),
     version    BIGINT       NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()

@@ -8,8 +8,10 @@ import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase.ItemC
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.SaveStockReceiptPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
+import tj.radolfa.domain.model.Warehouse;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.InventoryTransactionType;
 import tj.radolfa.domain.model.ListingVariant;
@@ -21,6 +23,7 @@ import tj.radolfa.domain.model.StockReceiptItem;
 import tj.radolfa.domain.model.StockReceiptStatus;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -59,6 +62,15 @@ class CreateStockReceiptServiceTest {
 
     // ── Fakes ─────────────────────────────────────────────────────────────────
 
+    static class FakeLoadWarehousePort implements LoadWarehousePort {
+        @Override public Warehouse findDefault() {
+            return new Warehouse(1L, "MAIN", "Main Warehouse", true, Instant.now());
+        }
+        @Override public Optional<Warehouse> findById(Long id) {
+            return id == 1L ? Optional.of(findDefault()) : Optional.empty();
+        }
+    }
+
     static class FakeSaveStockReceiptPort implements SaveStockReceiptPort {
         StockReceipt saved;
         private long nextId = 1L;
@@ -71,8 +83,9 @@ class CreateStockReceiptServiceTest {
                 itemsWithIds.add(new StockReceiptItem(nextId++, receiptId, item.skuId(),
                         item.skuCode(), item.productName(), item.quantityReceived(), item.notes()));
             }
-            saved = new StockReceipt(receiptId, receipt.getCreatedByUserId(), receipt.getCreatedAt(),
-                    receipt.getSupplierReference(), receipt.getNotes(), receipt.getStatus(), itemsWithIds);
+            saved = new StockReceipt(receiptId, receipt.getCreatedByUserId(), receipt.getWarehouseId(),
+                    receipt.getCreatedAt(), receipt.getSupplierReference(), receipt.getNotes(),
+                    receipt.getStatus(), itemsWithIds);
             return saved;
         }
     }
@@ -134,7 +147,8 @@ class CreateStockReceiptServiceTest {
                                       FakeLoadListingVariantPort variantPort,
                                       FakeLoadProductBasePort productBasePort,
                                       CapturingStockAdjustmentPort stock) {
-        return new CreateStockReceiptService(save, skuPort, variantPort, productBasePort, stock);
+        return new CreateStockReceiptService(save, skuPort, variantPort, productBasePort, stock,
+                new FakeLoadWarehousePort());
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -159,6 +173,7 @@ class CreateStockReceiptServiceTest {
 
         assertEquals(StockReceiptStatus.COMPLETED, result.getStatus());
         assertEquals(2, result.getItems().size());
+        assertEquals(1L, result.getWarehouseId());
         assertEquals(2, stock.calls.size());
         stock.calls.forEach(c -> {
             assertEquals(InventoryTransactionType.RECEIPT, c.type());

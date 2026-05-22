@@ -5,6 +5,7 @@ import java.time.Instant;
 public record InventoryTransaction(
         Long id,
         Long skuId,
+        Long warehouseId,
         int delta,                 // positive = stock added, negative = stock removed, 0 = write-off
         InventoryTransactionType type,
         String referenceType,      // "ORDER", "CUSTOMER_RETURN", "STOCK_RECEIPT", "MANUAL", etc.

@@ -4,6 +4,7 @@ CREATE TABLE stock_receipts (
     supplier_reference  VARCHAR(200),
     notes               TEXT,
     status              VARCHAR(20)  NOT NULL DEFAULT 'COMPLETED',
+    warehouse_id        BIGINT       NOT NULL DEFAULT 1 REFERENCES warehouses(id) ON DELETE RESTRICT,
     version             BIGINT       NOT NULL DEFAULT 0,
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()

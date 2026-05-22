@@ -7,9 +7,11 @@ import tj.radolfa.application.ports.in.warehouse.ReviewCustomerReturnItemsUseCas
 import tj.radolfa.application.ports.in.warehouse.ReviewCustomerReturnItemsUseCase.ItemReview;
 import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.RecordInventoryTransactionPort;
 import tj.radolfa.application.ports.out.SaveCustomerReturnPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
+import tj.radolfa.domain.model.Warehouse;
 import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.CustomerReturnItem;
 import tj.radolfa.domain.model.CustomerReturnStatus;
@@ -110,6 +112,15 @@ class ReviewCustomerReturnItemsServiceTest {
         @Override public void record(InventoryTransaction tx) { recorded.add(tx); }
     }
 
+    static final LoadWarehousePort FAKE_WAREHOUSE = new LoadWarehousePort() {
+        @Override public Warehouse findDefault() {
+            return new Warehouse(1L, "MAIN", "Main Warehouse", true, Instant.now());
+        }
+        @Override public Optional<Warehouse> findById(Long id) {
+            return id == 1L ? Optional.of(findDefault()) : Optional.empty();
+        }
+    };
+
     static ReviewCustomerReturnItemsService service(
             CustomerReturn cr, Order order,
             CapturingSaveCustomerReturnPort save,
@@ -127,7 +138,8 @@ class ReviewCustomerReturnItemsServiceTest {
                     @Override public List<Order> loadRecentPaidByUserId(Long u, int l) { return List.of(); }
                 },
                 stock,
-                ledger);
+                ledger,
+                FAKE_WAREHOUSE);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

@@ -178,7 +178,7 @@ class LookupSkuByBarcodeServiceTest {
     @Test
     @DisplayName("SKU has binId, full chain resolves → binLocation formatted correctly")
     void binAssigned_resolvesBinLocation() {
-        var zone  = new WarehouseZone(ZONE_ID,  "A",  "Zone A");
+        var zone  = new WarehouseZone(ZONE_ID,  1L, "A",  "Zone A");
         var shelf = new WarehouseShelf(SHELF_ID, ZONE_ID, "3", "Row 3");
         var bin   = new WarehouseBin(BIN_ID,   SHELF_ID, "7");
         var locationPort = new FakeLoadWarehouseLocationPort(bin, shelf, zone);

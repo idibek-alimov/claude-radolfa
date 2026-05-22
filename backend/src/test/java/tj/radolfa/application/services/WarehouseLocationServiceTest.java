@@ -3,11 +3,15 @@ package tj.radolfa.application.services;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.out.LoadWarehouseLocationPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.SaveWarehouseLocationPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.model.Warehouse;
 import tj.radolfa.domain.model.WarehouseBin;
 import tj.radolfa.domain.model.WarehouseShelf;
 import tj.radolfa.domain.model.WarehouseZone;
+
+import java.time.Instant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +47,7 @@ class WarehouseLocationServiceTest {
         final List<Long>           deletedZoneIds = new ArrayList<>();
 
         @Override public WarehouseZone saveZone(WarehouseZone z) {
-            var saved = new WarehouseZone(10L, z.code(), z.label());
+            var saved = new WarehouseZone(10L, z.warehouseId(), z.code(), z.label());
             savedZones.add(saved); return saved;
         }
         @Override public WarehouseShelf saveShelf(WarehouseShelf s) {
@@ -59,9 +63,18 @@ class WarehouseLocationServiceTest {
         @Override public void deleteBin(Long id)   {}
     }
 
+    static class FakeLoadWarehousePort implements LoadWarehousePort {
+        @Override public Warehouse findDefault() {
+            return new Warehouse(1L, "MAIN", "Main Warehouse", true, Instant.now());
+        }
+        @Override public java.util.Optional<Warehouse> findById(Long id) {
+            return id == 1L ? java.util.Optional.of(findDefault()) : java.util.Optional.empty();
+        }
+    }
+
     static WarehouseLocationService service(FakeLoadWarehouseLocationPort load,
                                              FakeSaveWarehouseLocationPort save) {
-        return new WarehouseLocationService(load, save);
+        return new WarehouseLocationService(load, save, new FakeLoadWarehousePort());
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -77,6 +90,7 @@ class WarehouseLocationServiceTest {
         assertEquals("A", zone.code());
         assertEquals("Zone A", zone.label());
         assertNotNull(zone.id());
+        assertEquals(1L, zone.warehouseId());
     }
 
     @Test
@@ -91,7 +105,7 @@ class WarehouseLocationServiceTest {
     @Test
     @DisplayName("createShelf with existing zone → port.saveShelf called; shelf has correct zoneId")
     void createShelf_existingZone_savesCorrectly() {
-        var existingZone = new WarehouseZone(1L, "A", "Zone A");
+        var existingZone = new WarehouseZone(1L, 1L, "A", "Zone A");
         var save = new FakeSaveWarehouseLocationPort();
         var shelf = service(new FakeLoadWarehouseLocationPort(existingZone, null), save)
                 .createShelf(1L, "3", "Row 3");

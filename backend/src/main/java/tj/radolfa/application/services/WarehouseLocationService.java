@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.warehouse.ManageWarehouseLocationUseCase;
 import tj.radolfa.application.ports.out.LoadWarehouseLocationPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.SaveWarehouseLocationPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.WarehouseBin;
@@ -18,18 +19,22 @@ public class WarehouseLocationService implements ManageWarehouseLocationUseCase 
 
     private final LoadWarehouseLocationPort loadPort;
     private final SaveWarehouseLocationPort savePort;
+    private final LoadWarehousePort         loadWarehousePort;
 
     public WarehouseLocationService(LoadWarehouseLocationPort loadPort,
-                                    SaveWarehouseLocationPort savePort) {
-        this.loadPort = loadPort;
-        this.savePort = savePort;
+                                    SaveWarehouseLocationPort savePort,
+                                    LoadWarehousePort loadWarehousePort) {
+        this.loadPort          = loadPort;
+        this.savePort          = savePort;
+        this.loadWarehousePort = loadWarehousePort;
     }
 
     // ── Zones ─────────────────────────────────────────────────────────────────
 
     @Override
     public WarehouseZone createZone(String code, String label) {
-        return savePort.saveZone(new WarehouseZone(null, code, label));
+        Long warehouseId = loadWarehousePort.findDefault().id();
+        return savePort.saveZone(new WarehouseZone(null, warehouseId, code, label));
     }
 
     @Override

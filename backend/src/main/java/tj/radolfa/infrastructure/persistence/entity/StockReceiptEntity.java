@@ -26,6 +26,9 @@ public class StockReceiptEntity extends BaseAuditEntity {
     @Column(name = "created_by_user_id")
     private Long createdByUserId;
 
+    @Column(name = "warehouse_id", nullable = false)
+    private Long warehouseId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

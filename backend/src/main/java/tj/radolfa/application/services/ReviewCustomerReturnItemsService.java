@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.warehouse.ReviewCustomerReturnItemsUseCase;
 import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.RecordInventoryTransactionPort;
 import tj.radolfa.application.ports.out.SaveCustomerReturnPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
@@ -33,17 +34,20 @@ public class ReviewCustomerReturnItemsService implements ReviewCustomerReturnIte
     private final LoadOrderPort                  loadOrderPort;
     private final StockAdjustmentPort            stockAdjustmentPort;
     private final RecordInventoryTransactionPort recordInventoryTransactionPort;
+    private final LoadWarehousePort              loadWarehousePort;
 
     public ReviewCustomerReturnItemsService(LoadCustomerReturnPort loadCustomerReturnPort,
                                              SaveCustomerReturnPort saveCustomerReturnPort,
                                              LoadOrderPort loadOrderPort,
                                              StockAdjustmentPort stockAdjustmentPort,
-                                             RecordInventoryTransactionPort recordInventoryTransactionPort) {
+                                             RecordInventoryTransactionPort recordInventoryTransactionPort,
+                                             LoadWarehousePort loadWarehousePort) {
         this.loadCustomerReturnPort         = loadCustomerReturnPort;
         this.saveCustomerReturnPort         = saveCustomerReturnPort;
         this.loadOrderPort                  = loadOrderPort;
         this.stockAdjustmentPort            = stockAdjustmentPort;
         this.recordInventoryTransactionPort = recordInventoryTransactionPort;
+        this.loadWarehousePort              = loadWarehousePort;
     }
 
     @Override
@@ -91,8 +95,9 @@ public class ReviewCustomerReturnItemsService implements ReviewCustomerReturnIte
                 }
             } else if (r == Resellability.DEFECTIVE) {
                 Long skuId = orderItem != null ? orderItem.getSkuId() : null;
+                Long warehouseId = loadWarehousePort.findDefault().id();
                 recordInventoryTransactionPort.record(new InventoryTransaction(
-                        null, skuId, 0, InventoryTransactionType.WRITE_OFF,
+                        null, skuId, warehouseId, 0, InventoryTransactionType.WRITE_OFF,
                         "CUSTOMER_RETURN", cr.getId(), command.adminUserId(),
                         null, Instant.now()));
             }

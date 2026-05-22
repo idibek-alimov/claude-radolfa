@@ -29,6 +29,9 @@ public class WarehouseZoneEntity extends BaseAuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "warehouse_id", nullable = false)
+    private Long warehouseId;
+
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
 
