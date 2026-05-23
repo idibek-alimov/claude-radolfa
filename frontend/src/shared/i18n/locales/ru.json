@@ -1163,6 +1163,47 @@
       "validation": {
         "codeRequired": "Код обязателен."
       }
+    },
+    "returns": {
+      "title": "Очередь возвратов",
+      "subtitle": "Оцените товары как пригодные к продаже или дефектные",
+      "empty": "Нет возвратов для проверки.",
+      "columns": {
+        "returnId": "Возврат №",
+        "orderId": "Заказ №",
+        "customer": "Покупатель",
+        "items": "Товары",
+        "sentAt": "Отправлено"
+      },
+      "review": {
+        "backToQueue": "Назад в очередь",
+        "title": "Возврат №{id}",
+        "metadata": {
+          "orderId": "Заказ",
+          "customer": "Покупатель",
+          "pickpoint": "Пункт выдачи",
+          "sentAt": "Отправлено",
+          "totalRefund": "Итого к возврату",
+          "notes": "Примечание"
+        },
+        "itemsTitle": "Товары",
+        "refundLabel": "Возврат",
+        "resellable": "Пригодно",
+        "defective": "Дефект",
+        "alreadyReviewed": "Проверено",
+        "submit": "Отправить проверку",
+        "submitting": "Отправка…",
+        "successToast": "Проверка отправлена.",
+        "errorToast": "Не удалось отправить проверку.",
+        "loadError": "Не удалось загрузить возврат."
+      },
+      "reason": {
+        "DAMAGED": "Повреждён",
+        "WRONG_ITEM": "Не тот товар",
+        "NOT_AS_DESCRIBED": "Не соответствует описанию",
+        "CHANGED_MIND": "Передумал",
+        "OTHER": "Другое"
+      }
     }
   },
   "receipts": {

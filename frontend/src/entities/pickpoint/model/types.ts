@@ -67,15 +67,19 @@ export type CustomerReturnStatus =
   | "REFUND_APPROVED"
   | "REFUNDED";
 
+export type Resellability = "PENDING_REVIEW" | "RESELLABLE" | "DEFECTIVE";
+
 export interface CustomerReturnItem {
   orderItemId: number;
   productName: string | null;
+  sizeLabel: string | null;
   skuCode: string | null;
   quantity: number;
   unitPrice: number;
   refundAmount: number;
   reason: ReturnReason;
   notes: string | null;
+  resellability: Resellability;
 }
 
 export interface CustomerReturn {

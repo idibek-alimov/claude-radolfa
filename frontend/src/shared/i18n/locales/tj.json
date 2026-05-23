@@ -1163,6 +1163,47 @@
       "validation": {
         "codeRequired": "Рамз ҳатмист."
       }
+    },
+    "returns": {
+      "title": "Навбати баргаштҳо",
+      "subtitle": "Молҳои баргаштиро ҳамчун барои фурӯш мувофиқ ё айбнок арзёбӣ кунед",
+      "empty": "Баргаштҳое барои баррасӣ нест.",
+      "columns": {
+        "returnId": "Баргашт №",
+        "orderId": "Фармоиш №",
+        "customer": "Харидор",
+        "items": "Молҳо",
+        "sentAt": "Фиристода шуд"
+      },
+      "review": {
+        "backToQueue": "Бозгашт ба навбат",
+        "title": "Баргашт №{id}",
+        "metadata": {
+          "orderId": "Фармоиш",
+          "customer": "Харидор",
+          "pickpoint": "Нуқтаи гирифт",
+          "sentAt": "Фиристода шуд",
+          "totalRefund": "Ҷамъи бозгашт",
+          "notes": "Тавзеҳ"
+        },
+        "itemsTitle": "Молҳо",
+        "refundLabel": "Бозгашт",
+        "resellable": "Мувофиқ",
+        "defective": "Айбнок",
+        "alreadyReviewed": "Баррасӣ шуд",
+        "submit": "Баррасиро ирсол кунед",
+        "submitting": "Ирсол…",
+        "successToast": "Баррасӣ ирсол шуд.",
+        "errorToast": "Ирсоли баррасӣ имконпазир набуд.",
+        "loadError": "Барор намудани баргашт имконпазир набуд."
+      },
+      "reason": {
+        "DAMAGED": "Зарардида",
+        "WRONG_ITEM": "Мол нодуруст",
+        "NOT_AS_DESCRIBED": "Бо тавсиф мувофиқ нест",
+        "CHANGED_MIND": "Фикр тағйир ёфт",
+        "OTHER": "Дигар"
+      }
     }
   },
   "receipts": {

@@ -6,6 +6,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.Pickpoint;
+import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
 
 import java.time.Instant;
@@ -28,10 +29,18 @@ public record CustomerReturnDto(
         Money totalRefundAmount) {
 
     public static CustomerReturnDto from(CustomerReturn r, Order order, User customer) {
-        return from(r, order, customer, null);
+        return from(r, order, customer, null, Map.of());
     }
 
     public static CustomerReturnDto from(CustomerReturn r, Order order, User customer, Pickpoint pickpoint) {
+        return from(r, order, customer, pickpoint, Map.of());
+    }
+
+    public static CustomerReturnDto from(CustomerReturn r, Order order, User customer, Map<Long, Sku> skuMap) {
+        return from(r, order, customer, null, skuMap);
+    }
+
+    public static CustomerReturnDto from(CustomerReturn r, Order order, User customer, Pickpoint pickpoint, Map<Long, Sku> skuMap) {
         Map<Long, OrderItem> orderItemMap = order.items().stream()
                 .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
 
@@ -41,10 +50,13 @@ public record CustomerReturnDto(
             Money refundAmount = unitPrice.multiply(ri.quantity());
             String productName = oi != null ? oi.getProductName() : null;
             String skuCode     = oi != null ? oi.getSkuCode()     : null;
+            Long skuId         = oi != null ? oi.getSkuId()       : null;
+            Sku sku            = skuId != null ? skuMap.get(skuId) : null;
+            String sizeLabel   = sku != null ? sku.getSizeLabel() : null;
             return new CustomerReturnItemDto(
-                    ri.orderItemId(), productName, skuCode,
+                    ri.orderItemId(), productName, sizeLabel, skuCode,
                     ri.quantity(), unitPrice, refundAmount,
-                    ri.reason(), ri.notes());
+                    ri.reason(), ri.notes(), ri.resellability());
         }).toList();
 
         Money total = itemDtos.stream()

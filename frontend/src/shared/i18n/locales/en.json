@@ -1163,6 +1163,47 @@
       "validation": {
         "codeRequired": "Code is required."
       }
+    },
+    "returns": {
+      "title": "Returns Queue",
+      "subtitle": "Review returned items as resellable or defective",
+      "empty": "No returns waiting for review.",
+      "columns": {
+        "returnId": "Return #",
+        "orderId": "Order #",
+        "customer": "Customer",
+        "items": "Items",
+        "sentAt": "Sent at"
+      },
+      "review": {
+        "backToQueue": "Back to queue",
+        "title": "Return #{id}",
+        "metadata": {
+          "orderId": "Order",
+          "customer": "Customer",
+          "pickpoint": "Pickpoint",
+          "sentAt": "Sent at",
+          "totalRefund": "Total refund",
+          "notes": "Notes"
+        },
+        "itemsTitle": "Items",
+        "refundLabel": "Refund",
+        "resellable": "Resellable",
+        "defective": "Defective",
+        "alreadyReviewed": "Reviewed",
+        "submit": "Submit review",
+        "submitting": "Submitting…",
+        "successToast": "Review submitted.",
+        "errorToast": "Failed to submit review.",
+        "loadError": "Failed to load this return."
+      },
+      "reason": {
+        "DAMAGED": "Damaged",
+        "WRONG_ITEM": "Wrong item",
+        "NOT_AS_DESCRIBED": "Not as described",
+        "CHANGED_MIND": "Changed mind",
+        "OTHER": "Other"
+      }
     }
   },
   "receipts": {

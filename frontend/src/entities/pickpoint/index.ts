@@ -15,6 +15,7 @@ export type {
   UpsertPickpointHoursPayload,
   ReturnReason,
   CustomerReturnStatus,
+  Resellability,
   CustomerReturnItem,
   CustomerReturn,
   ReturnableOrder,

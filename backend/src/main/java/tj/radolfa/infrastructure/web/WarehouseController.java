@@ -22,16 +22,19 @@ import tj.radolfa.application.ports.in.warehouse.SearchSkusUseCase;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptByIdUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptsUseCase;
+import tj.radolfa.application.ports.in.warehouse.GetWarehouseCustomerReturnByIdUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetWarehouseCustomerReturnsUseCase;
 import tj.radolfa.application.ports.in.warehouse.LookupSkuByBarcodeUseCase;
 import tj.radolfa.application.ports.in.warehouse.ManageWarehouseLocationUseCase;
 import tj.radolfa.application.ports.in.warehouse.ReviewCustomerReturnItemsUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.InventoryTransaction;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.StockReceipt;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.WarehouseBin;
@@ -54,6 +57,7 @@ import tj.radolfa.infrastructure.web.dto.WarehouseShelfDto;
 import tj.radolfa.infrastructure.web.dto.WarehouseZoneDto;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/admin/warehouse")
@@ -66,12 +70,14 @@ public class WarehouseController {
     private final GetStockReceiptsUseCase              getStockReceiptsUseCase;
     private final GetStockReceiptByIdUseCase           getStockReceiptByIdUseCase;
     private final GetWarehouseCustomerReturnsUseCase   getWarehouseCustomerReturnsUseCase;
+    private final GetWarehouseCustomerReturnByIdUseCase getWarehouseCustomerReturnByIdUseCase;
     private final ReviewCustomerReturnItemsUseCase     reviewCustomerReturnItemsUseCase;
     private final LookupSkuByBarcodeUseCase            lookupSkuByBarcodeUseCase;
     private final SearchSkusUseCase                    searchSkusUseCase;
     private final ManageWarehouseLocationUseCase       manageWarehouseLocationUseCase;
     private final AssignSkuToBinUseCase                assignSkuToBinUseCase;
     private final LoadOrderPort                        loadOrderPort;
+    private final LoadSkuPort                          loadSkuPort;
     private final LoadUserPort                         loadUserPort;
 
     // ── Inventory history ─────────────────────────────────────────────────────
@@ -248,13 +254,25 @@ public class WarehouseController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         PageResult<CustomerReturn> result = getWarehouseCustomerReturnsUseCase.execute(page, size);
-        List<CustomerReturnDto> dtos = result.content().stream().map(r -> {
-            Order order = loadOrderPort.loadById(r.getOrderId()).orElseThrow();
-            User customer = loadUserPort.loadById(order.userId()).orElse(null);
-            return CustomerReturnDto.from(r, order, customer);
-        }).toList();
+        List<CustomerReturnDto> dtos = result.content().stream().map(r -> assembleReturnDto(r)).toList();
         return ResponseEntity.ok(PageResponse.from(
                 new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @GetMapping("/customer-returns/{returnId}")
+    @Operation(summary = "Get a single customer return awaiting resellability review")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<CustomerReturnDto> getReturnForReview(@PathVariable Long returnId) {
+        CustomerReturn ret = getWarehouseCustomerReturnByIdUseCase.execute(returnId);
+        return ResponseEntity.ok(assembleReturnDto(ret));
+    }
+
+    private CustomerReturnDto assembleReturnDto(CustomerReturn r) {
+        Order order = loadOrderPort.loadById(r.getOrderId()).orElseThrow();
+        User customer = loadUserPort.loadById(order.userId()).orElse(null);
+        List<Long> skuIds = order.items().stream().map(i -> i.getSkuId()).filter(id -> id != null).toList();
+        Map<Long, Sku> skuMap = loadSkuPort.findAllByIdsAsMap(skuIds);
+        return CustomerReturnDto.from(r, order, customer, skuMap);
     }
 
     @PostMapping("/customer-returns/{returnId}/review-items")
