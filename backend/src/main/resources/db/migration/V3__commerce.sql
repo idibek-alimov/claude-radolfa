@@ -69,7 +69,12 @@ CREATE TABLE order_items (
     sku_code          VARCHAR(128),
     product_name      VARCHAR(255),
     quantity          INTEGER        NOT NULL,
-    price_at_purchase NUMERIC(12,2)  NOT NULL
+    price_at_purchase NUMERIC(12,2)  NOT NULL,
+    quantity_picked   INTEGER        NOT NULL DEFAULT 0,
+    picked_at         TIMESTAMPTZ,
+    picked_by_user_id BIGINT         REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT chk_order_items_pick_qty
+        CHECK (quantity_picked >= 0 AND quantity_picked <= quantity)
 );
 
 CREATE INDEX idx_order_items_order_id ON order_items (order_id);

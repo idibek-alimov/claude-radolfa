@@ -48,12 +48,12 @@ class ReceiveCustomerReturnServiceTest {
 
     static OrderItem itemA(int qty) {
         return new OrderItem(ITEM_A_ID, null, null, "SKU-A", "Product A", qty,
-                new Money(BigDecimal.valueOf(100)));
+                new Money(BigDecimal.valueOf(100)), 0, null, null);
     }
 
     static OrderItem itemB(int qty) {
         return new OrderItem(ITEM_B_ID, null, null, "SKU-B", "Product B", qty,
-                new Money(BigDecimal.valueOf(50)));
+                new Money(BigDecimal.valueOf(50)), 0, null, null);
     }
 
     static User staffUser() {

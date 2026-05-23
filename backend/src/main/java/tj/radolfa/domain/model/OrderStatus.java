@@ -3,6 +3,7 @@ package tj.radolfa.domain.model;
 public enum OrderStatus {
     PENDING,
     PAID,
+    PICKED,
     SHIPPED,
     OUT_FOR_DELIVERY,
     DELIVERY_ATTEMPTED,

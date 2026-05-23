@@ -53,7 +53,7 @@ class CancelOrderServiceTest {
     }
 
     static OrderItem orderItem(Long skuId) {
-        return new OrderItem(1L, skuId, null, "SKU-1", "Product", 2, new Money(BigDecimal.TEN));
+        return new OrderItem(1L, skuId, null, "SKU-1", "Product", 2, new Money(BigDecimal.TEN), 0, null, null);
     }
 
     static LoadOrderPort orderPort(Order order) {

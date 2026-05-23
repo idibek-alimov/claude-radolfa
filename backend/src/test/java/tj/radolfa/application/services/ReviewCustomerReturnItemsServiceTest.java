@@ -58,8 +58,8 @@ class ReviewCustomerReturnItemsServiceTest {
     }
 
     static Order orderWithItems() {
-        var itemA = new OrderItem(ORDER_ITEM_A, SKU_A, null, "SKU-A", "Widget", 2, new Money(BigDecimal.TEN));
-        var itemB = new OrderItem(ORDER_ITEM_B, SKU_B, null, "SKU-B", "Gadget", 2, new Money(BigDecimal.TEN));
+        var itemA = new OrderItem(ORDER_ITEM_A, SKU_A, null, "SKU-A", "Widget", 2, new Money(BigDecimal.TEN), 0, null, null);
+        var itemB = new OrderItem(ORDER_ITEM_B, SKU_B, null, "SKU-B", "Gadget", 2, new Money(BigDecimal.TEN), 0, null, null);
         return new Order.Builder()
                 .id(ORDER_ID).userId(10L).status(OrderStatus.RETURNED_TO_WAREHOUSE)
                 .deliveryType(DeliveryType.PICKPOINT).pickpointId(5L)

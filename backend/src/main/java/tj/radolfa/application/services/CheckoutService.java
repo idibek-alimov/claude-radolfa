@@ -346,6 +346,6 @@ public class CheckoutService implements CheckoutUseCase {
         if (product == null) throw new IllegalStateException("Product not found: " + variant.getProductBaseId());
 
         return new OrderItem(null, cartItem.getSkuId(), variant.getId(), sku.getSkuCode(),
-                product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot());
+                product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot(), 0, null, null);
     }
 }

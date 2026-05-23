@@ -44,7 +44,7 @@ class ApproveRefundServiceTest {
     // ── Domain object factories ───────────────────────────────────────────────
 
     static OrderItem item(Long id, BigDecimal unitPrice, int qty) {
-        return new OrderItem(id, null, null, null, "Product", qty, Money.of(unitPrice));
+        return new OrderItem(id, null, null, null, "Product", qty, Money.of(unitPrice), 0, null, null);
     }
 
     static Order orderWith(List<OrderItem> items) {

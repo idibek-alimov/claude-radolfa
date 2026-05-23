@@ -7,5 +7,6 @@ public enum InventoryTransactionType {
     RETURN_RESTORE,   // stock restored after warehouse resellability review (W3)
     WRITE_OFF,        // item deemed defective after review — paper trail only, no stock change
     RECEIPT,          // stock added via a Stock Receipt document (W2)
-    MANUAL_ADJUSTMENT // admin sets absolute value or positive/negative delta
+    MANUAL_ADJUSTMENT, // admin sets absolute value or positive/negative delta
+    PICK_VERIFICATION  // unit physically scanned during pick — paper trail only, no stock change
 }
