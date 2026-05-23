@@ -70,6 +70,20 @@ class SearchSkusServiceTest {
     }
 
     @Test
+    @DisplayName("page=0 is clamped to 1 and forwarded to port")
+    void pageZeroClamped() {
+        var port = new FakeSearchSkusPort();
+        port.rows = List.of(row("SKU-001", "Shirt"));
+        port.total = 1;
+
+        var result = service(port).execute("foo", 0, 20);
+
+        assertEquals(1, port.lastQuery != null ? result.number() : -1);
+        assertEquals("foo", port.lastQuery);
+        assertEquals(1, result.number());
+    }
+
+    @Test
     @DisplayName("pagination metadata is forwarded correctly")
     void paginationMetadata() {
         var port = new FakeSearchSkusPort();

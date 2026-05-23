@@ -21,9 +21,11 @@ public class SearchSkusService implements SearchSkusUseCase {
     @Override
     @Transactional(readOnly = true)
     public PageResult<SkuSearchRow> execute(String query, int page, int size) {
+        int safePage = Math.max(1, page);
+        int safeSize = Math.max(1, Math.min(100, size));
         if (query == null || query.isBlank()) {
-            return new PageResult<>(List.of(), 0, page, size, true);
+            return new PageResult<>(List.of(), 0, safePage, safeSize, true);
         }
-        return searchSkusPort.search(query.trim(), page, size);
+        return searchSkusPort.search(query.trim(), safePage, safeSize);
     }
 }

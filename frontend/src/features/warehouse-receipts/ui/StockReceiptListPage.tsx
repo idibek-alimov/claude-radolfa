@@ -19,8 +19,6 @@ import {
 import { useDebounce, formatDate } from "@/shared/lib";
 import { useStockReceipts } from "../api";
 
-const PAGE_SIZE = 20;
-
 export function StockReceiptListPage() {
   const t = useTranslations("warehouse");
   const router = useRouter();
@@ -96,7 +94,7 @@ export function StockReceiptListPage() {
                     {receipt.totalUnitsReceived}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {t("receipts.columns.createdBy")} #{receipt.createdByUserId}
+                    #{receipt.createdByUserId}
                   </TableCell>
                 </TableRow>
               ))}
@@ -104,10 +102,10 @@ export function StockReceiptListPage() {
           </Table>
 
           {/* Pagination */}
-          {data.totalElements > PAGE_SIZE && (
+          {data.totalElements > data.size && (
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>
-                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.totalElements)}{" "}
+                {(data.number - 1) * data.size + 1}–{Math.min(data.number * data.size, data.totalElements)}{" "}
                 / {data.totalElements}
               </span>
               <div className="flex gap-2">

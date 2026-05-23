@@ -79,7 +79,6 @@ export function ReceiptScanInput({ onResult }: Props) {
               )}
             </Button>
           </form>
-          <p className="text-xs text-muted-foreground text-center">{t("receipts.create.scanPrompt")}</p>
         </div>
       </CardContent>
     </Card>

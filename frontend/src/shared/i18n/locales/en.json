@@ -1067,7 +1067,8 @@
         "submitting": "Creating…",
         "emptyForm": "Add at least one item before submitting.",
         "successToast": "Stock receipt created.",
-        "error": "Failed to create stock receipt."
+        "error": "Failed to create stock receipt.",
+        "invalidQuantity": "Quantity must be at least 1 for every line."
       },
       "detail": {
         "title": "Stock Receipt",
@@ -1085,8 +1086,17 @@
           "skuCode": "SKU Code",
           "qty": "Qty Received",
           "notes": "Notes"
-        }
+        },
+        "loadError": "Failed to load stock receipt."
       }
+    }
+  },
+  "receipts": {
+    "detail": {
+      "loadError": "Failed to load stock receipt."
+    },
+    "create": {
+      "invalidQuantity": "Quantity must be at least 1 for every line."
     }
   }
 }

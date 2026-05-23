@@ -93,11 +93,8 @@ export function ReceiptLineItemsTable(props: Props) {
                 type="number"
                 min={1}
                 value={item.quantity}
-                onChange={(e) =>
-                  props.onQuantityChange(item.skuId, Number(e.target.value))
-                }
-                onBlur={(e) => {
-                  const v = Math.max(1, Number(e.target.value));
+                onChange={(e) => {
+                  const v = e.target.value === "" ? 1 : Math.max(1, Number(e.target.value));
                   props.onQuantityChange(item.skuId, v);
                 }}
                 className="w-20 h-8 text-sm"

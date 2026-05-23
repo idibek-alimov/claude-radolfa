@@ -8,8 +8,9 @@ import { Loader2, Package } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Textarea } from "@/shared/ui/textarea";
 import { Switch } from "@/shared/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Card, CardContent } from "@/shared/ui/card";
 import { getErrorMessage } from "@/shared/lib";
 import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 import type { LineItem } from "../types";
@@ -70,6 +71,10 @@ export function StockReceiptCreatePage() {
       toast.error(t("receipts.create.emptyForm"));
       return;
     }
+    if (lineItems.some((li) => li.quantity < 1)) {
+      toast.error(t("receipts.create.invalidQuantity"));
+      return;
+    }
     createReceipt.mutate(
       {
         supplierReference,
@@ -101,12 +106,7 @@ export function StockReceiptCreatePage() {
 
       {/* Header fields */}
       <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-semibold border-b pb-2 mb-0">
-            {t("receipts.create.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="pt-6 space-y-4">
           <div className="space-y-1.5">
             <Label>{t("receipts.create.supplierRef")}</Label>
             <Input
@@ -117,10 +117,11 @@ export function StockReceiptCreatePage() {
           </div>
           <div className="space-y-1.5">
             <Label>{t("receipts.create.notes")}</Label>
-            <Input
+            <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="—"
+              rows={3}
             />
           </div>
         </CardContent>
@@ -167,7 +168,7 @@ export function StockReceiptCreatePage() {
       <div className="flex gap-3">
         <Button
           onClick={handleSubmit}
-          disabled={lineItems.length === 0 || createReceipt.isPending}
+          disabled={lineItems.length === 0 || lineItems.some((li) => li.quantity < 1) || createReceipt.isPending}
         >
           {createReceipt.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           {createReceipt.isPending ? t("receipts.create.submitting") : t("receipts.create.submitBtn")}
