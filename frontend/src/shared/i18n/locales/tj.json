@@ -272,18 +272,18 @@
         "total": "Маблағ"
       },
       "status": {
-        "PENDING":          "Интизор",
-        "PAID":             "Пардохтшуда",
-        "SHIPPED":              "Фиристода шуд",
-        "OUT_FOR_DELIVERY":     "Курьер дар роҳ аст",
-        "DELIVERY_ATTEMPTED":   "Кӯшиши расондан",
-        "READY_FOR_PICKUP":     "Омода ба гирифтан",
-        "DELIVERED":        "Расонида шуд",
-        "CANCELLED":        "Бекор шуд",
-        "REFUNDED":              "Баргардонида шуд",
-        "RETURN_INITIATED":      "Баргашт оғоз ёфт",
+        "PENDING": "Интизор",
+        "PAID": "Пардохтшуда",
+        "SHIPPED": "Фиристода шуд",
+        "OUT_FOR_DELIVERY": "Курьер дар роҳ аст",
+        "DELIVERY_ATTEMPTED": "Кӯшиши расондан",
+        "READY_FOR_PICKUP": "Омода ба гирифтан",
+        "DELIVERED": "Расонида шуд",
+        "CANCELLED": "Бекор шуд",
+        "REFUNDED": "Баргардонида шуд",
+        "RETURN_INITIATED": "Баргашт оғоз ёфт",
         "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд",
-        "RECALL_REQUESTED":      "Дархости барқарорсозӣ"
+        "RECALL_REQUESTED": "Дархости барқарорсозӣ"
       },
       "deliveryType": {
         "HOME": "Ба хона",
@@ -500,18 +500,18 @@
     "orderReadyForPickup": "Омода",
     "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст",
     "status": {
-      "PENDING":               "Дар интизорӣ",
-      "PAID":                  "Пардохт шуд",
-      "SHIPPED":               "Фиристода шуд",
-      "OUT_FOR_DELIVERY":      "Дар роҳ аст",
-      "DELIVERY_ATTEMPTED":    "Кӯшиши расондан",
-      "READY_FOR_PICKUP":      "Омода ба гирифтан",
-      "DELIVERED":             "Расонида шуд",
-      "CANCELLED":             "Бекор карда шуд",
-      "RETURN_INITIATED":      "Баргардонидан идома дорад",
+      "PENDING": "Дар интизорӣ",
+      "PAID": "Пардохт шуд",
+      "SHIPPED": "Фиристода шуд",
+      "OUT_FOR_DELIVERY": "Дар роҳ аст",
+      "DELIVERY_ATTEMPTED": "Кӯшиши расондан",
+      "READY_FOR_PICKUP": "Омода ба гирифтан",
+      "DELIVERED": "Расонида шуд",
+      "CANCELLED": "Бекор карда шуд",
+      "RETURN_INITIATED": "Баргардонидан идома дорад",
       "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд",
-      "REFUNDED":              "Маблағ баргардонида шуд",
-      "RECALL_REQUESTED":      "Дархости барқарорсозӣ"
+      "REFUNDED": "Маблағ баргардонида шуд",
+      "RECALL_REQUESTED": "Дархости барқарорсозӣ"
     },
     "returnInProgressBanner": "Баргардонидани шумо коркард мешавад. Мо шуморо огоҳ мекунем, ки чӣ вақт ба анбор мерасад.",
     "recallRequestedBanner": "Ин фармоиш аз ҷониби мағоза бозхонда шуд. Курьери мо онро аз нуқтаи таҳвил мегирад.",
@@ -1003,12 +1003,14 @@
         "selectZone": "Минтақаро интихоб кунед…",
         "selectShelf": "Стеллажро интихоб кунед…",
         "selectBin": "Ячейкаро интихоб кунед…",
-        "success": "Ячейка навсозӣ шуд."
+        "success": "Ячейка навсозӣ шуд.",
+        "error": "Ба ячейка гузаронидан имконпазир набуд."
       },
       "unassign": {
         "confirmTitle": "Ячейкаро хориҷ кунем?",
         "confirmBody": "{product} ({size}) дигар ба ячейкае алоқаманд нахоҳад буд.",
-        "success": "SKU аз ячейка хориҷ шуд."
+        "success": "SKU аз ячейка хориҷ шуд.",
+        "error": "Хориҷ кардани ячейка имконпазир набуд."
       },
       "history": {
         "title": "Таърихи ҳаракат",
@@ -1033,7 +1035,9 @@
     },
     "receipts": {
       "new": "Воридоти нав",
-      "detail": { "title": "Варақаи воридот" }
+      "detail": {
+        "title": "Варақаи воридот"
+      }
     }
   }
 }

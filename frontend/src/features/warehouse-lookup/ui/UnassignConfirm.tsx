@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/ui/alert-dialog";
+import { getErrorMessage } from "@/shared/lib";
 import { useAssignSkuToBin } from "../api";
 
 interface Props {
@@ -45,8 +46,8 @@ export function UnassignConfirm({
           toast.success(t("lookup.unassign.success"));
           onSuccess();
         },
-        onError: () => {
-          toast.error("Failed to unassign bin");
+        onError: (err) => {
+          toast.error(getErrorMessage(err, t("lookup.unassign.error")));
         },
       },
     );

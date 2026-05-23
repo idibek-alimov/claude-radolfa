@@ -272,18 +272,18 @@
         "total": "Сумма"
       },
       "status": {
-        "PENDING":          "Ожидает",
-        "PAID":             "Оплачен",
-        "SHIPPED":              "Отправлен",
-        "OUT_FOR_DELIVERY":     "Курьер в пути",
-        "DELIVERY_ATTEMPTED":   "Попытка доставки",
-        "READY_FOR_PICKUP":     "Готов к выдаче",
-        "DELIVERED":        "Доставлен",
-        "CANCELLED":        "Отменён",
-        "REFUNDED":              "Возврат",
-        "RETURN_INITIATED":      "Возврат инициирован",
+        "PENDING": "Ожидает",
+        "PAID": "Оплачен",
+        "SHIPPED": "Отправлен",
+        "OUT_FOR_DELIVERY": "Курьер в пути",
+        "DELIVERY_ATTEMPTED": "Попытка доставки",
+        "READY_FOR_PICKUP": "Готов к выдаче",
+        "DELIVERED": "Доставлен",
+        "CANCELLED": "Отменён",
+        "REFUNDED": "Возврат",
+        "RETURN_INITIATED": "Возврат инициирован",
         "RETURNED_TO_WAREHOUSE": "Возвращено на склад",
-        "RECALL_REQUESTED":      "Запрошен отзыв"
+        "RECALL_REQUESTED": "Запрошен отзыв"
       },
       "deliveryType": {
         "HOME": "На дом",
@@ -500,18 +500,18 @@
     "orderReadyForPickup": "Готов",
     "readyForPickupCallout": "Ваш заказ ждёт вас в пункте самовывоза",
     "status": {
-      "PENDING":               "Ожидает",
-      "PAID":                  "Оплачен",
-      "SHIPPED":               "Отправлен",
-      "OUT_FOR_DELIVERY":      "В доставке",
-      "DELIVERY_ATTEMPTED":    "Попытка доставки",
-      "READY_FOR_PICKUP":      "Готов к выдаче",
-      "DELIVERED":             "Доставлен",
-      "CANCELLED":             "Отменён",
-      "RETURN_INITIATED":      "Возврат в процессе",
+      "PENDING": "Ожидает",
+      "PAID": "Оплачен",
+      "SHIPPED": "Отправлен",
+      "OUT_FOR_DELIVERY": "В доставке",
+      "DELIVERY_ATTEMPTED": "Попытка доставки",
+      "READY_FOR_PICKUP": "Готов к выдаче",
+      "DELIVERED": "Доставлен",
+      "CANCELLED": "Отменён",
+      "RETURN_INITIATED": "Возврат в процессе",
       "RETURNED_TO_WAREHOUSE": "Возвращено на склад",
-      "REFUNDED":              "Средства возвращены",
-      "RECALL_REQUESTED":      "Запрошен отзыв"
+      "REFUNDED": "Средства возвращены",
+      "RECALL_REQUESTED": "Запрошен отзыв"
     },
     "returnInProgressBanner": "Ваш возврат обрабатывается. Мы уведомим вас, как только посылка поступит на склад.",
     "recallRequestedBanner": "Этот заказ был отозван магазином. Наш курьер заберёт его из пункта выдачи.",
@@ -1003,12 +1003,14 @@
         "selectZone": "Выберите зону…",
         "selectShelf": "Выберите стеллаж…",
         "selectBin": "Выберите ячейку…",
-        "success": "Ячейка обновлена."
+        "success": "Ячейка обновлена.",
+        "error": "Не удалось переместить в ячейку."
       },
       "unassign": {
         "confirmTitle": "Снять назначение ячейки?",
         "confirmBody": "{product} ({size}) больше не будет привязан к ячейке.",
-        "success": "SKU откреплён от ячейки."
+        "success": "SKU откреплён от ячейки.",
+        "error": "Не удалось снять назначение ячейки."
       },
       "history": {
         "title": "История движения",
@@ -1033,7 +1035,9 @@
     },
     "receipts": {
       "new": "Новое поступление",
-      "detail": { "title": "Поступление товара" }
+      "detail": {
+        "title": "Поступление товара"
+      }
     }
   }
 }

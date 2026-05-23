@@ -272,18 +272,18 @@
         "total": "Total"
       },
       "status": {
-        "PENDING":          "Pending",
-        "PAID":             "Paid",
-        "SHIPPED":              "Shipped",
-        "OUT_FOR_DELIVERY":     "Out for delivery",
-        "DELIVERY_ATTEMPTED":   "Delivery attempted",
-        "READY_FOR_PICKUP":     "Ready for pickup",
-        "DELIVERED":            "Delivered",
-        "CANCELLED":            "Cancelled",
-        "REFUNDED":             "Refunded",
-        "RETURN_INITIATED":      "Return initiated",
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "SHIPPED": "Shipped",
+        "OUT_FOR_DELIVERY": "Out for delivery",
+        "DELIVERY_ATTEMPTED": "Delivery attempted",
+        "READY_FOR_PICKUP": "Ready for pickup",
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled",
+        "REFUNDED": "Refunded",
+        "RETURN_INITIATED": "Return initiated",
         "RETURNED_TO_WAREHOUSE": "Returned to warehouse",
-        "RECALL_REQUESTED":      "Recall Requested"
+        "RECALL_REQUESTED": "Recall Requested"
       },
       "deliveryType": {
         "HOME": "Home",
@@ -500,18 +500,18 @@
     "orderReadyForPickup": "Ready",
     "readyForPickupCallout": "Your parcel is waiting at the pickup point",
     "status": {
-      "PENDING":             "Pending",
-      "PAID":                "Paid",
-      "SHIPPED":             "Shipped",
-      "OUT_FOR_DELIVERY":    "Out for Delivery",
-      "DELIVERY_ATTEMPTED":  "Delivery Attempted",
-      "READY_FOR_PICKUP":    "Ready for Pickup",
-      "DELIVERED":           "Delivered",
-      "CANCELLED":           "Cancelled",
-      "RETURN_INITIATED":    "Being Returned",
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "SHIPPED": "Shipped",
+      "OUT_FOR_DELIVERY": "Out for Delivery",
+      "DELIVERY_ATTEMPTED": "Delivery Attempted",
+      "READY_FOR_PICKUP": "Ready for Pickup",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled",
+      "RETURN_INITIATED": "Being Returned",
       "RETURNED_TO_WAREHOUSE": "Returned to Warehouse",
-      "REFUNDED":            "Refunded",
-      "RECALL_REQUESTED":    "Recall Requested"
+      "REFUNDED": "Refunded",
+      "RECALL_REQUESTED": "Recall Requested"
     },
     "returnInProgressBanner": "Your return is being processed. We will notify you once it reaches the warehouse.",
     "recallRequestedBanner": "This order has been recalled by the store. Our courier will collect it from the pickup point.",
@@ -1003,12 +1003,14 @@
         "selectZone": "Select a zone…",
         "selectShelf": "Select a shelf…",
         "selectBin": "Select a bin…",
-        "success": "Bin updated."
+        "success": "Bin updated.",
+        "error": "Failed to reassign bin."
       },
       "unassign": {
         "confirmTitle": "Remove bin assignment?",
         "confirmBody": "{product} ({size}) will no longer be tied to any bin.",
-        "success": "SKU unassigned from bin."
+        "success": "SKU unassigned from bin.",
+        "error": "Failed to unassign bin."
       },
       "history": {
         "title": "Inventory History",
@@ -1033,7 +1035,9 @@
     },
     "receipts": {
       "new": "New Receipt",
-      "detail": { "title": "Stock Receipt" }
+      "detail": {
+        "title": "Stock Receipt"
+      }
     }
   }
 }

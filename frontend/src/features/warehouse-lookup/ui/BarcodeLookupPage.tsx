@@ -24,7 +24,7 @@ export function BarcodeLookupPage() {
 
         <div className="col-span-2">
           {lastResult ? (
-            <SkuResultCard result={lastResult} onResultChange={setLastResult} />
+            <SkuResultCard key={lastResult.skuId} result={lastResult} onResultChange={setLastResult} />
           ) : (
             <div className="flex flex-col items-center justify-center border border-dashed rounded-xl p-12 text-muted-foreground">
               <ScanBarcode className="h-10 w-10 text-muted-foreground/40 mb-3" />

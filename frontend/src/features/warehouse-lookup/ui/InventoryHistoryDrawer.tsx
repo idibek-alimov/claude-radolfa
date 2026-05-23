@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -48,6 +48,8 @@ interface Props {
 export function InventoryHistoryDrawer({ open, onClose, skuId, productName, skuCode }: Props) {
   const t = useTranslations("warehouse");
   const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [skuId]);
+
   const { data, isLoading } = useInventoryHistory(open ? skuId : null, page);
 
   function renderDelta(delta: number) {
