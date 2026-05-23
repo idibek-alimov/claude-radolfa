@@ -1,4 +1,5 @@
 export type { SkuLookupResponse } from "@/entities/warehouse-sku";
+export type { WarehouseZoneDto, WarehouseShelfDto, WarehouseBinDto } from "@/entities/warehouse-location";
 
 export const INVENTORY_TRANSACTION_TYPES = [
   "SALE",
@@ -22,23 +23,4 @@ export interface InventoryTransactionRecord {
   actorUserId: number | null;
   notes: string | null;
   occurredAt: string;
-}
-
-export interface WarehouseZoneDto {
-  id: number;
-  code: string;
-  label: string;
-}
-
-export interface WarehouseShelfDto {
-  id: number;
-  zoneId: number;
-  code: string;
-  label: string;
-}
-
-export interface WarehouseBinDto {
-  id: number;
-  shelfId: number;
-  code: string;
 }

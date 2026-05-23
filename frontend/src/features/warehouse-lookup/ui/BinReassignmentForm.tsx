@@ -14,7 +14,8 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
 import { getErrorMessage } from "@/shared/lib";
-import { useWarehouseZones, useShelvesByZone, useBinsByShelf, useAssignSkuToBin } from "../api";
+import { useWarehouseZones, useShelvesByZone, useBinsByShelf } from "@/entities/warehouse-location";
+import { useAssignSkuToBin } from "../api";
 
 interface Props {
   skuId: number;

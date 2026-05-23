@@ -1089,6 +1089,80 @@
         },
         "loadError": "Failed to load stock receipt."
       }
+    },
+    "structure": {
+      "title": "Structure",
+      "subtitle": "Manage zones, shelves, and bins",
+      "zones": {
+        "title": "Zones",
+        "empty": "No zones yet.",
+        "selectToShow": "Select a zone to see shelves."
+      },
+      "shelves": {
+        "title": "Shelves",
+        "empty": "No shelves in this zone yet."
+      },
+      "bins": {
+        "title": "Bins",
+        "empty": "No bins on this shelf yet.",
+        "selectToShow": "Select a shelf to see bins."
+      },
+      "create": {
+        "zone": {
+          "title": "New zone",
+          "code": "Code",
+          "label": "Label",
+          "codePlaceholder": "A",
+          "labelPlaceholder": "Aisle A",
+          "submit": "Create zone",
+          "submitting": "Creating…",
+          "success": "Zone created."
+        },
+        "shelf": {
+          "title": "New shelf in {zoneLabel}",
+          "code": "Code",
+          "label": "Label",
+          "codePlaceholder": "1",
+          "labelPlaceholder": "Shelf 1",
+          "submit": "Create shelf",
+          "submitting": "Creating…",
+          "success": "Shelf created."
+        },
+        "bin": {
+          "title": "New bin on {shelfLabel}",
+          "code": "Code",
+          "codePlaceholder": "1",
+          "submit": "Create bin",
+          "submitting": "Creating…",
+          "success": "Bin created."
+        }
+      },
+      "delete": {
+        "zone": {
+          "title": "Delete Zone {code}?",
+          "body": "Deleting Zone {code} will also delete {shelfCount} shelf(es) and {binCount} bin(s). Any SKUs in those bins will be unassigned automatically.",
+          "loadingCounts": "Calculating impact…",
+          "success": "Zone deleted."
+        },
+        "shelf": {
+          "title": "Delete Shelf {code}?",
+          "body": "Deleting Shelf {code} will also delete {binCount} bin(s). Any SKUs in those bins will be unassigned automatically.",
+          "loadingCounts": "Calculating impact…",
+          "success": "Shelf deleted."
+        },
+        "bin": {
+          "title": "Delete Bin {code}?",
+          "body": "Any SKUs in Bin {code} will be unassigned automatically.",
+          "success": "Bin deleted."
+        }
+      },
+      "errors": {
+        "create": "Failed to create item.",
+        "delete": "Failed to delete item."
+      },
+      "validation": {
+        "codeRequired": "Code is required."
+      }
     }
   },
   "receipts": {

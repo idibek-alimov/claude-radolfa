@@ -35,3 +35,6 @@ CREATE TABLE warehouse_bins (
 
 CREATE INDEX idx_shelves_zone_id  ON warehouse_shelves(zone_id);
 CREATE INDEX idx_bins_shelf_id    ON warehouse_bins(shelf_id);
+
+-- Wire bin FK from skus: warehouse_bins must exist before this constraint can be added.
+ALTER TABLE skus ADD CONSTRAINT fk_skus_bin_id FOREIGN KEY (bin_id) REFERENCES warehouse_bins(id) ON DELETE SET NULL;

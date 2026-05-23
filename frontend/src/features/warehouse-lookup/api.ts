@@ -1,14 +1,10 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
 import type { PaginatedResponse } from "@/shared/api/types";
-import type {
-  InventoryTransactionRecord,
-  WarehouseZoneDto,
-  WarehouseShelfDto,
-  WarehouseBinDto,
-} from "./types";
+import type { InventoryTransactionRecord } from "./types";
 
 export { useLookupSkuByBarcode } from "@/entities/warehouse-sku";
+export { useWarehouseZones, useShelvesByZone, useBinsByShelf } from "@/entities/warehouse-location";
 
 export function useAssignSkuToBin() {
   return useMutation({
@@ -29,35 +25,5 @@ export function useInventoryHistory(skuId: number | null, page: number) {
         .then((r) => r.data),
     placeholderData: keepPreviousData,
     enabled: !!skuId,
-  });
-}
-
-export function useWarehouseZones() {
-  return useQuery({
-    queryKey: ["warehouse-zones"],
-    queryFn: () =>
-      apiClient.get<WarehouseZoneDto[]>("/api/v1/admin/warehouse/zones").then((r) => r.data),
-  });
-}
-
-export function useShelvesByZone(zoneId: number | null) {
-  return useQuery({
-    queryKey: ["warehouse-shelves", zoneId],
-    queryFn: () =>
-      apiClient
-        .get<WarehouseShelfDto[]>(`/api/v1/admin/warehouse/zones/${zoneId}/shelves`)
-        .then((r) => r.data),
-    enabled: zoneId != null,
-  });
-}
-
-export function useBinsByShelf(shelfId: number | null) {
-  return useQuery({
-    queryKey: ["warehouse-bins", shelfId],
-    queryFn: () =>
-      apiClient
-        .get<WarehouseBinDto[]>(`/api/v1/admin/warehouse/shelves/${shelfId}/bins`)
-        .then((r) => r.data),
-    enabled: shelfId != null,
   });
 }

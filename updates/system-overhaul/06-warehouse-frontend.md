@@ -11,7 +11,7 @@
 | 3 | Frontend Shell: `/warehouse` Layout, Routing, i18n, Role Guard | ✅ Complete |
 | 4 | Barcode Lookup + Inline Bin Reassignment + Inventory Ledger | ✅ Complete |
 | 5 | Stock Receipts (List + Create + Full Detail Page) | ✅ Complete |
-| 6 | Warehouse Structure (Zones / Shelves / Bins CRUD) | 🔍 Pending |
+| 6 | Warehouse Structure (Zones / Shelves / Bins CRUD) | ✅ Complete |
 | 7 | Returns Resellability Queue | 🔍 Pending |
 
 ---
