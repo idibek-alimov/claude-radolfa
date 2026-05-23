@@ -1,3 +1,5 @@
+export type { SkuLookupResponse } from "@/entities/warehouse-sku";
+
 export const INVENTORY_TRANSACTION_TYPES = [
   "SALE",
   "CANCELLATION",
@@ -9,16 +11,6 @@ export const INVENTORY_TRANSACTION_TYPES = [
 ] as const;
 
 export type InventoryTransactionType = (typeof INVENTORY_TRANSACTION_TYPES)[number];
-
-export interface SkuLookupResponse {
-  skuId: number;
-  skuCode: string;
-  barcode: string;
-  productName: string;
-  sizeLabel: string;
-  stockQuantity: number;
-  binLocation: string | null;
-}
 
 export interface InventoryTransactionRecord {
   id: number;

@@ -1,13 +1,10 @@
-"use client";
+import { StockReceiptDetailPage } from "@/features/warehouse-receipts";
 
-import { useTranslations } from "next-intl";
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-export default function ReceiptDetailPage() {
-  const t = useTranslations("warehouse");
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold text-zinc-900">{t("receipts.detail.title")}</h1>
-      <p className="mt-2 text-sm text-zinc-500">{t("common.placeholderBody")}</p>
-    </div>
-  );
+export default async function ReceiptDetailPage({ params }: Props) {
+  const { id } = await params;
+  return <StockReceiptDetailPage id={Number(id)} />;
 }

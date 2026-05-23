@@ -8,9 +8,9 @@
 |---|---|---|
 | 1 | Backend Foundation: `WAREHOUSE_MANAGER` Role + Returns Queue Endpoint | ✅ Complete |
 | 2 | Multi-Warehouse Schema Prep (DB-only, business-simple) | ✅ Complete |
-| 3 | Frontend Shell: `/warehouse` Layout, Routing, i18n, Role Guard | 🔍 Pending |
-| 4 | Barcode Lookup + Inline Bin Reassignment + Inventory Ledger | 🔍 Pending |
-| 5 | Stock Receipts (List + Create + Full Detail Page) | 🔍 Pending |
+| 3 | Frontend Shell: `/warehouse` Layout, Routing, i18n, Role Guard | ✅ Complete |
+| 4 | Barcode Lookup + Inline Bin Reassignment + Inventory Ledger | ✅ Complete |
+| 5 | Stock Receipts (List + Create + Full Detail Page) | ✅ Complete |
 | 6 | Warehouse Structure (Zones / Shelves / Bins CRUD) | 🔍 Pending |
 | 7 | Returns Resellability Queue | 🔍 Pending |
 

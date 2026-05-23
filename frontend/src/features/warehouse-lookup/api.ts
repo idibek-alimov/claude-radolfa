@@ -2,21 +2,13 @@ import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/axios";
 import type { PaginatedResponse } from "@/shared/api/types";
 import type {
-  SkuLookupResponse,
   InventoryTransactionRecord,
   WarehouseZoneDto,
   WarehouseShelfDto,
   WarehouseBinDto,
 } from "./types";
 
-export function useLookupSkuByBarcode() {
-  return useMutation({
-    mutationFn: (code: string) =>
-      apiClient
-        .get<SkuLookupResponse>("/api/v1/admin/warehouse/skus/by-barcode", { params: { code } })
-        .then((r) => r.data),
-  });
-}
+export { useLookupSkuByBarcode } from "@/entities/warehouse-sku";
 
 export function useAssignSkuToBin() {
   return useMutation({

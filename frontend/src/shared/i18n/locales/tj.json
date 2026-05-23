@@ -1034,9 +1034,58 @@
       }
     },
     "receipts": {
+      "title": "Воридоти мол",
       "new": "Воридоти нав",
+      "search": "Ҷустуҷӯ аз рӯи маълумоти таъминкунанда…",
+      "empty": "Воридоти мол ҳанӯз нест.",
+      "emptyCta": "Воридоти аввалро эҷод кунед",
+      "columns": {
+        "date": "Сана",
+        "supplier": "Маълумоти таъминкунанда",
+        "units": "Ҷамъи воҳид",
+        "createdBy": "Эҷодкунанда"
+      },
+      "create": {
+        "title": "Воридоти нави мол",
+        "supplierRef": "Маълумоти таъминкунанда",
+        "supplierRefPlaceholder": "мас. INV-2025-0042",
+        "notes": "Эзоҳ",
+        "scanPrompt": "Штрихкодро скан кунед ё ворид кунед ва Enter-ро пахш кунед",
+        "scanNotFound": "SKU бо ин штрихкод ёфт нашуд.",
+        "manualEntry": "Ворид кардани дастӣ",
+        "manualSearchPlaceholder": "Ҷустуҷӯ аз рӯи коди SKU ё номи мол…",
+        "manualSearchHint": "Барои ҷустуҷӯ ҳадди ақал 2 аломат ворид кунед",
+        "manualNoResults": "SKU ёфт нашуд.",
+        "lineItems": {
+          "product": "Мол",
+          "skuCode": "Коди SKU",
+          "quantity": "Миқдор",
+          "notes": "Эзоҳ",
+          "remove": "Хориҷ кардан"
+        },
+        "submitBtn": "Воридотро эҷод кунед",
+        "submitting": "Эҷод мешавад…",
+        "emptyForm": "Пеш аз фиристодан ҳадди ақал як молро илова кунед.",
+        "successToast": "Воридоти мол эҷод шуд.",
+        "error": "Воридотро эҷод кардан имконпазир набуд."
+      },
       "detail": {
-        "title": "Варақаи воридот"
+        "title": "Варақаи воридот",
+        "backToList": "Воридоти мол",
+        "supplierRef": "Маълумоти таъминкунанда",
+        "notes": "Эзоҳ",
+        "createdBy": "Эҷодкунанда",
+        "date": "Сана",
+        "totalUnits": "Ҷамъи воҳид",
+        "status": "Ҳолат",
+        "statusCompleted": "Иҷро шуд",
+        "noNotes": "Эзоҳ нест.",
+        "columns": {
+          "product": "Мол",
+          "skuCode": "Коди SKU",
+          "qty": "Миқдори қабулшуда",
+          "notes": "Эзоҳ"
+        }
       }
     }
   }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ScanBarcode } from "lucide-react";
-import type { SkuLookupResponse } from "../types";
+import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 import { ScanInputPanel } from "./ScanInputPanel";
 import { SkuResultCard } from "./SkuResultCard";
 

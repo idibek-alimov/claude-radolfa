@@ -46,7 +46,7 @@ export function UnassignConfirm({
           toast.success(t("lookup.unassign.success"));
           onSuccess();
         },
-        onError: (err) => {
+        onError: (err: unknown) => {
           toast.error(getErrorMessage(err, t("lookup.unassign.error")));
         },
       },

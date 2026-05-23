@@ -58,7 +58,7 @@ export function BinReassignmentForm({ skuId, onSuccess, onCancel }: Props) {
           toast.success(t("lookup.reassign.success"));
           onSuccess(`${selectedZone.code} / ${selectedShelf.code} / ${selectedBin.code}`);
         },
-        onError: (err) => {
+        onError: (err: unknown) => {
           toast.error(getErrorMessage(err, t("lookup.reassign.error")));
         },
       },

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.warehouse.AssignSkuToBinUseCase;
+import tj.radolfa.application.ports.in.warehouse.SearchSkusUseCase;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptByIdUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptsUseCase;
@@ -67,6 +68,7 @@ public class WarehouseController {
     private final GetWarehouseCustomerReturnsUseCase   getWarehouseCustomerReturnsUseCase;
     private final ReviewCustomerReturnItemsUseCase     reviewCustomerReturnItemsUseCase;
     private final LookupSkuByBarcodeUseCase            lookupSkuByBarcodeUseCase;
+    private final SearchSkusUseCase                    searchSkusUseCase;
     private final ManageWarehouseLocationUseCase       manageWarehouseLocationUseCase;
     private final AssignSkuToBinUseCase                assignSkuToBinUseCase;
     private final LoadOrderPort                        loadOrderPort;
@@ -98,6 +100,19 @@ public class WarehouseController {
     public ResponseEntity<SkuLookupDto> lookupByBarcode(@RequestParam String code) {
         LookupSkuByBarcodeUseCase.Result result = lookupSkuByBarcodeUseCase.execute(code);
         return ResponseEntity.ok(SkuLookupDto.from(result.sku(), result.productName(), result.binLocation()));
+    }
+
+    @GetMapping("/skus/search")
+    @Operation(summary = "Search SKUs by code, barcode, or product name (manual entry fallback)")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<PageResponse<SkuLookupDto>> searchSkus(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var result = searchSkusUseCase.execute(query, page, size);
+        var dtos = result.content().stream().map(SkuLookupDto::from).toList();
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
     }
 
     // ── Stock receipts ────────────────────────────────────────────────────────

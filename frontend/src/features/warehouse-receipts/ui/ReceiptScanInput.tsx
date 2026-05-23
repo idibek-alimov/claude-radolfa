@@ -8,14 +8,14 @@ import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { getErrorMessage } from "@/shared/lib";
-import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 import { useLookupSkuByBarcode } from "@/entities/warehouse-sku";
+import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 
 interface Props {
-  onResult: (result: SkuLookupResponse) => void;
+  onResult: (sku: SkuLookupResponse) => void;
 }
 
-export function ScanInputPanel({ onResult }: Props) {
+export function ReceiptScanInput({ onResult }: Props) {
   const t = useTranslations("warehouse");
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +25,7 @@ export function ScanInputPanel({ onResult }: Props) {
     inputRef.current?.focus();
   }, []);
 
-  function refocusInput() {
+  function refocus() {
     requestAnimationFrame(() => inputRef.current?.focus());
   }
 
@@ -38,13 +38,15 @@ export function ScanInputPanel({ onResult }: Props) {
       onSuccess: (data) => {
         onResult(data);
         setValue("");
-        refocusInput();
+        refocus();
       },
       onError: (err: unknown) => {
         const is404 = (err as { response?: { status?: number } })?.response?.status === 404;
-        toast.error(is404 ? t("lookup.notFound") : getErrorMessage(err, t("lookup.notFound")));
+        toast.error(
+          is404 ? t("receipts.create.scanNotFound") : getErrorMessage(err, t("receipts.create.scanNotFound"))
+        );
         setValue("");
-        refocusInput();
+        refocus();
       },
     });
   }
@@ -57,32 +59,27 @@ export function ScanInputPanel({ onResult }: Props) {
             <ScanBarcode className="h-5 w-5" />
             <span className="text-sm font-semibold">{t("common.scan")}</span>
           </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               ref={inputRef}
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder={t("lookup.scanPrompt")}
-              className="text-base h-12 font-mono tracking-wider"
+              placeholder={t("receipts.create.scanPrompt")}
+              className="text-base h-12 font-mono tracking-wider flex-1"
               disabled={lookup.isPending}
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
             />
-            <Button type="submit" disabled={!value.trim() || lookup.isPending} className="w-full">
+            <Button type="submit" disabled={!value.trim() || lookup.isPending} className="h-12">
               {lookup.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t("common.loading")}
-                </>
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                t("common.scan")
+                <ScanBarcode className="h-4 w-4" />
               )}
             </Button>
           </form>
-
-          <p className="text-xs text-muted-foreground text-center">{t("lookup.scanPrompt")}</p>
+          <p className="text-xs text-muted-foreground text-center">{t("receipts.create.scanPrompt")}</p>
         </div>
       </CardContent>
     </Card>

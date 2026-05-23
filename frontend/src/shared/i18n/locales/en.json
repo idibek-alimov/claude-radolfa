@@ -1034,9 +1034,58 @@
       }
     },
     "receipts": {
+      "title": "Stock Receipts",
       "new": "New Receipt",
+      "search": "Search by supplier reference…",
+      "empty": "No stock receipts yet.",
+      "emptyCta": "Create your first receipt",
+      "columns": {
+        "date": "Date",
+        "supplier": "Supplier Reference",
+        "units": "Total Units",
+        "createdBy": "Created By"
+      },
+      "create": {
+        "title": "New Stock Receipt",
+        "supplierRef": "Supplier Reference",
+        "supplierRefPlaceholder": "e.g. INV-2025-0042",
+        "notes": "Notes",
+        "scanPrompt": "Scan or type a barcode and press Enter",
+        "scanNotFound": "No SKU found for that barcode.",
+        "manualEntry": "Manual entry",
+        "manualSearchPlaceholder": "Search by SKU code or product name…",
+        "manualSearchHint": "Type at least 2 characters to search",
+        "manualNoResults": "No SKUs found.",
+        "lineItems": {
+          "product": "Product",
+          "skuCode": "SKU Code",
+          "quantity": "Quantity",
+          "notes": "Notes",
+          "remove": "Remove"
+        },
+        "submitBtn": "Create Receipt",
+        "submitting": "Creating…",
+        "emptyForm": "Add at least one item before submitting.",
+        "successToast": "Stock receipt created.",
+        "error": "Failed to create stock receipt."
+      },
       "detail": {
-        "title": "Stock Receipt"
+        "title": "Stock Receipt",
+        "backToList": "Stock Receipts",
+        "supplierRef": "Supplier Reference",
+        "notes": "Notes",
+        "createdBy": "Created By",
+        "date": "Date",
+        "totalUnits": "Total Units",
+        "status": "Status",
+        "statusCompleted": "Completed",
+        "noNotes": "No notes.",
+        "columns": {
+          "product": "Product",
+          "skuCode": "SKU Code",
+          "qty": "Qty Received",
+          "notes": "Notes"
+        }
       }
     }
   }

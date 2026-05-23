@@ -6,7 +6,7 @@ import { MapPin, History, Unlink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib";
-import type { SkuLookupResponse } from "../types";
+import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 import { BinReassignmentForm } from "./BinReassignmentForm";
 import { UnassignConfirm } from "./UnassignConfirm";
 import { InventoryHistoryDrawer } from "./InventoryHistoryDrawer";
