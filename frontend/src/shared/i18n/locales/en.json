@@ -980,6 +980,57 @@
       "placeholderBody": "This screen will be built in a later phase.",
       "logout": "Sign out"
     },
+    "lookup": {
+      "title": "Barcode Lookup",
+      "scanPrompt": "Scan or type a barcode and press Enter",
+      "empty": "Scan a barcode to begin.",
+      "notFound": "No SKU found for that barcode.",
+      "stock": "Stock",
+      "size": "Size",
+      "skuCode": "SKU Code",
+      "binLocation": "Bin Location",
+      "unassigned": "Unassigned",
+      "actions": {
+        "reassign": "Reassign Bin",
+        "unassign": "Unassign",
+        "history": "View History"
+      },
+      "reassign": {
+        "title": "Reassign Bin",
+        "zone": "Zone",
+        "shelf": "Shelf",
+        "bin": "Bin",
+        "selectZone": "Select a zone…",
+        "selectShelf": "Select a shelf…",
+        "selectBin": "Select a bin…",
+        "success": "Bin updated."
+      },
+      "unassign": {
+        "confirmTitle": "Remove bin assignment?",
+        "confirmBody": "{product} ({size}) will no longer be tied to any bin.",
+        "success": "SKU unassigned from bin."
+      },
+      "history": {
+        "title": "Inventory History",
+        "columns": {
+          "when": "When",
+          "type": "Type",
+          "delta": "Δ",
+          "reference": "Reference",
+          "actor": "Actor"
+        },
+        "empty": "No transactions yet.",
+        "type": {
+          "SALE": "Sale",
+          "CANCELLATION": "Cancellation",
+          "RECALL_RETURN": "Recall return",
+          "RETURN_RESTORE": "Return restore",
+          "WRITE_OFF": "Write-off",
+          "RECEIPT": "Receipt",
+          "MANUAL_ADJUSTMENT": "Manual adjustment"
+        }
+      }
+    },
     "receipts": {
       "new": "New Receipt",
       "detail": { "title": "Stock Receipt" }
