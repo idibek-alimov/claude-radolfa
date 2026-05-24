@@ -1222,6 +1222,21 @@
           "items": "Items",
           "createdAt": "Created"
         }
+      },
+      "session": {
+        "title": "Pick Session",
+        "scanPrompt": "Scan item barcode",
+        "progress": "{picked} / {total} units picked",
+        "mismatch": "Wrong item — scan the correct barcode",
+        "alreadyPicked": "This item is already fully picked",
+        "complete": "Order picked — ready for shipping",
+        "backToQueue": "Back to queue",
+        "loadError": "Failed to load pick session",
+        "itemStatus": {
+          "pending": "Pending",
+          "inProgress": "In Progress",
+          "picked": "Picked"
+        }
       }
     }
   },

@@ -1,6 +1,10 @@
-import { getTranslations } from "next-intl/server";
+import { PickSessionPage } from "@/features/warehouse-pick";
 
-export default async function PickSessionPage() {
-  const t = await getTranslations("warehouse");
-  return <p className="text-sm text-muted-foreground">{t("common.placeholderBody")}</p>;
+interface Props {
+  params: Promise<{ orderId: string }>;
+}
+
+export default async function PickSessionRoute({ params }: Props) {
+  const { orderId } = await params;
+  return <PickSessionPage orderId={Number(orderId)} />;
 }
