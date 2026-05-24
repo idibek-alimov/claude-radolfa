@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import tj.radolfa.domain.model.StockReceiptStatus;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,9 +27,6 @@ public class StockReceiptEntity extends BaseAuditEntity {
 
     @Column(name = "warehouse_id", nullable = false)
     private Long warehouseId;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
 
     @Column(name = "supplier_reference", length = 200)
     private String supplierReference;

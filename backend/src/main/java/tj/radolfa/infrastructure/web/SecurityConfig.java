@@ -163,6 +163,12 @@ public class SecurityConfig {
                                                     .hasRole("ADMIN")
 
                                                 // ============================================================
+                                                // WAREHOUSE_MANAGER + ADMIN: warehouse operations
+                                                // Must precede the /admin/** catch-all below
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/admin/warehouse/**").hasAnyRole("WAREHOUSE_MANAGER", "MANAGER", "ADMIN")
+
+                                                // ============================================================
                                                 // MANAGER + ADMIN: product creation, content enrichment, discounts
                                                 // ============================================================
                                                 .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")
@@ -193,7 +199,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "COURIER", "PICKPOINT_STAFF")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "COURIER", "PICKPOINT_STAFF", "WAREHOUSE_MANAGER")
                                                 .requestMatchers("/api/v1/wishlist/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
 

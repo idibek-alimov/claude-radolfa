@@ -1,5 +1,9 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
+interface RetryableConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 /**
  * Single Axios instance shared across the entire app.
  *
@@ -49,6 +53,7 @@ apiClient.interceptors.response.use(
     if (
       error.response?.status !== 401 ||
       !originalRequest ||
+      (originalRequest as RetryableConfig)._retry ||
       originalRequest.url?.includes("/api/v1/auth/refresh") ||
       originalRequest.url?.includes("/api/v1/auth/login") ||
       originalRequest.url?.includes("/api/v1/auth/verify") ||
@@ -66,6 +71,7 @@ apiClient.interceptors.response.use(
     }
 
     isRefreshing = true;
+    (originalRequest as RetryableConfig)._retry = true;
 
     try {
       await axios.post(

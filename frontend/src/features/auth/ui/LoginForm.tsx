@@ -36,6 +36,7 @@ export default function LoginForm() {
       const target =
         role === "COURIER" ? "/courier" :
         role === "PICKPOINT_STAFF" ? "/pickpoint" :
+        role === "WAREHOUSE_MANAGER" ? "/warehouse" :
         role === "ADMIN" || role === "MANAGER" ? "/manage" :
         "/";
       window.location.href = target;
