@@ -967,7 +967,8 @@
       "lookup": "Lookup",
       "receipts": "Stock Receipts",
       "structure": "Structure",
-      "returns": "Returns Queue"
+      "returns": "Returns Queue",
+      "pick": "Pick Orders"
     },
     "common": {
       "scan": "Scan barcode",
@@ -1206,6 +1207,21 @@
         "NOT_AS_DESCRIBED": "Not as described",
         "CHANGED_MIND": "Changed mind",
         "OTHER": "Other"
+      }
+    },
+    "pick": {
+      "queue": {
+        "title": "Pick Queue",
+        "jumpPrompt": "Scan or enter order ID",
+        "search": "Search orders",
+        "empty": "No orders awaiting pick",
+        "columns": {
+          "orderId": "Order ID",
+          "deliveryType": "Delivery",
+          "customer": "Customer",
+          "items": "Items",
+          "createdAt": "Created"
+        }
       }
     }
   },

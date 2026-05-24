@@ -1,4 +1,4 @@
-import { ScanBarcode, PackagePlus, LayoutGrid, Undo2 } from "lucide-react";
+import { ScanBarcode, PackagePlus, LayoutGrid, Undo2, ScanLine } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface WarehouseNavItem {
@@ -12,4 +12,5 @@ export const WAREHOUSE_NAV_ITEMS: WarehouseNavItem[] = [
   { href: "/warehouse/receipts",  icon: PackagePlus,  translationKey: "nav.receipts" },
   { href: "/warehouse/structure", icon: LayoutGrid,   translationKey: "nav.structure" },
   { href: "/warehouse/returns",   icon: Undo2,        translationKey: "nav.returns"  },
+  { href: "/warehouse/pick",      icon: ScanLine,     translationKey: "nav.pick"     },
 ];
