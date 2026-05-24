@@ -76,6 +76,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const t = useTranslations("manage.orders");
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const canAccessWarehouse = user?.role === "WAREHOUSE_MANAGER" || user?.role === "ADMIN";
 
   const { data: order, isLoading } = useAdminOrder(orderId);
   const { data: customerReturns = [] } = useAdminCustomerReturnsForOrder(orderId);
@@ -128,7 +129,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const isFinalState      = order.status === "DELIVERED"
                          || order.status === "CANCELLED"
                          || order.status === "REFUNDED";
-  const showShipButton    = order.status === "PAID" && order.deliveryType === "HOME";
+  const showShipButton    = order.status === "PICKED" && (order.deliveryType === "HOME" || order.deliveryType === "PICKPOINT");
   const showAdvanceButton = nextStatus !== null && !showShipButton;
   const showCancelButton  = !isFinalState;
   const showRefundButton  = isAdmin && (order.status === "DELIVERED" || order.status === "CANCELLED");
@@ -171,6 +172,18 @@ export function AdminOrderDetailView({ orderId }: Props) {
         {order.status === "SHIPPED" && order.deliveryType === "PICKPOINT" && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
             {t("awaitingArrivalCallout")}
+          </div>
+        )}
+
+        {order.status === "PAID" && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p className="font-medium">{t("awaitingPick.title")}</p>
+            <p className="text-xs mt-1">{t("awaitingPick.body")}</p>
+            {canAccessWarehouse && (
+              <Link href={`/warehouse/pick/${orderId}`} className="mt-2 inline-block text-xs font-medium underline">
+                {t("awaitingPick.openInWarehouse")}
+              </Link>
+            )}
           </div>
         )}
 

@@ -5,6 +5,7 @@ import { cn } from "@/shared/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
   PAID:      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  PICKED:    "bg-amber-100 text-amber-800 ring-1 ring-amber-200",
   PENDING:   "bg-amber-50  text-amber-700   ring-1 ring-amber-200",
   DELIVERED: "bg-blue-50   text-blue-700    ring-1 ring-blue-200",
   CANCELLED: "bg-rose-50   text-rose-700    ring-1 ring-rose-200",

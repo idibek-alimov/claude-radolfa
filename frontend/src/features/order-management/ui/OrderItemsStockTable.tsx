@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Package } from "lucide-react";
+import { CheckCircle2, Package } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -44,6 +44,7 @@ export function OrderItemsStockTable({ items }: Props) {
             <TableHead className="text-center">{t("qty")}</TableHead>
             <TableHead className="text-right">{t("unitPrice")}</TableHead>
             <TableHead className="text-right">{t("subtotal")}</TableHead>
+            <TableHead className="text-center">{t("picked")}</TableHead>
             <TableHead className="text-right pr-4">{t("stock")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -80,6 +81,14 @@ export function OrderItemsStockTable({ items }: Props) {
               </TableCell>
               <TableCell className="text-right text-sm font-semibold tabular-nums">
                 {(item.price * item.quantity).toFixed(2)} TJS
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="inline-flex items-center gap-1.5 text-sm tabular-nums">
+                  {item.quantityPicked === item.quantity
+                    ? <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    : null}
+                  {item.quantityPicked} / {item.quantity}
+                </span>
               </TableCell>
               <TableCell className="text-right pr-4">
                 <StockBadge item={item} />

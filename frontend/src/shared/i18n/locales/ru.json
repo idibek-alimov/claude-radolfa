@@ -277,6 +277,7 @@
       "status": {
         "PENDING": "Ожидает",
         "PAID": "Оплачен",
+        "PICKED": "Скомплектован",
         "SHIPPED": "Отправлен",
         "OUT_FOR_DELIVERY": "Курьер в пути",
         "DELIVERY_ATTEMPTED": "Попытка доставки",
@@ -373,7 +374,8 @@
         "qty": "Кол-во",
         "unitPrice": "Цена",
         "subtotal": "Сумма",
-        "stock": "Остаток"
+        "stock": "Остаток",
+        "picked": "Собрано"
       },
       "stock": {
         "inStock": "✓ В наличии",
@@ -414,7 +416,12 @@
       "awaitingArrivalCallout": "Ожидание подтверждения поступления посылки сотрудником пункта выдачи.",
       "empty": "Заказы не найдены.",
       "page": "Стр. {page}",
-      "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}"
+      "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}",
+      "awaitingPick": {
+        "title": "Ожидает проверки комплектации",
+        "body": "Сотрудник склада должен отсканировать все товары перед отправкой заказа.",
+        "openInWarehouse": "Открыть на складе"
+      }
     }
   },
   "profile": {
@@ -505,6 +512,7 @@
     "status": {
       "PENDING": "Ожидает",
       "PAID": "Оплачен",
+      "PICKED": "Скомплектован",
       "SHIPPED": "Отправлен",
       "OUT_FOR_DELIVERY": "В доставке",
       "DELIVERY_ATTEMPTED": "Попытка доставки",

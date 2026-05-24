@@ -1,5 +1,5 @@
 // Synced from backend — do not edit manually
-export type OrderStatus = "PENDING" | "PAID" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "RETURN_INITIATED" | "RETURNED_TO_WAREHOUSE" | "DELIVERED" | "CANCELLED" | "REFUNDED" | "RECALL_REQUESTED";
+export type OrderStatus = "PENDING" | "PAID" | "PICKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "RETURN_INITIATED" | "RETURNED_TO_WAREHOUSE" | "DELIVERED" | "CANCELLED" | "REFUNDED" | "RECALL_REQUESTED";
 
 export interface OrderItem {
   productName: string;
@@ -32,6 +32,10 @@ export interface DeliveredOrderItem {
 /** Admin-only item shape — adds currentStock for pre-fulfillment availability check. */
 export interface AdminOrderItem extends DeliveredOrderItem {
   currentStock: number | null;
+  barcode: string;
+  quantityPicked: number;
+  pickedAt: string | null;
+  pickedByUserId: number | null;
 }
 
 /** Minimal order shape — only what the review form needs. */

@@ -277,6 +277,7 @@
       "status": {
         "PENDING": "Pending",
         "PAID": "Paid",
+        "PICKED": "Picked",
         "SHIPPED": "Shipped",
         "OUT_FOR_DELIVERY": "Out for delivery",
         "DELIVERY_ATTEMPTED": "Delivery attempted",
@@ -373,7 +374,8 @@
         "qty": "Qty",
         "unitPrice": "Unit Price",
         "subtotal": "Subtotal",
-        "stock": "Stock"
+        "stock": "Stock",
+        "picked": "Picked"
       },
       "stock": {
         "inStock": "✓ In Stock",
@@ -414,7 +416,12 @@
       "awaitingArrivalCallout": "Awaiting pickup point staff to confirm package arrival.",
       "empty": "No orders found.",
       "page": "Page {page}",
-      "total": "{count, plural, one {# order total} other {# orders total}}"
+      "total": "{count, plural, one {# order total} other {# orders total}}",
+      "awaitingPick": {
+        "title": "Awaiting warehouse pick verification",
+        "body": "A warehouse worker must scan all items before this order can be shipped.",
+        "openInWarehouse": "Open in warehouse"
+      }
     }
   },
   "profile": {
@@ -505,6 +512,7 @@
     "status": {
       "PENDING": "Pending",
       "PAID": "Paid",
+      "PICKED": "Picked",
       "SHIPPED": "Shipped",
       "OUT_FOR_DELIVERY": "Out for Delivery",
       "DELIVERY_ATTEMPTED": "Delivery Attempted",
