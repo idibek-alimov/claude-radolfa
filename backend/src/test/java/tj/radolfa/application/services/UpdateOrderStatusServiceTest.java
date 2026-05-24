@@ -125,10 +125,10 @@ class UpdateOrderStatusServiceTest {
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("HOME PAID→SHIPPED with courierId succeeds; courier fields persisted")
+    @DisplayName("HOME PICKED→SHIPPED with courierId succeeds; courier fields persisted")
     void homeShipWithCourier_succeeds() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), save);
 
         svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "TST123",
                 LocalDate.of(2026, 6, 1)));
@@ -141,9 +141,9 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("HOME PAID→SHIPPED without courierId throws IllegalArgumentException")
+    @DisplayName("HOME PICKED→SHIPPED without courierId throws IllegalArgumentException")
     void homeShipWithoutCourier_throws() {
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), new CapturingSaveOrderPort());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, null, null, null)));
@@ -151,19 +151,19 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("HOME PAID→SHIPPED without courierId (null) throws")
+    @DisplayName("HOME PICKED→SHIPPED without courierId (null) throws")
     void homeShipWithNullCourier_throws() {
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
                 () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, null, null, null)));
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→READY_FOR_PICKUP without courierId succeeds (no courier required)")
+    @DisplayName("PICKPOINT PICKED→READY_FOR_PICKUP without courierId succeeds (no courier required)")
     void pickpointTransitionToReadyForPickup_noCourierRequired() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
         svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
 
@@ -211,10 +211,10 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→READY_FOR_PICKUP succeeds")
-    void pickpointPaidToReadyForPickup_succeeds() {
+    @DisplayName("PICKPOINT PICKED→READY_FOR_PICKUP succeeds")
+    void pickpointPickedToReadyForPickup_succeeds() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
         svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
 
@@ -233,10 +233,10 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→SHIPPED succeeds (staff-driven arrival flow requires SHIPPED as intermediate)")
-    void pickpointPaidToShipped_succeeds() {
+    @DisplayName("PICKPOINT PICKED→SHIPPED succeeds (staff-driven arrival flow requires SHIPPED as intermediate)")
+    void pickpointPickedToShipped_succeeds() {
         var saveOrder = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), saveOrder);
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), saveOrder);
 
         svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
 
@@ -264,11 +264,11 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("Successful HOME PAID→SHIPPED fires exactly one SHIPPED notification")
+    @DisplayName("Successful HOME PICKED→SHIPPED fires exactly one SHIPPED notification")
     void notification_firedOnSuccess() {
         CountingNotificationPort port = new CountingNotificationPort();
         CapturingSaveOrderPort save   = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PAID), save, port);
+        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PICKED), save, port);
 
         svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
 
@@ -290,10 +290,10 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PAID→SHIPPED sets shippedAt; deliveredAt and cancelledAt remain null")
-    void paidToShipped_setsShippedAt() {
+    @DisplayName("PICKED→SHIPPED sets shippedAt; deliveredAt and cancelledAt remain null")
+    void pickedToShipped_setsShippedAt() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), save);
 
         Instant before = Instant.now();
         svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
@@ -331,7 +331,7 @@ class UpdateOrderStatusServiceTest {
         Instant created = Instant.parse("2026-01-01T00:00:00Z");
         Order pristine = new Order.Builder()
                 .id(42L).userId(7L).externalOrderId("EXT-XYZ")
-                .status(OrderStatus.PAID).totalAmount(new Money(new BigDecimal("123.45")))
+                .status(OrderStatus.PICKED).totalAmount(new Money(new BigDecimal("123.45")))
                 .items(List.of()).createdAt(created)
                 .loyaltyPointsRedeemed(150).loyaltyPointsAwarded(30)
                 .deliveryType(DeliveryType.HOME).deliveryAddress("Addr Line 1")
@@ -365,6 +365,26 @@ class UpdateOrderStatusServiceTest {
         assertEquals(OrderStatus.SHIPPED, out.status());
         assertEquals(99L,      out.courierId());
         assertEquals("TR-001", out.trackingNumber());
+    }
+
+    @Test
+    @DisplayName("HOME PAID→SHIPPED now throws (pick gate enforced)")
+    void homePaidToShipped_throws() {
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null)));
+    }
+
+    @Test
+    @DisplayName("PAID→PICKED succeeds (auto-triggered by ScanOrderItemUnitService on last scan)")
+    void paidToPicked_succeeds() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+
+        assertEquals(OrderStatus.PICKED, save.last().status());
     }
 
     @Test

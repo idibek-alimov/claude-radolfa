@@ -334,7 +334,11 @@ public class AdminOrderController {
                     item.getSkuId(), item.getListingVariantId(), imageUrl,
                     item.getSkuCode(), sizeLabel, slug, hasReviewed,
                     sku != null ? sku.getStockQuantity() : null,
-                    sku != null ? sku.getWeightKg() : null);
+                    sku != null ? sku.getWeightKg() : null,
+                    sku != null ? sku.getBarcode() : null,
+                    item.getQuantityPicked(),
+                    item.getPickedAt(),
+                    item.getPickedByUserId());
         }).toList();
     }
 

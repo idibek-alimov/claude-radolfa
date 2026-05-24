@@ -1,6 +1,7 @@
 package tj.radolfa.infrastructure.web.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 public record AdminOrderItemDto(
         String productName,
@@ -14,4 +15,8 @@ public record AdminOrderItemDto(
         String slug,
         boolean hasReviewed,
         Integer currentStock,
-        BigDecimal weightKg) {}
+        BigDecimal weightKg,
+        String barcode,
+        int quantityPicked,
+        Instant pickedAt,
+        Long pickedByUserId) {}

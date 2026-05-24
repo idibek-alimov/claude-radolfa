@@ -17,11 +17,12 @@ import java.time.LocalDate;
 /**
  * ADMIN-only service: transitions an order through the fulfilment pipeline.
  *
- * <p>Legal paths: PENDING → PAID → SHIPPED → DELIVERED (home);
- * PENDING → PAID → SHIPPED → READY_FOR_PICKUP → DELIVERED (pickpoint, staff-driven arrival);
- * PENDING → PAID → READY_FOR_PICKUP → DELIVERED (pickpoint, direct admin path).
+ * <p>Legal paths: PENDING → PAID → PICKED → SHIPPED → DELIVERED (home);
+ * PENDING → PAID → PICKED → SHIPPED → READY_FOR_PICKUP → DELIVERED (pickpoint, staff-driven arrival);
+ * PENDING → PAID → PICKED → READY_FOR_PICKUP → DELIVERED (pickpoint, direct admin path).
  * Admin reschedule: DELIVERY_ATTEMPTED → SHIPPED (re-issues a fresh delivery code automatically).
  * HOME orders transitioning to SHIPPED require {@code courierId}.
+ * PICKED is set automatically by {@link ScanOrderItemUnitService} on the last unit scan.
  * Cancellation is handled separately by {@link CancelOrderService}.
  * Courier-driven transitions (SHIPPED → OUT_FOR_DELIVERY, OUT_FOR_DELIVERY → DELIVERY_ATTEMPTED)
  * are handled by {@code MarkOutForDeliveryService} and {@code MarkDeliveryAttemptedService}.
@@ -108,9 +109,9 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         boolean pickpoint = order.deliveryType() == DeliveryType.PICKPOINT;
         boolean valid = switch (order.status()) {
             case PENDING            -> to == OrderStatus.PAID;
-            case PAID               -> to == OrderStatus.PICKED
-                                    || (pickpoint ? (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP)
-                                                  : to == OrderStatus.SHIPPED);
+            case PAID               -> to == OrderStatus.PICKED;
+            case PICKED             -> pickpoint ? (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP)
+                                                 : to == OrderStatus.SHIPPED;
             case SHIPPED            -> (!pickpoint && to == OrderStatus.DELIVERED)
                                     || (pickpoint  && to == OrderStatus.READY_FOR_PICKUP);
             case READY_FOR_PICKUP   -> pickpoint  && to == OrderStatus.DELIVERED;

@@ -50,6 +50,7 @@ public record ProductCardDto(
     public record SkuSummary(
             Long skuId,
             String skuCode,
+            String barcode,
             String sizeLabel,
             Integer stockQuantity,
             BigDecimal originalPrice
