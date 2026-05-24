@@ -1,15 +1,3 @@
-CREATE TABLE warehouses (
-    id         BIGSERIAL    PRIMARY KEY,
-    code       VARCHAR(20)  NOT NULL UNIQUE,
-    name       VARCHAR(100) NOT NULL,
-    is_default BOOLEAN      NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-);
-CREATE UNIQUE INDEX uq_warehouses_one_default ON warehouses(is_default) WHERE is_default = TRUE;
-
-INSERT INTO warehouses (code, name, is_default)
-VALUES ('MAIN', 'Main Warehouse', TRUE);
-
 CREATE TABLE inventory_transactions (
     id             BIGSERIAL    PRIMARY KEY,
     sku_id         BIGINT       NOT NULL REFERENCES skus(id) ON DELETE CASCADE,
