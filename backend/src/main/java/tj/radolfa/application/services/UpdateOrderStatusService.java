@@ -108,8 +108,9 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         boolean pickpoint = order.deliveryType() == DeliveryType.PICKPOINT;
         boolean valid = switch (order.status()) {
             case PENDING            -> to == OrderStatus.PAID;
-            case PAID               -> pickpoint ? (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP)
-                                                 : to == OrderStatus.SHIPPED;
+            case PAID               -> to == OrderStatus.PICKED
+                                    || (pickpoint ? (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP)
+                                                  : to == OrderStatus.SHIPPED);
             case SHIPPED            -> (!pickpoint && to == OrderStatus.DELIVERED)
                                     || (pickpoint  && to == OrderStatus.READY_FOR_PICKUP);
             case READY_FOR_PICKUP   -> pickpoint  && to == OrderStatus.DELIVERED;

@@ -10,7 +10,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tj.radolfa.domain.exception.BarcodeMismatchException;
 import tj.radolfa.domain.exception.CourierAccessDeniedException;
+import tj.radolfa.domain.exception.OrderItemAlreadyFullyPickedException;
 import tj.radolfa.domain.exception.PickpointCodeLockoutException;
 import tj.radolfa.domain.exception.DeliveryCodeAlreadyUsedException;
 import tj.radolfa.domain.exception.DeliveryCodeAttemptsExhaustedException;
@@ -305,6 +307,31 @@ public class GlobalExceptionHandler {
         LOG.error("[REFUND] Gateway refund failed: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(MessageResponseDto.error("Refund failed: " + ex.getMessage()));
+    }
+
+    @ExceptionHandler(BarcodeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleBarcodeMismatch(BarcodeMismatchException ex) {
+        LOG.warn("[PICK] Barcode mismatch: {}", ex.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("code", "BARCODE_MISMATCH");
+        response.put("message", ex.getMessage());
+        response.put("scannedBarcode", ex.getScannedBarcode());
+        response.put("orderId", ex.getOrderId());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    @ExceptionHandler(OrderItemAlreadyFullyPickedException.class)
+    public ResponseEntity<Map<String, Object>> handleOrderItemAlreadyFullyPicked(
+            OrderItemAlreadyFullyPickedException ex) {
+        LOG.warn("[PICK] Already fully picked: {}", ex.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("code", "ALREADY_FULLY_PICKED");
+        response.put("message", ex.getMessage());
+        response.put("orderItemId", ex.getOrderItemId());
+        response.put("quantity", ex.getQuantity());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
     }
 
     /**

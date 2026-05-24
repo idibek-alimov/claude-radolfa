@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.in.warehouse.AssignSkuToBinUseCase;
+import tj.radolfa.application.ports.in.warehouse.GetPickSessionUseCase;
+import tj.radolfa.application.ports.in.warehouse.GetWarehousePickQueueUseCase;
+import tj.radolfa.application.ports.in.warehouse.ScanOrderItemUnitUseCase;
 import tj.radolfa.application.ports.in.warehouse.SearchSkusUseCase;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetStockReceiptByIdUseCase;
@@ -43,6 +46,10 @@ import tj.radolfa.domain.model.WarehouseZone;
 import tj.radolfa.infrastructure.persistence.adapter.InventoryTransactionJpaAdapter;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.AssignBinRequestDto;
+import tj.radolfa.infrastructure.web.dto.PickQueueItemDto;
+import tj.radolfa.infrastructure.web.dto.PickSessionDto;
+import tj.radolfa.infrastructure.web.dto.ScanResultDto;
+import tj.radolfa.infrastructure.web.dto.ScanUnitRequestDto;
 import tj.radolfa.infrastructure.web.dto.CreateBinRequestDto;
 import tj.radolfa.infrastructure.web.dto.CreateShelfRequestDto;
 import tj.radolfa.infrastructure.web.dto.CreateStockReceiptRequestDto;
@@ -76,6 +83,9 @@ public class WarehouseController {
     private final SearchSkusUseCase                    searchSkusUseCase;
     private final ManageWarehouseLocationUseCase       manageWarehouseLocationUseCase;
     private final AssignSkuToBinUseCase                assignSkuToBinUseCase;
+    private final GetWarehousePickQueueUseCase         getWarehousePickQueueUseCase;
+    private final GetPickSessionUseCase                getPickSessionUseCase;
+    private final ScanOrderItemUnitUseCase             scanOrderItemUnitUseCase;
     private final LoadOrderPort                        loadOrderPort;
     private final LoadSkuPort                          loadSkuPort;
     private final LoadUserPort                         loadUserPort;
@@ -290,5 +300,40 @@ public class WarehouseController {
                         .toList());
         reviewCustomerReturnItemsUseCase.execute(command);
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Pick queue ────────────────────────────────────────────────────────────
+
+    @GetMapping("/pick-queue")
+    @Operation(summary = "List PAID orders awaiting pick verification (oldest first)")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<PageResponse<PickQueueItemDto>> listPickQueue(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String search) {
+        var result = getWarehousePickQueueUseCase.execute(page, size, search);
+        var dtos = result.content().stream().map(PickQueueItemDto::from).toList();
+        return ResponseEntity.ok(PageResponse.from(
+                new tj.radolfa.domain.model.PageResult<>(dtos, result.totalElements(),
+                        result.number(), result.size(), result.last())));
+    }
+
+    @GetMapping("/pick-sessions/{orderId}")
+    @Operation(summary = "Get pick session for an order")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<PickSessionDto> getPickSession(@PathVariable Long orderId) {
+        return ResponseEntity.ok(PickSessionDto.from(getPickSessionUseCase.execute(orderId)));
+    }
+
+    @PostMapping("/pick-sessions/{orderId}/scan")
+    @Operation(summary = "Scan a unit barcode during pick verification")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ScanResultDto> scanUnit(
+            @PathVariable Long orderId,
+            @RequestBody @Valid ScanUnitRequestDto body,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        var result = scanOrderItemUnitUseCase.execute(
+                new ScanOrderItemUnitUseCase.Command(orderId, body.scannedBarcode(), principal.userId()));
+        return ResponseEntity.ok(ScanResultDto.from(result));
     }
 }
