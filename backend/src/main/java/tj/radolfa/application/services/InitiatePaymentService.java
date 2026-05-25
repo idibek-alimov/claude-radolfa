@@ -2,13 +2,17 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tj.radolfa.application.ports.in.payment.InitiatePaymentUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadPaymentPort;
 import tj.radolfa.application.ports.out.PaymentPort;
 import tj.radolfa.application.ports.out.SavePaymentPort;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.Payment;
+import tj.radolfa.domain.model.PaymentStatus;
 
 /**
  * Starts the payment flow for a PENDING order.
@@ -23,16 +27,20 @@ import tj.radolfa.domain.model.Payment;
 @Service
 public class InitiatePaymentService implements InitiatePaymentUseCase {
 
+    private static final Logger log = LoggerFactory.getLogger(InitiatePaymentService.class);
     private static final String DEFAULT_CURRENCY = "TJS";
 
     private final LoadOrderPort   loadOrderPort;
+    private final LoadPaymentPort loadPaymentPort;
     private final SavePaymentPort savePaymentPort;
     private final PaymentPort     paymentPort;
 
     public InitiatePaymentService(LoadOrderPort loadOrderPort,
+                                  LoadPaymentPort loadPaymentPort,
                                   SavePaymentPort savePaymentPort,
                                   PaymentPort paymentPort) {
         this.loadOrderPort   = loadOrderPort;
+        this.loadPaymentPort = loadPaymentPort;
         this.savePaymentPort = savePaymentPort;
         this.paymentPort     = paymentPort;
     }
@@ -49,6 +57,14 @@ public class InitiatePaymentService implements InitiatePaymentUseCase {
         if (order.status() != OrderStatus.PENDING) {
             throw new IllegalStateException(
                     "Payment can only be initiated for PENDING orders, current status: " + order.status());
+        }
+
+        // Idempotency: return existing payment redirect URL if one is still active
+        Payment existing = loadPaymentPort.findByOrderId(orderId).orElse(null);
+        if (existing != null && (existing.status() == PaymentStatus.PROCESSING
+                || existing.status() == PaymentStatus.PENDING)) {
+            log.info("[InitiatePayment] Resuming existing payment for orderId={}. paymentId={}", orderId, existing.id());
+            return new Result(existing.id(), existing.providerRedirectUrl());
         }
 
         // Call the payment gateway

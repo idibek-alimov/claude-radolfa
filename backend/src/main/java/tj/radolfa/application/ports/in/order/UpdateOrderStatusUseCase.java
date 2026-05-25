@@ -10,7 +10,7 @@ import java.time.LocalDate;
  * <p>ADMIN only. Validates the status transition is legal:
  * PENDING → PAID → SHIPPED → DELIVERED.
  *
- * <p>For HOME orders transitioning to SHIPPED, {@code courierName} is required.
+ * <p>For HOME orders transitioning to SHIPPED, {@code courierId} is required.
  * Use {@link CancelOrderUseCase} for the cancellation path.
  */
 public interface UpdateOrderStatusUseCase {
@@ -20,7 +20,7 @@ public interface UpdateOrderStatusUseCase {
     record Command(
             Long orderId,
             OrderStatus newStatus,
-            String courierName,
+            Long courierId,
             String trackingNumber,
             LocalDate estimatedDeliveryDate) {}
 }

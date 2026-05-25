@@ -10,10 +10,12 @@ import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.application.ports.out.SearchUsersPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.User;
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.UserMapper;
 import tj.radolfa.infrastructure.persistence.repository.UserRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,6 +68,26 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
     public PageResult<User> searchUsers(String query, int page, int size) {
         PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id"));
         Page<UserEntity> result = repository.searchUsers(query, pageable);
+
+        return new PageResult<>(
+                result.getContent().stream().map(mapper::toUser).toList(),
+                result.getTotalElements(),
+                page,
+                size,
+                !result.hasNext());
+    }
+
+    @Override
+    public List<User> findByRoleAndEnabledTrue(UserRole role) {
+        return repository.findByRoleAndEnabledTrue(role).stream()
+                .map(mapper::toUser)
+                .toList();
+    }
+
+    @Override
+    public PageResult<User> searchUsersByRoles(String query, Collection<UserRole> roles, int page, int size) {
+        PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<UserEntity> result = repository.searchUsersByRoles(query, roles, pageable);
 
         return new PageResult<>(
                 result.getContent().stream().map(mapper::toUser).toList(),

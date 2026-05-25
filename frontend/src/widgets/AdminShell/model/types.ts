@@ -6,6 +6,7 @@ export interface AdminNavItem {
   icon: LucideIcon;
   adminOnly?: boolean;
   badge?: boolean;
+  exact?: boolean;
 }
 
 export interface AdminNavGroup {

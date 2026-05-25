@@ -9,27 +9,36 @@ import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.GetMyOrdersUseCase;
 import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
+import tj.radolfa.application.ports.in.order.GetDeliveryCodeUseCase;
+import tj.radolfa.application.ports.in.order.GetMyOrderByIdUseCase;
+import tj.radolfa.application.ports.in.order.GetMyReturnsUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CheckoutRequestDto;
 import tj.radolfa.infrastructure.web.dto.CheckoutResponseDto;
+import tj.radolfa.infrastructure.web.dto.MyReturnDto;
 import tj.radolfa.infrastructure.web.dto.OrderDto;
 import tj.radolfa.infrastructure.web.dto.OrderItemDto;
 import tj.radolfa.infrastructure.web.dto.UpdateOrderStatusRequest;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -37,37 +46,85 @@ import java.util.Objects;
 public class OrderController {
 
     private final GetMyOrdersUseCase       getMyOrdersUseCase;
+    private final GetMyOrderByIdUseCase    getMyOrderByIdUseCase;
+    private final GetMyReturnsUseCase      getMyReturnsUseCase;
     private final CheckoutUseCase          checkoutUseCase;
     private final CancelOrderUseCase       cancelOrderUseCase;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
+    private final GetDeliveryCodeUseCase   getDeliveryCodeUseCase;
     private final LoadListingVariantPort   loadListingVariantPort;
     private final LoadSkuPort              loadSkuPort;
     private final LoadReviewPort           loadReviewPort;
     private final LoadPickpointPort        loadPickpointPort;
+    private final LoadOrderPort            loadOrderPort;
 
     public OrderController(GetMyOrdersUseCase getMyOrdersUseCase,
+                           GetMyOrderByIdUseCase getMyOrderByIdUseCase,
+                           GetMyReturnsUseCase getMyReturnsUseCase,
                            CheckoutUseCase checkoutUseCase,
                            CancelOrderUseCase cancelOrderUseCase,
                            UpdateOrderStatusUseCase updateOrderStatusUseCase,
+                           GetDeliveryCodeUseCase getDeliveryCodeUseCase,
                            LoadListingVariantPort loadListingVariantPort,
                            LoadSkuPort loadSkuPort,
                            LoadReviewPort loadReviewPort,
-                           LoadPickpointPort loadPickpointPort) {
+                           LoadPickpointPort loadPickpointPort,
+                           LoadOrderPort loadOrderPort) {
         this.getMyOrdersUseCase       = getMyOrdersUseCase;
+        this.getMyOrderByIdUseCase    = getMyOrderByIdUseCase;
+        this.getMyReturnsUseCase      = getMyReturnsUseCase;
         this.checkoutUseCase          = checkoutUseCase;
         this.cancelOrderUseCase       = cancelOrderUseCase;
         this.updateOrderStatusUseCase = updateOrderStatusUseCase;
+        this.getDeliveryCodeUseCase   = getDeliveryCodeUseCase;
         this.loadListingVariantPort   = loadListingVariantPort;
         this.loadSkuPort              = loadSkuPort;
         this.loadReviewPort           = loadReviewPort;
         this.loadPickpointPort        = loadPickpointPort;
+        this.loadOrderPort            = loadOrderPort;
     }
 
     @GetMapping("/my-orders")
-    @Operation(summary = "Get my order history")
-    public ResponseEntity<List<OrderDto>> getMyOrders(@AuthenticationPrincipal JwtAuthenticatedUser user) {
-        List<Order> orders = getMyOrdersUseCase.execute(user.userId());
-        return ResponseEntity.ok(orders.stream().map(this::toDto).toList());
+    @Operation(summary = "Get my paginated order history")
+    public ResponseEntity<PageResponse<OrderDto>> getMyOrders(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        PageResult<Order> result = getMyOrdersUseCase.execute(user.userId(), page, size);
+        List<OrderDto> dtos = result.content().stream().map(this::toDto).toList();
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @GetMapping("/{orderId}")
+    @Operation(summary = "Get a single order (authenticated owner only — returns 404 for other users)")
+    public ResponseEntity<OrderDto> getMyOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        Order order = getMyOrderByIdUseCase.execute(orderId, user.userId());
+        return ResponseEntity.ok(toDto(order));
+    }
+
+    @GetMapping("/my-returns")
+    @Operation(summary = "Get my paginated walk-in returns")
+    public ResponseEntity<PageResponse<MyReturnDto>> getMyReturns(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        PageResult<CustomerReturn> result = getMyReturnsUseCase.execute(user.userId(), page, size);
+
+        Map<Long, Order> orderMap = result.content().stream()
+                .collect(Collectors.toMap(
+                        CustomerReturn::getOrderId,
+                        cr -> loadOrderPort.loadById(cr.getOrderId()).orElseThrow(),
+                        (a, b) -> a));
+
+        List<MyReturnDto> dtos = result.content().stream()
+                .map(cr -> MyReturnDto.from(cr, orderMap.get(cr.getOrderId())))
+                .toList();
+
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
     }
 
     @PostMapping("/checkout")
@@ -118,9 +175,20 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
         updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
-                id, newStatus, body.courierName(), body.trackingNumber(), body.estimatedDeliveryDate()));
+                id, newStatus, body.courierId(), body.trackingNumber(), body.estimatedDeliveryDate()));
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{orderId}/delivery-code")
+    @Operation(summary = "Get the active delivery/pickup code for an order (authenticated owner only)")
+    public ResponseEntity<DeliveryCodeResponse> getDeliveryCode(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        var result = getDeliveryCodeUseCase.execute(orderId, user.userId());
+        return ResponseEntity.ok(new DeliveryCodeResponse(result.code(), result.expiresAt()));
+    }
+
+    record DeliveryCodeResponse(String code, Instant expiresAt) {}
 
     private OrderDto toDto(Order order) {
         List<Long> variantIds = order.items().stream()
@@ -186,7 +254,7 @@ public class OrderController {
                 order.pickpointId(),
                 pickpoint != null ? pickpoint.name()    : null,
                 pickpoint != null ? pickpoint.address() : null,
-                order.courierName(),
+                null, // courier name — resolved via admin API only (Phase 9)
                 order.trackingNumber(),
                 order.estimatedDeliveryDate());
     }

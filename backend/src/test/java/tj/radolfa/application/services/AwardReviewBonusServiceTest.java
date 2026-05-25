@@ -99,6 +99,7 @@ class AwardReviewBonusServiceTest {
 
         @Override public Optional<User> loadByPhone(String phone) { return Optional.empty(); }
         @Override public List<User> findAllNonPermanent() { return List.of(); }
+            @Override public List<User> findByRoleAndEnabledTrue(tj.radolfa.domain.model.UserRole r) { return List.of(); }
     }
 
     static class FakeSaveUserPort implements SaveUserPort {

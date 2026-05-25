@@ -7,6 +7,7 @@ import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -24,7 +25,7 @@ public class ListAdminOrdersService implements ListAdminOrdersUseCase {
 
     @Override
     public PageResult<LoadAdminOrdersPort.OrderRow> execute(String search,
-                                                             OrderStatus status,
+                                                             List<OrderStatus> statuses,
                                                              String sortBy,
                                                              String sortDir,
                                                              int page,
@@ -34,6 +35,7 @@ public class ListAdminOrdersService implements ListAdminOrdersUseCase {
         int safePage       = Math.max(1, page);
         int safeSize       = Math.min(Math.max(1, size), 100);
 
-        return loadAdminOrdersPort.search(search, status, safeSortBy, safeSortDir, safePage, safeSize);
+        return loadAdminOrdersPort.search(search, statuses != null ? statuses : List.of(),
+                safeSortBy, safeSortDir, safePage, safeSize);
     }
 }

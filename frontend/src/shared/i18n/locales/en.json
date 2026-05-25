@@ -150,6 +150,9 @@
     "sizesAndStock": "Sizes & Stock",
     "noSkuData": "No SKU data available.",
     "size": "Size",
+    "barcode": "Barcode",
+    "copyBarcode": "Copy barcode",
+    "barcodeCopied": "Barcode copied",
     "sale": "Sale",
     "primary": "Primary",
     "enrichment": "Enrichment",
@@ -272,13 +275,19 @@
         "total": "Total"
       },
       "status": {
-        "PENDING":          "Pending",
-        "PAID":             "Paid",
-        "SHIPPED":          "Shipped",
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "PICKED": "Picked",
+        "SHIPPED": "Shipped",
+        "OUT_FOR_DELIVERY": "Out for delivery",
+        "DELIVERY_ATTEMPTED": "Delivery attempted",
         "READY_FOR_PICKUP": "Ready for pickup",
-        "DELIVERED":        "Delivered",
-        "CANCELLED":        "Cancelled",
-        "REFUNDED":         "Refunded"
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled",
+        "REFUNDED": "Refunded",
+        "RETURN_INITIATED": "Return initiated",
+        "RETURNED_TO_WAREHOUSE": "Returned to warehouse",
+        "RECALL_REQUESTED": "Recall Requested"
       },
       "deliveryType": {
         "HOME": "Home",
@@ -332,7 +341,20 @@
         "loyaltyPoints": "Loyalty Points",
         "redeemed": "Redeemed",
         "awarded": "Awarded",
-        "ptsShort": "pts"
+        "ptsShort": "pts",
+        "customerReturns": "Customer Returns",
+        "returnLabel": "Return",
+        "items": "items",
+        "arrivedAt": "Arrived at Pickup Point",
+        "confirmedBy": "Confirmed by",
+        "pickupAddress": "Pickup Address",
+        "pickpointOverdue": "Overdue",
+        "returnStatus": {
+          "RECEIVED": "Received",
+          "SENT_TO_WAREHOUSE": "Sent to Warehouse",
+          "REFUND_APPROVED": "Refund Approved",
+          "REFUNDED": "Refunded"
+        }
       },
       "shipModal": {
         "cancel": "Cancel",
@@ -352,7 +374,8 @@
         "qty": "Qty",
         "unitPrice": "Unit Price",
         "subtotal": "Subtotal",
-        "stock": "Stock"
+        "stock": "Stock",
+        "picked": "Picked"
       },
       "stock": {
         "inStock": "✓ In Stock",
@@ -387,9 +410,18 @@
         "refunding": "Refunding…",
         "confirm": "Refund Order"
       },
+      "tabNeedsAction": "Needs Action",
+      "tabInFulfillment": "In Fulfillment",
+      "tabCompleted": "Completed",
+      "awaitingArrivalCallout": "Awaiting pickup point staff to confirm package arrival.",
       "empty": "No orders found.",
       "page": "Page {page}",
-      "total": "{count, plural, one {# order total} other {# orders total}}"
+      "total": "{count, plural, one {# order total} other {# orders total}}",
+      "awaitingPick": {
+        "title": "Awaiting warehouse pick verification",
+        "body": "A warehouse worker must scan all items before this order can be shipped.",
+        "openInWarehouse": "Open in warehouse"
+      }
     }
   },
   "profile": {
@@ -424,6 +456,9 @@
     "statusShipped": "Shipped",
     "statusDelivered": "Delivered",
     "statusCancelled": "Cancelled",
+    "statusOutForDelivery": "Your order is on its way",
+    "statusDeliveryAttempted": "Delivery attempt failed — we'll try again",
+    "statusReadyForPickupWithCode": "Ready for pickup — show your code at the counter",
     "orderPlaced": "Order Placed",
     "orderConfirmed": "Confirmed",
     "orderShipped": "Shipped",
@@ -473,7 +508,69 @@
     "estimatedDeliveryLabel": "Estimated delivery",
     "statusReadyForPickup": "Ready for pickup",
     "orderReadyForPickup": "Ready",
-    "readyForPickupCallout": "Your parcel is waiting at the pickup point"
+    "readyForPickupCallout": "Your parcel is waiting at the pickup point",
+    "status": {
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "PICKED": "Picked",
+      "SHIPPED": "Shipped",
+      "OUT_FOR_DELIVERY": "Out for Delivery",
+      "DELIVERY_ATTEMPTED": "Delivery Attempted",
+      "READY_FOR_PICKUP": "Ready for Pickup",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled",
+      "RETURN_INITIATED": "Being Returned",
+      "RETURNED_TO_WAREHOUSE": "Returned to Warehouse",
+      "REFUNDED": "Refunded",
+      "RECALL_REQUESTED": "Recall Requested"
+    },
+    "returnInProgressBanner": "Your return is being processed. We will notify you once it reaches the warehouse.",
+    "recallRequestedBanner": "This order has been recalled by the store. Our courier will collect it from the pickup point.",
+    "returnsTab": "Returns",
+    "myReturns": "My Returns",
+    "noReturns": "You have no return requests.",
+    "returnLabel": "Return",
+    "forOrder": "for order",
+    "refundAmount": "Refund",
+    "viewOrder": "View Order",
+    "showing": "Showing",
+    "of": "of",
+    "returnStatus": {
+      "received": "Received",
+      "sentToWarehouse": "Sent to Warehouse",
+      "refundApproved": "Refund Approved",
+      "refunded": "Refunded"
+    },
+    "noOrders": "No orders found."
+  },
+  "orderDetail": {
+    "backToOrders": "My Orders",
+    "orderNumber": "Order",
+    "notFound": "Order not found.",
+    "items": "Items",
+    "pricing": "Pricing",
+    "loyaltyDiscount": "Loyalty Discount",
+    "total": "Total",
+    "pickupPoint": "Pickup Point",
+    "courierInfo": "Delivery",
+    "trackingNumber": "Tracking Number",
+    "estimatedDelivery": "Estimated Delivery",
+    "returnInfo": "Return",
+    "returnStatus": "Status",
+    "returnReason": "Reason",
+    "refundAmount": "Refund",
+    "activity": "Activity",
+    "ordered": "Ordered",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled",
+    "refunded": "Refunded",
+    "returnInProgressBanner": "Your return is being processed.",
+    "recallRequestedBanner": "This order has been recalled by the store."
+  },
+  "pickupCode": {
+    "scanCaption": "Show this code or let staff scan the QR at the counter.",
+    "pickupLocation": "Pickup location"
   },
   "cart": {
     "title": "Your Cart",
@@ -596,7 +693,18 @@
     "noUsersMatching": "No users matching \"{search}\"",
     "noUsersFound": "No users found.",
     "usersTotal": "{count, plural, one {# user total} other {# users total}}",
-    "page": "Page {page}"
+    "page": "Page {page}",
+    "tabCustomers": "Customers",
+    "tabManagers": "Managers",
+    "tabCouriers": "Couriers",
+    "tabPickpointStaff": "Pickpoint Staff",
+    "addCourier": "Add Courier",
+    "addPickpointStaff": "Add Pickpoint Staff",
+    "editCourier": "Edit Courier",
+    "editPickpointStaff": "Edit Pickpoint Staff",
+    "tableVehicleType": "Vehicle",
+    "tableMaxPayload": "Max Payload",
+    "tablePickpoint": "Pickpoint"
   },
   "reviews": {
     "card": {
@@ -820,6 +928,332 @@
         "body": "Combines multiplicatively with other STACKABLE discounts on the same SKU.",
         "short": "Stackable"
       }
+    }
+  },
+  "pickpoint": {
+    "orderLabel": "Order",
+    "selectOrder": "Select order",
+    "items": "items",
+    "showMore": "+{count} more",
+    "showLess": "Show less",
+    "selectedCount": "{count} selected",
+    "confirmSelected": "Confirm Arrival ({count})",
+    "confirmedToast": "{count} order(s) confirmed",
+    "confirming": "Confirming…",
+    "tab": {
+      "incoming": "Incoming",
+      "awaiting": "Awaiting",
+      "returns": "Returns",
+      "customerReturns": "Walk-in Returns",
+      "history": "History"
+    },
+    "confirmArrival": "Confirm Arrival",
+    "readySince": "Ready since {date}",
+    "overdue": "Overdue · {days}d",
+    "noOrders": "No orders in this category.",
+    "awaitingPickup": "Awaiting customer pickup",
+    "enRoute": "En route — awaiting arrival confirmation"
+  },
+  "courier": {
+    "title": "My Deliveries",
+    "tab": {
+      "toCollect": "To Collect",
+      "inTransit": "In Transit",
+      "attempted": "Attempted"
+    },
+    "showing": "Showing",
+    "of": "of",
+    "noOrders": "No orders in this category.",
+    "collectOrder": "I've Collected This Order",
+    "recordAttempt": "Record Another Attempt",
+    "attemptReason": "Attempt reason",
+    "attemptPhoto": "Upload photo (optional)"
+  },
+  "warehouse": {
+    "title": "Warehouse",
+    "nav": {
+      "lookup": "Lookup",
+      "receipts": "Stock Receipts",
+      "structure": "Structure",
+      "returns": "Returns Queue",
+      "pick": "Pick Orders"
+    },
+    "common": {
+      "scan": "Scan barcode",
+      "loading": "Loading…",
+      "empty": "No results.",
+      "search": "Search",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirm": "Confirm",
+      "back": "Back",
+      "submit": "Submit",
+      "placeholderBody": "This screen will be built in a later phase.",
+      "logout": "Sign out"
+    },
+    "lookup": {
+      "title": "Barcode Lookup",
+      "scanPrompt": "Scan or type a barcode and press Enter",
+      "empty": "Scan a barcode to begin.",
+      "notFound": "No SKU found for that barcode.",
+      "stock": "Stock",
+      "size": "Size",
+      "skuCode": "SKU Code",
+      "binLocation": "Bin Location",
+      "unassigned": "Unassigned",
+      "actions": {
+        "reassign": "Reassign Bin",
+        "unassign": "Unassign",
+        "history": "View History"
+      },
+      "reassign": {
+        "title": "Reassign Bin",
+        "zone": "Zone",
+        "shelf": "Shelf",
+        "bin": "Bin",
+        "selectZone": "Select a zone…",
+        "selectShelf": "Select a shelf…",
+        "selectBin": "Select a bin…",
+        "success": "Bin updated.",
+        "error": "Failed to reassign bin."
+      },
+      "unassign": {
+        "confirmTitle": "Remove bin assignment?",
+        "confirmBody": "{product} ({size}) will no longer be tied to any bin.",
+        "success": "SKU unassigned from bin.",
+        "error": "Failed to unassign bin."
+      },
+      "history": {
+        "title": "Inventory History",
+        "columns": {
+          "when": "When",
+          "type": "Type",
+          "delta": "Δ",
+          "reference": "Reference",
+          "actor": "Actor"
+        },
+        "empty": "No transactions yet.",
+        "type": {
+          "SALE": "Sale",
+          "CANCELLATION": "Cancellation",
+          "RECALL_RETURN": "Recall return",
+          "RETURN_RESTORE": "Return restore",
+          "WRITE_OFF": "Write-off",
+          "RECEIPT": "Receipt",
+          "MANUAL_ADJUSTMENT": "Manual adjustment"
+        }
+      }
+    },
+    "receipts": {
+      "title": "Stock Receipts",
+      "new": "New Receipt",
+      "search": "Search by supplier reference…",
+      "empty": "No stock receipts yet.",
+      "emptyCta": "Create your first receipt",
+      "columns": {
+        "date": "Date",
+        "supplier": "Supplier Reference",
+        "units": "Total Units",
+        "createdBy": "Created By"
+      },
+      "create": {
+        "title": "New Stock Receipt",
+        "supplierRef": "Supplier Reference",
+        "supplierRefPlaceholder": "e.g. INV-2025-0042",
+        "notes": "Notes",
+        "scanPrompt": "Scan or type a barcode and press Enter",
+        "scanNotFound": "No SKU found for that barcode.",
+        "manualEntry": "Manual entry",
+        "manualSearchPlaceholder": "Search by SKU code or product name…",
+        "manualSearchHint": "Type at least 2 characters to search",
+        "manualNoResults": "No SKUs found.",
+        "lineItems": {
+          "product": "Product",
+          "skuCode": "SKU Code",
+          "quantity": "Quantity",
+          "notes": "Notes",
+          "remove": "Remove"
+        },
+        "submitBtn": "Create Receipt",
+        "submitting": "Creating…",
+        "emptyForm": "Add at least one item before submitting.",
+        "successToast": "Stock receipt created.",
+        "error": "Failed to create stock receipt.",
+        "invalidQuantity": "Quantity must be at least 1 for every line."
+      },
+      "detail": {
+        "title": "Stock Receipt",
+        "backToList": "Stock Receipts",
+        "supplierRef": "Supplier Reference",
+        "notes": "Notes",
+        "createdBy": "Created By",
+        "date": "Date",
+        "totalUnits": "Total Units",
+        "status": "Status",
+        "statusCompleted": "Completed",
+        "noNotes": "No notes.",
+        "columns": {
+          "product": "Product",
+          "skuCode": "SKU Code",
+          "qty": "Qty Received",
+          "notes": "Notes"
+        },
+        "loadError": "Failed to load stock receipt."
+      }
+    },
+    "structure": {
+      "title": "Structure",
+      "subtitle": "Manage zones, shelves, and bins",
+      "zones": {
+        "title": "Zones",
+        "empty": "No zones yet.",
+        "selectToShow": "Select a zone to see shelves."
+      },
+      "shelves": {
+        "title": "Shelves",
+        "empty": "No shelves in this zone yet."
+      },
+      "bins": {
+        "title": "Bins",
+        "empty": "No bins on this shelf yet.",
+        "selectToShow": "Select a shelf to see bins."
+      },
+      "create": {
+        "zone": {
+          "title": "New zone",
+          "code": "Code",
+          "label": "Label",
+          "codePlaceholder": "A",
+          "labelPlaceholder": "Aisle A",
+          "submit": "Create zone",
+          "submitting": "Creating…",
+          "success": "Zone created."
+        },
+        "shelf": {
+          "title": "New shelf in {zoneLabel}",
+          "code": "Code",
+          "label": "Label",
+          "codePlaceholder": "1",
+          "labelPlaceholder": "Shelf 1",
+          "submit": "Create shelf",
+          "submitting": "Creating…",
+          "success": "Shelf created."
+        },
+        "bin": {
+          "title": "New bin on {shelfLabel}",
+          "code": "Code",
+          "codePlaceholder": "1",
+          "submit": "Create bin",
+          "submitting": "Creating…",
+          "success": "Bin created."
+        }
+      },
+      "delete": {
+        "zone": {
+          "title": "Delete Zone {code}?",
+          "body": "Deleting Zone {code} will also delete {shelfCount} shelf(es) and {binCount} bin(s). Any SKUs in those bins will be unassigned automatically.",
+          "loadingCounts": "Calculating impact…",
+          "success": "Zone deleted."
+        },
+        "shelf": {
+          "title": "Delete Shelf {code}?",
+          "body": "Deleting Shelf {code} will also delete {binCount} bin(s). Any SKUs in those bins will be unassigned automatically.",
+          "loadingCounts": "Calculating impact…",
+          "success": "Shelf deleted."
+        },
+        "bin": {
+          "title": "Delete Bin {code}?",
+          "body": "Any SKUs in Bin {code} will be unassigned automatically.",
+          "success": "Bin deleted."
+        }
+      },
+      "errors": {
+        "create": "Failed to create item.",
+        "delete": "Failed to delete item."
+      },
+      "validation": {
+        "codeRequired": "Code is required."
+      }
+    },
+    "returns": {
+      "title": "Returns Queue",
+      "subtitle": "Review returned items as resellable or defective",
+      "empty": "No returns waiting for review.",
+      "columns": {
+        "returnId": "Return #",
+        "orderId": "Order #",
+        "customer": "Customer",
+        "items": "Items",
+        "sentAt": "Sent at"
+      },
+      "review": {
+        "backToQueue": "Back to queue",
+        "title": "Return #{id}",
+        "metadata": {
+          "orderId": "Order",
+          "customer": "Customer",
+          "pickpoint": "Pickpoint",
+          "sentAt": "Sent at",
+          "totalRefund": "Total refund",
+          "notes": "Notes"
+        },
+        "itemsTitle": "Items",
+        "refundLabel": "Refund",
+        "resellable": "Resellable",
+        "defective": "Defective",
+        "alreadyReviewed": "Reviewed",
+        "submit": "Submit review",
+        "submitting": "Submitting…",
+        "successToast": "Review submitted.",
+        "errorToast": "Failed to submit review.",
+        "loadError": "Failed to load this return."
+      },
+      "reason": {
+        "DAMAGED": "Damaged",
+        "WRONG_ITEM": "Wrong item",
+        "NOT_AS_DESCRIBED": "Not as described",
+        "CHANGED_MIND": "Changed mind",
+        "OTHER": "Other"
+      }
+    },
+    "pick": {
+      "queue": {
+        "title": "Pick Queue",
+        "jumpPrompt": "Scan or enter order ID",
+        "search": "Search orders",
+        "empty": "No orders awaiting pick",
+        "columns": {
+          "orderId": "Order ID",
+          "deliveryType": "Delivery",
+          "customer": "Customer",
+          "items": "Items",
+          "createdAt": "Created"
+        }
+      },
+      "session": {
+        "title": "Pick Session",
+        "scanPrompt": "Scan item barcode",
+        "progress": "{picked} / {total} units picked",
+        "mismatch": "Wrong item — scan the correct barcode",
+        "alreadyPicked": "This item is already fully picked",
+        "complete": "Order picked — ready for shipping",
+        "backToQueue": "Back to queue",
+        "loadError": "Failed to load pick session",
+        "itemStatus": {
+          "pending": "Pending",
+          "inProgress": "In Progress",
+          "picked": "Picked"
+        }
+      }
+    }
+  },
+  "receipts": {
+    "detail": {
+      "loadError": "Failed to load stock receipt."
+    },
+    "create": {
+      "invalidQuantity": "Quantity must be at least 1 for every line."
     }
   }
 }

@@ -1,4 +1,5 @@
 import type { LoyaltyProfile } from "@/entities/loyalty/model/types";
+import type { OrderStatus } from "@/entities/order/model/types";
 
 /**
  * Authorised roles.
@@ -8,6 +9,9 @@ export enum UserRole {
   USER = "USER",
   MANAGER = "MANAGER",
   ADMIN = "ADMIN",
+  COURIER = "COURIER",
+  PICKPOINT_STAFF = "PICKPOINT_STAFF",
+  WAREHOUSE_MANAGER = "WAREHOUSE_MANAGER",
 }
 
 /**
@@ -22,4 +26,63 @@ export interface User {
   email?: string;
   loyalty: LoyaltyProfile | null;
   enabled: boolean;
+  pickpointId?: number | null;
+  pickpointName?: string | null;
+  vehicleType?: "BICYCLE" | "MOTORCYCLE" | "CAR" | "VAN" | null;
+  maxPayloadKg?: number | null;
+}
+
+export interface CourierSummary {
+  id: number;
+  name: string;
+  phone: string;
+  vehicleType: string;
+  maxPayloadKg: number | null;
+}
+
+export interface CourierOrder {
+  orderId: number;
+  customerFirstName: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  preferredTimeWindow: string | null;
+  status: OrderStatus;
+  deliveryAttemptCount: number;
+  totalItemCount: number;
+  totalWeightKg: number | null;
+  shippedAt: string | null;
+  outForDeliveryAt: string | null;
+}
+
+export interface PickpointOrderItem {
+  productName: string;
+  skuCode: string;
+  sizeLabel: string | null;
+  imageUrl: string | null;
+  quantity: number;
+}
+
+export interface PickpointOrder {
+  orderId: number;
+  customerFirstName: string;
+  customerPhone: string;
+  status: OrderStatus;
+  readyAt: string;
+  expiresAt: string;
+  daysUntilExpiry: number;
+  overdue: boolean;
+  daysOverdue: number;
+  totalItemCount: number;
+  totalWeightKg: number | null;
+  items: PickpointOrderItem[];
+}
+
+export interface CourierFleetEntry {
+  courierId: number;
+  name: string;
+  vehicleType: string | null;
+  maxPayloadKg: number | null;
+  deliveredToday: number;
+  inTransit: number;
+  attempted: number;
 }

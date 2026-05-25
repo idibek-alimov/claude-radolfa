@@ -10,6 +10,7 @@ import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.service.BarcodeGenerator;
 
 import java.util.UUID;
 
@@ -24,11 +25,14 @@ public class AddSkuToVariantService implements AddSkuToVariantUseCase {
 
     private final LoadListingVariantPort    loadVariantPort;
     private final SaveProductHierarchyPort  savePort;
+    private final BarcodeGenerator          barcodeGenerator;
 
     public AddSkuToVariantService(LoadListingVariantPort loadVariantPort,
-                                  SaveProductHierarchyPort savePort) {
-        this.loadVariantPort = loadVariantPort;
-        this.savePort        = savePort;
+                                  SaveProductHierarchyPort savePort,
+                                  BarcodeGenerator barcodeGenerator) {
+        this.loadVariantPort  = loadVariantPort;
+        this.savePort         = savePort;
+        this.barcodeGenerator = barcodeGenerator;
     }
 
     @Override
@@ -45,7 +49,7 @@ public class AddSkuToVariantService implements AddSkuToVariantUseCase {
         }
 
         String skuCode = "SKU-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
-        String barcode = "BC-"  + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        String barcode = barcodeGenerator.next();
 
         Sku sku = new Sku(
                 null,

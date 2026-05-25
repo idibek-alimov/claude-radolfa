@@ -8,7 +8,7 @@
   - No JPA `@Entity` annotations in the Domain layer.
   - Use Java 21 `record` for DTOs. Domain models may be mutable classes when they have business behaviour (e.g. `Cart`, `Sku`).
   - Constructor injection only — no `@Autowired` on fields.
-  - `@Transactional` belongs on the service layer, not on adapters (except `SaveCartPort`, `SaveProductHierarchyPort` which are called from multiple services).
+  - `@Transactional` belongs on the service layer, not on adapters (except `SaveCartPort`, `SaveProductHierarchyPort` which are called from multiple services, and `SaveSagaLogPort` which uses `REQUIRES_NEW` so the log entry survives an outer transaction rollback).
   - **List endpoints:** Every endpoint returning a list MUST accept `page`, `size`, `search`, and `sort` as query params and apply them inside the JPA Specification / Elasticsearch query — never return an unfiltered `List<T>` and let the caller trim it. Return Spring `Page<T>` (fields: `content`, `totalElements`, `totalPages`, `number`, `size`, `first`, `last`).
   - **Search:** Apply case-insensitive `LIKE` / Elasticsearch `match` on the fields the UI exposes as searchable. Add a Flyway migration for a DB index if the column is not already indexed.
   - **Sort:** Accept `sort=field,asc|desc` (Spring `Sort` convention). **Whitelist** sortable field names in the controller — never interpolate raw user input into JPQL or native SQL `ORDER BY` (SQL injection risk).
@@ -21,7 +21,7 @@ All `INSERT` seed data belongs in `backend/src/main/resources/db/migration-dev/`
 - This directory is only loaded when the `dev` Spring profile is active (`spring.flyway.locations` includes `classpath:db/migration-dev`).
 - Append new seed rows to `V15__dev_seed.sql` (general data) or `V16__dev_reviews.sql` (review/QA data). Do **not** create a new versioned file just for seed data.
 - Production migrations (`db/migration/`) must never contain `INSERT` seed rows.
-- **Versioning rule (critical):** Dev seed file version numbers must always be **higher** than the highest production migration version. Currently the highest production migration is `V14__pickpoint.sql`, so seeds are `V15` and `V16`. When a new production migration (e.g. `V15__...`) is added, the seed files must be renumbered above it. Failing to do this causes Flyway to run seed `INSERT`s before the schema tables they reference exist, crashing startup.
+- **Versioning rule (critical):** Dev seed file version numbers must always be **higher** than the highest production migration version. Currently the highest production migration is `V25__warehouse_locations.sql`, so seeds are `V26` and `V27`. When a new production migration (e.g. `V26__...`) is added, the seed files must be renumbered above it. Failing to do this causes Flyway to run seed `INSERT`s before the schema tables they reference exist, crashing startup.
 
 ## Database Migrations — Development Policy
 

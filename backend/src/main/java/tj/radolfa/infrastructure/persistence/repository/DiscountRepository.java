@@ -1,7 +1,9 @@
 package tj.radolfa.infrastructure.persistence.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tj.radolfa.infrastructure.persistence.entity.DiscountEntity;
@@ -82,4 +84,8 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long>,
 
     @Query("SELECT d FROM DiscountEntity d WHERE LOWER(d.couponCode) = LOWER(:code)")
     Optional<DiscountEntity> findByCouponCodeIgnoreCase(@Param("code") String code);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT d FROM DiscountEntity d WHERE d.id = :id")
+    Optional<DiscountEntity> findByIdForUpdate(@Param("id") Long id);
 }

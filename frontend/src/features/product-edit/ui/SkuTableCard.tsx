@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lock, Loader2, Plus, X, Check } from "lucide-react";
+import { Lock, Loader2, Plus, Ruler, X, Check, Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { addSkuToVariant } from "@/entities/product/api/admin";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage, useCopyToClipboard } from "@/shared/lib";
 import { useDraft } from "../model/ProductCardDraftContext";
 import type { ProductCardSku } from "@/entities/product/model/types";
+import { SkuLogisticsDialog } from "./SkuLogisticsDialog";
 
 interface Props {
   slug: string;
@@ -24,6 +25,9 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
   const t = useTranslations("manage");
   const queryClient = useQueryClient();
   const { draft, updateSkuField } = useDraft();
+
+  const [logisticsSkuId, setLogisticsSkuId] = useState<number | null>(null);
+  const logisticsSku = logisticsSkuId !== null ? skus.find((s) => s.skuId === logisticsSkuId) ?? null : null;
 
   // Add Size form state (stays local — creation action, not an edit)
   const [addingSize, setAddingSize] = useState(false);
@@ -106,6 +110,10 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
               <th className={`px-3 py-2 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>
                 {t("stock")}
               </th>
+              <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">
+                {t("barcode")}
+              </th>
+              <th className="px-3 py-2 text-xs font-medium text-muted-foreground w-[40px]" />
             </tr>
           </thead>
           <tbody>
@@ -183,6 +191,22 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
                       </td>
                     </>
                   )}
+
+                  {/* Barcode — read-only for MANAGER and ADMIN */}
+                  <SkuBarcodeCell barcode={sku.barcode} />
+
+                  {/* Logistics button — MANAGER + ADMIN */}
+                  <td className="px-1 py-1.5">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      title="Logistics dimensions"
+                      onClick={() => setLogisticsSkuId(sku.skuId)}
+                    >
+                      <Ruler className="h-3.5 w-3.5" />
+                    </Button>
+                  </td>
                 </tr>
               );
             })}
@@ -270,6 +294,48 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
           )}
         </div>
       )}
+
+      {logisticsSku && (
+        <SkuLogisticsDialog
+          open={true}
+          onClose={() => setLogisticsSkuId(null)}
+          sku={logisticsSku}
+          productBaseId={productBaseId}
+        />
+      )}
     </div>
+  );
+}
+
+function SkuBarcodeCell({ barcode }: { barcode: string }) {
+  const t = useTranslations("manage");
+  const { copied, copy } = useCopyToClipboard();
+
+  if (!barcode) {
+    return <td className="px-3 py-1.5 text-xs text-muted-foreground">—</td>;
+  }
+
+  return (
+    <td className="px-3 py-1.5 font-mono text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-1.5">
+        <span className="tabular-nums">{barcode}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0"
+          title={t("copyBarcode")}
+          onClick={() => {
+            copy(barcode);
+            toast.success(t("barcodeCopied"));
+          }}
+        >
+          {copied ? (
+            <Check className="h-3 w-3 text-green-600" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
+        </Button>
+      </span>
+    </td>
   );
 }

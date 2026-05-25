@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "order_items")
@@ -37,4 +38,13 @@ public class OrderItemEntity {
 
     @Column(name = "price_at_purchase", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtPurchase;
+
+    @Column(name = "quantity_picked", nullable = false)
+    private int quantityPicked;
+
+    @Column(name = "picked_at")
+    private Instant pickedAt;
+
+    @Column(name = "picked_by_user_id")
+    private Long pickedByUserId;
 }

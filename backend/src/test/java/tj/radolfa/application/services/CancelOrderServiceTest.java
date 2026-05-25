@@ -9,6 +9,8 @@ import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.model.DeliveryType;
+import tj.radolfa.domain.model.InventoryTransactionType;
+import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
@@ -38,11 +40,20 @@ class CancelOrderServiceTest {
             "Alice", null, LoyaltyProfile.empty(), true, 1L);
 
     static Order pendingOrder(Long ownerId) {
-        return new Order(1L, ownerId, null, OrderStatus.PENDING,
-                new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        return pendingOrderWithItems(ownerId, List.of());
+    }
+
+    static Order pendingOrderWithItems(Long ownerId, List<OrderItem> items) {
+        return new Order.Builder()
+                .id(1L).userId(ownerId).status(OrderStatus.PENDING)
+                .totalAmount(new Money(BigDecimal.valueOf(200))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .items(items)
+                .build();
+    }
+
+    static OrderItem orderItem(Long skuId) {
+        return new OrderItem(1L, skuId, null, "SKU-1", "Product", 2, new Money(BigDecimal.TEN), 0, null, null);
     }
 
     static LoadOrderPort orderPort(Order order) {
@@ -63,6 +74,7 @@ class CancelOrderServiceTest {
             }
             @Override public Optional<User> loadByPhone(String p) { return Optional.empty(); }
             @Override public List<User> findAllNonPermanent() { return List.of(); }
+            @Override public List<User> findByRoleAndEnabledTrue(tj.radolfa.domain.model.UserRole r) { return List.of(); }
         };
     }
 
@@ -79,6 +91,9 @@ class CancelOrderServiceTest {
         @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { updateCount++; lastStatus = s; }
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {
@@ -87,18 +102,57 @@ class CancelOrderServiceTest {
         @Override public void setAbsolute(Long skuId, int qty) {}
     };
 
-    static final RestoreLoyaltyPointsUseCase NO_LOYALTY = (userId, pts) -> {};
+    static class CapturingStockAdjustmentPort implements StockAdjustmentPort {
+        Long capturedActorUserId = null;
+        Long capturedReferenceId = null;
+        InventoryTransactionType capturedType = null;
+
+        @Override public void decrement(Long skuId, int qty) {}
+        @Override public void increment(Long skuId, int qty) {}
+        @Override public void setAbsolute(Long skuId, int qty) {}
+
+        @Override
+        public void increment(Long skuId, int qty, InventoryTransactionType type,
+                              String refType, Long refId, Long actorUserId) {
+            this.capturedActorUserId = actorUserId;
+            this.capturedReferenceId = refId;
+            this.capturedType = type;
+        }
+    }
+
+    static final RestoreLoyaltyPointsUseCase NO_LOYALTY        = (userId, pts) -> {};
+    static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
+            new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
+                @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+                @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+                @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+                @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+                @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
+            };
 
     static CancelOrderService service(Order order, User requester,
                                       CapturingSaveOrderPort save,
                                       NotificationPort notifPort) {
+        return service(order, requester, save, notifPort, NO_STOCK);
+    }
+
+    static CancelOrderService service(Order order, User requester,
+                                      CapturingSaveOrderPort save,
+                                      NotificationPort notifPort,
+                                      StockAdjustmentPort stockPort) {
         return new CancelOrderService(
                 orderPort(order),
                 save,
                 userPort(requester),
-                NO_STOCK,
+                stockPort,
                 NO_LOYALTY,
-                new OrderNotificationService(notifPort));
+                new OrderNotificationService(notifPort),
+                NO_DELIVERY_EVENTS,
+                new tj.radolfa.application.ports.out.LoadCartPort() {
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Cart> findActiveByUserId(Long id) { return java.util.Optional.empty(); }
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Cart> findById(Long id) { return java.util.Optional.empty(); }
+                },
+                cart -> cart);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -161,16 +215,65 @@ class CancelOrderServiceTest {
     @Test
     @DisplayName("ADMIN cannot cancel an already-DELIVERED order")
     void adminCannotCancelDeliveredOrder_throws() {
-        Order delivered = new Order(1L, 10L, null, OrderStatus.DELIVERED,
-                new Money(BigDecimal.valueOf(200)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        Order delivered = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.DELIVERED)
+                .totalAmount(new Money(BigDecimal.valueOf(200))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .build();
 
         CancelOrderService svc = service(delivered, ADMIN_USER,
                 new CapturingSaveOrderPort(), new CountingNotificationPort());
 
         assertThrows(IllegalStateException.class,
                 () -> svc.execute(1L, ADMIN_USER.id(), null));
+    }
+
+    @Test
+    @DisplayName("System path (ExpireOrderUseCase) cancels READY_FOR_PICKUP — status CANCELLED, notification fired")
+    void systemExpiry_cancelsReadyForPickupOrder() {
+        Order readyForPickup = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.READY_FOR_PICKUP)
+                .totalAmount(new Money(BigDecimal.valueOf(300))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(5L)
+                .build();
+
+        CapturingSaveOrderPort   save  = new CapturingSaveOrderPort();
+        CountingNotificationPort notif = new CountingNotificationPort();
+        CancelOrderService svc = service(readyForPickup, ADMIN_USER, save, notif);
+
+        svc.execute(1L, "Pickup period expired");
+
+        assertEquals(OrderStatus.CANCELLED, save.last().status());
+        assertNotNull(save.last().cancelledAt());
+        assertEquals(1, notif.updateCount);
+        assertEquals(OrderStatus.CANCELLED, notif.lastStatus);
+    }
+
+    @Test
+    @DisplayName("User-driven cancel threads requesterId as actorUserId in stock increment")
+    void userDrivenCancel_passesRequesterIdToStockIncrement() {
+        CapturingStockAdjustmentPort capStock = new CapturingStockAdjustmentPort();
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        Order orderWithItem = pendingOrderWithItems(REGULAR_USER.id(), List.of(orderItem(10L)));
+
+        service(orderWithItem, REGULAR_USER, save, new CountingNotificationPort(), capStock)
+                .execute(1L, REGULAR_USER.id(), "changed mind");
+
+        assertEquals(REGULAR_USER.id(), capStock.capturedActorUserId);
+        assertEquals(InventoryTransactionType.CANCELLATION, capStock.capturedType);
+    }
+
+    @Test
+    @DisplayName("System-driven expiry passes null actorUserId in stock increment")
+    void systemExpiry_passesNullActorUserIdToStockIncrement() {
+        CapturingStockAdjustmentPort capStock = new CapturingStockAdjustmentPort();
+        Order orderWithItem = pendingOrderWithItems(REGULAR_USER.id(), List.of(orderItem(10L)));
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+
+        service(orderWithItem, ADMIN_USER, save, new CountingNotificationPort(), capStock)
+                .execute(1L, "payment window expired");
+
+        assertNull(capStock.capturedActorUserId, "System expiry must record null actor");
+        assertEquals(InventoryTransactionType.CANCELLATION, capStock.capturedType);
     }
 }

@@ -13,21 +13,21 @@ export const fetchMyDeliveredOrders = (): Promise<DeliveredOrder[]> =>
 
 export function useAdminOrders(params: {
   page: number;
-  search: string;
-  status: OrderStatus | "";
-  sortBy: string;
-  sortDir: string;
+  search?: string;
+  statuses?: string;
+  sortBy?: string;
+  sortDir?: string;
   size: number;
 }) {
-  const { page, search, status, sortBy, sortDir, size } = params;
+  const { page, search = "", statuses, sortBy = "createdAt", sortDir = "DESC", size } = params;
   return useQuery({
-    queryKey: ["admin-orders", page, search, status, sortBy, sortDir, size],
+    queryKey: ["admin-orders", page, search, statuses, sortBy, sortDir, size],
     queryFn: () =>
       apiClient
         .get<PaginatedResponse<AdminOrderListItem>>("/api/v1/admin/orders", {
           params: {
             page, size, search,
-            ...(status ? { status } : {}),
+            ...(statuses ? { statuses } : {}),
             sortBy,
             sortDir,
           },
@@ -54,19 +54,19 @@ export function useUpdateOrderStatus() {
     mutationFn: ({
       orderId,
       status,
-      courierName,
+      courierId,
       trackingNumber,
       estimatedDeliveryDate,
     }: {
       orderId: number;
       status: OrderStatus;
-      courierName?: string;
+      courierId?: number;
       trackingNumber?: string;
       estimatedDeliveryDate?: string;
     }) =>
       apiClient.patch(`/api/v1/orders/${orderId}/status`, {
         status,
-        courierName: courierName?.trim() || undefined,
+        courierId: courierId ?? undefined,
         trackingNumber: trackingNumber?.trim() || undefined,
         estimatedDeliveryDate: estimatedDeliveryDate || undefined,
       }),
@@ -99,7 +99,21 @@ export function useCancelOrder() {
       qc.invalidateQueries({ queryKey: ["admin-order", vars.orderId] });
       qc.invalidateQueries({ queryKey: ["admin-order-summary"] });
       qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["cart"] });
     },
+  });
+}
+
+export function useDeliveryCode(orderId: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ["delivery-code", orderId],
+    queryFn: () =>
+      apiClient
+        .get<{ code: string; expiresAt: string }>(`/api/v1/orders/${orderId}/delivery-code`)
+        .then((r) => r.data),
+    enabled,
+    staleTime: 60_000,
+    retry: false,
   });
 }
 

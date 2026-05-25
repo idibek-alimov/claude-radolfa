@@ -3,9 +3,10 @@
 CREATE TABLE carts (
     id          BIGSERIAL    PRIMARY KEY,
     user_id     BIGINT       NOT NULL REFERENCES users(id),
-    status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
-    coupon_code VARCHAR(64)  NULL,
-    version     BIGINT,
+    status           VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    coupon_code      VARCHAR(64)  NULL,
+    pending_order_id BIGINT       NULL REFERENCES orders(id) ON DELETE SET NULL,
+    version          BIGINT,
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );

@@ -43,11 +43,12 @@ VALUES
 -- 3. USERS
 -- ================================================================
 
-INSERT INTO users (phone, role, loyalty_points) VALUES
-    ('+992901234567', 'USER',    20),
-    ('+992902345678', 'MANAGER', 30),
-    ('+992903456789', 'ADMIN',   50),
-    ('+992904567890', 'USER',    5200);
+INSERT INTO users (phone, role, name, loyalty_points) VALUES
+    ('+992901234567', 'USER',              NULL,              20),
+    ('+992902345678', 'MANAGER',           NULL,              30),
+    ('+992903456789', 'ADMIN',             NULL,              50),
+    ('+992904567890', 'USER',              NULL,              5200),
+    ('+992905678901', 'WAREHOUSE_MANAGER', 'Warehouse Staff', 0);
 
 -- User 1: Gold tier, close to Platinum
 UPDATE users SET
@@ -690,6 +691,48 @@ ON CONFLICT DO NOTHING;
 INSERT INTO pickpoint (name, address, active) VALUES
     ('Radolfa — Центр',    'г. Душанбе, пр. Рудаки, 42', TRUE),
     ('Radolfa — Сомони',   'г. Душанбе, ул. Сомони, 17', TRUE);
+
+-- ================================================================
+-- 8b. PICK-TEST ORDERS (PAID, real SKU refs for scan verification)
+-- ================================================================
+
+-- HOME order for USER (+992901234567): 2 items × qty 2 each
+INSERT INTO orders (user_id, external_order_id, status, total_amount, delivery_type,
+                    delivery_address, version, created_at, updated_at)
+VALUES (
+    (SELECT id FROM users WHERE phone = '+992901234567'),
+    'SO-2025-PICK-01', 'PAID', 100.00, 'HOME',
+    'г. Душанбе, пр. Рудаки, 55, кв. 12', 0,
+    NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 hours'
+);
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+VALUES
+    ((SELECT id FROM orders WHERE external_order_id = 'SO-2025-PICK-01'),
+     (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-S'),
+     'TPL-TSHIRT-001-MBK-S', 'Essential Cotton T-Shirt', 2, 25.00),
+    ((SELECT id FROM orders WHERE external_order_id = 'SO-2025-PICK-01'),
+     (SELECT id FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-M'),
+     'TPL-TSHIRT-001-MBK-M', 'Essential Cotton T-Shirt', 2, 25.00);
+
+-- PICKPOINT order for USER (+992904567890): 2 items × qty 2 each
+INSERT INTO orders (user_id, external_order_id, status, total_amount, delivery_type,
+                    pickpoint_id, version, created_at, updated_at)
+VALUES (
+    (SELECT id FROM users WHERE phone = '+992904567890'),
+    'SO-2025-PICK-02', 'PAID', 140.00, 'PICKPOINT',
+    (SELECT id FROM pickpoint WHERE name = 'Radolfa — Центр'), 0,
+    NOW() - INTERVAL '1 hour', NOW() - INTERVAL '1 hour'
+);
+
+INSERT INTO order_items (order_id, sku_id, sku_code, product_name, quantity, price_at_purchase)
+VALUES
+    ((SELECT id FROM orders WHERE external_order_id = 'SO-2025-PICK-02'),
+     (SELECT id FROM skus WHERE sku_code = 'TPL-HOODIE-001-OBL-S'),
+     'TPL-HOODIE-001-OBL-S', 'Premium Slim Fit Hoodie', 2, 65.00),
+    ((SELECT id FROM orders WHERE external_order_id = 'SO-2025-PICK-02'),
+     (SELECT id FROM skus WHERE sku_code = 'TPL-HOODIE-001-OBL-M'),
+     'TPL-HOODIE-001-OBL-M', 'Premium Slim Fit Hoodie', 2, 70.00);
 
 -- ================================================================
 -- 11. CATEGORY ATTRIBUTE BLUEPRINTS

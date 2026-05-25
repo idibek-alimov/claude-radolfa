@@ -136,8 +136,8 @@ class GetProductCardServiceTest {
 
     private VariantSummary buildVariant(Long variantId, String colorKey) {
         List<SkuSummary> skus = List.of(
-                new SkuSummary(variantId * 10, "SKU-" + colorKey + "-S", "S", 10, new BigDecimal("49.99")),
-                new SkuSummary(variantId * 10 + 1, "SKU-" + colorKey + "-M", "M", 5, new BigDecimal("49.99"))
+                new SkuSummary(variantId * 10, "SKU-" + colorKey + "-S", null, "S", 10, new BigDecimal("49.99")),
+                new SkuSummary(variantId * 10 + 1, "SKU-" + colorKey + "-M", null, "M", 5, new BigDecimal("49.99"))
         );
         List<AttributeDto> attrs = List.of(new AttributeDto("Material", List.of("Cotton")));
         List<TagView> tags = List.of(new TagView(1L, "Sale", "#FF0000"));

@@ -1,23 +1,12 @@
 import type { User } from "@/entities/user";
+import type { OrderStatus, OrderItem } from "@/entities/order/model/types";
+import type { CustomerReturnStatus } from "@/entities/pickpoint";
 
-export type { User };
-
-export interface OrderItem {
-    productName: string;
-    quantity: number;
-    price: number;
-    skuId?: number | null;
-    listingVariantId?: number | null;
-    imageUrl?: string | null;
-    skuCode?: string | null;
-    sizeLabel?: string | null;
-    slug?: string | null;
-    hasReviewed: boolean;
-}
+export type { User, OrderStatus, OrderItem };
 
 export interface Order {
     id: number;
-    status: 'PENDING' | 'PAID' | 'SHIPPED' | 'READY_FOR_PICKUP' | 'DELIVERED' | 'CANCELLED';
+    status: OrderStatus;
     totalAmount: number;
     items: OrderItem[];
     createdAt: string;
@@ -27,9 +16,30 @@ export interface Order {
     courierName: string | null;
     trackingNumber: string | null;
     estimatedDeliveryDate: string | null;
+    pickpointName: string | null;
+    pickpointAddress: string | null;
+    deliveryAddress: string | null;
 }
 
 export interface UpdateProfileRequest {
     name: string;
     email: string;
+}
+
+export interface MyReturnItem {
+  productName: string;
+  quantity: number;
+  refundAmount: number;
+  reason: string;
+}
+
+export interface MyReturn {
+  returnId: number;
+  orderId: number;
+  status: CustomerReturnStatus;
+  receivedAt: string;
+  sentToWarehouseAt: string | null;
+  refundedAt: string | null;
+  totalRefundAmount: number | null;
+  items: MyReturnItem[];
 }

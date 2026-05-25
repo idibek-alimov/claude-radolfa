@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Truck } from "lucide-react";
+import { AlertTriangle, Truck } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -14,8 +14,23 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { useUpdateOrderStatus } from "@/entities/order";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
+import { useUpdateOrderStatus, useAdminOrder } from "@/entities/order";
+import { useCourierList } from "@/features/fleet/api";
 import { getErrorMessage } from "@/shared/lib";
+
+const VEHICLE_LABELS: Record<string, string> = {
+  BICYCLE: "Bicycle",
+  MOTORCYCLE: "Motorcycle",
+  CAR: "Car",
+  VAN: "Van",
+};
 
 interface ShipOrderModalProps {
   open: boolean;
@@ -26,14 +41,36 @@ interface ShipOrderModalProps {
 export function ShipOrderModal({ open, onClose, orderId }: ShipOrderModalProps) {
   const t = useTranslations("manage.orders");
   const updateStatus = useUpdateOrderStatus();
+  const { data: couriers = [] } = useCourierList();
+  const { data: order } = useAdminOrder(open ? orderId : null);
 
-  const [courierName, setCourierName]                     = useState("");
+  const [selectedCourierId, setSelectedCourierId] = useState<number | null>(null);
   const [trackingNumber, setTrackingNumber]               = useState("");
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState("");
   const [courierError, setCourierError]                   = useState(false);
 
+  const selectedCourier = useMemo(
+    () => couriers.find((c) => c.id === selectedCourierId) ?? null,
+    [couriers, selectedCourierId]
+  );
+
+  const orderWeight = useMemo(() => {
+    if (!order) return null;
+    const total = order.items.reduce((sum, item) => {
+      const w = (item as { weightKg?: number | null }).weightKg ?? 0;
+      return sum + w * item.quantity;
+    }, 0);
+    return total > 0 ? total : null;
+  }, [order]);
+
+  const capacityWarning =
+    orderWeight !== null &&
+    selectedCourier?.maxPayloadKg !== null &&
+    selectedCourier?.maxPayloadKg !== undefined &&
+    orderWeight > selectedCourier.maxPayloadKg;
+
   function reset() {
-    setCourierName("");
+    setSelectedCourierId(null);
     setTrackingNumber("");
     setEstimatedDeliveryDate("");
     setCourierError(false);
@@ -45,7 +82,7 @@ export function ShipOrderModal({ open, onClose, orderId }: ShipOrderModalProps) 
   }
 
   function handleSubmit() {
-    if (!courierName.trim()) {
+    if (!selectedCourierId) {
       setCourierError(true);
       return;
     }
@@ -54,7 +91,7 @@ export function ShipOrderModal({ open, onClose, orderId }: ShipOrderModalProps) 
       {
         orderId,
         status: "SHIPPED",
-        courierName,
+        courierId: selectedCourierId,
         trackingNumber,
         estimatedDeliveryDate,
       },
@@ -77,21 +114,49 @@ export function ShipOrderModal({ open, onClose, orderId }: ShipOrderModalProps) 
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Courier Select */}
           <div className="space-y-1.5">
-            <Label htmlFor="courier-name" className="text-sm">
-              {t("drawer.courierName")} <span className="text-destructive">*</span>
+            <Label className="text-sm">
+              Courier <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="courier-name"
-              value={courierName}
-              onChange={(e) => { setCourierName(e.target.value); setCourierError(false); }}
-              placeholder={t("drawer.courierNamePlaceholder")}
-              className={courierError ? "border-destructive" : ""}
-            />
+            <Select
+              value={selectedCourierId?.toString() ?? ""}
+              onValueChange={(v) => {
+                setSelectedCourierId(Number(v));
+                setCourierError(false);
+              }}
+            >
+              <SelectTrigger className={courierError ? "border-destructive" : ""}>
+                <SelectValue placeholder="Select a courier…" />
+              </SelectTrigger>
+              <SelectContent>
+                {couriers.map((c) => (
+                  <SelectItem key={c.id} value={c.id.toString()}>
+                    {c.name}
+                    {c.vehicleType && (
+                      <span className="ml-1 text-muted-foreground text-xs">
+                        — {VEHICLE_LABELS[c.vehicleType] ?? c.vehicleType}
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {courierError && (
-              <p className="text-destructive text-xs">{t("drawer.courierNameRequired")}</p>
+              <p className="text-destructive text-xs">Please select a courier.</p>
             )}
           </div>
+
+          {/* Capacity warning */}
+          {capacityWarning && selectedCourier && orderWeight !== null && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <p>
+                This order ({orderWeight.toFixed(2)} kg) exceeds this courier&apos;s max
+                payload ({selectedCourier.maxPayloadKg} kg). Proceed with caution.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="tracking-number" className="text-sm">{t("drawer.trackingNumber")}</Label>

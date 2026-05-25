@@ -23,6 +23,7 @@ public class Cart {
     private final Instant    createdAt;
     private       Instant    updatedAt;
     private       String     couponCode;
+    private       Long       pendingOrderId;
 
     public Cart(Long id,
                 Long userId,
@@ -30,15 +31,28 @@ public class Cart {
                 List<CartItem> items,
                 Instant createdAt,
                 Instant updatedAt,
-                String couponCode) {
+                String couponCode,
+                Long pendingOrderId) {
         Objects.requireNonNull(userId, "userId must not be null");
-        this.id         = id;
-        this.userId     = userId;
-        this.status     = status    != null ? status    : CartStatus.ACTIVE;
-        this.items      = items     != null ? new ArrayList<>(items) : new ArrayList<>();
-        this.createdAt  = createdAt != null ? createdAt : Instant.now();
-        this.updatedAt  = updatedAt != null ? updatedAt : this.createdAt;
-        this.couponCode = couponCode;
+        this.id             = id;
+        this.userId         = userId;
+        this.status         = status    != null ? status    : CartStatus.ACTIVE;
+        this.items          = items     != null ? new ArrayList<>(items) : new ArrayList<>();
+        this.createdAt      = createdAt != null ? createdAt : Instant.now();
+        this.updatedAt      = updatedAt != null ? updatedAt : this.createdAt;
+        this.couponCode     = couponCode;
+        this.pendingOrderId = pendingOrderId;
+    }
+
+    /** Backward-compatible constructor for existing callers (pendingOrderId defaults to null). */
+    public Cart(Long id,
+                Long userId,
+                CartStatus status,
+                List<CartItem> items,
+                Instant createdAt,
+                Instant updatedAt,
+                String couponCode) {
+        this(id, userId, status, items, createdAt, updatedAt, couponCode, null);
     }
 
     /** Factory — creates a brand-new active cart for a user. */
@@ -102,6 +116,20 @@ public class Cart {
             throw new IllegalStateException("Cannot check out an empty cart.");
         }
         this.status = CartStatus.CHECKED_OUT;
+        this.pendingOrderId = null;
+        touch();
+    }
+
+    /** Links this cart to a pending order created during checkout. */
+    public void linkOrder(Long orderId) {
+        requireActive();
+        this.pendingOrderId = orderId;
+        touch();
+    }
+
+    /** Clears the pending order link (called when the order is cancelled or payment fails). */
+    public void unlinkOrder() {
+        this.pendingOrderId = null;
         touch();
     }
 
@@ -145,14 +173,15 @@ public class Cart {
         touch();
     }
 
-    public Long           getId()          { return id; }
-    public Long           getUserId()      { return userId; }
-    public CartStatus     getStatus()      { return status; }
+    public Long           getId()             { return id; }
+    public Long           getUserId()         { return userId; }
+    public CartStatus     getStatus()         { return status; }
     /** Returns an unmodifiable snapshot of the items list. */
-    public List<CartItem> getItems()       { return List.copyOf(items); }
-    public Instant        getCreatedAt()   { return createdAt; }
-    public Instant        getUpdatedAt()   { return updatedAt; }
-    public String         getCouponCode()  { return couponCode; }
+    public List<CartItem> getItems()          { return List.copyOf(items); }
+    public Instant        getCreatedAt()      { return createdAt; }
+    public Instant        getUpdatedAt()      { return updatedAt; }
+    public String         getCouponCode()     { return couponCode; }
+    public Long           getPendingOrderId() { return pendingOrderId; }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 

@@ -38,4 +38,20 @@ public class SkuEntity extends BaseAuditEntity {
 
     @Column(name = "barcode", length = 128, unique = true)
     private String barcode;
+
+    @Column(name = "weight_kg", precision = 6, scale = 3)
+    private BigDecimal weightKg;
+
+    @Column(name = "length_cm")
+    private Integer lengthCm;
+
+    @Column(name = "width_cm")
+    private Integer widthCm;
+
+    @Column(name = "height_cm")
+    private Integer heightCm;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bin_id")
+    private WarehouseBinEntity bin;
 }

@@ -3,12 +3,10 @@ package tj.radolfa.infrastructure.security;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import tj.radolfa.application.ports.out.LoadUserPort;
-import tj.radolfa.domain.model.User;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,16 +34,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final String CLAIM_ROLE = "role";
     private static final String CLAIM_USER_ID = "userId";
 
     private final JwtUtil jwtUtil;
     private final LoadUserPort loadUserPort;
+    private final JwtTokenExtractor jwtTokenExtractor;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, LoadUserPort loadUserPort) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, LoadUserPort loadUserPort,
+                                   JwtTokenExtractor jwtTokenExtractor) {
         this.jwtUtil = jwtUtil;
         this.loadUserPort = loadUserPort;
+        this.jwtTokenExtractor = jwtTokenExtractor;
     }
 
     @Override
@@ -55,34 +54,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. Try HTTP-only cookie first (browser clients)
-        String token = extractTokenFromCookie(request);
-
-        // 2. Fall back to Authorization header (API clients, mobile)
-        if (token == null) {
-            String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-            if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
-                token = authHeader.substring(BEARER_PREFIX.length());
-            }
-        }
-
-        if (token != null) {
-            authenticateFromToken(token);
-        }
+        jwtTokenExtractor.extract(request).ifPresent(this::authenticateFromToken);
 
         filterChain.doFilter(request, response);
-    }
-
-    private String extractTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null)
-            return null;
-        for (Cookie cookie : cookies) {
-            if (AuthCookieManager.AUTH_COOKIE_NAME.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
     }
 
     /**
@@ -122,7 +96,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * Principal object representing an authenticated JWT user.
+     * Implements {@link java.security.Principal} so it can be used as a WebSocket session principal.
+     * {@link #getName()} returns {@code userId.toString()} — used by {@code convertAndSendToUser}.
      */
-    public record JwtAuthenticatedUser(Long userId, String phone, String role) {
+    public record JwtAuthenticatedUser(Long userId, String phone, String role)
+            implements java.security.Principal {
+        @Override
+        public String getName() { return userId.toString(); }
     }
 }

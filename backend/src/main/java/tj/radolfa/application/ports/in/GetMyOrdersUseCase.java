@@ -1,8 +1,8 @@
 package tj.radolfa.application.ports.in;
 
 import tj.radolfa.domain.model.Order;
-import java.util.List;
+import tj.radolfa.domain.model.PageResult;
 
 public interface GetMyOrdersUseCase {
-    List<Order> execute(Long userId);
+    PageResult<Order> execute(Long userId, int page, int size);
 }

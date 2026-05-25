@@ -41,7 +41,7 @@ class AddSkuToVariantServiceTest {
     void setUp() {
         fakeLoad = new FakeLoadListingVariantPort();
         fakeSave = new FakeSaveHierarchyPort();
-        service  = new AddSkuToVariantService(fakeLoad, fakeSave);
+        service  = new AddSkuToVariantService(fakeLoad, fakeSave, new tj.radolfa.domain.service.BarcodeGenerator());
 
         // Store a valid variant for the happy-path tests
         fakeLoad.store(buildVariant(VARIANT_ID, PRODUCT_BASE_ID));
@@ -72,13 +72,16 @@ class AddSkuToVariantServiceTest {
     }
 
     @Test
-    @DisplayName("Auto-generates barcode with 'BC-' prefix")
+    @DisplayName("Auto-generates a valid EAN-13 barcode")
     void execute_autoGeneratesBarcode() {
         service.execute(new Command(PRODUCT_BASE_ID, VARIANT_ID, "S", new Money(new BigDecimal("19.99")), 3));
 
-        assertNotNull(fakeSave.lastSavedSku.getBarcode());
-        assertTrue(fakeSave.lastSavedSku.getBarcode().startsWith("BC-"),
-                "barcode must start with 'BC-'");
+        String barcode = fakeSave.lastSavedSku.getBarcode();
+        assertNotNull(barcode);
+        assertEquals(13, barcode.length(), "EAN-13 barcode must be exactly 13 digits");
+        assertTrue(barcode.matches("\\d{13}"), "EAN-13 barcode must be all digits");
+        int expectedCheck = tj.radolfa.domain.service.BarcodeGenerator.checkDigit(barcode.substring(0, 12));
+        assertEquals(expectedCheck, barcode.charAt(12) - '0', "EAN-13 check digit must be valid");
     }
 
     @Test

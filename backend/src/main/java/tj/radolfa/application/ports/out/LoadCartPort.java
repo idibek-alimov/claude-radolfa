@@ -20,4 +20,9 @@ public interface LoadCartPort {
      * Returns any cart by its ID.
      */
     Optional<Cart> findById(Long cartId);
+
+    /**
+     * Returns the cart currently linked to a pending order, if any.
+     */
+    default Optional<Cart> findByPendingOrderId(Long orderId) { return Optional.empty(); }
 }

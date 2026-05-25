@@ -34,4 +34,7 @@ public class CartEntity extends BaseAuditEntity {
 
     @Column(name = "coupon_code", length = 64)
     private String couponCode;
+
+    @Column(name = "pending_order_id")
+    private Long pendingOrderId;
 }

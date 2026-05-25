@@ -2,64 +2,139 @@ package tj.radolfa.infrastructure.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.order.ApproveRefundUseCase;
+import tj.radolfa.application.ports.in.order.GetCustomerReturnsForOrderUseCase;
+import tj.radolfa.application.ports.in.order.RequestOrderRecallUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
+import tj.radolfa.application.ports.in.order.GetAllCustomerReturnsUseCase;
+import tj.radolfa.application.ports.in.order.InitiateReturnToWarehouseUseCase;
 import tj.radolfa.application.ports.in.order.ListAdminOrdersUseCase;
+import tj.radolfa.application.ports.in.order.RedirectToPickpointUseCase;
 import tj.radolfa.application.ports.in.order.RefundOrderUseCase;
+import tj.radolfa.application.ports.in.order.RegenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.out.AdminOrderSummary;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
+import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
+import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.domain.model.CustomerReturn;
+import tj.radolfa.domain.model.CustomerReturnItem;
 import tj.radolfa.domain.model.ListingVariant;
+import tj.radolfa.domain.model.Pickpoint;
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.web.dto.AdminOrderDetailDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderItemDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderListDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderSummaryDto;
+import tj.radolfa.infrastructure.web.dto.CustomerReturnDto;
+import tj.radolfa.infrastructure.web.dto.CustomerReturnSummary;
 import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
 import tj.radolfa.infrastructure.web.dto.RefundOrderRequest;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin/orders")
 @Tag(name = "Admin — Orders", description = "Admin-only order management endpoints")
 public class AdminOrderController {
 
-    private final GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase;
-    private final ListAdminOrdersUseCase      listAdminOrdersUseCase;
-    private final GetAdminOrderDetailUseCase  getAdminOrderDetailUseCase;
-    private final RefundOrderUseCase          refundOrderUseCase;
-    private final LoadListingVariantPort      loadListingVariantPort;
-    private final LoadSkuPort                 loadSkuPort;
-    private final LoadReviewPort              loadReviewPort;
+    private final GetAdminOrderSummaryUseCase    getAdminOrderSummaryUseCase;
+    private final ListAdminOrdersUseCase         listAdminOrdersUseCase;
+    private final GetAdminOrderDetailUseCase     getAdminOrderDetailUseCase;
+    private final RefundOrderUseCase             refundOrderUseCase;
+    private final RedirectToPickpointUseCase     redirectToPickpointUseCase;
+    private final RegenerateDeliveryCodeUseCase  regenerateDeliveryCodeUseCase;
+    private final InitiateReturnToWarehouseUseCase initiateReturnUseCase;
+    private final GetAllCustomerReturnsUseCase   getAllCustomerReturnsUseCase;
+    private final LoadCustomerReturnPort         loadCustomerReturnPort;
+    private final LoadOrderPort                  loadOrderPort;
+    private final LoadUserPort                   loadUserPort;
+    private final LoadListingVariantPort         loadListingVariantPort;
+    private final LoadSkuPort                    loadSkuPort;
+    private final LoadReviewPort                 loadReviewPort;
+    private final LoadPickpointPort              loadPickpointPort;
+    private final ApproveRefundUseCase                approveRefundUseCase;
+    private final RequestOrderRecallUseCase           requestOrderRecallUseCase;
+    private final GetCustomerReturnsForOrderUseCase   getCustomerReturnsForOrderUseCase;
+
+    @Value("${radolfa.delivery.pickpoint-storage-days:7}")
+    private int pickpointStorageDays;
 
     public AdminOrderController(GetAdminOrderSummaryUseCase getAdminOrderSummaryUseCase,
                                 ListAdminOrdersUseCase listAdminOrdersUseCase,
                                 GetAdminOrderDetailUseCase getAdminOrderDetailUseCase,
                                 RefundOrderUseCase refundOrderUseCase,
+                                RedirectToPickpointUseCase redirectToPickpointUseCase,
+                                RegenerateDeliveryCodeUseCase regenerateDeliveryCodeUseCase,
+                                InitiateReturnToWarehouseUseCase initiateReturnUseCase,
+                                GetAllCustomerReturnsUseCase getAllCustomerReturnsUseCase,
+                                LoadCustomerReturnPort loadCustomerReturnPort,
+                                LoadOrderPort loadOrderPort,
+                                LoadUserPort loadUserPort,
                                 LoadListingVariantPort loadListingVariantPort,
                                 LoadSkuPort loadSkuPort,
-                                LoadReviewPort loadReviewPort) {
-        this.getAdminOrderSummaryUseCase = getAdminOrderSummaryUseCase;
-        this.listAdminOrdersUseCase      = listAdminOrdersUseCase;
-        this.getAdminOrderDetailUseCase  = getAdminOrderDetailUseCase;
-        this.refundOrderUseCase          = refundOrderUseCase;
-        this.loadListingVariantPort      = loadListingVariantPort;
-        this.loadSkuPort                 = loadSkuPort;
-        this.loadReviewPort              = loadReviewPort;
+                                LoadReviewPort loadReviewPort,
+                                LoadPickpointPort loadPickpointPort,
+                                ApproveRefundUseCase approveRefundUseCase,
+                                RequestOrderRecallUseCase requestOrderRecallUseCase,
+                                GetCustomerReturnsForOrderUseCase getCustomerReturnsForOrderUseCase) {
+        this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
+        this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
+        this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
+        this.refundOrderUseCase             = refundOrderUseCase;
+        this.redirectToPickpointUseCase     = redirectToPickpointUseCase;
+        this.regenerateDeliveryCodeUseCase  = regenerateDeliveryCodeUseCase;
+        this.initiateReturnUseCase          = initiateReturnUseCase;
+        this.getAllCustomerReturnsUseCase    = getAllCustomerReturnsUseCase;
+        this.loadCustomerReturnPort         = loadCustomerReturnPort;
+        this.loadOrderPort                  = loadOrderPort;
+        this.loadUserPort                   = loadUserPort;
+        this.loadListingVariantPort         = loadListingVariantPort;
+        this.loadSkuPort                    = loadSkuPort;
+        this.loadReviewPort                 = loadReviewPort;
+        this.loadPickpointPort              = loadPickpointPort;
+        this.approveRefundUseCase                  = approveRefundUseCase;
+        this.requestOrderRecallUseCase             = requestOrderRecallUseCase;
+        this.getCustomerReturnsForOrderUseCase     = getCustomerReturnsForOrderUseCase;
+    }
+
+    record RecallOrderRequest(@jakarta.validation.constraints.NotBlank String reason) {}
+
+    @PostMapping("/{orderId}/request-recall")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Initiate a physical recall for an in-transit or at-pickpoint order (ADMIN only)")
+    public ResponseEntity<Void> requestRecall(
+            @PathVariable Long orderId,
+            @RequestBody @Valid RecallOrderRequest request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        requestOrderRecallUseCase.execute(orderId, principal.userId(), request.reason());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/summary")
@@ -72,17 +147,18 @@ public class AdminOrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Paginated list of all orders with optional search and status filter (ADMIN only)")
+    @Operation(summary = "Paginated list of all orders with optional search and statuses filter (ADMIN only)")
     public ResponseEntity<PageResponse<AdminOrderListDto>> listOrders(
-            @RequestParam(defaultValue = "")      String search,
-            @RequestParam(required = false)       OrderStatus status,
+            @RequestParam(defaultValue = "")          String search,
+            @RequestParam(required = false)           List<OrderStatus> statuses,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC")  String sortDir,
-            @RequestParam(defaultValue = "1")     int page,
-            @RequestParam(defaultValue = "20")    int size) {
+            @RequestParam(defaultValue = "DESC")      String sortDir,
+            @RequestParam(defaultValue = "1")         int page,
+            @RequestParam(defaultValue = "20")        int size) {
 
         PageResult<LoadAdminOrdersPort.OrderRow> result =
-                listAdminOrdersUseCase.execute(search, status, sortBy, sortDir, page, size);
+                listAdminOrdersUseCase.execute(search, statuses != null ? statuses : List.of(),
+                        sortBy, sortDir, page, size);
 
         PageResult<AdminOrderListDto> dtoPage = new PageResult<>(
                 result.content().stream()
@@ -101,8 +177,42 @@ public class AdminOrderController {
     @Operation(summary = "Get full order detail including delivery info and items (ADMIN only)")
     public ResponseEntity<AdminOrderDetailDto> getOrder(@PathVariable Long id) {
         GetAdminOrderDetailUseCase.Result result = getAdminOrderDetailUseCase.execute(id);
-        List<AdminOrderItemDto> items = enrichItems(result.order());
-        return ResponseEntity.ok(AdminOrderDetailDto.from(result, items));
+        Order order = result.order();
+        List<AdminOrderItemDto> items = enrichItems(order);
+        List<CustomerReturnSummary> returnSummaries = buildReturnSummaries(id, order);
+
+        String pickpointConfirmedByUserName = order.pickpointConfirmedByUserId() != null
+                ? loadUserPort.loadById(order.pickpointConfirmedByUserId())
+                              .map(User::name).orElse(null)
+                : null;
+
+        boolean pickpointOverdue = order.status() == OrderStatus.READY_FOR_PICKUP
+                && order.readyForPickupAt() != null
+                && order.readyForPickupAt().plus(pickpointStorageDays, ChronoUnit.DAYS)
+                        .isBefore(Instant.now());
+
+        return ResponseEntity.ok(AdminOrderDetailDto.from(
+                result, items, returnSummaries, pickpointConfirmedByUserName, pickpointOverdue));
+    }
+
+    @GetMapping("/{id}/customer-returns")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Customer returns associated with a specific order (MANAGER + ADMIN)")
+    public ResponseEntity<List<CustomerReturnDto>> getCustomerReturnsForOrder(@PathVariable Long id) {
+        List<CustomerReturn> returns = getCustomerReturnsForOrderUseCase.execute(id);
+        if (returns.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        Order order = loadOrderPort.loadById(id).orElseThrow();
+        User customer = loadUserPort.loadById(order.userId()).orElse(null);
+
+        List<CustomerReturnDto> dtos = returns.stream().map(r -> {
+            Pickpoint pickpoint = r.getPickpointId() != null
+                    ? loadPickpointPort.findById(r.getPickpointId()).orElse(null) : null;
+            return CustomerReturnDto.from(r, order, customer, pickpoint);
+        }).toList();
+
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping("/{id}/refund")
@@ -115,6 +225,66 @@ public class AdminOrderController {
         refundOrderUseCase.execute(id, user.userId(), reason);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/redirect-to-pickpoint")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Redirect a failed home delivery to a pickpoint (ADMIN only; DELIVERY_ATTEMPTED only)")
+    public ResponseEntity<Void> redirectToPickpoint(@PathVariable Long id,
+                                                    @Valid @RequestBody RedirectToPickpointRequest body) {
+        redirectToPickpointUseCase.execute(new RedirectToPickpointUseCase.Command(id, body.pickpointId()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/regenerate-delivery-code")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Regenerate an expired delivery code and re-send it to the customer (ADMIN only)")
+    public ResponseEntity<Void> regenerateDeliveryCode(@PathVariable Long id) {
+        regenerateDeliveryCodeUseCase.execute(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/initiate-return")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Initiate return to warehouse for an overdue pickpoint order (MANAGER + ADMIN)")
+    public ResponseEntity<Void> initiateReturn(
+            @PathVariable Long id,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        initiateReturnUseCase.execute(id, principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/customer-returns")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Paginated list of all customer returns across all pickup points (MANAGER + ADMIN)")
+    public ResponseEntity<PageResponse<CustomerReturnDto>> listAllCustomerReturns(
+            @RequestParam(defaultValue = "1")  int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false)    String search) {
+
+        var result = getAllCustomerReturnsUseCase.execute(page, size, search);
+
+        var dtos = result.content().stream().map(r -> {
+            Order order    = loadOrderPort.loadById(r.getOrderId()).orElseThrow();
+            User  customer = loadUserPort.loadById(order.userId()).orElse(null);
+            Pickpoint pickpoint = r.getPickpointId() != null
+                    ? loadPickpointPort.findById(r.getPickpointId()).orElse(null) : null;
+            return CustomerReturnDto.from(r, order, customer, pickpoint);
+        }).toList();
+
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @PostMapping("/customer-returns/{returnId}/approve-refund")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Approve and process the refund for a customer return (ADMIN only)")
+    public ResponseEntity<Void> approveRefund(@PathVariable Long returnId,
+                                              @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        approveRefundUseCase.execute(returnId, principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    record RedirectToPickpointRequest(@NotNull Long pickpointId) {}
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
@@ -163,7 +333,12 @@ public class AdminOrderController {
                     item.getProductName(), item.getQuantity(), item.getPrice().amount(),
                     item.getSkuId(), item.getListingVariantId(), imageUrl,
                     item.getSkuCode(), sizeLabel, slug, hasReviewed,
-                    sku != null ? sku.getStockQuantity() : null);
+                    sku != null ? sku.getStockQuantity() : null,
+                    sku != null ? sku.getWeightKg() : null,
+                    sku != null ? sku.getBarcode() : null,
+                    item.getQuantityPicked(),
+                    item.getPickedAt(),
+                    item.getPickedByUserId());
         }).toList();
     }
 
@@ -177,5 +352,19 @@ public class AdminOrderController {
                 summary.totalOrders(), summary.todayOrders(),
                 summary.revenueToday(), summary.revenueThisMonth(),
                 recentOrders);
+    }
+
+    private List<CustomerReturnSummary> buildReturnSummaries(Long orderId, Order order) {
+        Map<Long, OrderItem> orderItemMap = order.items().stream()
+                .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
+
+        return loadCustomerReturnPort.loadAllByOrderId(orderId).stream().map(r -> {
+            Money total = r.getItems().stream().map(item -> {
+                OrderItem oi = orderItemMap.get(item.orderItemId());
+                Money unit = oi != null ? oi.getPrice() : Money.ZERO;
+                return unit.multiply(item.quantity());
+            }).reduce(Money.ZERO, Money::add);
+            return new CustomerReturnSummary(r.getId(), r.getStatus(), r.getReceivedAt(), r.getItems().size(), total);
+        }).toList();
     }
 }

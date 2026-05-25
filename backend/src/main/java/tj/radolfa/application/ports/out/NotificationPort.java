@@ -1,6 +1,9 @@
 package tj.radolfa.application.ports.out;
 
+import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.OrderStatus;
+
+import java.time.Instant;
 
 /**
  * Out-Port: send notifications to users.
@@ -45,4 +48,59 @@ public interface NotificationPort {
      * @param reviewId the review that received a reply
      */
     void sendReviewReplyNotification(Long userId, Long reviewId);
+
+    /**
+     * Sends the 6-digit delivery verification code to the customer.
+     *
+     * @param userId    the recipient (customer)
+     * @param orderId   the order being handed off
+     * @param code      the 6-digit code
+     * @param expiresAt when the code expires
+     */
+    void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt);
+
+    /**
+     * Warns the customer that their pickpoint order will expire soon.
+     *
+     * @param userId       the recipient (customer)
+     * @param orderId      the READY_FOR_PICKUP order
+     * @param daysRemaining days until the order is auto-cancelled
+     */
+    void sendPickpointExpiryWarning(Long userId, Long orderId, int daysRemaining);
+
+    /**
+     * Notifies the customer that their pickpoint order has been auto-cancelled
+     * due to the pickup window expiring.
+     *
+     * @param userId  the recipient (customer)
+     * @param orderId the cancelled order
+     */
+    void sendPickpointOrderExpiredCancellation(Long userId, Long orderId);
+
+    /**
+     * Notifies the customer that their uncollected pickpoint order is being returned
+     * to the warehouse. Triggered when staff or admin manually initiates the return.
+     *
+     * @param userId  the recipient (customer)
+     * @param orderId the order being returned
+     */
+    default void sendReturnInitiatedNotification(Long userId, Long orderId) {}
+
+    /**
+     * Notifies the customer that their walk-in return has been received at the pickup point.
+     * Triggered when pickpoint staff logs a customer return.
+     *
+     * @param userId  the recipient (customer)
+     * @param orderId the returned order
+     */
+    default void sendCustomerReturnReceivedNotification(Long userId, Long orderId) {}
+
+    /**
+     * Notifies the customer that their walk-in return refund has been approved and is being processed.
+     *
+     * @param userId       the recipient (customer)
+     * @param orderId      the returned order
+     * @param refundAmount the amount to be refunded
+     */
+    default void sendRefundApprovedNotification(Long userId, Long orderId, Money refundAmount) {}
 }

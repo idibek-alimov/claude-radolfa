@@ -1,7 +1,6 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.out.LoadReviewVoteCountsPort;
 import tj.radolfa.application.ports.out.SaveReviewVotePort;
 import tj.radolfa.domain.model.VoteType;
@@ -25,7 +24,6 @@ public class ReviewVoteAdapter implements SaveReviewVotePort, LoadReviewVoteCoun
     // ---- SaveReviewVotePort --------------------------------------------
 
     @Override
-    @Transactional
     public Optional<VoteType> saveVote(Long reviewId, Long userId, VoteType vote) {
         Optional<ReviewVoteEntity> existing = reviewVoteRepository.findByReviewIdAndUserId(reviewId, userId);
         Optional<VoteType> previous = existing.map(ReviewVoteEntity::getVote);

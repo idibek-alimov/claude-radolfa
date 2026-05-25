@@ -141,7 +141,8 @@ public class DiscountEnrichmentAdapter {
                 boolean includeDescendants = (Boolean) row[1];
                 categoryMap.merge(categoryId, includeDescendants, (a, b) -> a || b);
             }
-            allItemCodes.addAll(expandCategoryTargetPort.resolveSkuCodes(categoryMap));
+            expandCategoryTargetPort.resolveSkuCodes(categoryMap).values()
+                    .forEach(allItemCodes::addAll);
         }
 
         if (allItemCodes.isEmpty()) return List.of();

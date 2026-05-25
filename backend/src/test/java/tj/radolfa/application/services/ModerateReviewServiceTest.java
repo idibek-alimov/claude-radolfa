@@ -174,5 +174,9 @@ class ModerateReviewServiceTest {
         public void sendReviewReplyNotification(Long userId, Long reviewId) {
             replyNotifications.add(reviewId);
         }
+
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 }

@@ -20,6 +20,7 @@ import {
   Shirt,
   CreditCard,
   Accessibility,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -39,6 +40,7 @@ import { useCartQuery, useApplyCoupon, useRemoveCoupon } from "@/features/cart";
 import { useAuth } from "@/features/auth";
 import { checkout, TIME_WINDOW_CODES, type DeliveryType, type TimeWindowCode } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
+import { useCancelOrder } from "@/entities/order";
 import { getErrorMessage, isCouponsEnabled } from "@/shared/lib";
 
 function AmenityBadge({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
@@ -76,6 +78,7 @@ export function CheckoutPage() {
 
   const applyCouponMutation = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
+  const cancelOrderMutation = useCancelOrder();
 
   function applyCoupon() {
     const code = couponInput.trim();
@@ -145,6 +148,67 @@ export function CheckoutPage() {
   if (!cart || cart.items.length === 0) {
     router.replace("/products");
     return null;
+  }
+
+  /* ── Pending order — user went back from payment page ──────── */
+  if (cart?.pendingOrderId) {
+    const pendingOrderId = cart.pendingOrderId;
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 space-y-6 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-full bg-amber-100 p-4">
+            <Clock className="h-8 w-8 text-amber-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold mb-1">You have an order awaiting payment</h1>
+            <p className="text-sm text-muted-foreground">
+              Order #{pendingOrderId} was placed but not yet paid. You can resume payment or cancel it to start over.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <Button
+            className="w-full h-12 text-base font-semibold"
+            disabled={redirecting}
+            onClick={async () => {
+              setRedirecting(true);
+              try {
+                const { redirectUrl } = await initiatePayment(pendingOrderId);
+                window.location.href = redirectUrl;
+              } catch (err) {
+                setRedirecting(false);
+                toast.error(getErrorMessage(err));
+              }
+            }}
+          >
+            {redirecting ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Redirecting…</>
+            ) : (
+              "Resume Payment"
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full h-12 text-base"
+            disabled={cancelOrderMutation.isPending}
+            onClick={() => {
+              cancelOrderMutation.mutate(
+                { orderId: pendingOrderId, reason: "Cancelled by customer" },
+                { onError: (err) => toast.error(getErrorMessage(err)) }
+              );
+            }}
+          >
+            {cancelOrderMutation.isPending ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Cancelling…</>
+            ) : (
+              "Cancel Order & Start Over"
+            )}
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   /* ── Redirecting to payment provider ────────────────────────── */

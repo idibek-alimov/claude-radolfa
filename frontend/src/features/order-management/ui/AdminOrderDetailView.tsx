@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Ban, Home, MapPin, Truck, Undo2 } from "lucide-react";
+import { Ban, Bike, Car, Home, MapPin, RefreshCw, RotateCcw, Truck, Undo2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
@@ -17,35 +17,51 @@ import {
 } from "@/shared/ui/breadcrumb";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage, formatDate, formatPrice } from "@/shared/lib";
 import { useAuth } from "@/features/auth";
 import type { AdminOrderDetail, OrderStatus } from "@/entities/order";
+import { useRegenerateDeliveryCode } from "@/features/fleet/api";
+import { useAdminCustomerReturnsForOrder } from "../api";
+import { SectionCard } from "@/shared/ui/section-card";
 import { FulfillmentTimeline } from "./FulfillmentTimeline";
 import { OrderItemsStockTable } from "./OrderItemsStockTable";
 import { ShipOrderModal } from "./ShipOrderModal";
 import { CancelOrderModal } from "./CancelOrderModal";
 import { RefundOrderModal } from "./RefundOrderModal";
+import { RedirectToPickpointDialog } from "./RedirectToPickpointDialog";
+
+const VEHICLE_ICONS: Record<string, React.ReactNode> = {
+  BICYCLE:    <Bike className="h-3 w-3" />,
+  MOTORCYCLE: <Bike className="h-3 w-3" />,
+  CAR:        <Car className="h-3 w-3" />,
+  VAN:        <Truck className="h-3 w-3" />,
+};
+
+const ATTEMPT_REASON_LABELS: Record<string, string> = {
+  NO_ANSWER:        "No answer / not home",
+  WRONG_ADDRESS:    "Wrong address",
+  CUSTOMER_REFUSED: "Customer refused",
+  PACKAGE_DAMAGED:  "Package damaged",
+  OTHER:            "Other",
+};
 
 function nextStatusFor(order: AdminOrderDetail): OrderStatus | null {
   const isPickpoint = order.deliveryType === "PICKPOINT";
   switch (order.status) {
     case "PENDING":          return "PAID";
-    case "PAID":             return isPickpoint ? "READY_FOR_PICKUP" : "SHIPPED";
-    case "SHIPPED":          return "DELIVERED";
+    case "PAID":             return null; // HOME: use Ship button; PICKPOINT: must arrive physically first
     case "READY_FOR_PICKUP": return "DELIVERED";
     default:                 return null;
   }
 }
 
-// ── Section card ────────────────────────────────────────────────────────────
+// ── Info row ────────────────────────────────────────────────────────────────
 
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border bg-card p-5 space-y-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        {title}
-      </p>
-      {children}
+    <div className="flex justify-between gap-3 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-right">{value}</span>
     </div>
   );
 }
@@ -60,13 +76,17 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const t = useTranslations("manage.orders");
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const canAccessWarehouse = user?.role === "WAREHOUSE_MANAGER" || user?.role === "ADMIN";
 
   const { data: order, isLoading } = useAdminOrder(orderId);
+  const { data: customerReturns = [] } = useAdminCustomerReturnsForOrder(orderId);
   const updateStatus = useUpdateOrderStatus();
+  const regenerateCode = useRegenerateDeliveryCode();
 
-  const [shipOpen, setShipOpen]     = useState(false);
-  const [cancelOpen, setCancelOpen] = useState(false);
-  const [refundOpen, setRefundOpen] = useState(false);
+  const [shipOpen, setShipOpen]         = useState(false);
+  const [cancelOpen, setCancelOpen]     = useState(false);
+  const [refundOpen, setRefundOpen]     = useState(false);
+  const [redirectOpen, setRedirectOpen] = useState(false);
 
   function handleStatusChange(newStatus: OrderStatus) {
     updateStatus.mutate(
@@ -76,6 +96,13 @@ export function AdminOrderDetailView({ orderId }: Props) {
         onError: (err) => toast.error(getErrorMessage(err, t("toast.statusUpdateFailed"))),
       }
     );
+  }
+
+  function handleRegenerateCode() {
+    regenerateCode.mutate(orderId, {
+      onSuccess: () => toast.success("Delivery code regenerated and sent to customer."),
+      onError: (err) => toast.error(getErrorMessage(err, "Failed to regenerate code")),
+    });
   }
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -102,10 +129,15 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const isFinalState      = order.status === "DELIVERED"
                          || order.status === "CANCELLED"
                          || order.status === "REFUNDED";
-  const showShipButton    = order.status === "PAID" && order.deliveryType === "HOME";
+  const showShipButton    = order.status === "PICKED" && (order.deliveryType === "HOME" || order.deliveryType === "PICKPOINT");
   const showAdvanceButton = nextStatus !== null && !showShipButton;
   const showCancelButton  = !isFinalState;
   const showRefundButton  = isAdmin && (order.status === "DELIVERED" || order.status === "CANCELLED");
+  const showRedirectButton = order.status === "DELIVERY_ATTEMPTED" && order.deliveryType === "HOME";
+  const showRegenCodeButton = ["SHIPPED", "OUT_FOR_DELIVERY", "READY_FOR_PICKUP"].includes(order.status);
+
+  const hasAnyButton = showShipButton || showAdvanceButton || showCancelButton
+                    || showRefundButton || showRedirectButton || showRegenCodeButton;
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -137,7 +169,25 @@ export function AdminOrderDetailView({ orderId }: Props) {
           </p>
         </div>
 
-        {(showShipButton || showAdvanceButton || showCancelButton || showRefundButton) && (
+        {order.status === "SHIPPED" && order.deliveryType === "PICKPOINT" && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            {t("awaitingArrivalCallout")}
+          </div>
+        )}
+
+        {order.status === "PAID" && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p className="font-medium">{t("awaitingPick.title")}</p>
+            <p className="text-xs mt-1">{t("awaitingPick.body")}</p>
+            {canAccessWarehouse && (
+              <Link href={`/warehouse/pick/${orderId}`} className="mt-2 inline-block text-xs font-medium underline">
+                {t("awaitingPick.openInWarehouse")}
+              </Link>
+            )}
+          </div>
+        )}
+
+        {hasAnyButton && (
           <div className="flex items-center justify-end gap-2 flex-wrap">
             {showShipButton && (
               <Button onClick={() => setShipOpen(true)}>
@@ -153,6 +203,22 @@ export function AdminOrderDetailView({ orderId }: Props) {
                 {t("detail.moveTo", {
                   status: t(`status.${nextStatus}` as Parameters<typeof t>[0]),
                 })}
+              </Button>
+            )}
+            {showRedirectButton && (
+              <Button variant="outline" onClick={() => setRedirectOpen(true)}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Redirect to Pickpoint
+              </Button>
+            )}
+            {showRegenCodeButton && (
+              <Button
+                variant="outline"
+                onClick={handleRegenerateCode}
+                disabled={regenerateCode.isPending}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {regenerateCode.isPending ? "Sending…" : "Regenerate Code"}
               </Button>
             )}
             {showCancelButton && (
@@ -180,6 +246,10 @@ export function AdminOrderDetailView({ orderId }: Props) {
         cancelledAt={order.cancelledAt}
         refundedAt={order.refundedAt}
         deliveryType={order.deliveryType}
+        outForDeliveryAt={order.outForDeliveryAt}
+        deliveryAttemptedAt={order.deliveryAttemptedAt}
+        deliveryAttemptCount={order.deliveryAttemptCount}
+        deliveryAttemptReason={order.deliveryAttemptReason}
       />
 
       {/* Two-column body */}
@@ -187,8 +257,31 @@ export function AdminOrderDetailView({ orderId }: Props) {
 
         {/* ── Main column ─────────────────────────────────────────────────── */}
         <div className="space-y-4">
-          {/* Items */}
           <OrderItemsStockTable items={order.items} />
+
+          {/* Customer Returns */}
+          {customerReturns.length > 0 && (
+            <SectionCard title={t("detail.customerReturns")}>
+              <div className="space-y-3">
+                {customerReturns.map((ret) => (
+                  <div key={ret.id} className="flex items-center justify-between text-sm">
+                    <div className="space-y-0.5">
+                      <p className="font-medium">{t("detail.returnLabel")} #{ret.id}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {ret.items.length} {t("detail.items")} ·{" "}
+                        {t(`detail.returnStatus.${ret.status}` as Parameters<typeof t>[0])}
+                      </p>
+                    </div>
+                    {ret.totalRefundAmount != null && (
+                      <span className="text-sm font-medium text-green-700">
+                        {formatPrice(ret.totalRefundAmount)}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
 
           {/* Financials */}
           <div className="rounded-xl border bg-card p-5 space-y-2">
@@ -241,10 +334,21 @@ export function AdminOrderDetailView({ orderId }: Props) {
             ) : order.deliveryType === "PICKPOINT" ? (
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                <div className="space-y-0.5 text-sm">
+                <div className="space-y-1 text-sm flex-1">
                   <p className="font-medium">{order.pickpointName ?? t("detail.pickupPoint")}</p>
                   {order.pickpointAddress && (
                     <p className="text-xs text-muted-foreground">{order.pickpointAddress}</p>
+                  )}
+                  {order.readyForPickupAt && (
+                    <InfoRow label={t("detail.arrivedAt")} value={formatDate(order.readyForPickupAt)} />
+                  )}
+                  {order.pickpointConfirmedByUserName && (
+                    <InfoRow label={t("detail.confirmedBy")} value={order.pickpointConfirmedByUserName} />
+                  )}
+                  {order.pickpointOverdue && (
+                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">
+                      {t("detail.pickpointOverdue")}
+                    </span>
                   )}
                 </div>
               </div>
@@ -253,12 +357,18 @@ export function AdminOrderDetailView({ orderId }: Props) {
             )}
           </SectionCard>
 
-          {/* Shipment info (read-only) */}
+          {/* Shipment / courier */}
           {order.courierName && (
             <SectionCard title={t("detail.shipment")}>
-              <div className="flex items-center gap-2 mb-1">
-                <Truck className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-2 mb-2">
+                <Truck className="h-4 w-4 text-primary shrink-0" />
                 <span className="text-sm font-medium">{order.courierName}</span>
+                {(order as { courierVehicleType?: string }).courierVehicleType && (
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {VEHICLE_ICONS[(order as { courierVehicleType?: string }).courierVehicleType!]}
+                    {(order as { courierVehicleType?: string }).courierVehicleType}
+                  </span>
+                )}
               </div>
               <div className="space-y-1 text-xs">
                 {order.trackingNumber && (
@@ -272,6 +382,45 @@ export function AdminOrderDetailView({ orderId }: Props) {
                     <span className="text-muted-foreground">{t("detail.eta")}</span>
                     <span>{new Date(order.estimatedDeliveryDate).toLocaleDateString()}</span>
                   </div>
+                )}
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Delivery attempts */}
+          {order.deliveryAttemptCount > 0 && (
+            <SectionCard title="Delivery Attempts">
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Attempts</span>
+                  <span className="font-semibold text-amber-700">{order.deliveryAttemptCount}</span>
+                </div>
+                {order.deliveryAttemptReason && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Last reason</span>
+                    <span>{ATTEMPT_REASON_LABELS[order.deliveryAttemptReason] ?? order.deliveryAttemptReason}</span>
+                  </div>
+                )}
+                {order.deliveryAttemptedAt && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Last attempt</span>
+                    <span>{new Date(order.deliveryAttemptedAt).toLocaleString()}</span>
+                  </div>
+                )}
+                {order.deliveryPhotoUrl && (
+                  <a
+                    href={order.deliveryPhotoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block mt-1 rounded overflow-hidden border hover:opacity-80 transition-opacity"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={order.deliveryPhotoUrl}
+                      alt="Delivery attempt photo"
+                      className="w-full h-24 object-cover"
+                    />
+                  </a>
                 )}
               </div>
             </SectionCard>
@@ -307,6 +456,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
       <ShipOrderModal open={shipOpen} onClose={() => setShipOpen(false)} orderId={orderId} />
       <CancelOrderModal open={cancelOpen} onClose={() => setCancelOpen(false)} orderId={orderId} />
       <RefundOrderModal open={refundOpen} onClose={() => setRefundOpen(false)} orderId={orderId} />
+      <RedirectToPickpointDialog open={redirectOpen} onClose={() => setRedirectOpen(false)} orderId={orderId} />
     </div>
   );
 }

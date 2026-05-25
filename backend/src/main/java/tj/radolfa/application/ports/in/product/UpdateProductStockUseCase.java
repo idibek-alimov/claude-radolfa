@@ -18,7 +18,7 @@ public interface UpdateProductStockUseCase {
      * @param skuId    target SKU
      * @param quantity must be ≥ 0
      */
-    void setAbsolute(Long skuId, int quantity);
+    void setAbsolute(Long skuId, int quantity, Long actorUserId);
 
     /**
      * Adjusts stock by a signed delta.
@@ -27,5 +27,5 @@ public interface UpdateProductStockUseCase {
      *
      * @throws IllegalStateException if the resulting stock would go below 0
      */
-    void adjust(Long skuId, int delta);
+    void adjust(Long skuId, int delta, Long actorUserId);
 }

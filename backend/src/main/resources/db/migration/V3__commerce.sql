@@ -26,22 +26,38 @@ CREATE TABLE orders (
     delivery_address         TEXT,
     preferred_time_window    VARCHAR(255),
     pickpoint_id             BIGINT,
-    courier_name             VARCHAR(255),
+    courier_id               BIGINT,
     tracking_number          VARCHAR(255),
     estimated_delivery_date  DATE,
     shipped_at               TIMESTAMPTZ,
     delivered_at             TIMESTAMPTZ,
     cancelled_at             TIMESTAMPTZ,
     refunded_at              TIMESTAMPTZ,
+    out_for_delivery_at      TIMESTAMPTZ,
+    delivery_attempted_at    TIMESTAMPTZ,
+    delivery_attempt_count   INT          NOT NULL DEFAULT 0,
+    delivery_attempt_reason  VARCHAR(32),
+    delivery_photo_url       TEXT,
+    ready_for_pickup_at         TIMESTAMPTZ,
+    return_initiated_at         TIMESTAMPTZ,
+    return_initiated_by_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    returned_to_warehouse_at    TIMESTAMPTZ,
+    recall_requested_at         TIMESTAMPTZ,
+    recall_requested_by_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    recall_reason               TEXT,
+    recall_confirmed_at             TIMESTAMPTZ,
+    recall_confirmed_by_user_id     BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    pickpoint_confirmed_by_user_id  BIGINT REFERENCES users(id) ON DELETE SET NULL,
     deleted_at               TIMESTAMPTZ,
     version                  BIGINT         NOT NULL DEFAULT 0,
     created_at               TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at               TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_orders_user_id          ON orders (user_id);
-CREATE INDEX idx_orders_active           ON orders (id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_orders_user_id           ON orders (user_id);
+CREATE INDEX idx_orders_active            ON orders (id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_orders_external_order_id ON orders (external_order_id) WHERE external_order_id IS NOT NULL;
+CREATE INDEX idx_orders_courier_id        ON orders (courier_id);
 
 -- ----------------------------------------------------------------
 -- Order items
@@ -53,7 +69,12 @@ CREATE TABLE order_items (
     sku_code          VARCHAR(128),
     product_name      VARCHAR(255),
     quantity          INTEGER        NOT NULL,
-    price_at_purchase NUMERIC(12,2)  NOT NULL
+    price_at_purchase NUMERIC(12,2)  NOT NULL,
+    quantity_picked   INTEGER        NOT NULL DEFAULT 0,
+    picked_at         TIMESTAMPTZ,
+    picked_by_user_id BIGINT         REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT chk_order_items_pick_qty
+        CHECK (quantity_picked >= 0 AND quantity_picked <= quantity)
 );
 
 CREATE INDEX idx_order_items_order_id ON order_items (order_id);

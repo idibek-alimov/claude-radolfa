@@ -1,0 +1,93 @@
+package tj.radolfa.application.services;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Pageable;
+import tj.radolfa.application.ports.out.LoadPickpointOrdersPort;
+import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.model.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class GetPickpointOrdersServiceTest {
+
+    static User staffUser(Long pickpointId) {
+        return new User(5L, new PhoneNumber("+992000000005"), UserRole.PICKPOINT_STAFF,
+                "Staff", null, LoyaltyProfile.empty(), true, 0L,
+                null, null, null, null, null,
+                pickpointId, null);
+    }
+
+    static class FakeLoadUserPort implements LoadUserPort {
+        final User user;
+        FakeLoadUserPort(User u) { this.user = u; }
+        @Override public Optional<User> loadById(Long id) {
+            return user != null && user.id().equals(id) ? Optional.of(user) : Optional.empty();
+        }
+        @Override public Optional<User> loadByPhone(String p) { return Optional.empty(); }
+        @Override public List<User> findAllNonPermanent() { return List.of(); }
+        @Override public List<User> findByRoleAndEnabledTrue(UserRole r) { return List.of(); }
+    }
+
+    static class FakeLoadPickpointOrdersPort implements LoadPickpointOrdersPort {
+        Long capturedPickpointId;
+        Collection<OrderStatus> capturedStatuses;
+
+        @Override
+        public PageResult<Order> loadByPickpointIdAndStatuses(
+                Long pickpointId, Collection<OrderStatus> statuses, Pageable pageable) {
+            this.capturedPickpointId = pickpointId;
+            this.capturedStatuses    = statuses;
+            return new PageResult<>(List.of(), 0, pageable.getPageNumber() + 1, pageable.getPageSize(), true);
+        }
+    }
+
+    @Test
+    @DisplayName("Happy path — resolves pickpointId from staff user, queries specified statuses")
+    void execute_success() {
+        var port = new FakeLoadPickpointOrdersPort();
+        var load = new FakeLoadUserPort(staffUser(10L));
+        var svc  = new GetPickpointOrdersService(load, port);
+
+        svc.execute(5L, List.of(OrderStatus.READY_FOR_PICKUP), 1, 50);
+
+        assertEquals(10L, port.capturedPickpointId);
+        assertTrue(port.capturedStatuses.contains(OrderStatus.READY_FOR_PICKUP));
+    }
+
+    @Test
+    @DisplayName("Null statuses defaults to READY_FOR_PICKUP")
+    void nullStatuses_defaultsToReadyForPickup() {
+        var port = new FakeLoadPickpointOrdersPort();
+        var svc  = new GetPickpointOrdersService(new FakeLoadUserPort(staffUser(10L)), port);
+
+        svc.execute(5L, null, 1, 50);
+
+        assertTrue(port.capturedStatuses.contains(OrderStatus.READY_FOR_PICKUP));
+    }
+
+    @Test
+    @DisplayName("User not found → ResourceNotFoundException")
+    void userNotFound_throws() {
+        var svc = new GetPickpointOrdersService(
+                new FakeLoadUserPort(null), new FakeLoadPickpointOrdersPort());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> svc.execute(999L, List.of(OrderStatus.READY_FOR_PICKUP), 1, 50));
+    }
+
+    @Test
+    @DisplayName("User has null pickpointId → IllegalStateException")
+    void nullPickpointId_throws() {
+        var svc = new GetPickpointOrdersService(
+                new FakeLoadUserPort(staffUser(null)), new FakeLoadPickpointOrdersPort());
+
+        assertThrows(IllegalStateException.class,
+                () -> svc.execute(5L, List.of(OrderStatus.READY_FOR_PICKUP), 1, 50));
+    }
+}

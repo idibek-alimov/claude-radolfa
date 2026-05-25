@@ -13,10 +13,13 @@ import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.readmodel.CartView;
 import tj.radolfa.domain.model.Cart;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.Sku;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ApplyCouponService implements ApplyCouponUseCase {
@@ -64,15 +67,19 @@ public class ApplyCouponService implements ApplyCouponUseCase {
             if (used >= d.usageCapTotal()) return invalid("CAP_EXHAUSTED");
         }
 
-        List<String> itemCodes = loadSkuPort
-                .findAllByIdsAsMap(cart.getItems().stream().map(i -> i.getSkuId()).toList())
-                .values().stream()
-                .map(sku -> sku.getSkuCode())
+        Map<Long, Sku> skuById = loadSkuPort
+                .findAllByIdsAsMap(cart.getItems().stream().map(i -> i.getSkuId()).toList());
+        List<String> itemCodes = skuById.values().stream()
+                .map(Sku::getSkuCode)
                 .distinct()
                 .toList();
+        Map<String, BigDecimal> priceByCode = skuById.values().stream()
+                .filter(s -> s.getPrice() != null && s.getPrice().amount() != null)
+                .collect(Collectors.toMap(Sku::getSkuCode, s -> s.getPrice().amount(), (a, b) -> a));
 
         Map<String, List<Discount>> resolved = resolveDiscountsUseCase.resolve(
-                new ResolveDiscountsUseCase.Query(itemCodes, userId, cart.total().amount(), couponCode));
+                new ResolveDiscountsUseCase.Query(
+                        itemCodes, userId, cart.total().amount(), couponCode, priceByCode));
 
         List<String> affectedSkus = resolved.entrySet().stream()
                 .filter(e -> e.getValue().stream().anyMatch(disc -> disc.id().equals(d.id())))

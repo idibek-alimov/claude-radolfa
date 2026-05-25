@@ -41,6 +41,13 @@ public class GetAdminOrderDetailService implements GetAdminOrderDetailUseCase {
         User user = loadUserPort.loadById(order.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + order.userId()));
 
-        return new Result(order, pickpoint, user.phone().value(), user.name());
+        String courierName = null;
+        if (order.courierId() != null) {
+            courierName = loadUserPort.loadById(order.courierId())
+                    .map(User::name)
+                    .orElse(null);
+        }
+
+        return new Result(order, pickpoint, user.phone().value(), user.name(), courierName);
     }
 }

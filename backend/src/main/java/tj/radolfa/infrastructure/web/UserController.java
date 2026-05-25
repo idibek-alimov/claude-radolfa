@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.ChangeUserRoleUseCase;
@@ -13,6 +14,7 @@ import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
 import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
 import tj.radolfa.application.ports.in.loyalty.ToggleLoyaltyPermanentUseCase;
+import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.services.GetRecentEarningsService;
 import tj.radolfa.domain.model.PageResult;
@@ -34,6 +36,7 @@ public class UserController {
     private final ToggleUserStatusUseCase     toggleUserStatusUseCase;
     private final ChangeUserRoleUseCase       changeUserRoleUseCase;
     private final LoadUserPort                loadUserPort;
+    private final LoadPickpointPort           loadPickpointPort;
     private final GetRecentEarningsService    getRecentEarningsService;
     private final AssignUserTierUseCase       assignUserTierUseCase;
     private final ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase;
@@ -43,6 +46,7 @@ public class UserController {
                           ToggleUserStatusUseCase toggleUserStatusUseCase,
                           ChangeUserRoleUseCase changeUserRoleUseCase,
                           LoadUserPort loadUserPort,
+                          LoadPickpointPort loadPickpointPort,
                           GetRecentEarningsService getRecentEarningsService,
                           AssignUserTierUseCase assignUserTierUseCase,
                           ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase) {
@@ -51,6 +55,7 @@ public class UserController {
         this.toggleUserStatusUseCase          = toggleUserStatusUseCase;
         this.changeUserRoleUseCase            = changeUserRoleUseCase;
         this.loadUserPort                     = loadUserPort;
+        this.loadPickpointPort                = loadPickpointPort;
         this.getRecentEarningsService         = getRecentEarningsService;
         this.assignUserTierUseCase            = assignUserTierUseCase;
         this.toggleLoyaltyPermanentUseCase    = toggleLoyaltyPermanentUseCase;
@@ -60,8 +65,15 @@ public class UserController {
     @Operation(summary = "Get my profile")
     public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal JwtAuthenticatedUser user) {
         return loadUserPort.loadById(user.userId())
-                .map(u -> ResponseEntity.ok(
-                        UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()))))
+                .map(u -> {
+                    String pickpointName = u.pickpointId() != null
+                            ? loadPickpointPort.findById(u.pickpointId())
+                                    .map(tj.radolfa.domain.model.Pickpoint::name)
+                                    .orElse(null)
+                            : null;
+                    return ResponseEntity.ok(
+                            UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()), pickpointName));
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -74,17 +86,38 @@ public class UserController {
     }
 
     @GetMapping
-    @Operation(summary = "List all users (paginated, searchable)")
+    @Operation(summary = "List all users (paginated, searchable, filterable by role)")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<PageResponse<UserDto>> listUsers(
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) List<UserRole> role,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PageResult<tj.radolfa.domain.model.User> result = listUsersUseCase.execute(search, page, size);
+        PageResult<tj.radolfa.domain.model.User> result = listUsersUseCase.execute(search, role, page, size);
+
+        // Batch-resolve pickpoint names for any PICKPOINT_STAFF users on this page
+        java.util.Set<Long> ppIds = result.content().stream()
+                .filter(u -> u.pickpointId() != null)
+                .map(tj.radolfa.domain.model.User::pickpointId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        java.util.Map<Long, String> pickpointNames = ppIds.isEmpty()
+                ? java.util.Map.of()
+                : loadPickpointPort.findAllByIds(ppIds).stream()
+                        .collect(java.util.stream.Collectors.toMap(
+                                tj.radolfa.domain.model.Pickpoint::id,
+                                tj.radolfa.domain.model.Pickpoint::name));
 
         PageResult<UserDto> dtoResult = new PageResult<>(
-                result.content().stream().map(UserDto::fromDomain).toList(),
+                result.content().stream()
+                        .map(u -> {
+                            String ppName = u.pickpointId() != null
+                                    ? pickpointNames.get(u.pickpointId())
+                                    : null;
+                            return UserDto.fromDomain(u, java.util.List.of(), ppName);
+                        })
+                        .toList(),
                 result.totalElements(),
                 result.number(),
                 result.size(),

@@ -98,6 +98,7 @@ public class ProductCardReadAdapter implements LoadProductCardPort {
                 .map(s -> new SkuSummary(
                         s.getId(),
                         s.getSkuCode(),
+                        s.getBarcode(),
                         s.getSizeLabel(),
                         s.getStockQuantity(),
                         s.getOriginalPrice()))

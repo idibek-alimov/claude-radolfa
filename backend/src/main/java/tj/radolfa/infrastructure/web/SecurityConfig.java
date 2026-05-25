@@ -142,6 +142,31 @@ public class SecurityConfig {
                                                 // ADMIN only: tag management
                                                 // ============================================================
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/admin/tags").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/users/couriers").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/users/pickpoint-staff").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/*/courier-details").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/*/pickpoint-assignment").hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // COURIER / PICKPOINT_STAFF: field-staff endpoints
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/courier/**").hasRole("COURIER")
+                                                .requestMatchers("/api/v1/pickpoint/**").hasRole("PICKPOINT_STAFF")
+
+                                                // ============================================================
+                                                // ADMIN only: recall initiation and refund approval
+                                                // (must precede the MANAGER+ADMIN catch-all below)
+                                                // ============================================================
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/orders/*/request-recall")
+                                                    .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/admin/orders/customer-returns/*/approve-refund")
+                                                    .hasRole("ADMIN")
+
+                                                // ============================================================
+                                                // WAREHOUSE_MANAGER + ADMIN: warehouse operations
+                                                // Must precede the /admin/** catch-all below
+                                                // ============================================================
+                                                .requestMatchers("/api/v1/admin/warehouse/**").hasAnyRole("WAREHOUSE_MANAGER", "MANAGER", "ADMIN")
 
                                                 // ============================================================
                                                 // MANAGER + ADMIN: product creation, content enrichment, discounts
@@ -174,7 +199,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
                                                 .requestMatchers("/api/v1/users/me/**")
-                                                .hasAnyRole("USER", "MANAGER", "ADMIN")
+                                                .hasAnyRole("USER", "MANAGER", "ADMIN", "COURIER", "PICKPOINT_STAFF", "WAREHOUSE_MANAGER")
                                                 .requestMatchers("/api/v1/wishlist/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
 
@@ -194,6 +219,11 @@ public class SecurityConfig {
                                                 // USER: initiate payment + check status
                                                 .requestMatchers("/api/v1/payments/**")
                                                 .hasAnyRole("USER", "MANAGER", "ADMIN")
+
+                                                // ============================================================
+                                                // WebSocket — auth enforced at STOMP layer, not HTTP
+                                                // ============================================================
+                                                .requestMatchers("/ws/**").permitAll()
 
                                                 // ============================================================
                                                 // Default: require authentication for all other endpoints
@@ -239,6 +269,7 @@ public class SecurityConfig {
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/api/**", configuration);
+                source.registerCorsConfiguration("/ws/**", configuration);
                 return source;
         }
 }

@@ -16,7 +16,7 @@
 -- Lookups
 -- ----------------------------------------------------------------
 CREATE TABLE roles (
-    name VARCHAR(16) PRIMARY KEY
+    name VARCHAR(20) PRIMARY KEY
 );
 
 CREATE TABLE order_statuses (
@@ -24,8 +24,8 @@ CREATE TABLE order_statuses (
 );
 
 -- Seed lookup values (present in all environments)
-INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC');
-INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('SHIPPED'), ('READY_FOR_PICKUP'), ('DELIVERED'), ('CANCELLED'), ('REFUNDED');
+INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC'), ('COURIER'), ('PICKPOINT_STAFF'), ('WAREHOUSE_MANAGER');
+INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('PICKED'), ('SHIPPED'), ('OUT_FOR_DELIVERY'), ('DELIVERY_ATTEMPTED'), ('RECALL_REQUESTED'), ('READY_FOR_PICKUP'), ('RETURN_INITIATED'), ('RETURNED_TO_WAREHOUSE'), ('DELIVERED'), ('CANCELLED'), ('REFUNDED');
 
 -- ----------------------------------------------------------------
 -- Loyalty tiers (referenced by users)
@@ -51,7 +51,7 @@ CREATE INDEX idx_loyalty_tiers_display_order ON loyalty_tiers (display_order);
 CREATE TABLE users (
     id                     BIGSERIAL    PRIMARY KEY,
     phone                  VARCHAR(32)  NOT NULL UNIQUE,
-    role                   VARCHAR(16)  NOT NULL REFERENCES roles(name),
+    role                   VARCHAR(20)  NOT NULL REFERENCES roles(name),
     name                   VARCHAR(255),
     email                  VARCHAR(255) UNIQUE,
     enabled                BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -62,6 +62,16 @@ CREATE TABLE users (
     current_month_spending NUMERIC(12,2),
     loyalty_permanent      BOOLEAN      NOT NULL DEFAULT FALSE,
     lowest_tier_ever_id    BIGINT       REFERENCES loyalty_tiers(id),
+    -- Courier logistics fields (NULL for non-COURIER roles)
+    vehicle_type           VARCHAR(16),
+    max_payload_kg         NUMERIC(6,2),
+    max_length_cm          INTEGER,
+    max_width_cm           INTEGER,
+    max_height_cm          INTEGER,
+    -- Pickpoint staff assignment (NULL for non-PICKPOINT_STAFF roles)
+    pickpoint_id           BIGINT,
+    -- Reserved for future zone assignment feature
+    delivery_zone_id       BIGINT,
     version                BIGINT       NOT NULL DEFAULT 0,
     created_at             TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ  NOT NULL DEFAULT NOW()

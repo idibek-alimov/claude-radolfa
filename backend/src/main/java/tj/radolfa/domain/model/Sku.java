@@ -1,5 +1,7 @@
 package tj.radolfa.domain.model;
 
+import java.math.BigDecimal;
+
 /**
  * A size/price variant — the actual purchasable unit.
  *
@@ -23,15 +25,28 @@ public class Sku {
     private Money   price;
 
     // Radolfa-managed logistics fields
-    private String  barcode;
+    private String     barcode;
+    private BigDecimal weightKg;
+    private Integer    lengthCm;
+    private Integer    widthCm;
+    private Integer    heightCm;
 
+    // Warehouse location (Phase 5) — nullable, assigned by admin
+    private Long binId;
+
+    /** Full constructor including warehouse bin assignment. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price,
-               String barcode) {
+               String barcode,
+               BigDecimal weightKg,
+               Integer lengthCm,
+               Integer widthCm,
+               Integer heightCm,
+               Long binId) {
         this.id               = id;
         this.listingVariantId = listingVariantId;
         this.skuCode          = skuCode;
@@ -39,16 +54,50 @@ public class Sku {
         this.stockQuantity    = stockQuantity;
         this.price            = price;
         this.barcode          = barcode;
+        this.weightKg         = weightKg;
+        this.lengthCm         = lengthCm;
+        this.widthCm          = widthCm;
+        this.heightCm         = heightCm;
+        this.binId            = binId;
     }
 
-    /** Constructor without barcode. */
+    /** Constructor without bin — preserves pre-Phase-5 callers. */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price,
+               String barcode,
+               BigDecimal weightKg,
+               Integer lengthCm,
+               Integer widthCm,
+               Integer heightCm) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, barcode,
+             weightKg, lengthCm, widthCm, heightCm, null);
+    }
+
+    /** Constructor without logistics fields — preserves backward compatibility. */
+    public Sku(Long id,
+               Long listingVariantId,
+               String skuCode,
+               String sizeLabel,
+               Integer stockQuantity,
+               Money price,
+               String barcode) {
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, barcode,
+             null, null, null, null);
+    }
+
+    /** Constructor without barcode or logistics fields. */
     public Sku(Long id,
                Long listingVariantId,
                String skuCode,
                String sizeLabel,
                Integer stockQuantity,
                Money price) {
-        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, null);
+        this(id, listingVariantId, skuCode, sizeLabel, stockQuantity, price, null,
+             null, null, null, null);
     }
 
     /**
@@ -66,12 +115,33 @@ public class Sku {
         this.sizeLabel = sizeLabel;
     }
 
+    /**
+     * MANAGER/ADMIN write path for logistics dimensions.
+     * Any null value clears that field.
+     */
+    public void updateLogistics(BigDecimal weightKg, Integer lengthCm, Integer widthCm, Integer heightCm) {
+        this.weightKg = weightKg;
+        this.lengthCm = lengthCm;
+        this.widthCm  = widthCm;
+        this.heightCm = heightCm;
+    }
+
+    /** MANAGER/ADMIN write path for warehouse bin. Null clears the assignment. */
+    public void assignToBin(Long binId) {
+        this.binId = binId;
+    }
+
     // ---- Getters ----
-    public Long    getId()               { return id; }
-    public Long    getListingVariantId() { return listingVariantId; }
-    public String  getSkuCode()          { return skuCode; }
-    public String  getSizeLabel()        { return sizeLabel; }
-    public Integer getStockQuantity()    { return stockQuantity; }
-    public Money   getPrice()            { return price; }
-    public String  getBarcode()          { return barcode; }
+    public Long       getId()               { return id; }
+    public Long       getListingVariantId() { return listingVariantId; }
+    public String     getSkuCode()          { return skuCode; }
+    public String     getSizeLabel()        { return sizeLabel; }
+    public Integer    getStockQuantity()    { return stockQuantity; }
+    public Money      getPrice()            { return price; }
+    public String     getBarcode()          { return barcode; }
+    public BigDecimal getWeightKg()         { return weightKg; }
+    public Integer    getLengthCm()         { return lengthCm; }
+    public Integer    getWidthCm()          { return widthCm; }
+    public Integer    getHeightCm()         { return heightCm; }
+    public Long       getBinId()            { return binId; }
 }

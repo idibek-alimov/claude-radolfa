@@ -1,0 +1,5 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Warehouse location system: Zone → Shelf → Bin, plus SKU → Bin assignment.
+-- Moved to V2__product_catalog.sql so skus.bin_id can carry an inline FK
+-- to warehouse_bins (no ALTER TABLE required).
+-- ─────────────────────────────────────────────────────────────────────────────

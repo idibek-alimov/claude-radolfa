@@ -10,16 +10,17 @@ import java.util.List;
  * <p>Enriches each cart line with product display data and live stock status.
  */
 public record CartView(
-        Long           cartId,       // null when the user has no active cart
+        Long           cartId,          // null when the user has no active cart
         List<ItemView> items,
         Money          total,
         int            itemCount,
-        String         couponCode    // null when no coupon applied
+        String         couponCode,      // null when no coupon applied
+        Long           pendingOrderId   // non-null when checkout was initiated but payment not yet confirmed
 ) {
 
     /** An empty view for users with no active cart. */
     public static CartView empty() {
-        return new CartView(null, List.of(), Money.ZERO, 0, null);
+        return new CartView(null, List.of(), Money.ZERO, 0, null, null);
     }
 
     public record ItemView(

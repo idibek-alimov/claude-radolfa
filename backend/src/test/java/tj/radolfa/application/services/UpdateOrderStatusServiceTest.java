@@ -2,10 +2,12 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase.Command;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.domain.model.DeliveryCode;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
@@ -25,30 +27,31 @@ class UpdateOrderStatusServiceTest {
     // ── Fakes ─────────────────────────────────────────────────────────────────
 
     static Order homeOrder(OrderStatus status) {
-        return new Order(1L, 10L, null, status,
-                new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
-                0, 0,
-                DeliveryType.HOME, "123 Main St", "MORNING", null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(1L).userId(10L).status(status)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("123 Main St")
+                .preferredTimeWindow("MORNING")
+                .build();
     }
 
     static Order homeShippedOrder() {
-        return new Order(1L, 10L, null, OrderStatus.SHIPPED,
-                new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
-                0, 0,
-                DeliveryType.HOME, "123 Main St", "MORNING", null,
-                "DHL", "TST123", LocalDate.of(2026, 6, 1),
-                Instant.now(), null, null, null);
+        return new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.SHIPPED)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("123 Main St")
+                .preferredTimeWindow("MORNING")
+                .courierId(99L).trackingNumber("TST123")
+                .estimatedDeliveryDate(LocalDate.of(2026, 6, 1)).shippedAt(Instant.now())
+                .build();
     }
 
     static Order pickpointOrder(OrderStatus status) {
-        return new Order(2L, 10L, null, status,
-                new Money(BigDecimal.valueOf(300)), List.of(), Instant.now(),
-                0, 0,
-                DeliveryType.PICKPOINT, null, null, 99L,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(2L).userId(10L).status(status)
+                .totalAmount(new Money(BigDecimal.valueOf(300))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(99L)
+                .build();
     }
 
     static LoadOrderPort orderPort(Order order) {
@@ -76,6 +79,9 @@ class UpdateOrderStatusServiceTest {
         @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { updateCount++; lastStatus = s; }
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static NotificationPort silentPort() {
@@ -84,79 +90,98 @@ class UpdateOrderStatusServiceTest {
             @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) {}
             @Override public void sendReviewApprovedNotification(Long u, Long r) {}
             @Override public void sendReviewReplyNotification(Long u, Long r) {}
+            @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
         };
     }
 
+    static class FakeGenerateDeliveryCodeUseCase implements GenerateDeliveryCodeUseCase {
+        Long lastOrderId;
+        @Override public DeliveryCode execute(Long orderId) { this.lastOrderId = orderId; return null; }
+    }
+
+    static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
+            new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
+                @Override public void publishOrderCancelledToCourier(Long c, Long o) {}
+                @Override public void publishOrderAssignedToCourier(Long c, Long o) {}
+                @Override public void publishNewOrderAtPickpoint(Long p, Long o) {}
+                @Override public void publishOrderCancelledAtPickpoint(Long p, Long o) {}
+                @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
+            };
+
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save) {
         return new UpdateOrderStatusService(orderPort(order), save,
-                new OrderNotificationService(silentPort()));
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS);
     }
 
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save, NotificationPort notifPort) {
         return new UpdateOrderStatusService(orderPort(order), save,
-                new OrderNotificationService(notifPort));
+                new OrderNotificationService(notifPort), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("HOME PAID→SHIPPED with courierName succeeds; courier fields persisted")
+    @DisplayName("HOME PICKED→SHIPPED with courierId succeeds; courier fields persisted")
     void homeShipWithCourier_succeeds() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), save);
 
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, "DHL", "TST123",
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "TST123",
                 LocalDate.of(2026, 6, 1)));
 
         Order saved = save.last();
         assertEquals(OrderStatus.SHIPPED, saved.status());
-        assertEquals("DHL", saved.courierName());
+        assertEquals(99L, saved.courierId());
         assertEquals("TST123", saved.trackingNumber());
         assertEquals(LocalDate.of(2026, 6, 1), saved.estimatedDeliveryDate());
     }
 
     @Test
-    @DisplayName("HOME PAID→SHIPPED without courierName throws IllegalArgumentException")
+    @DisplayName("HOME PICKED→SHIPPED without courierId throws IllegalArgumentException")
     void homeShipWithoutCourier_throws() {
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), new CapturingSaveOrderPort());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, null, null, null)));
-        assertTrue(ex.getMessage().contains("Courier name is required"));
+        assertTrue(ex.getMessage().contains("Courier ID is required"));
     }
 
     @Test
-    @DisplayName("HOME PAID→SHIPPED with blank courierName throws")
-    void homeShipWithBlankCourier_throws() {
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+    @DisplayName("HOME PICKED→SHIPPED without courierId (null) throws")
+    void homeShipWithNullCourier_throws() {
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, "  ", null, null)));
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, null, null, null)));
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→READY_FOR_PICKUP without courierName succeeds (no courier required)")
+    @DisplayName("PICKPOINT PICKED→READY_FOR_PICKUP without courierId succeeds (no courier required)")
     void pickpointTransitionToReadyForPickup_noCourierRequired() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
         svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
 
         assertEquals(OrderStatus.READY_FOR_PICKUP, save.last().status());
-        assertNull(save.last().courierName());
+        assertNull(save.last().courierId());
     }
 
     @Test
-    @DisplayName("PENDING→PAID with stray courierName: succeeds, courier fields NOT written")
+    @DisplayName("PENDING→PAID with stray courierId: succeeds, courier fields NOT written")
     void pendingToPaid_courierFieldsIgnored() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PENDING), save);
 
-        svc.execute(new Command(1L, OrderStatus.PAID, "DHL", "X", LocalDate.now()));
+        svc.execute(new Command(1L, OrderStatus.PAID, 99L, "X", LocalDate.now()));
 
         Order saved = save.last();
         assertEquals(OrderStatus.PAID, saved.status());
-        assertNull(saved.courierName());
+        assertNull(saved.courierId());
         assertNull(saved.trackingNumber());
         assertNull(saved.estimatedDeliveryDate());
     }
@@ -171,7 +196,7 @@ class UpdateOrderStatusServiceTest {
 
         Order saved = save.last();
         assertEquals(OrderStatus.DELIVERED, saved.status());
-        assertEquals("DHL", saved.courierName());
+        assertEquals(99L, saved.courierId());
         assertEquals("TST123", saved.trackingNumber());
         assertEquals(LocalDate.of(2026, 6, 1), saved.estimatedDeliveryDate());
     }
@@ -186,10 +211,10 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→READY_FOR_PICKUP succeeds")
-    void pickpointPaidToReadyForPickup_succeeds() {
+    @DisplayName("PICKPOINT PICKED→READY_FOR_PICKUP succeeds")
+    void pickpointPickedToReadyForPickup_succeeds() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
         svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
 
@@ -208,12 +233,14 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PAID→SHIPPED throws (cross-track forbidden)")
-    void pickpointPaidToShipped_throws() {
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+    @DisplayName("PICKPOINT PICKED→SHIPPED succeeds (staff-driven arrival flow requires SHIPPED as intermediate)")
+    void pickpointPickedToShipped_succeeds() {
+        var saveOrder = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), saveOrder);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null)));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+
+        assertEquals(OrderStatus.SHIPPED, saveOrder.last().status());
     }
 
     @Test
@@ -237,13 +264,13 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("Successful HOME PAID→SHIPPED fires exactly one SHIPPED notification")
+    @DisplayName("Successful HOME PICKED→SHIPPED fires exactly one SHIPPED notification")
     void notification_firedOnSuccess() {
         CountingNotificationPort port = new CountingNotificationPort();
         CapturingSaveOrderPort save   = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PAID), save, port);
+        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PICKED), save, port);
 
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, "DHL", null, null));
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
 
         assertEquals(1, port.updateCount);
         assertEquals(OrderStatus.SHIPPED, port.lastStatus);
@@ -263,13 +290,13 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PAID→SHIPPED sets shippedAt; deliveredAt and cancelledAt remain null")
-    void paidToShipped_setsShippedAt() {
+    @DisplayName("PICKED→SHIPPED sets shippedAt; deliveredAt and cancelledAt remain null")
+    void pickedToShipped_setsShippedAt() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), save);
 
         Instant before = Instant.now();
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, "DHL", null, null));
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
         Instant after = Instant.now();
 
         Order saved = save.last();
@@ -296,5 +323,90 @@ class UpdateOrderStatusServiceTest {
         assertFalse(saved.deliveredAt().isAfter(after));
         assertNotNull(saved.shippedAt());
         assertNull(saved.cancelledAt());
+    }
+
+    @Test
+    @DisplayName("Status update preserves all unrelated fields unchanged")
+    void statusUpdate_preservesUnrelatedFields() {
+        Instant created = Instant.parse("2026-01-01T00:00:00Z");
+        Order pristine = new Order.Builder()
+                .id(42L).userId(7L).externalOrderId("EXT-XYZ")
+                .status(OrderStatus.PICKED).totalAmount(new Money(new BigDecimal("123.45")))
+                .items(List.of()).createdAt(created)
+                .loyaltyPointsRedeemed(150).loyaltyPointsAwarded(30)
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr Line 1")
+                .preferredTimeWindow("9-12").pickpointId(99L)
+                .build();
+
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(pristine), save,
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS);
+
+        svc.execute(new Command(42L, OrderStatus.SHIPPED,
+                99L, "TR-001", LocalDate.of(2026, 6, 1)));
+
+        Order out = save.last();
+        assertEquals(42L,              out.id());
+        assertEquals(7L,               out.userId());
+        assertEquals("EXT-XYZ",        out.externalOrderId());
+        assertEquals(new BigDecimal("123.45"), out.totalAmount().amount());
+        assertEquals(created,          out.createdAt());
+        assertEquals(150,              out.loyaltyPointsRedeemed());
+        assertEquals(30,               out.loyaltyPointsAwarded());
+        assertEquals(DeliveryType.HOME, out.deliveryType());
+        assertEquals("Addr Line 1",    out.deliveryAddress());
+        assertEquals("9-12",           out.preferredTimeWindow());
+        assertEquals(99L,              out.pickpointId());
+        assertNull(out.cancelledAt());
+        assertNull(out.refundedAt());
+        // Status and shipping fields must be updated
+        assertEquals(OrderStatus.SHIPPED, out.status());
+        assertEquals(99L,      out.courierId());
+        assertEquals("TR-001", out.trackingNumber());
+    }
+
+    @Test
+    @DisplayName("HOME PAID→SHIPPED now throws (pick gate enforced)")
+    void homePaidToShipped_throws() {
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null)));
+    }
+
+    @Test
+    @DisplayName("PAID→PICKED succeeds (auto-triggered by ScanOrderItemUnitService on last scan)")
+    void paidToPicked_succeeds() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
+
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+
+        assertEquals(OrderStatus.PICKED, save.last().status());
+    }
+
+    @Test
+    @DisplayName("Admin DELIVERY_ATTEMPTED → SHIPPED reschedule succeeds and triggers delivery code regeneration")
+    void deliveryAttemptedToShipped_rescheduleTriggersFreshCode() {
+        Order attemptedOrder = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.DELIVERY_ATTEMPTED)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .courierId(99L).deliveryAttemptCount(1)
+                .build();
+
+        FakeGenerateDeliveryCodeUseCase fakeCodeGen = new FakeGenerateDeliveryCodeUseCase();
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(attemptedOrder), save,
+                new OrderNotificationService(silentPort()), fakeCodeGen, NO_DELIVERY_EVENTS);
+
+        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
+
+        assertEquals(OrderStatus.SHIPPED, save.last().status());
+        assertEquals(1L, fakeCodeGen.lastOrderId,
+                "GenerateDeliveryCodeUseCase must be called with the rescheduled order id");
     }
 }

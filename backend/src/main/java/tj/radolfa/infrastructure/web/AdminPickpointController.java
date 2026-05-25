@@ -17,6 +17,7 @@ import tj.radolfa.application.ports.in.GetPickpointHoursUseCase;
 import tj.radolfa.application.ports.in.ListAllPickpointsUseCase;
 import tj.radolfa.application.ports.in.UpdatePickpointHoursUseCase;
 import tj.radolfa.application.ports.in.UpdatePickpointUseCase;
+import tj.radolfa.application.ports.in.order.GetPickpointSummariesUseCase;
 import tj.radolfa.application.ports.out.LoadPickpointHoursPort;
 import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.PickpointHours;
@@ -32,25 +33,40 @@ import java.util.Map;
 @Tag(name = "Admin — Pickpoints", description = "Pickpoint registry management")
 public class AdminPickpointController {
 
-    private final ListAllPickpointsUseCase listAllPickpointsUseCase;
-    private final CreatePickpointUseCase createPickpointUseCase;
-    private final UpdatePickpointUseCase updatePickpointUseCase;
-    private final GetPickpointHoursUseCase getPickpointHoursUseCase;
+    private final ListAllPickpointsUseCase    listAllPickpointsUseCase;
+    private final CreatePickpointUseCase      createPickpointUseCase;
+    private final UpdatePickpointUseCase      updatePickpointUseCase;
+    private final GetPickpointHoursUseCase    getPickpointHoursUseCase;
     private final UpdatePickpointHoursUseCase updatePickpointHoursUseCase;
-    private final LoadPickpointHoursPort loadPickpointHoursPort;
+    private final LoadPickpointHoursPort      loadPickpointHoursPort;
+    private final GetPickpointSummariesUseCase getPickpointSummariesUseCase;
 
     public AdminPickpointController(ListAllPickpointsUseCase listAllPickpointsUseCase,
                                     CreatePickpointUseCase createPickpointUseCase,
                                     UpdatePickpointUseCase updatePickpointUseCase,
                                     GetPickpointHoursUseCase getPickpointHoursUseCase,
                                     UpdatePickpointHoursUseCase updatePickpointHoursUseCase,
-                                    LoadPickpointHoursPort loadPickpointHoursPort) {
-        this.listAllPickpointsUseCase = listAllPickpointsUseCase;
-        this.createPickpointUseCase = createPickpointUseCase;
-        this.updatePickpointUseCase = updatePickpointUseCase;
-        this.getPickpointHoursUseCase = getPickpointHoursUseCase;
+                                    LoadPickpointHoursPort loadPickpointHoursPort,
+                                    GetPickpointSummariesUseCase getPickpointSummariesUseCase) {
+        this.listAllPickpointsUseCase  = listAllPickpointsUseCase;
+        this.createPickpointUseCase    = createPickpointUseCase;
+        this.updatePickpointUseCase    = updatePickpointUseCase;
+        this.getPickpointHoursUseCase  = getPickpointHoursUseCase;
         this.updatePickpointHoursUseCase = updatePickpointHoursUseCase;
-        this.loadPickpointHoursPort = loadPickpointHoursPort;
+        this.loadPickpointHoursPort    = loadPickpointHoursPort;
+        this.getPickpointSummariesUseCase = getPickpointSummariesUseCase;
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Per-pickpoint operation counts (MANAGER + ADMIN)")
+    public ResponseEntity<List<PickpointSummaryDto>> getSummary() {
+        List<PickpointSummaryDto> body = getPickpointSummariesUseCase.execute().stream()
+                .map(s -> new PickpointSummaryDto(s.pickpointId(), s.name(),
+                        s.incoming(), s.awaitingPickup(), s.overdue(),
+                        s.returnInProgress(), s.customerReturns()))
+                .toList();
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping
@@ -138,6 +154,11 @@ public class AdminPickpointController {
                 updatePickpointHoursUseCase.execute(id, hours).stream()
                         .map(PickpointHoursResponse::from).toList());
     }
+
+    // ── DTOs ─────────────────────────────────────────────────────────────────
+
+    public record PickpointSummaryDto(Long pickpointId, String name, int incoming, int awaitingPickup,
+                                      int overdue, int returnInProgress, int customerReturns) {}
 
     // ── Request / Response records ────────────────────────────────────────────
 

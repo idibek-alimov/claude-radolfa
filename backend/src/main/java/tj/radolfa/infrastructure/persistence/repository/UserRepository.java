@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,4 +36,21 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             "LOWER(u.phone) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<UserEntity> searchUsers(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE u.role = :role AND u.enabled = true")
+    List<UserEntity> findByRoleAndEnabledTrue(@Param("role") UserRole role);
+
+    @Query(value = "SELECT u FROM UserEntity u LEFT JOIN FETCH u.tier WHERE " +
+            "(:query IS NULL OR :query = '' OR " +
+            "LOWER(u.phone) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "AND u.role IN :roles",
+            countQuery = "SELECT COUNT(u) FROM UserEntity u WHERE " +
+            "(:query IS NULL OR :query = '' OR " +
+            "LOWER(u.phone) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "AND u.role IN :roles")
+    Page<UserEntity> searchUsersByRoles(@Param("query") String query,
+                                        @Param("roles") Collection<UserRole> roles,
+                                        Pageable pageable);
 }

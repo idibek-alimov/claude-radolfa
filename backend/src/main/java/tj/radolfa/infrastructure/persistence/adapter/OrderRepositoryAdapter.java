@@ -2,11 +2,16 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
+import tj.radolfa.application.ports.out.LoadCourierOrderStatsPort;
+import tj.radolfa.application.ports.out.LoadCourierOrdersPort;
+import tj.radolfa.application.ports.out.LoadExpiringPickpointOrdersPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
+import tj.radolfa.application.ports.out.LoadPickpointOrdersPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
@@ -17,12 +22,18 @@ import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.OrderMapper;
 import tj.radolfa.infrastructure.persistence.repository.OrderRepository;
 
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
-public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort {
+public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort,
+        LoadCourierOrdersPort, LoadPickpointOrdersPort, LoadCourierOrderStatsPort,
+        LoadExpiringPickpointOrdersPort {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
@@ -41,6 +52,18 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
         return repository.findByUser_IdOrderByCreatedAtDesc(userId).stream()
                 .map(mapper::toOrder)
                 .toList();
+    }
+
+    @Override
+    public PageResult<Order> loadByUserIdPaged(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        var pg = repository.findByUser_IdOrderByCreatedAtDesc(userId, pageable);
+        return new PageResult<>(
+                pg.getContent().stream().map(mapper::toOrder).toList(),
+                pg.getTotalElements(),
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pg.isLast());
     }
 
     @Override
@@ -64,10 +87,18 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
                 .toList();
     }
 
+    @Override
+    public List<Order> findExpiredPending(Instant cutoff) {
+        return repository.findByStatusAndCreatedAtLessThan(OrderStatus.PENDING, cutoff)
+                .stream()
+                .map(mapper::toOrder)
+                .toList();
+    }
+
     private static final Set<String> SORTABLE = Set.of("createdAt", "totalAmount", "status", "id");
 
     @Override
-    public PageResult<OrderRow> search(String search, OrderStatus statusFilter,
+    public PageResult<OrderRow> search(String search, Collection<OrderStatus> statuses,
                                        String sortBy, String sortDir,
                                        int page, int size) {
         String col = SORTABLE.contains(sortBy) ? sortBy : "createdAt";
@@ -76,7 +107,7 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
 
         PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by(dir, col));
         Page<OrderEntity> result = repository.findAll(
-                OrderSpecifications.adminSearch(search, statusFilter), pageRequest);
+                OrderSpecifications.adminSearch(search, statuses), pageRequest);
 
         List<OrderRow> rows = result.getContent().stream()
                 .map(e -> new OrderRow(
@@ -115,5 +146,69 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
 
         var saved = repository.save(entity);
         return mapper.toOrder(saved);
+    }
+
+    @Override
+    public List<Order> loadByCourierIdAndStatuses(Long courierId, List<OrderStatus> statuses) {
+        return repository.findByCourierIdAndStatusInOrderByCreatedAtAsc(courierId, statuses)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public PageResult<Order> loadByCourierIdAndStatusesPaged(Long courierId,
+                                                              List<OrderStatus> statuses,
+                                                              int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").ascending());
+        var pg = repository.findByCourierIdAndStatusIn(courierId, statuses, pageable);
+        return new PageResult<>(
+                pg.getContent().stream().map(mapper::toOrder).toList(),
+                pg.getTotalElements(),
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pg.isLast());
+    }
+
+    @Override
+    public List<Order> loadByPickpointIdAndStatuses(Long pickpointId, Collection<OrderStatus> statuses) {
+        return repository.findByPickpointIdAndStatusInOrderByCreatedAtAsc(pickpointId, statuses)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public tj.radolfa.domain.model.PageResult<Order> loadByPickpointIdAndStatuses(
+            Long pickpointId,
+            Collection<OrderStatus> statuses,
+            org.springframework.data.domain.Pageable pageable) {
+        var page = repository.findByPickpointIdAndStatusIn(pickpointId, statuses, pageable);
+        return new tj.radolfa.domain.model.PageResult<>(
+                page.getContent().stream().map(mapper::toOrder).toList(),
+                page.getTotalElements(),
+                pageable.getPageNumber() + 1,  // convert 0-based to 1-based
+                pageable.getPageSize(),
+                page.isLast());
+    }
+
+    @Override
+    public List<Order> findReadyForPickupOlderThan(Instant cutoff) {
+        return repository.findByStatusAndReadyForPickupAtLessThan(OrderStatus.READY_FOR_PICKUP, cutoff)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public List<Order> findReadyForPickupInWindow(Instant startInclusive, Instant endExclusive) {
+        return repository.findByStatusAndReadyForPickupAtBetween(
+                        OrderStatus.READY_FOR_PICKUP, startInclusive, endExclusive)
+                .stream().map(mapper::toOrder).toList();
+    }
+
+    @Override
+    public Map<Long, CourierOrderStats> loadStats(Instant todayStart) {
+        return repository.aggregateFleetStats(todayStart).stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> new CourierOrderStats(
+                                ((Number) row[1]).longValue(),
+                                ((Number) row[2]).longValue(),
+                                ((Number) row[3]).longValue())));
     }
 }

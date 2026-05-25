@@ -4,17 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Star } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { getMyOrders } from "@/features/profile/api";
+import { useMyReviewProgress } from "@/features/profile/api";
 import { fetchReviewReward } from "@/entities/loyalty/api";
-import type { Order } from "@/features/profile/types";
 
 export function ReviewProgressCard() {
   const t = useTranslations("profile");
 
-  const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["my-orders"],
-    queryFn: getMyOrders,
-  });
+  const { data: progress, isLoading: progressLoading } = useMyReviewProgress();
 
   const { data: rewardData, isLoading: rewardLoading } = useQuery({
     queryKey: ["loyalty-review-reward"],
@@ -22,23 +18,18 @@ export function ReviewProgressCard() {
     staleTime: Infinity,
   });
 
-  if (ordersLoading || rewardLoading) {
+  if (progressLoading || rewardLoading) {
     return <Skeleton className="h-24 w-full rounded-xl" />;
   }
 
-  if (!orders) return null;
+  if (!progress) return null;
 
-  const delivered = orders.filter((o) => o.status === "DELIVERED");
-  const total = delivered.flatMap((o) => o.items).length;
+  const { totalOrders, reviewedOrders } = progress;
 
-  if (total === 0) return null;
+  if (totalOrders === 0) return null;
 
-  const reviewed = delivered
-    .flatMap((o) => o.items)
-    .filter((i) => i.hasReviewed).length;
-
-  const percent = total === 0 ? 0 : Math.round((reviewed / total) * 100);
-  const allDone = reviewed === total;
+  const percent = Math.round((reviewedOrders / totalOrders) * 100);
+  const allDone = reviewedOrders >= totalOrders;
   const rewardPoints = rewardData?.points ?? 50;
 
   return (
@@ -53,10 +44,9 @@ export function ReviewProgressCard() {
       <p className="text-sm text-muted-foreground">
         {allDone
           ? t("reviewProgressAllDone")
-          : t("reviewProgressSubtitle", { reviewed, total })}
+          : t("reviewProgressSubtitle", { reviewed: reviewedOrders, total: totalOrders })}
       </p>
 
-      {/* Progress bar */}
       <div className="h-2.5 bg-muted rounded-full overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-500"

@@ -36,6 +36,9 @@ class OrderNotificationServiceTest {
 
         @Override public void sendReviewApprovedNotification(Long userId, Long reviewId) {}
         @Override public void sendReviewReplyNotification(Long userId, Long reviewId) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static class ThrowingNotificationPort implements NotificationPort {
@@ -43,14 +46,17 @@ class OrderNotificationServiceTest {
         @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { throw new RuntimeException("provider down"); }
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static Order orderWithStatus(OrderStatus status) {
-        return new Order(42L, 7L, null, status,
-                new Money(BigDecimal.valueOf(100)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, null, null, null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(42L).userId(7L).status(status)
+                .totalAmount(new Money(BigDecimal.valueOf(100))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME)
+                .build();
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────

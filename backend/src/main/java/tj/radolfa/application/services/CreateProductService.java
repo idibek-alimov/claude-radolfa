@@ -3,10 +3,11 @@ package tj.radolfa.application.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ListingVariantIndexedEvent;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.domain.exception.InvalidAttributeValueException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
-import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadCategoryBlueprintPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
@@ -18,6 +19,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.service.BarcodeGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,20 +45,23 @@ public class CreateProductService implements CreateProductUseCase {
     private final LoadBrandPort             loadBrandPort;
     private final LoadCategoryBlueprintPort loadBlueprintPort;
     private final SaveProductHierarchyPort  savePort;
-    private final ListingIndexPort          listingIndexPort;
+    private final ApplicationEventPublisher eventPublisher;
+    private final BarcodeGenerator          barcodeGenerator;
 
     public CreateProductService(LoadCategoryPort loadCategoryPort,
                                 LoadColorPort loadColorPort,
                                 LoadBrandPort loadBrandPort,
                                 LoadCategoryBlueprintPort loadBlueprintPort,
                                 SaveProductHierarchyPort savePort,
-                                ListingIndexPort listingIndexPort) {
+                                ApplicationEventPublisher eventPublisher,
+                                BarcodeGenerator barcodeGenerator) {
         this.loadCategoryPort  = loadCategoryPort;
         this.loadColorPort     = loadColorPort;
         this.loadBrandPort     = loadBrandPort;
         this.loadBlueprintPort = loadBlueprintPort;
         this.savePort          = savePort;
-        this.listingIndexPort  = listingIndexPort;
+        this.eventPublisher    = eventPublisher;
+        this.barcodeGenerator  = barcodeGenerator;
     }
 
     @Override
@@ -165,7 +170,7 @@ public class CreateProductService implements CreateProductUseCase {
             List<Sku> savedSkus = new ArrayList<>();
             for (Command.SkuDefinition def : variantDef.skus()) {
                 String skuCode  = "SKU-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
-                String barcode  = "BC-"  + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+                String barcode  = barcodeGenerator.next();
                 Sku sku = new Sku(
                         null,
                         savedVariant.getId(),
@@ -181,13 +186,8 @@ public class CreateProductService implements CreateProductUseCase {
             log.info("[CREATE-PRODUCT] Created variant slug='{}' with {} SKU(s)",
                     savedVariant.getSlug(), savedSkus.size());
 
-            // ES indexing — fire-and-forget, outside transaction boundary by design
-            try {
-                indexVariant(savedVariant, command.name(), category.name(), color.hexCode(), savedSkus);
-            } catch (Exception ex) {
-                log.error("[CREATE-PRODUCT] ES indexing failed for variant={}: {}",
-                        savedVariant.getSlug(), ex.getMessage());
-            }
+            eventPublisher.publishEvent(buildIndexEvent(
+                    savedVariant, command.name(), category.name(), color.hexCode(), savedSkus));
         }
 
         return savedBase.getId();
@@ -238,8 +238,9 @@ public class CreateProductService implements CreateProductUseCase {
         }
     }
 
-    private void indexVariant(ListingVariant variant, String productName, String category,
-                               String colorHex, List<Sku> skus) {
+    private ListingVariantIndexedEvent buildIndexEvent(ListingVariant variant, String productName,
+                                                       String category, String colorHex,
+                                                       List<Sku> skus) {
         Double price = skus.stream()
                 .map(Sku::getPrice)
                 .filter(java.util.Objects::nonNull)
@@ -257,21 +258,10 @@ public class CreateProductService implements CreateProductUseCase {
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
-        listingIndexPort.index(
-                variant.getId(),
-                variant.getProductBaseId(),
-                variant.getSlug(),
-                productName,
-                category,
-                variant.getColorKey(),
-                colorHex,
-                variant.getWebDescription(),
-                new java.util.ArrayList<>(variant.getImages()),
-                price,
-                totalStock,
-                variant.getLastSyncAt(),
-                variant.getProductCode(),
-                skuCodes
-        );
+        return new ListingVariantIndexedEvent(
+                variant.getId(), variant.getProductBaseId(), variant.getSlug(),
+                productName, category, variant.getColorKey(), colorHex,
+                variant.getWebDescription(), new java.util.ArrayList<>(variant.getImages()),
+                price, totalStock, variant.getLastSyncAt(), variant.getProductCode(), skuCodes);
     }
 }

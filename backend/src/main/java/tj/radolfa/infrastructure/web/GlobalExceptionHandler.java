@@ -10,12 +10,25 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tj.radolfa.domain.exception.BarcodeMismatchException;
+import tj.radolfa.domain.exception.CourierAccessDeniedException;
+import tj.radolfa.domain.exception.OrderItemAlreadyFullyPickedException;
+import tj.radolfa.domain.exception.PickpointCodeLockoutException;
+import tj.radolfa.domain.exception.DeliveryCodeAlreadyUsedException;
+import tj.radolfa.domain.exception.DeliveryCodeAttemptsExhaustedException;
+import tj.radolfa.domain.exception.DeliveryCodeExpiredException;
+import tj.radolfa.domain.exception.DeliveryCodeMismatchException;
+import tj.radolfa.domain.exception.DeliveryCodeNotFoundException;
 import tj.radolfa.domain.exception.DiscountConflictException;
+import tj.radolfa.domain.exception.OrderRecallNotAllowedException;
 import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
+import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
+import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.exception.RefundFailedException;
 import tj.radolfa.domain.exception.TagInUseException;
 import tj.radolfa.domain.exception.UnauthorizedReviewException;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
@@ -201,6 +214,20 @@ public class GlobalExceptionHandler {
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<MessageResponseDto> handleInsufficientStock(InsufficientStockException ex) {
+        LOG.warn("[STOCK] Insufficient stock: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DiscountUsageCapExceededException.class)
+    public ResponseEntity<MessageResponseDto> handleDiscountUsageCapExceeded(DiscountUsageCapExceededException ex) {
+        LOG.warn("[DISCOUNT] Usage cap exceeded: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
     /**
      * Handles illegal state exceptions (infrastructure invariant violations).
      * Returns 500 Internal Server Error with a generic message — raw internal
@@ -222,6 +249,89 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleClientDisconnect(AsyncRequestNotUsableException ex) {
         LOG.debug("[NETWORK] Client disconnected mid-response: {}", ex.getMessage());
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(CourierAccessDeniedException.class)
+    public ResponseEntity<MessageResponseDto> handleCourierAccessDenied(CourierAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeNotFoundException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeNotFound(DeliveryCodeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeExpiredException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeExpired(DeliveryCodeExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.GONE)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeAlreadyUsedException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeAlreadyUsed(DeliveryCodeAlreadyUsedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeMismatchException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeMismatch(DeliveryCodeMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DeliveryCodeAttemptsExhaustedException.class)
+    public ResponseEntity<MessageResponseDto> handleDeliveryCodeAttemptsExhausted(DeliveryCodeAttemptsExhaustedException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PickpointCodeLockoutException.class)
+    public ResponseEntity<MessageResponseDto> handlePickpointCodeLockout(PickpointCodeLockoutException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(OrderRecallNotAllowedException.class)
+    public ResponseEntity<MessageResponseDto> handleOrderRecallNotAllowed(OrderRecallNotAllowedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles payment gateway refund failures.
+     * Returns 502 Bad Gateway so the admin UI can distinguish a gateway error from a validation error.
+     */
+    @ExceptionHandler(RefundFailedException.class)
+    public ResponseEntity<MessageResponseDto> handleRefundFailed(RefundFailedException ex) {
+        LOG.error("[REFUND] Gateway refund failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(MessageResponseDto.error("Refund failed: " + ex.getMessage()));
+    }
+
+    @ExceptionHandler(BarcodeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleBarcodeMismatch(BarcodeMismatchException ex) {
+        LOG.warn("[PICK] Barcode mismatch: {}", ex.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("code", "BARCODE_MISMATCH");
+        response.put("message", ex.getMessage());
+        response.put("scannedBarcode", ex.getScannedBarcode());
+        response.put("orderId", ex.getOrderId());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    @ExceptionHandler(OrderItemAlreadyFullyPickedException.class)
+    public ResponseEntity<Map<String, Object>> handleOrderItemAlreadyFullyPicked(
+            OrderItemAlreadyFullyPickedException ex) {
+        LOG.warn("[PICK] Already fully picked: {}", ex.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("code", "ALREADY_FULLY_PICKED");
+        response.put("message", ex.getMessage());
+        response.put("orderItemId", ex.getOrderItemId());
+        response.put("quantity", ex.getQuantity());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
     }
 
     /**

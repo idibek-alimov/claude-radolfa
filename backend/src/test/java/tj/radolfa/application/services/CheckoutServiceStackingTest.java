@@ -11,6 +11,8 @@ import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
+import tj.radolfa.application.ports.out.QueryDiscountUsagePort;
 import tj.radolfa.application.ports.out.SaveDiscountApplicationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
@@ -68,6 +70,7 @@ class CheckoutServiceStackingTest {
         }
         @Override public Optional<User> loadByPhone(String p) { return Optional.empty(); }
         @Override public List<User> findAllNonPermanent() { return List.of(); }
+            @Override public List<User> findByRoleAndEnabledTrue(tj.radolfa.domain.model.UserRole r) { return List.of(); }
     };
 
     static final LoadCartPort FAKE_CART = new LoadCartPort() {
@@ -88,34 +91,39 @@ class CheckoutServiceStackingTest {
         @Override public List<Sku> findSkusByVariantId(Long id) { return List.of(); }
     };
 
+    static final ListingVariant FAKE_VARIANT_OBJ = new ListingVariant(VARIANT_ID, PRODUCT_ID, "RED", "slug", null,
+            null, null, null, null, "RD-001", true, true, null, null, null, null);
+    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null);
+
     static final LoadListingVariantPort FAKE_VARIANT = new LoadListingVariantPort() {
-        @Override public Optional<ListingVariant> findVariantById(Long id) {
-            return Optional.of(new ListingVariant(VARIANT_ID, PRODUCT_ID, "RED", "slug", null,
-                    null, null, null, null, "RD-001", true, true, null, null, null, null));
-        }
+        @Override public Optional<ListingVariant> findVariantById(Long id) { return Optional.of(FAKE_VARIANT_OBJ); }
         @Override public Optional<ListingVariant> findByProductBaseIdAndColorKey(Long p, String c) { return Optional.empty(); }
         @Override public Optional<ListingVariant> findBySlug(String s) { return Optional.empty(); }
         @Override public List<ListingVariant> findAllByProductBaseId(Long id) { return List.of(); }
-        @Override public Map<Long, ListingVariant> findVariantsByIds(Collection<Long> ids) { return Map.of(); }
+        @Override public Map<Long, ListingVariant> findVariantsByIds(Collection<Long> ids) {
+            return ids.contains(VARIANT_ID) ? Map.of(VARIANT_ID, FAKE_VARIANT_OBJ) : Map.of();
+        }
     };
 
     static final LoadProductBasePort FAKE_PRODUCT = new LoadProductBasePort() {
-        @Override public Optional<ProductBase> findById(Long id) {
-            return Optional.of(new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null));
-        }
+        @Override public Optional<ProductBase> findById(Long id) { return Optional.of(FAKE_PRODUCT_OBJ); }
         @Override public Optional<ProductBase> findByExternalRef(String ref) { return Optional.empty(); }
+        @Override public Map<Long, ProductBase> findProductsByIds(Collection<Long> ids) {
+            return ids.contains(PRODUCT_ID) ? Map.of(PRODUCT_ID, FAKE_PRODUCT_OBJ) : Map.of();
+        }
     };
 
     static final SaveOrderPort SAVE_ORDER = order -> {
         List<OrderItem> itemsWithIds = order.items().stream()
                 .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice()))
+                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null))
                 .toList();
-        return new Order(100L, order.userId(), null, OrderStatus.PENDING, order.totalAmount(),
-                itemsWithIds, order.createdAt(), 0, 0,
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(100L).userId(order.userId()).status(OrderStatus.PENDING)
+                .totalAmount(order.totalAmount()).items(itemsWithIds).createdAt(order.createdAt())
+                .deliveryType(order.deliveryType()).deliveryAddress(order.deliveryAddress())
+                .preferredTimeWindow(order.preferredTimeWindow()).pickpointId(order.pickpointId())
+                .build();
     };
 
     static final StockAdjustmentPort NO_STOCK = new StockAdjustmentPort() {
@@ -142,8 +150,18 @@ class CheckoutServiceStackingTest {
 
     CheckoutService buildService(Map<String, List<Discount>> resolvedMap,
                                   FakeSaveDiscountApplicationPort fakeAppPort) {
+        LockDiscountForUsagePort noCapsLock = discountId -> {
+            DiscountType type = new DiscountType(discountId, "SALE", 1, StackingPolicy.STACKABLE);
+            return Optional.of(new Discount(discountId, type, List.of(new SkuTarget(SKU_CODE)),
+                    AmountType.PERCENT, BigDecimal.TEN,
+                    Instant.EPOCH, Instant.MAX, false, "Lock", "#000", null, null, null, null));
+        };
+        QueryDiscountUsagePort noUsage = new QueryDiscountUsagePort() {
+            @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+            @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long u) { return Map.of(); }
+        };
         RecordDiscountApplicationService recordService =
-                new RecordDiscountApplicationService(fakeAppPort);
+                new RecordDiscountApplicationService(noCapsLock, noUsage, fakeAppPort);
         return new CheckoutService(
                 FAKE_CART,
                 cart -> cart,
@@ -157,7 +175,14 @@ class CheckoutServiceStackingTest {
                 (userId, pts) -> Money.ZERO,
                 query -> resolvedMap,
                 recordService,
-                FAKE_LOAD_PICKPOINT
+                FAKE_LOAD_PICKPOINT,
+                new tj.radolfa.application.ports.out.LoadOrderPort() {
+                    @Override public java.util.List<tj.radolfa.domain.model.Order> loadByUserId(Long id) { return java.util.List.of(); }
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Order> loadById(Long id) { return java.util.Optional.empty(); }
+                    @Override public java.util.Optional<tj.radolfa.domain.model.Order> loadByExternalOrderId(String s) { return java.util.Optional.empty(); }
+                    @Override public java.util.List<tj.radolfa.domain.model.Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
+                },
+                (orderId, reason) -> {}            // ExpireOrderUseCase
         );
     }
 

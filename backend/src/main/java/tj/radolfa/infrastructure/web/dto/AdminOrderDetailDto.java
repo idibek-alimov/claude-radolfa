@@ -25,16 +25,29 @@ public record AdminOrderDetailDto(
         Long pickpointId,
         String pickpointName,
         String pickpointAddress,
+        Long courierId,
         String courierName,
         String trackingNumber,
         LocalDate estimatedDeliveryDate,
         Instant shippedAt,
         Instant deliveredAt,
         Instant cancelledAt,
-        Instant refundedAt) {
+        Instant refundedAt,
+        Instant outForDeliveryAt,
+        Instant deliveryAttemptedAt,
+        int deliveryAttemptCount,
+        String deliveryAttemptReason,
+        String deliveryPhotoUrl,
+        Instant readyForPickupAt,
+        String pickpointConfirmedByUserName,
+        boolean pickpointOverdue,
+        List<CustomerReturnSummary> customerReturns) {
 
     public static AdminOrderDetailDto from(GetAdminOrderDetailUseCase.Result result,
-                                           List<AdminOrderItemDto> enrichedItems) {
+                                           List<AdminOrderItemDto> enrichedItems,
+                                           List<CustomerReturnSummary> customerReturns,
+                                           String pickpointConfirmedByUserName,
+                                           boolean pickpointOverdue) {
         Order order = result.order();
         Pickpoint pp = result.pickpoint().orElse(null);
 
@@ -54,13 +67,23 @@ public record AdminOrderDetailDto(
                 order.pickpointId(),
                 pp != null ? pp.name()    : null,
                 pp != null ? pp.address() : null,
-                order.courierName(),
+                order.courierId(),
+                result.courierName(),
                 order.trackingNumber(),
                 order.estimatedDeliveryDate(),
                 order.shippedAt(),
                 order.deliveredAt(),
                 order.cancelledAt(),
-                order.refundedAt()
+                order.refundedAt(),
+                order.outForDeliveryAt(),
+                order.deliveryAttemptedAt(),
+                order.deliveryAttemptCount(),
+                order.deliveryAttemptReason() != null ? order.deliveryAttemptReason().name() : null,
+                order.deliveryPhotoUrl(),
+                order.readyForPickupAt(),
+                pickpointConfirmedByUserName,
+                pickpointOverdue,
+                customerReturns
         );
     }
 }

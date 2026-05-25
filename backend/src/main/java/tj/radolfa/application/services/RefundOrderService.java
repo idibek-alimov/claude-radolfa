@@ -56,13 +56,10 @@ public class RefundOrderService implements RefundOrderUseCase {
 
         log.info("Admin {} refunding order {} (reason: {})", requesterId, orderId, reason);
 
-        Order refunded = new Order(
-                order.id(), order.userId(), order.externalOrderId(),
-                OrderStatus.REFUNDED, order.totalAmount(), order.items(), order.createdAt(),
-                order.loyaltyPointsRedeemed(), order.loyaltyPointsAwarded(),
-                order.deliveryType(), order.deliveryAddress(), order.preferredTimeWindow(), order.pickpointId(),
-                order.courierName(), order.trackingNumber(), order.estimatedDeliveryDate(),
-                order.shippedAt(), order.deliveredAt(), order.cancelledAt(), Instant.now());
+        Order refunded = order.toBuilder()
+                .status(OrderStatus.REFUNDED)
+                .refundedAt(Instant.now())
+                .build();
         saveOrderPort.save(refunded);
         orderNotificationService.notify(refunded);
     }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
+import tj.radolfa.domain.model.DeliveryAttemptReason;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
 
@@ -64,8 +65,8 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "pickpoint_id")
     private Long pickpointId;
 
-    @Column(name = "courier_name")
-    private String courierName;
+    @Column(name = "courier_id")
+    private Long courierId;
 
     @Column(name = "tracking_number")
     private String trackingNumber;
@@ -88,6 +89,54 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "refunded_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant refundedAt;
+
+    @Column(name = "out_for_delivery_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant outForDeliveryAt;
+
+    @Column(name = "delivery_attempted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant deliveryAttemptedAt;
+
+    @Column(name = "delivery_attempt_count", nullable = false)
+    private int deliveryAttemptCount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_attempt_reason", length = 32)
+    private DeliveryAttemptReason deliveryAttemptReason;
+
+    @Column(name = "delivery_photo_url", columnDefinition = "TEXT")
+    private String deliveryPhotoUrl;
+
+    @Column(name = "ready_for_pickup_at")
+    private Instant readyForPickupAt;
+
+    @Column(name = "return_initiated_at")
+    private Instant returnInitiatedAt;
+
+    @Column(name = "return_initiated_by_user_id")
+    private Long returnInitiatedByUserId;
+
+    @Column(name = "returned_to_warehouse_at")
+    private Instant returnedToWarehouseAt;
+
+    @Column(name = "recall_requested_at")
+    private Instant recallRequestedAt;
+
+    @Column(name = "recall_requested_by_user_id")
+    private Long recallRequestedByUserId;
+
+    @Column(name = "recall_reason")
+    private String recallReason;
+
+    @Column(name = "recall_confirmed_at")
+    private Instant recallConfirmedAt;
+
+    @Column(name = "recall_confirmed_by_user_id")
+    private Long recallConfirmedByUserId;
+
+    @Column(name = "pickpoint_confirmed_by_user_id")
+    private Long pickpointConfirmedByUserId;
 
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)

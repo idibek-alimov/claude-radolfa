@@ -150,6 +150,9 @@
     "sizesAndStock": "Андозаҳо ва захира",
     "noSkuData": "Маълумоти SKU мавҷуд нест.",
     "size": "Андоза",
+    "barcode": "Штрихкод",
+    "copyBarcode": "Нусхабардории штрихкод",
+    "barcodeCopied": "Штрихкод нусха карда шуд",
     "sale": "Тахфиф",
     "primary": "Асосӣ",
     "enrichment": "Ғанӣ кардан",
@@ -272,13 +275,19 @@
         "total": "Маблағ"
       },
       "status": {
-        "PENDING":          "Интизор",
-        "PAID":             "Пардохтшуда",
-        "SHIPPED":          "Фиристода шуд",
+        "PENDING": "Интизор",
+        "PAID": "Пардохтшуда",
+        "PICKED": "Ҷамъоварӣ шуд",
+        "SHIPPED": "Фиристода шуд",
+        "OUT_FOR_DELIVERY": "Курьер дар роҳ аст",
+        "DELIVERY_ATTEMPTED": "Кӯшиши расондан",
         "READY_FOR_PICKUP": "Омода ба гирифтан",
-        "DELIVERED":        "Расонида шуд",
-        "CANCELLED":        "Бекор шуд",
-        "REFUNDED":         "Баргардонида шуд"
+        "DELIVERED": "Расонида шуд",
+        "CANCELLED": "Бекор шуд",
+        "REFUNDED": "Баргардонида шуд",
+        "RETURN_INITIATED": "Баргашт оғоз ёфт",
+        "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд",
+        "RECALL_REQUESTED": "Дархости барқарорсозӣ"
       },
       "deliveryType": {
         "HOME": "Ба хона",
@@ -332,7 +341,20 @@
         "loyaltyPoints": "Баллҳои бонус",
         "redeemed": "Истифодашуда",
         "awarded": "Илова шуд",
-        "ptsShort": "балл"
+        "ptsShort": "балл",
+        "customerReturns": "Баргардониҳо",
+        "returnLabel": "Баргардонӣ",
+        "items": "мол",
+        "arrivedAt": "Ба нуқтаи таҳвил расид",
+        "confirmedBy": "Тасдиқ кард",
+        "pickupAddress": "Суроғаи нуқтаи таҳвил",
+        "pickpointOverdue": "Мӯҳлат гузашт",
+        "returnStatus": {
+          "RECEIVED": "Қабул шуд",
+          "SENT_TO_WAREHOUSE": "Ба анбор фиристода шуд",
+          "REFUND_APPROVED": "Баргардонидан тасдиқ шуд",
+          "REFUNDED": "Маблағ баргардонида шуд"
+        }
       },
       "shipModal": {
         "cancel": "Бекор кардан",
@@ -352,7 +374,8 @@
         "qty": "Шумора",
         "unitPrice": "Нарх",
         "subtotal": "Маблағ",
-        "stock": "Мавҷудӣ"
+        "stock": "Мавҷудӣ",
+        "picked": "Ҷамъоварӣшуда"
       },
       "stock": {
         "inStock": "✓ Дар анбор",
@@ -387,9 +410,18 @@
         "refunding": "Баргардонида истода…",
         "confirm": "Баргардонидан"
       },
+      "tabNeedsAction": "Амал лозим",
+      "tabInFulfillment": "Дар ҷараён",
+      "tabCompleted": "Анҷом ёфта",
+      "awaitingArrivalCallout": "Дар интизори тасдиқи расидани бастаи коркунони нуқтаи таҳвил.",
       "empty": "Фармоишҳо ёфт нашуданд.",
       "page": "Саҳ. {page}",
-      "total": "{count} фармоиш"
+      "total": "{count} фармоиш",
+      "awaitingPick": {
+        "title": "Дар интизори тафтиши ҷамъоварӣ",
+        "body": "Корманди анбор бояд пеш аз фиристодан ҳамаи молҳоро сканер кунад.",
+        "openInWarehouse": "Кушодан дар анбор"
+      }
     }
   },
   "profile": {
@@ -424,6 +456,9 @@
     "statusShipped": "Фиристода шуд",
     "statusDelivered": "Расонида шуд",
     "statusCancelled": "Бекор карда шуд",
+    "statusOutForDelivery": "Фармоиши шумо дар роҳ аст",
+    "statusDeliveryAttempted": "Кӯшиши расондан — дубора кӯшиш мекунем",
+    "statusReadyForPickupWithCode": "Барои гирифтан омода — рамзи худро нишон диҳед",
     "orderPlaced": "Қабул шуд",
     "orderConfirmed": "Тасдиқ шуд",
     "orderShipped": "Фиристода шуд",
@@ -473,7 +508,69 @@
     "estimatedDeliveryLabel": "Санаи тахминии расонидан",
     "statusReadyForPickup": "Омода ба гирифтан",
     "orderReadyForPickup": "Омода",
-    "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст"
+    "readyForPickupCallout": "Фармоиши шумо дар нуқтаи худхуруҷ интизор аст",
+    "status": {
+      "PENDING": "Дар интизорӣ",
+      "PAID": "Пардохт шуд",
+      "PICKED": "Ҷамъоварӣ шуд",
+      "SHIPPED": "Фиристода шуд",
+      "OUT_FOR_DELIVERY": "Дар роҳ аст",
+      "DELIVERY_ATTEMPTED": "Кӯшиши расондан",
+      "READY_FOR_PICKUP": "Омода ба гирифтан",
+      "DELIVERED": "Расонида шуд",
+      "CANCELLED": "Бекор карда шуд",
+      "RETURN_INITIATED": "Баргардонидан идома дорад",
+      "RETURNED_TO_WAREHOUSE": "Ба анбор баргардонида шуд",
+      "REFUNDED": "Маблағ баргардонида шуд",
+      "RECALL_REQUESTED": "Дархости барқарорсозӣ"
+    },
+    "returnInProgressBanner": "Баргардонидани шумо коркард мешавад. Мо шуморо огоҳ мекунем, ки чӣ вақт ба анбор мерасад.",
+    "recallRequestedBanner": "Ин фармоиш аз ҷониби мағоза бозхонда шуд. Курьери мо онро аз нуқтаи таҳвил мегирад.",
+    "returnsTab": "Баргардонӣ",
+    "myReturns": "Баргардонидани ман",
+    "noReturns": "Шумо ягон дархости баргардонӣ надоред.",
+    "returnLabel": "Баргардонӣ",
+    "forOrder": "барои фармоиш",
+    "refundAmount": "Баргардонидани маблағ",
+    "viewOrder": "Дидани фармоиш",
+    "showing": "Нишон дода шудааст",
+    "of": "аз",
+    "returnStatus": {
+      "received": "Қабул шуд",
+      "sentToWarehouse": "Ба анбор фиристода шуд",
+      "refundApproved": "Баргардонидан тасдиқ шуд",
+      "refunded": "Маблағ баргардонида шуд"
+    },
+    "noOrders": "Фармоишҳо ёфт нашуданд."
+  },
+  "orderDetail": {
+    "backToOrders": "Фармоишҳои ман",
+    "orderNumber": "Фармоиш",
+    "notFound": "Фармоиш ёфт нашуд.",
+    "items": "Молҳо",
+    "pricing": "Нарх",
+    "loyaltyDiscount": "Тахфифи баллҳо",
+    "total": "Ҷамъ",
+    "pickupPoint": "Нуқтаи таҳвил",
+    "courierInfo": "Расонидан",
+    "trackingNumber": "Рақами пайгирӣ",
+    "estimatedDelivery": "Санаи тахминӣ",
+    "returnInfo": "Баргардонӣ",
+    "returnStatus": "Ҳолат",
+    "returnReason": "Сабаб",
+    "refundAmount": "Баргардонидани маблағ",
+    "activity": "Таърих",
+    "ordered": "Фармоиш дода шуд",
+    "shipped": "Фиристода шуд",
+    "delivered": "Расонида шуд",
+    "cancelled": "Бекор карда шуд",
+    "refunded": "Маблағ баргардонида шуд",
+    "returnInProgressBanner": "Баргардонидани шумо коркард мешавад.",
+    "recallRequestedBanner": "Ин фармоиш аз ҷониби мағоза бозхонда шуд."
+  },
+  "pickupCode": {
+    "scanCaption": "Ин рамзро нишон диҳед ё ба коркунон иҷозат диҳед, ки рамзи QR-ро скан кунанд.",
+    "pickupLocation": "Ҷои гирифтан"
   },
   "cart": {
     "title": "Сабади шумо",
@@ -596,7 +693,18 @@
     "noUsersMatching": "Корбарон аз рӯи «{search}» ёфт нашуданд",
     "noUsersFound": "Корбарон ёфт нашуданд.",
     "usersTotal": "{count} корбарон ҷамъан",
-    "page": "Саҳифа {page}"
+    "page": "Саҳифа {page}",
+    "tabCustomers": "Харидорон",
+    "tabManagers": "Менеҷерон",
+    "tabCouriers": "Курьерон",
+    "tabPickpointStaff": "Кормандони ПВЗ",
+    "addCourier": "Иловаи курьер",
+    "addPickpointStaff": "Иловаи корманди ПВЗ",
+    "editCourier": "Таҳрири курьер",
+    "editPickpointStaff": "Таҳрири корманди ПВЗ",
+    "tableVehicleType": "Нақлиёт",
+    "tableMaxPayload": "Ҳадди бор",
+    "tablePickpoint": "ПВЗ"
   },
   "reviews": {
     "card": {
@@ -820,6 +928,332 @@
         "body": "Бо дигар тахфифҳои STACKABLE барои ҳамон SKU мультипликативӣ якҷоя мешавад.",
         "short": "Якҷоякунанда"
       }
+    }
+  },
+  "pickpoint": {
+    "orderLabel": "Фармоиш",
+    "selectOrder": "Интихоби фармоиш",
+    "items": "молҳо",
+    "showMore": "+{count} боз",
+    "showLess": "Камтар нишон деҳ",
+    "selectedCount": "{count} интихоб шуд",
+    "confirmSelected": "Расидани ({count}) тасдиқ кунед",
+    "confirmedToast": "Тасдиқ шуд: {count} фармоиш",
+    "confirming": "Тасдиқ мешавад…",
+    "tab": {
+      "incoming": "Воридшаванда",
+      "awaiting": "Дар интизор",
+      "returns": "Баргаштҳо",
+      "customerReturns": "Баргашти мустақим",
+      "history": "Таърих"
+    },
+    "confirmArrival": "Расиданро тасдиқ кунед",
+    "readySince": "Аз {date} омода",
+    "overdue": "Муддат гузашт · {days}р",
+    "noOrders": "Дар ин категория фармоиш нест.",
+    "awaitingPickup": "Интизори гирифтан аст",
+    "enRoute": "Дар роҳ — интизори тасдиқи расидан"
+  },
+  "courier": {
+    "title": "Таҳвилҳои ман",
+    "tab": {
+      "toCollect": "Гирифтан",
+      "inTransit": "Дар роҳ",
+      "attempted": "Кӯшиш шуд"
+    },
+    "showing": "Нишон дода шуд",
+    "of": "аз",
+    "noOrders": "Дар ин категория фармоиш нест.",
+    "collectOrder": "Ман ин фармоишро гирифтам",
+    "recordAttempt": "Кӯшиши дигарро сабт кунед",
+    "attemptReason": "Сабаб",
+    "attemptPhoto": "Акс (ихтиёрӣ)"
+  },
+  "warehouse": {
+    "title": "Анбор",
+    "nav": {
+      "lookup": "Ҷустуҷӯ",
+      "receipts": "Воридот",
+      "structure": "Сохтор",
+      "returns": "Навбати бозгашт",
+      "pick": "Ҷамъоварии фармоишҳо"
+    },
+    "common": {
+      "scan": "Баркодро сканирование кунед",
+      "loading": "Боргузорӣ…",
+      "empty": "Натиҷае нест.",
+      "search": "Ҷустуҷӯ",
+      "save": "Захира кунед",
+      "cancel": "Бекор кунед",
+      "delete": "Нест кунед",
+      "confirm": "Тасдиқ кунед",
+      "back": "Бозгашт",
+      "submit": "Фиристодан",
+      "placeholderBody": "Ин экран дар марҳилаҳои баъдӣ сохта мешавад.",
+      "logout": "Хуруҷ"
+    },
+    "lookup": {
+      "title": "Ҷустуҷӯ аз рӯи баркод",
+      "scanPrompt": "Баркодро сканирование кунед ё ворид карда Enter-ро пахш кунед",
+      "empty": "Баркодро сканирование кунед, то оғоз шавад.",
+      "notFound": "SKU бо ин баркод ёфт нашуд.",
+      "stock": "Захира",
+      "size": "Андоза",
+      "skuCode": "Рамзи SKU",
+      "binLocation": "Ҷои нигаҳдорӣ",
+      "unassigned": "Таъин нашудааст",
+      "actions": {
+        "reassign": "Ба ячейка гузаронидан",
+        "unassign": "Ячейкаро хориҷ кунед",
+        "history": "Таърих"
+      },
+      "reassign": {
+        "title": "Ба ячейка гузаронидан",
+        "zone": "Минтақа",
+        "shelf": "Стеллаж",
+        "bin": "Ячейка",
+        "selectZone": "Минтақаро интихоб кунед…",
+        "selectShelf": "Стеллажро интихоб кунед…",
+        "selectBin": "Ячейкаро интихоб кунед…",
+        "success": "Ячейка навсозӣ шуд.",
+        "error": "Ба ячейка гузаронидан имконпазир набуд."
+      },
+      "unassign": {
+        "confirmTitle": "Ячейкаро хориҷ кунем?",
+        "confirmBody": "{product} ({size}) дигар ба ячейкае алоқаманд нахоҳад буд.",
+        "success": "SKU аз ячейка хориҷ шуд.",
+        "error": "Хориҷ кардани ячейка имконпазир набуд."
+      },
+      "history": {
+        "title": "Таърихи ҳаракат",
+        "columns": {
+          "when": "Вақт",
+          "type": "Навъ",
+          "delta": "Δ",
+          "reference": "Манбаъ",
+          "actor": "Иҷрокунанда"
+        },
+        "empty": "Ҳанӯз амалиёте нест.",
+        "type": {
+          "SALE": "Фурӯш",
+          "CANCELLATION": "Бекор кардан",
+          "RECALL_RETURN": "Баргашти бозхонд",
+          "RETURN_RESTORE": "Барқарорсозии баргашт",
+          "WRITE_OFF": "Ҳисобдеҳӣ",
+          "RECEIPT": "Воридот",
+          "MANUAL_ADJUSTMENT": "Танзими дастӣ"
+        }
+      }
+    },
+    "receipts": {
+      "title": "Воридоти мол",
+      "new": "Воридоти нав",
+      "search": "Ҷустуҷӯ аз рӯи маълумоти таъминкунанда…",
+      "empty": "Воридоти мол ҳанӯз нест.",
+      "emptyCta": "Воридоти аввалро эҷод кунед",
+      "columns": {
+        "date": "Сана",
+        "supplier": "Маълумоти таъминкунанда",
+        "units": "Ҷамъи воҳид",
+        "createdBy": "Эҷодкунанда"
+      },
+      "create": {
+        "title": "Воридоти нави мол",
+        "supplierRef": "Маълумоти таъминкунанда",
+        "supplierRefPlaceholder": "мас. INV-2025-0042",
+        "notes": "Эзоҳ",
+        "scanPrompt": "Штрихкодро скан кунед ё ворид кунед ва Enter-ро пахш кунед",
+        "scanNotFound": "SKU бо ин штрихкод ёфт нашуд.",
+        "manualEntry": "Ворид кардани дастӣ",
+        "manualSearchPlaceholder": "Ҷустуҷӯ аз рӯи коди SKU ё номи мол…",
+        "manualSearchHint": "Барои ҷустуҷӯ ҳадди ақал 2 аломат ворид кунед",
+        "manualNoResults": "SKU ёфт нашуд.",
+        "lineItems": {
+          "product": "Мол",
+          "skuCode": "Коди SKU",
+          "quantity": "Миқдор",
+          "notes": "Эзоҳ",
+          "remove": "Хориҷ кардан"
+        },
+        "submitBtn": "Воридотро эҷод кунед",
+        "submitting": "Эҷод мешавад…",
+        "emptyForm": "Пеш аз фиристодан ҳадди ақал як молро илова кунед.",
+        "successToast": "Воридоти мол эҷод шуд.",
+        "error": "Воридотро эҷод кардан имконпазир набуд.",
+        "invalidQuantity": "Миқдор бояд барои ҳар як сатр на камтар аз 1 бошад."
+      },
+      "detail": {
+        "title": "Варақаи воридот",
+        "backToList": "Воридоти мол",
+        "supplierRef": "Маълумоти таъминкунанда",
+        "notes": "Эзоҳ",
+        "createdBy": "Эҷодкунанда",
+        "date": "Сана",
+        "totalUnits": "Ҷамъи воҳид",
+        "status": "Ҳолат",
+        "statusCompleted": "Иҷро шуд",
+        "noNotes": "Эзоҳ нест.",
+        "columns": {
+          "product": "Мол",
+          "skuCode": "Коди SKU",
+          "qty": "Миқдори қабулшуда",
+          "notes": "Эзоҳ"
+        },
+        "loadError": "Барор намудани қабул имконпазир набуд."
+      }
+    },
+    "structure": {
+      "title": "Сохтор",
+      "subtitle": "Идоракунии минтақаҳо, стеллажҳо ва ячейкаҳо",
+      "zones": {
+        "title": "Минтақаҳо",
+        "empty": "Ҳанӯз минтақае нест.",
+        "selectToShow": "Минтақаро интихоб кунед, то стеллажҳоро бубинед."
+      },
+      "shelves": {
+        "title": "Стеллажҳо",
+        "empty": "Дар ин минтақа стеллаж нест."
+      },
+      "bins": {
+        "title": "Ячейкаҳо",
+        "empty": "Дар ин стеллаж ячейка нест.",
+        "selectToShow": "Стеллажро интихоб кунед, то ячейкаҳоро бубинед."
+      },
+      "create": {
+        "zone": {
+          "title": "Минтақаи нав",
+          "code": "Рамз",
+          "label": "Ном",
+          "codePlaceholder": "A",
+          "labelPlaceholder": "Гузаргоҳи A",
+          "submit": "Минтақа эҷод кунед",
+          "submitting": "Эҷод мешавад…",
+          "success": "Минтақа эҷод шуд."
+        },
+        "shelf": {
+          "title": "Стеллажи нав дар {zoneLabel}",
+          "code": "Рамз",
+          "label": "Ном",
+          "codePlaceholder": "1",
+          "labelPlaceholder": "Стеллаж 1",
+          "submit": "Стеллаж эҷод кунед",
+          "submitting": "Эҷод мешавад…",
+          "success": "Стеллаж эҷод шуд."
+        },
+        "bin": {
+          "title": "Ячейкаи нав дар {shelfLabel}",
+          "code": "Рамз",
+          "codePlaceholder": "1",
+          "submit": "Ячейка эҷод кунед",
+          "submitting": "Эҷод мешавад…",
+          "success": "Ячейка эҷод шуд."
+        }
+      },
+      "delete": {
+        "zone": {
+          "title": "Минтақаи {code} нест карда шавад?",
+          "body": "Нест кардани минтақаи {code} {shelfCount} стеллаж ва {binCount} ячейкаро низ нест мекунад. Ҳамаи SKU-ҳо дар он ячейкаҳо ба таври худкор таъин карда намешаванд.",
+          "loadingCounts": "Ҳисоб кардани оқибатҳо…",
+          "success": "Минтақа нест карда шуд."
+        },
+        "shelf": {
+          "title": "Стеллажи {code} нест карда шавад?",
+          "body": "Нест кардани стеллажи {code} {binCount} ячейкаро низ нест мекунад. Ҳамаи SKU-ҳо дар он ячейкаҳо ба таври худкор таъин карда намешаванд.",
+          "loadingCounts": "Ҳисоб кардани оқибатҳо…",
+          "success": "Стеллаж нест карда шуд."
+        },
+        "bin": {
+          "title": "Ячейкаи {code} нест карда шавад?",
+          "body": "Ҳамаи SKU-ҳо дар ячейкаи {code} ба таври худкор таъин карда намешаванд.",
+          "success": "Ячейка нест карда шуд."
+        }
+      },
+      "errors": {
+        "create": "Эҷод кардани элемент имконпазир набуд.",
+        "delete": "Нест кардани элемент имконпазир набуд."
+      },
+      "validation": {
+        "codeRequired": "Рамз ҳатмист."
+      }
+    },
+    "returns": {
+      "title": "Навбати баргаштҳо",
+      "subtitle": "Молҳои баргаштиро ҳамчун барои фурӯш мувофиқ ё айбнок арзёбӣ кунед",
+      "empty": "Баргаштҳое барои баррасӣ нест.",
+      "columns": {
+        "returnId": "Баргашт №",
+        "orderId": "Фармоиш №",
+        "customer": "Харидор",
+        "items": "Молҳо",
+        "sentAt": "Фиристода шуд"
+      },
+      "review": {
+        "backToQueue": "Бозгашт ба навбат",
+        "title": "Баргашт №{id}",
+        "metadata": {
+          "orderId": "Фармоиш",
+          "customer": "Харидор",
+          "pickpoint": "Нуқтаи гирифт",
+          "sentAt": "Фиристода шуд",
+          "totalRefund": "Ҷамъи бозгашт",
+          "notes": "Тавзеҳ"
+        },
+        "itemsTitle": "Молҳо",
+        "refundLabel": "Бозгашт",
+        "resellable": "Мувофиқ",
+        "defective": "Айбнок",
+        "alreadyReviewed": "Баррасӣ шуд",
+        "submit": "Баррасиро ирсол кунед",
+        "submitting": "Ирсол…",
+        "successToast": "Баррасӣ ирсол шуд.",
+        "errorToast": "Ирсоли баррасӣ имконпазир набуд.",
+        "loadError": "Барор намудани баргашт имконпазир набуд."
+      },
+      "reason": {
+        "DAMAGED": "Зарардида",
+        "WRONG_ITEM": "Мол нодуруст",
+        "NOT_AS_DESCRIBED": "Бо тавсиф мувофиқ нест",
+        "CHANGED_MIND": "Фикр тағйир ёфт",
+        "OTHER": "Дигар"
+      }
+    },
+    "pick": {
+      "queue": {
+        "title": "Навбати ҷамъоварӣ",
+        "jumpPrompt": "Штрихкодро сканер кунед ё ID фармоишро ворид кунед",
+        "search": "Ҷустуҷӯи фармоишҳо",
+        "empty": "Фармоише барои ҷамъоварӣ нест",
+        "columns": {
+          "orderId": "ID фармоиш",
+          "deliveryType": "Расонидан",
+          "customer": "Муштарӣ",
+          "items": "Ададҳо",
+          "createdAt": "Сохта шуд"
+        }
+      },
+      "session": {
+        "title": "Сессияи ҷамъоварӣ",
+        "scanPrompt": "Штрихкоди молро сканер кунед",
+        "progress": "{picked} / {total} адад ҷамъоварӣ шуд",
+        "mismatch": "Моли нодуруст — штрихкоди дурустро сканер кунед",
+        "alreadyPicked": "Ин мол аллакай пурра ҷамъоварӣ шудааст",
+        "complete": "Фармоиш ҷамъоварӣ шуд — барои фиристодан тайёр",
+        "backToQueue": "Бозгашт ба навбат",
+        "loadError": "Боркунии сессияи ҷамъоварӣ ноком шуд",
+        "itemStatus": {
+          "pending": "Дар интизор",
+          "inProgress": "Дар ҷараён",
+          "picked": "Ҷамъоваришуда"
+        }
+      }
+    }
+  },
+  "receipts": {
+    "detail": {
+      "loadError": "Барор намудани қабул имконпазир набуд."
+    },
+    "create": {
+      "invalidQuantity": "Миқдор бояд барои ҳар як сатр на камтар аз 1 бошад."
     }
   }
 }

@@ -10,12 +10,13 @@ public record CartDto(
         List<CartItemDto> items,
         BigDecimal        totalAmount,
         int               itemCount,
-        String            couponCode
+        String            couponCode,
+        Long              pendingOrderId
 ) {
     public static CartDto fromView(CartView view) {
         List<CartItemDto> items = view.items().stream()
                 .map(CartItemDto::fromItemView)
                 .toList();
-        return new CartDto(view.cartId(), items, view.total().amount(), view.itemCount(), view.couponCode());
+        return new CartDto(view.cartId(), items, view.total().amount(), view.itemCount(), view.couponCode(), view.pendingOrderId());
     }
 }

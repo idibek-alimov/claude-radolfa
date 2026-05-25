@@ -177,7 +177,12 @@ export interface ProductCardImage {
 export interface ProductCardSku {
   skuId: number;
   skuCode: string;
+  barcode: string;
   sizeLabel: string;
   stockQuantity: number;
   originalPrice: number;
+  weightKg?: number | null;
+  lengthCm?: number | null;
+  widthCm?:  number | null;
+  heightCm?: number | null;
 }

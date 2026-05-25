@@ -55,9 +55,10 @@ public class DiscountResolutionContext {
     public Map<String, List<AppliedDiscount>> resolveForCheckout(List<String> itemCodes,
                                                                    BigDecimal cartSubtotal) {
         Long userId = resolveUserId();
+        Map<String, BigDecimal> priceByCode = loadPrices(itemCodes);
         Map<String, List<Discount>> ordered = resolveDiscountsUseCase.resolve(
-                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal, null));
-        return foldWithPrices(ordered, itemCodes);
+                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal, null, priceByCode));
+        return foldWithPrices(ordered, priceByCode);
     }
 
     // ---- Internal ----
@@ -67,28 +68,30 @@ public class DiscountResolutionContext {
             return cachedResult;
         }
         Long userId = resolveUserId();
+        Map<String, BigDecimal> priceByCode = loadPrices(itemCodes);
         Map<String, List<Discount>> ordered = resolveDiscountsUseCase.resolve(
-                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal, null));
-        Map<String, List<AppliedDiscount>> result = foldWithPrices(ordered, itemCodes);
+                new ResolveDiscountsUseCase.Query(itemCodes, userId, cartSubtotal, null, priceByCode));
+        Map<String, List<AppliedDiscount>> result = foldWithPrices(ordered, priceByCode);
         cachedItemCodes = itemCodes;
         cachedResult = result;
         return result;
     }
 
-    private Map<String, List<AppliedDiscount>> foldWithPrices(Map<String, List<Discount>> ordered,
-                                                               List<String> itemCodes) {
-        if (ordered.isEmpty()) return Map.of();
-
-        // Load original prices for item codes that have discounts
+    private Map<String, BigDecimal> loadPrices(List<String> itemCodes) {
         Map<String, BigDecimal> priceByCode = new HashMap<>();
-        skuRepository.findBySkuCodeIn(ordered.keySet()).stream()
+        skuRepository.findBySkuCodeIn(itemCodes).stream()
                 .filter(s -> s.getOriginalPrice() != null)
                 .forEach(s -> priceByCode.put(s.getSkuCode(), s.getOriginalPrice()));
+        return priceByCode;
+    }
 
+    private Map<String, List<AppliedDiscount>> foldWithPrices(Map<String, List<Discount>> ordered,
+                                                               Map<String, BigDecimal> priceByCode) {
+        if (ordered.isEmpty()) return Map.of();
         Map<String, List<AppliedDiscount>> result = new HashMap<>();
         for (Map.Entry<String, List<Discount>> entry : ordered.entrySet()) {
             BigDecimal price = priceByCode.get(entry.getKey());
-            if (price == null) continue; // SKU not found or no price
+            if (price == null) continue;
             result.put(entry.getKey(), AppliedDiscount.fold(entry.getValue(), price));
         }
         return result;

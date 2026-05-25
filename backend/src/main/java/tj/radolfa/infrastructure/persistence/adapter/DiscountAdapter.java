@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadBestActiveDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
+import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
 import tj.radolfa.domain.model.AmountType;
 import tj.radolfa.domain.model.Discount;
@@ -33,7 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
-public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, LoadBestActiveDiscountPort {
+public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, LoadBestActiveDiscountPort, LockDiscountForUsagePort {
 
     private final DiscountRepository repository;
     private final DiscountTypeRepository typeRepository;
@@ -94,6 +95,13 @@ public class DiscountAdapter implements LoadDiscountPort, SaveDiscountPort, Load
     @Override
     public Optional<Discount> findByCouponCode(String code) {
         return repository.findByCouponCodeIgnoreCase(code).map(this::toDomain);
+    }
+
+    // ---- LockDiscountForUsagePort ----
+
+    @Override
+    public Optional<Discount> lockById(Long discountId) {
+        return repository.findByIdForUpdate(discountId).map(this::toDomain);
     }
 
     // ---- LoadBestActiveDiscountPort ----

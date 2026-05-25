@@ -36,11 +36,11 @@ class RefundOrderServiceTest {
             "Manager", null, LoyaltyProfile.empty(), true, 1L);
 
     static Order orderWithStatus(OrderStatus status) {
-        return new Order(1L, 10L, null, status,
-                new Money(BigDecimal.valueOf(500)), List.of(), Instant.now(),
-                0, 0, DeliveryType.HOME, "Addr", null, null,
-                null, null, null,
-                null, null, null, null);
+        return new Order.Builder()
+                .id(1L).userId(10L).status(status)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
+                .build();
     }
 
     static LoadOrderPort orderPort(Order order) {
@@ -61,6 +61,7 @@ class RefundOrderServiceTest {
             }
             @Override public Optional<User> loadByPhone(String p) { return Optional.empty(); }
             @Override public List<User> findAllNonPermanent() { return List.of(); }
+            @Override public List<User> findByRoleAndEnabledTrue(tj.radolfa.domain.model.UserRole r) { return List.of(); }
         };
     }
 
@@ -77,6 +78,9 @@ class RefundOrderServiceTest {
         @Override public void sendOrderStatusUpdate(Long u, Long o, OrderStatus s) { updateCount++; lastStatus = s; }
         @Override public void sendReviewApprovedNotification(Long u, Long r) {}
         @Override public void sendReviewReplyNotification(Long u, Long r) {}
+        @Override public void sendDeliveryCode(Long u, Long o, String c, java.time.Instant e) {}
+        @Override public void sendPickpointExpiryWarning(Long u, Long o, int d) {}
+        @Override public void sendPickpointOrderExpiredCancellation(Long u, Long o) {}
     }
 
     static RefundOrderService service(Order order, User requester,

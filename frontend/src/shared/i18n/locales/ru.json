@@ -150,6 +150,9 @@
     "sizesAndStock": "Размеры и склад",
     "noSkuData": "Данные SKU недоступны.",
     "size": "Размер",
+    "barcode": "Штрихкод",
+    "copyBarcode": "Копировать штрихкод",
+    "barcodeCopied": "Штрихкод скопирован",
     "sale": "Скидка",
     "primary": "Основное",
     "enrichment": "Обогащение",
@@ -272,13 +275,19 @@
         "total": "Сумма"
       },
       "status": {
-        "PENDING":          "Ожидает",
-        "PAID":             "Оплачен",
-        "SHIPPED":          "Отправлен",
+        "PENDING": "Ожидает",
+        "PAID": "Оплачен",
+        "PICKED": "Скомплектован",
+        "SHIPPED": "Отправлен",
+        "OUT_FOR_DELIVERY": "Курьер в пути",
+        "DELIVERY_ATTEMPTED": "Попытка доставки",
         "READY_FOR_PICKUP": "Готов к выдаче",
-        "DELIVERED":        "Доставлен",
-        "CANCELLED":        "Отменён",
-        "REFUNDED":         "Возврат"
+        "DELIVERED": "Доставлен",
+        "CANCELLED": "Отменён",
+        "REFUNDED": "Возврат",
+        "RETURN_INITIATED": "Возврат инициирован",
+        "RETURNED_TO_WAREHOUSE": "Возвращено на склад",
+        "RECALL_REQUESTED": "Запрошен отзыв"
       },
       "deliveryType": {
         "HOME": "На дом",
@@ -332,7 +341,20 @@
         "loyaltyPoints": "Бонусные баллы",
         "redeemed": "Списано",
         "awarded": "Начислено",
-        "ptsShort": "балл."
+        "ptsShort": "балл.",
+        "customerReturns": "Возвраты",
+        "returnLabel": "Возврат",
+        "items": "товаров",
+        "arrivedAt": "Поступило в пункт выдачи",
+        "confirmedBy": "Подтвердил",
+        "pickupAddress": "Адрес пункта выдачи",
+        "pickpointOverdue": "Просрочено",
+        "returnStatus": {
+          "RECEIVED": "Принят",
+          "SENT_TO_WAREHOUSE": "Отправлен на склад",
+          "REFUND_APPROVED": "Возврат одобрен",
+          "REFUNDED": "Средства возвращены"
+        }
       },
       "shipModal": {
         "cancel": "Отмена",
@@ -352,7 +374,8 @@
         "qty": "Кол-во",
         "unitPrice": "Цена",
         "subtotal": "Сумма",
-        "stock": "Остаток"
+        "stock": "Остаток",
+        "picked": "Собрано"
       },
       "stock": {
         "inStock": "✓ В наличии",
@@ -387,9 +410,18 @@
         "refunding": "Возврат…",
         "confirm": "Возврат заказа"
       },
+      "tabNeedsAction": "Требует действий",
+      "tabInFulfillment": "В процессе",
+      "tabCompleted": "Завершено",
+      "awaitingArrivalCallout": "Ожидание подтверждения поступления посылки сотрудником пункта выдачи.",
       "empty": "Заказы не найдены.",
       "page": "Стр. {page}",
-      "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}"
+      "total": "{count, plural, one {# заказ} few {# заказа} other {# заказов}}",
+      "awaitingPick": {
+        "title": "Ожидает проверки комплектации",
+        "body": "Сотрудник склада должен отсканировать все товары перед отправкой заказа.",
+        "openInWarehouse": "Открыть на складе"
+      }
     }
   },
   "profile": {
@@ -424,6 +456,9 @@
     "statusShipped": "Отправлен",
     "statusDelivered": "Доставлен",
     "statusCancelled": "Отменён",
+    "statusOutForDelivery": "Ваш заказ в пути",
+    "statusDeliveryAttempted": "Попытка доставки — повторим позже",
+    "statusReadyForPickupWithCode": "Готов к выдаче — покажите код на кассе",
     "orderPlaced": "Оформлен",
     "orderConfirmed": "Подтверждён",
     "orderShipped": "Отправлен",
@@ -473,7 +508,69 @@
     "estimatedDeliveryLabel": "Ожидаемая доставка",
     "statusReadyForPickup": "Готов к выдаче",
     "orderReadyForPickup": "Готов",
-    "readyForPickupCallout": "Ваш заказ ждёт вас в пункте самовывоза"
+    "readyForPickupCallout": "Ваш заказ ждёт вас в пункте самовывоза",
+    "status": {
+      "PENDING": "Ожидает",
+      "PAID": "Оплачен",
+      "PICKED": "Скомплектован",
+      "SHIPPED": "Отправлен",
+      "OUT_FOR_DELIVERY": "В доставке",
+      "DELIVERY_ATTEMPTED": "Попытка доставки",
+      "READY_FOR_PICKUP": "Готов к выдаче",
+      "DELIVERED": "Доставлен",
+      "CANCELLED": "Отменён",
+      "RETURN_INITIATED": "Возврат в процессе",
+      "RETURNED_TO_WAREHOUSE": "Возвращено на склад",
+      "REFUNDED": "Средства возвращены",
+      "RECALL_REQUESTED": "Запрошен отзыв"
+    },
+    "returnInProgressBanner": "Ваш возврат обрабатывается. Мы уведомим вас, как только посылка поступит на склад.",
+    "recallRequestedBanner": "Этот заказ был отозван магазином. Наш курьер заберёт его из пункта выдачи.",
+    "returnsTab": "Возвраты",
+    "myReturns": "Мои возвраты",
+    "noReturns": "У вас нет заявок на возврат.",
+    "returnLabel": "Возврат",
+    "forOrder": "к заказу",
+    "refundAmount": "Возврат средств",
+    "viewOrder": "Перейти к заказу",
+    "showing": "Показано",
+    "of": "из",
+    "returnStatus": {
+      "received": "Получен",
+      "sentToWarehouse": "Отправлен на склад",
+      "refundApproved": "Возврат одобрен",
+      "refunded": "Средства возвращены"
+    },
+    "noOrders": "Заказы не найдены."
+  },
+  "orderDetail": {
+    "backToOrders": "Мои заказы",
+    "orderNumber": "Заказ",
+    "notFound": "Заказ не найден.",
+    "items": "Товары",
+    "pricing": "Сумма",
+    "loyaltyDiscount": "Скидка баллами",
+    "total": "Итого",
+    "pickupPoint": "Пункт выдачи",
+    "courierInfo": "Доставка",
+    "trackingNumber": "Номер отслеживания",
+    "estimatedDelivery": "Ожидаемая дата",
+    "returnInfo": "Возврат",
+    "returnStatus": "Статус",
+    "returnReason": "Причина",
+    "refundAmount": "Возврат средств",
+    "activity": "История",
+    "ordered": "Оформлен",
+    "shipped": "Отправлен",
+    "delivered": "Доставлен",
+    "cancelled": "Отменён",
+    "refunded": "Возвращён",
+    "returnInProgressBanner": "Ваш возврат обрабатывается.",
+    "recallRequestedBanner": "Этот заказ был отозван магазином."
+  },
+  "pickupCode": {
+    "scanCaption": "Покажите этот код или дайте сотруднику отсканировать QR-код.",
+    "pickupLocation": "Место получения"
   },
   "cart": {
     "title": "Ваша корзина",
@@ -596,7 +693,18 @@
     "noUsersMatching": "Пользователи по запросу «{search}» не найдены",
     "noUsersFound": "Пользователи не найдены.",
     "usersTotal": "{count} пользователей всего",
-    "page": "Страница {page}"
+    "page": "Страница {page}",
+    "tabCustomers": "Покупатели",
+    "tabManagers": "Менеджеры",
+    "tabCouriers": "Курьеры",
+    "tabPickpointStaff": "Сотрудники ПВЗ",
+    "addCourier": "Добавить курьера",
+    "addPickpointStaff": "Добавить сотрудника ПВЗ",
+    "editCourier": "Редактировать курьера",
+    "editPickpointStaff": "Редактировать сотрудника ПВЗ",
+    "tableVehicleType": "Транспорт",
+    "tableMaxPayload": "Макс. нагрузка",
+    "tablePickpoint": "ПВЗ"
   },
   "reviews": {
     "card": {
@@ -820,6 +928,332 @@
         "body": "Комбинируется мультипликативно с другими STACKABLE-скидками на тот же SKU.",
         "short": "Суммируемая"
       }
+    }
+  },
+  "pickpoint": {
+    "orderLabel": "Заказ",
+    "selectOrder": "Выбрать заказ",
+    "items": "товаров",
+    "showMore": "+{count} ещё",
+    "showLess": "Свернуть",
+    "selectedCount": "{count} выбрано",
+    "confirmSelected": "Подтвердить прибытие ({count})",
+    "confirmedToast": "Подтверждено заказов: {count}",
+    "confirming": "Подтверждение…",
+    "tab": {
+      "incoming": "Входящие",
+      "awaiting": "Ожидают",
+      "returns": "Возвраты",
+      "customerReturns": "Самовозврат",
+      "history": "История"
+    },
+    "confirmArrival": "Подтвердить прибытие",
+    "readySince": "Готово с {date}",
+    "overdue": "Просрочено · {days}д",
+    "noOrders": "Заказов в этой категории нет.",
+    "awaitingPickup": "Ожидает получения",
+    "enRoute": "В пути — ожидание подтверждения прибытия"
+  },
+  "courier": {
+    "title": "Мои доставки",
+    "tab": {
+      "toCollect": "Забрать",
+      "inTransit": "В пути",
+      "attempted": "Попытка совершена"
+    },
+    "showing": "Показано",
+    "of": "из",
+    "noOrders": "Заказов в этой категории нет.",
+    "collectOrder": "Я забрал этот заказ",
+    "recordAttempt": "Зафиксировать ещё одну попытку",
+    "attemptReason": "Причина",
+    "attemptPhoto": "Фото (необязательно)"
+  },
+  "warehouse": {
+    "title": "Склад",
+    "nav": {
+      "lookup": "Поиск",
+      "receipts": "Поступления",
+      "structure": "Структура",
+      "returns": "Очередь возвратов",
+      "pick": "Сборка заказов"
+    },
+    "common": {
+      "scan": "Сканировать штрихкод",
+      "loading": "Загрузка…",
+      "empty": "Нет результатов.",
+      "search": "Поиск",
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "delete": "Удалить",
+      "confirm": "Подтвердить",
+      "back": "Назад",
+      "submit": "Отправить",
+      "placeholderBody": "Этот экран будет реализован в следующих фазах.",
+      "logout": "Выйти"
+    },
+    "lookup": {
+      "title": "Поиск по штрихкоду",
+      "scanPrompt": "Отсканируйте или введите штрихкод и нажмите Enter",
+      "empty": "Отсканируйте штрихкод, чтобы начать.",
+      "notFound": "SKU с таким штрихкодом не найден.",
+      "stock": "Остаток",
+      "size": "Размер",
+      "skuCode": "Код SKU",
+      "binLocation": "Место хранения",
+      "unassigned": "Не назначено",
+      "actions": {
+        "reassign": "Переместить в ячейку",
+        "unassign": "Снять ячейку",
+        "history": "История"
+      },
+      "reassign": {
+        "title": "Переместить в ячейку",
+        "zone": "Зона",
+        "shelf": "Стеллаж",
+        "bin": "Ячейка",
+        "selectZone": "Выберите зону…",
+        "selectShelf": "Выберите стеллаж…",
+        "selectBin": "Выберите ячейку…",
+        "success": "Ячейка обновлена.",
+        "error": "Не удалось переместить в ячейку."
+      },
+      "unassign": {
+        "confirmTitle": "Снять назначение ячейки?",
+        "confirmBody": "{product} ({size}) больше не будет привязан к ячейке.",
+        "success": "SKU откреплён от ячейки.",
+        "error": "Не удалось снять назначение ячейки."
+      },
+      "history": {
+        "title": "История движения",
+        "columns": {
+          "when": "Когда",
+          "type": "Тип",
+          "delta": "Δ",
+          "reference": "Источник",
+          "actor": "Исполнитель"
+        },
+        "empty": "Операций пока нет.",
+        "type": {
+          "SALE": "Продажа",
+          "CANCELLATION": "Отмена",
+          "RECALL_RETURN": "Возврат отзыва",
+          "RETURN_RESTORE": "Восстановление возврата",
+          "WRITE_OFF": "Списание",
+          "RECEIPT": "Приёмка",
+          "MANUAL_ADJUSTMENT": "Ручная корректировка"
+        }
+      }
+    },
+    "receipts": {
+      "title": "Поступления товара",
+      "new": "Новое поступление",
+      "search": "Поиск по референсу поставщика…",
+      "empty": "Поступлений пока нет.",
+      "emptyCta": "Создать первое поступление",
+      "columns": {
+        "date": "Дата",
+        "supplier": "Референс поставщика",
+        "units": "Всего единиц",
+        "createdBy": "Создал"
+      },
+      "create": {
+        "title": "Новое поступление товара",
+        "supplierRef": "Референс поставщика",
+        "supplierRefPlaceholder": "напр. INV-2025-0042",
+        "notes": "Примечания",
+        "scanPrompt": "Отсканируйте или введите штрихкод и нажмите Enter",
+        "scanNotFound": "SKU с таким штрихкодом не найден.",
+        "manualEntry": "Ручной ввод",
+        "manualSearchPlaceholder": "Поиск по коду SKU или названию товара…",
+        "manualSearchHint": "Введите минимум 2 символа для поиска",
+        "manualNoResults": "SKU не найдены.",
+        "lineItems": {
+          "product": "Товар",
+          "skuCode": "Код SKU",
+          "quantity": "Количество",
+          "notes": "Примечания",
+          "remove": "Удалить"
+        },
+        "submitBtn": "Создать поступление",
+        "submitting": "Создание…",
+        "emptyForm": "Добавьте хотя бы один товар перед отправкой.",
+        "successToast": "Поступление товара создано.",
+        "error": "Не удалось создать поступление.",
+        "invalidQuantity": "Количество должно быть не менее 1 для каждой строки."
+      },
+      "detail": {
+        "title": "Поступление товара",
+        "backToList": "Поступления товара",
+        "supplierRef": "Референс поставщика",
+        "notes": "Примечания",
+        "createdBy": "Создал",
+        "date": "Дата",
+        "totalUnits": "Всего единиц",
+        "status": "Статус",
+        "statusCompleted": "Завершено",
+        "noNotes": "Примечаний нет.",
+        "columns": {
+          "product": "Товар",
+          "skuCode": "Код SKU",
+          "qty": "Кол-во получено",
+          "notes": "Примечания"
+        },
+        "loadError": "Не удалось загрузить приёмку."
+      }
+    },
+    "structure": {
+      "title": "Структура",
+      "subtitle": "Управление зонами, стеллажами и ячейками",
+      "zones": {
+        "title": "Зоны",
+        "empty": "Зон пока нет.",
+        "selectToShow": "Выберите зону, чтобы увидеть стеллажи."
+      },
+      "shelves": {
+        "title": "Стеллажи",
+        "empty": "Стеллажей в этой зоне пока нет."
+      },
+      "bins": {
+        "title": "Ячейки",
+        "empty": "Ячеек на этом стеллаже пока нет.",
+        "selectToShow": "Выберите стеллаж, чтобы увидеть ячейки."
+      },
+      "create": {
+        "zone": {
+          "title": "Новая зона",
+          "code": "Код",
+          "label": "Название",
+          "codePlaceholder": "A",
+          "labelPlaceholder": "Проход A",
+          "submit": "Создать зону",
+          "submitting": "Создание…",
+          "success": "Зона создана."
+        },
+        "shelf": {
+          "title": "Новый стеллаж в {zoneLabel}",
+          "code": "Код",
+          "label": "Название",
+          "codePlaceholder": "1",
+          "labelPlaceholder": "Стеллаж 1",
+          "submit": "Создать стеллаж",
+          "submitting": "Создание…",
+          "success": "Стеллаж создан."
+        },
+        "bin": {
+          "title": "Новая ячейка на {shelfLabel}",
+          "code": "Код",
+          "codePlaceholder": "1",
+          "submit": "Создать ячейку",
+          "submitting": "Создание…",
+          "success": "Ячейка создана."
+        }
+      },
+      "delete": {
+        "zone": {
+          "title": "Удалить зону {code}?",
+          "body": "Удаление зоны {code} также удалит {shelfCount} стеллаж(ей) и {binCount} ячейку(ек). Все SKU в этих ячейках будут откреплены автоматически.",
+          "loadingCounts": "Вычисление последствий…",
+          "success": "Зона удалена."
+        },
+        "shelf": {
+          "title": "Удалить стеллаж {code}?",
+          "body": "Удаление стеллажа {code} также удалит {binCount} ячейку(ек). Все SKU в этих ячейках будут откреплены автоматически.",
+          "loadingCounts": "Вычисление последствий…",
+          "success": "Стеллаж удалён."
+        },
+        "bin": {
+          "title": "Удалить ячейку {code}?",
+          "body": "Все SKU в ячейке {code} будут откреплены автоматически.",
+          "success": "Ячейка удалена."
+        }
+      },
+      "errors": {
+        "create": "Не удалось создать элемент.",
+        "delete": "Не удалось удалить элемент."
+      },
+      "validation": {
+        "codeRequired": "Код обязателен."
+      }
+    },
+    "returns": {
+      "title": "Очередь возвратов",
+      "subtitle": "Оцените товары как пригодные к продаже или дефектные",
+      "empty": "Нет возвратов для проверки.",
+      "columns": {
+        "returnId": "Возврат №",
+        "orderId": "Заказ №",
+        "customer": "Покупатель",
+        "items": "Товары",
+        "sentAt": "Отправлено"
+      },
+      "review": {
+        "backToQueue": "Назад в очередь",
+        "title": "Возврат №{id}",
+        "metadata": {
+          "orderId": "Заказ",
+          "customer": "Покупатель",
+          "pickpoint": "Пункт выдачи",
+          "sentAt": "Отправлено",
+          "totalRefund": "Итого к возврату",
+          "notes": "Примечание"
+        },
+        "itemsTitle": "Товары",
+        "refundLabel": "Возврат",
+        "resellable": "Пригодно",
+        "defective": "Дефект",
+        "alreadyReviewed": "Проверено",
+        "submit": "Отправить проверку",
+        "submitting": "Отправка…",
+        "successToast": "Проверка отправлена.",
+        "errorToast": "Не удалось отправить проверку.",
+        "loadError": "Не удалось загрузить возврат."
+      },
+      "reason": {
+        "DAMAGED": "Повреждён",
+        "WRONG_ITEM": "Не тот товар",
+        "NOT_AS_DESCRIBED": "Не соответствует описанию",
+        "CHANGED_MIND": "Передумал",
+        "OTHER": "Другое"
+      }
+    },
+    "pick": {
+      "queue": {
+        "title": "Очередь сборки",
+        "jumpPrompt": "Отсканируйте или введите ID заказа",
+        "search": "Поиск заказов",
+        "empty": "Нет заказов для сборки",
+        "columns": {
+          "orderId": "ID заказа",
+          "deliveryType": "Доставка",
+          "customer": "Клиент",
+          "items": "Позиции",
+          "createdAt": "Создан"
+        }
+      },
+      "session": {
+        "title": "Сессия сборки",
+        "scanPrompt": "Отсканируйте штрихкод товара",
+        "progress": "{picked} / {total} единиц собрано",
+        "mismatch": "Неверный товар — отсканируйте правильный штрихкод",
+        "alreadyPicked": "Этот товар уже полностью собран",
+        "complete": "Заказ собран — готов к отправке",
+        "backToQueue": "Назад к очереди",
+        "loadError": "Не удалось загрузить сессию сборки",
+        "itemStatus": {
+          "pending": "Ожидает",
+          "inProgress": "В процессе",
+          "picked": "Собрано"
+        }
+      }
+    }
+  },
+  "receipts": {
+    "detail": {
+      "loadError": "Не удалось загрузить приёмку."
+    },
+    "create": {
+      "invalidQuantity": "Количество должно быть не менее 1 для каждой строки."
     }
   }
 }
