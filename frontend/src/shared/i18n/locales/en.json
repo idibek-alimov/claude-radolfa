@@ -974,6 +974,7 @@
     "nav": {
       "lookup": "Lookup",
       "receipts": "Stock Receipts",
+      "putaway": "Putaway",
       "structure": "Structure",
       "returns": "Returns Queue",
       "pick": "Pick Orders"
@@ -1245,6 +1246,36 @@
           "inProgress": "In Progress",
           "picked": "Picked"
         }
+      }
+    },
+    "putaway": {
+      "title": "Putaway Queue",
+      "search": "Search by SKU code, barcode, or product…",
+      "empty": "No items waiting for putaway.",
+      "action": "Put away",
+      "columns": {
+        "sku": "SKU",
+        "product": "Product",
+        "barcode": "Barcode",
+        "unassigned": "Unassigned"
+      },
+      "dialog": {
+        "title": "Put Away Stock",
+        "zone": "Zone",
+        "shelf": "Shelf",
+        "bin": "Bin",
+        "selectZone": "Select a zone…",
+        "selectShelf": "Select a shelf…",
+        "selectBin": "Select a bin…",
+        "quantity": "Quantity",
+        "remaining": "{count} units left to place",
+        "submit": "Put Away"
+      },
+      "success": "Units placed in bin.",
+      "errors": {
+        "generic": "Failed to put away stock.",
+        "insufficient": "Not enough units in the inbound pool.",
+        "binMismatch": "The selected bin belongs to a different warehouse."
       }
     }
   },
