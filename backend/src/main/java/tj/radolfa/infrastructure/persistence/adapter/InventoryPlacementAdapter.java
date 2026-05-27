@@ -1,8 +1,12 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import tj.radolfa.application.ports.out.InventoryPlacementPort;
 import tj.radolfa.application.ports.out.LoadWarehouseLocationPort;
+import tj.radolfa.application.readmodel.InboundQueueItem;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.exception.BinWarehouseMismatchException;
 import tj.radolfa.domain.exception.InsufficientPlacementStockException;
 import tj.radolfa.domain.model.InventoryPlacement;
@@ -170,6 +174,26 @@ public class InventoryPlacementAdapter implements InventoryPlacementPort {
         return placementRepo.findBySkuIdAndWarehouseId(skuId, warehouseId).stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public PageResult<InboundQueueItem> findInboundQueue(int page, int size, String search) {
+        String q = (search == null) ? "" : search.trim();
+        Page<Object[]> springPage = placementRepo.findInboundQueue(q, PageRequest.of(page - 1, size));
+        List<InboundQueueItem> items = springPage.getContent().stream()
+                .map(row -> new InboundQueueItem(
+                        ((Number) row[0]).longValue(),   // sku_id
+                        (String) row[3],                 // sku_code
+                        (String) row[4],                 // barcode
+                        (String) row[5],                 // product_name
+                        ((Number) row[2]).intValue()))   // quantity
+                .toList();
+        return new PageResult<>(items, springPage.getTotalElements(), page, size, springPage.isLast());
+    }
+
+    @Override
+    public boolean hasPlacementsInBin(Long binId) {
+        return placementRepo.existsByBinId(binId);
     }
 
     // ── private helpers ───────────────────────────────────────────────────────

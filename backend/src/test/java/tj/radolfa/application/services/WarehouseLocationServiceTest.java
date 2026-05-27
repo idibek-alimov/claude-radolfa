@@ -2,17 +2,21 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.out.InventoryPlacementPort;
 import tj.radolfa.application.ports.out.LoadWarehouseLocationPort;
 import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.SaveWarehouseLocationPort;
+import tj.radolfa.application.readmodel.InboundQueueItem;
+import tj.radolfa.domain.exception.BinNotEmptyException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.domain.model.InventoryPlacement;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Warehouse;
 import tj.radolfa.domain.model.WarehouseBin;
 import tj.radolfa.domain.model.WarehouseShelf;
 import tj.radolfa.domain.model.WarehouseZone;
 
 import java.time.Instant;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,9 +76,32 @@ class WarehouseLocationServiceTest {
         }
     }
 
+    static class FakeInventoryPlacementPort implements InventoryPlacementPort {
+        boolean binHasPlacements = false;
+
+        @Override public boolean hasPlacementsInBin(Long binId) { return binHasPlacements; }
+        @Override public void addToInbound(Long s, Long w, int q)               {}
+        @Override public boolean decrementForSale(Long s, Long w, int q)        { return true; }
+        @Override public void putaway(Long s, Long w, Long b, int q)            {}
+        @Override public void relocate(Long s, Long w, Long f, Long t, int q)   {}
+        @Override public void adjustInbound(Long s, Long w, int d)              {}
+        @Override public int totalForSku(Long s, Long w)                        { return 0; }
+        @Override public List<InventoryPlacement> placementsForSku(Long s, Long w) { return List.of(); }
+        @Override public PageResult<InboundQueueItem> findInboundQueue(int p, int sz, String q) {
+            return new PageResult<>(List.of(), 0, p, sz, true);
+        }
+    }
+
     static WarehouseLocationService service(FakeLoadWarehouseLocationPort load,
                                              FakeSaveWarehouseLocationPort save) {
-        return new WarehouseLocationService(load, save, new FakeLoadWarehousePort());
+        return new WarehouseLocationService(load, save, new FakeLoadWarehousePort(),
+                new FakeInventoryPlacementPort());
+    }
+
+    static WarehouseLocationService service(FakeLoadWarehouseLocationPort load,
+                                             FakeSaveWarehouseLocationPort save,
+                                             FakeInventoryPlacementPort placement) {
+        return new WarehouseLocationService(load, save, new FakeLoadWarehousePort(), placement);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -144,5 +171,39 @@ class WarehouseLocationServiceTest {
         service(new FakeLoadWarehouseLocationPort(null, null), save).deleteZone(5L);
 
         assertEquals(List.of(5L), save.deletedZoneIds);
+    }
+
+    @Test
+    @DisplayName("deleteBin with no placements → delegates to savePort")
+    void deleteBin_noStock_delegatesDelete() {
+        var placement = new FakeInventoryPlacementPort();
+        placement.binHasPlacements = false;
+        var save      = new FakeSaveWarehouseLocationPort();
+        var deleted   = new ArrayList<Long>();
+
+        // override deleteBin to track the call
+        var trackingSave = new FakeSaveWarehouseLocationPort() {
+            @Override public void deleteBin(Long id) { deleted.add(id); }
+        };
+        service(new FakeLoadWarehouseLocationPort(null, null), trackingSave, placement)
+                .deleteBin(7L);
+
+        assertEquals(List.of(7L), deleted, "savePort.deleteBin should be called");
+    }
+
+    @Test
+    @DisplayName("deleteBin when bin holds placements → BinNotEmptyException, savePort not called")
+    void deleteBin_withStock_throwsAndNoDelete() {
+        var placement = new FakeInventoryPlacementPort();
+        placement.binHasPlacements = true;
+        var deleted = new ArrayList<Long>();
+
+        var trackingSave = new FakeSaveWarehouseLocationPort() {
+            @Override public void deleteBin(Long id) { deleted.add(id); }
+        };
+        assertThrows(BinNotEmptyException.class,
+                () -> service(new FakeLoadWarehouseLocationPort(null, null), trackingSave, placement)
+                        .deleteBin(8L));
+        assertTrue(deleted.isEmpty(), "savePort.deleteBin must not be called");
     }
 }

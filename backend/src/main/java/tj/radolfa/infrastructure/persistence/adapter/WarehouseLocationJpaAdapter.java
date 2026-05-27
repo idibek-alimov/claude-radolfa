@@ -1,7 +1,6 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
-import tj.radolfa.application.ports.out.AssignSkuToBinPort;
 import tj.radolfa.application.ports.out.LoadWarehouseLocationPort;
 import tj.radolfa.application.ports.out.SaveWarehouseLocationPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
@@ -12,7 +11,6 @@ import tj.radolfa.infrastructure.persistence.entity.WarehouseBinEntity;
 import tj.radolfa.infrastructure.persistence.entity.WarehouseShelfEntity;
 import tj.radolfa.infrastructure.persistence.entity.WarehouseZoneEntity;
 import tj.radolfa.infrastructure.persistence.mappers.WarehouseLocationMapper;
-import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.infrastructure.persistence.repository.WarehouseBinRepository;
 import tj.radolfa.infrastructure.persistence.repository.WarehouseShelfRepository;
 import tj.radolfa.infrastructure.persistence.repository.WarehouseZoneRepository;
@@ -22,23 +20,20 @@ import java.util.Optional;
 
 @Component
 public class WarehouseLocationJpaAdapter
-        implements LoadWarehouseLocationPort, SaveWarehouseLocationPort, AssignSkuToBinPort {
+        implements LoadWarehouseLocationPort, SaveWarehouseLocationPort {
 
     private final WarehouseZoneRepository  zoneRepo;
     private final WarehouseShelfRepository shelfRepo;
     private final WarehouseBinRepository   binRepo;
-    private final SkuRepository            skuRepo;
     private final WarehouseLocationMapper  mapper;
 
     public WarehouseLocationJpaAdapter(WarehouseZoneRepository zoneRepo,
                                        WarehouseShelfRepository shelfRepo,
                                        WarehouseBinRepository binRepo,
-                                       SkuRepository skuRepo,
                                        WarehouseLocationMapper mapper) {
         this.zoneRepo  = zoneRepo;
         this.shelfRepo = shelfRepo;
         this.binRepo   = binRepo;
-        this.skuRepo   = skuRepo;
         this.mapper    = mapper;
     }
 
@@ -111,10 +106,4 @@ public class WarehouseLocationJpaAdapter
         binRepo.deleteById(id);
     }
 
-    // ── AssignSkuToBinPort ────────────────────────────────────────────────────
-
-    @Override
-    public void assign(Long skuId, Long binId) {
-        // No-op: bin assignment via inventory_placements (Phase 3 retires this port entirely)
-    }
 }

@@ -63,4 +63,6 @@ public interface InventoryPlacementRepository extends JpaRepository<InventoryPla
             """,
            nativeQuery = true)
     Page<Object[]> findInboundQueue(@Param("q") String q, Pageable pageable);
+
+    boolean existsByBinId(Long binId);
 }

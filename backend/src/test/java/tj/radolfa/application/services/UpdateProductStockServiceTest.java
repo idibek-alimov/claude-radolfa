@@ -466,6 +466,15 @@ class UpdateProductStockServiceTest {
             }
             return result;
         }
+
+        @Override
+        public tj.radolfa.domain.model.PageResult<tj.radolfa.application.readmodel.InboundQueueItem>
+                findInboundQueue(int page, int size, String search) {
+            return new tj.radolfa.domain.model.PageResult<>(List.of(), 0, page, size, true);
+        }
+
+        @Override
+        public boolean hasPlacementsInBin(Long binId) { return false; }
     }
 
     static class InMemoryLoadSkuPort implements LoadSkuPort {

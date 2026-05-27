@@ -26,6 +26,7 @@ import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
+import tj.radolfa.domain.exception.BinNotEmptyException;
 import tj.radolfa.domain.exception.BinWarehouseMismatchException;
 import tj.radolfa.domain.exception.InsufficientPlacementStockException;
 import tj.radolfa.domain.exception.InsufficientStockException;
@@ -226,6 +227,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientPlacementStockException.class)
     public ResponseEntity<MessageResponseDto> handleInsufficientPlacementStock(InsufficientPlacementStockException ex) {
         LOG.warn("[PLACEMENT] Insufficient placement stock: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(BinNotEmptyException.class)
+    public ResponseEntity<MessageResponseDto> handleBinNotEmpty(BinNotEmptyException ex) {
+        LOG.warn("[PLACEMENT] Delete refused — bin not empty: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }

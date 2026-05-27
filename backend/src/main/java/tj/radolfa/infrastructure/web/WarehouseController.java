@@ -12,14 +12,15 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tj.radolfa.application.ports.in.warehouse.AssignSkuToBinUseCase;
+import tj.radolfa.application.ports.in.warehouse.GetInboundQueueUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetPickSessionUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetWarehousePickQueueUseCase;
+import tj.radolfa.application.ports.in.warehouse.PutawayUseCase;
+import tj.radolfa.application.ports.in.warehouse.RelocateStockUseCase;
 import tj.radolfa.application.ports.in.warehouse.ScanOrderItemUnitUseCase;
 import tj.radolfa.application.ports.in.warehouse.SearchSkusUseCase;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
@@ -45,9 +46,11 @@ import tj.radolfa.domain.model.WarehouseShelf;
 import tj.radolfa.domain.model.WarehouseZone;
 import tj.radolfa.infrastructure.persistence.adapter.InventoryTransactionJpaAdapter;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
-import tj.radolfa.infrastructure.web.dto.AssignBinRequestDto;
+import tj.radolfa.infrastructure.web.dto.InboundQueueItemDto;
 import tj.radolfa.infrastructure.web.dto.PickQueueItemDto;
 import tj.radolfa.infrastructure.web.dto.PickSessionDto;
+import tj.radolfa.infrastructure.web.dto.PutawayRequestDto;
+import tj.radolfa.infrastructure.web.dto.RelocateRequestDto;
 import tj.radolfa.infrastructure.web.dto.ScanResultDto;
 import tj.radolfa.infrastructure.web.dto.ScanUnitRequestDto;
 import tj.radolfa.infrastructure.web.dto.CreateBinRequestDto;
@@ -82,7 +85,9 @@ public class WarehouseController {
     private final LookupSkuByBarcodeUseCase            lookupSkuByBarcodeUseCase;
     private final SearchSkusUseCase                    searchSkusUseCase;
     private final ManageWarehouseLocationUseCase       manageWarehouseLocationUseCase;
-    private final AssignSkuToBinUseCase                assignSkuToBinUseCase;
+    private final PutawayUseCase                       putawayUseCase;
+    private final RelocateStockUseCase                 relocateStockUseCase;
+    private final GetInboundQueueUseCase               getInboundQueueUseCase;
     private final GetWarehousePickQueueUseCase         getWarehousePickQueueUseCase;
     private final GetPickSessionUseCase                getPickSessionUseCase;
     private final ScanOrderItemUnitUseCase             scanOrderItemUnitUseCase;
@@ -246,12 +251,37 @@ public class WarehouseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/skus/{skuId}/bin")
-    @Operation(summary = "Assign or unassign a SKU to a warehouse bin")
+    @GetMapping("/inbound-queue")
+    @Operation(summary = "List SKUs with unassigned (inbound) stock awaiting putaway")
     @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
-    public ResponseEntity<Void> assignSkuToBin(@PathVariable Long skuId,
-                                               @RequestBody AssignBinRequestDto request) {
-        assignSkuToBinUseCase.execute(skuId, request.binId());
+    public ResponseEntity<PageResponse<InboundQueueItemDto>> listInboundQueue(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var result = getInboundQueueUseCase.execute(page, size, search);
+        var dtos = result.content().stream().map(InboundQueueItemDto::from).toList();
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @PostMapping("/skus/{skuId}/putaway")
+    @Operation(summary = "Move units from the inbound pool into a bin")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> putaway(@PathVariable Long skuId,
+                                        @RequestBody @Valid PutawayRequestDto body,
+                                        @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        putawayUseCase.execute(new PutawayUseCase.Command(skuId, body.binId(), body.quantity(), principal.userId()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/skus/{skuId}/relocate")
+    @Operation(summary = "Move units from one bin to another")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> relocate(@PathVariable Long skuId,
+                                         @RequestBody @Valid RelocateRequestDto body,
+                                         @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        relocateStockUseCase.execute(new RelocateStockUseCase.Command(
+                skuId, body.fromBinId(), body.toBinId(), body.quantity(), principal.userId()));
         return ResponseEntity.noContent().build();
     }
 

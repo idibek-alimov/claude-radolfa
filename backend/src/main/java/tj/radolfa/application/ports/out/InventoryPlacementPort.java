@@ -1,6 +1,8 @@
 package tj.radolfa.application.ports.out;
 
+import tj.radolfa.application.readmodel.InboundQueueItem;
 import tj.radolfa.domain.model.InventoryPlacement;
+import tj.radolfa.domain.model.PageResult;
 
 import java.util.List;
 
@@ -31,4 +33,10 @@ public interface InventoryPlacementPort {
     int totalForSku(Long skuId, Long warehouseId);
 
     List<InventoryPlacement> placementsForSku(Long skuId, Long warehouseId);
+
+    /** Paginated inbound queue: SKUs with bin_id IS NULL and quantity > 0. */
+    PageResult<InboundQueueItem> findInboundQueue(int page, int size, String search);
+
+    /** Returns true if any placement row references this bin (qty may be 0). */
+    boolean hasPlacementsInBin(Long binId);
 }

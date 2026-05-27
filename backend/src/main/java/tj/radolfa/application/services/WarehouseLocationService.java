@@ -3,9 +3,11 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.warehouse.ManageWarehouseLocationUseCase;
+import tj.radolfa.application.ports.out.InventoryPlacementPort;
 import tj.radolfa.application.ports.out.LoadWarehouseLocationPort;
 import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.SaveWarehouseLocationPort;
+import tj.radolfa.domain.exception.BinNotEmptyException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.WarehouseBin;
 import tj.radolfa.domain.model.WarehouseShelf;
@@ -20,13 +22,16 @@ public class WarehouseLocationService implements ManageWarehouseLocationUseCase 
     private final LoadWarehouseLocationPort loadPort;
     private final SaveWarehouseLocationPort savePort;
     private final LoadWarehousePort         loadWarehousePort;
+    private final InventoryPlacementPort    placementPort;
 
     public WarehouseLocationService(LoadWarehouseLocationPort loadPort,
                                     SaveWarehouseLocationPort savePort,
-                                    LoadWarehousePort loadWarehousePort) {
+                                    LoadWarehousePort loadWarehousePort,
+                                    InventoryPlacementPort placementPort) {
         this.loadPort          = loadPort;
         this.savePort          = savePort;
         this.loadWarehousePort = loadWarehousePort;
+        this.placementPort     = placementPort;
     }
 
     // ── Zones ─────────────────────────────────────────────────────────────────
@@ -85,6 +90,9 @@ public class WarehouseLocationService implements ManageWarehouseLocationUseCase 
 
     @Override
     public void deleteBin(Long binId) {
+        if (placementPort.hasPlacementsInBin(binId)) {
+            throw new BinNotEmptyException(binId);
+        }
         savePort.deleteBin(binId);
     }
 }
