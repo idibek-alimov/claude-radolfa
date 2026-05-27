@@ -1,0 +1,34 @@
+package tj.radolfa.application.ports.out;
+
+import tj.radolfa.domain.model.InventoryPlacement;
+
+import java.util.List;
+
+public interface InventoryPlacementPort {
+
+    /** Adds units to the (sku, warehouse) inbound pool. Creates the row if absent. */
+    void addToInbound(Long skuId, Long warehouseId, int qty);
+
+    /**
+     * Drains qty for a sale: inbound pool first, then bins by quantity DESC.
+     * Locks the SKU's placement rows (FOR UPDATE). Returns false if total
+     * available &lt; qty (caller throws InsufficientStockException).
+     */
+    boolean decrementForSale(Long skuId, Long warehouseId, int qty);
+
+    /** Moves qty from inbound pool to a bin. Validates availability + bin/warehouse. */
+    void putaway(Long skuId, Long warehouseId, Long binId, int qty);
+
+    /** Moves qty bin → bin. Validates source availability + both bins' warehouse. */
+    void relocate(Long skuId, Long warehouseId, Long fromBinId, Long toBinId, int qty);
+
+    /**
+     * Net adjust the inbound pool by delta (for MANUAL_ADJUSTMENT). delta may be negative.
+     * Positive adds to inbound; negative drains inbound-first then bins-desc.
+     */
+    void adjustInbound(Long skuId, Long warehouseId, int delta);
+
+    int totalForSku(Long skuId, Long warehouseId);
+
+    List<InventoryPlacement> placementsForSku(Long skuId, Long warehouseId);
+}

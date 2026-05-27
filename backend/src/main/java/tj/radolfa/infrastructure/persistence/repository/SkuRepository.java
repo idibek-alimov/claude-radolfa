@@ -44,19 +44,14 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
     /**
      * Full-text warehouse SKU search across skuCode, barcode, and product name.
      * Column layout: [0]=id, [1]=skuCode, [2]=barcode, [3]=sizeLabel,
-     *                [4]=stockQuantity, [5]=productName, [6]=binLocation
+     *                [4]=stockQuantity, [5]=productName, [6]=binLocation (null — enriched via placements in Phase 4)
      */
     @Query(value = """
             SELECT s.id, s.sku_code, s.barcode, s.size_label, s.stock_quantity, pb.name,
-                   CASE WHEN wb.id IS NOT NULL
-                        THEN wz.code || ' / ' || ws.code || ' / ' || wb.code
-                        ELSE NULL END
+                   NULL AS bin_location
             FROM skus s
             JOIN listing_variants lv ON s.listing_variant_id = lv.id
             JOIN product_bases pb    ON lv.product_base_id = pb.id
-            LEFT JOIN warehouse_bins   wb ON s.bin_id = wb.id
-            LEFT JOIN warehouse_shelves ws ON wb.shelf_id = ws.id
-            LEFT JOIN warehouse_zones   wz ON ws.zone_id = wz.id
             WHERE LOWER(s.sku_code) LIKE LOWER(CONCAT('%', :query, '%'))
                OR LOWER(COALESCE(s.barcode, '')) LIKE LOWER(CONCAT('%', :query, '%'))
                OR LOWER(pb.name) LIKE LOWER(CONCAT('%', :query, '%'))
@@ -75,11 +70,6 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
     Page<Object[]> searchSkus(@Param("query") String query, Pageable pageable);
 
     @Modifying
-    @Query("UPDATE SkuEntity s SET s.stockQuantity = s.stockQuantity - :qty " +
-           "WHERE s.id = :id AND s.stockQuantity >= :qty")
-    int decrementStockIfAvailable(@Param("id") Long id, @Param("qty") int qty);
-
-    @Modifying
-    @Query("UPDATE SkuEntity s SET s.stockQuantity = s.stockQuantity + :qty WHERE s.id = :id")
-    int incrementStock(@Param("id") Long id, @Param("qty") int qty);
+    @Query("UPDATE SkuEntity s SET s.stockQuantity = :qty WHERE s.id = :id")
+    void setStockQuantity(@Param("id") Long id, @Param("qty") int qty);
 }

@@ -5,25 +5,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
-import tj.radolfa.application.ports.out.AtomicStockPort;
+import tj.radolfa.application.ports.out.InventoryPlacementPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.RecordInventoryTransactionPort;
-import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.application.ports.out.StockAdjustmentPort;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.model.InventoryTransaction;
 import tj.radolfa.domain.model.InventoryTransactionType;
-import tj.radolfa.domain.model.Sku;
 
 import java.time.Instant;
 
 /**
- * Manages stock quantities on SKUs.
+ * Manages stock quantities. All mutations route through InventoryPlacementPort so that
+ * inventory_placements is the authoritative source; skus.stock_quantity is a
+ * transactionally-recomputed mirror maintained by the adapter.
  *
- * <p>Implements both {@link UpdateProductStockUseCase} (for ADMIN/API use)
- * and {@link StockAdjustmentPort} (for internal use by checkout and cancellation).
- * Every successful stock change also writes an immutable ledger row via
+ * <p>Implements both {@link UpdateProductStockUseCase} (ADMIN/API use)
+ * and {@link StockAdjustmentPort} (internal use by checkout and cancellation).
+ * Every successful stock change also writes a ledger row via
  * {@link RecordInventoryTransactionPort} within the same transaction.
  */
 @Service
@@ -31,20 +31,17 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
 
     private static final Logger LOG = LoggerFactory.getLogger(UpdateProductStockService.class);
 
-    private final LoadSkuPort                     loadSkuPort;
-    private final SaveProductHierarchyPort        savePort;
-    private final AtomicStockPort                 atomicStockPort;
-    private final RecordInventoryTransactionPort  recordInventoryTransactionPort;
-    private final LoadWarehousePort               loadWarehousePort;
+    private final LoadSkuPort                    loadSkuPort;
+    private final InventoryPlacementPort         placementPort;
+    private final RecordInventoryTransactionPort recordInventoryTransactionPort;
+    private final LoadWarehousePort              loadWarehousePort;
 
     public UpdateProductStockService(LoadSkuPort loadSkuPort,
-                                     SaveProductHierarchyPort savePort,
-                                     AtomicStockPort atomicStockPort,
+                                     InventoryPlacementPort placementPort,
                                      RecordInventoryTransactionPort recordInventoryTransactionPort,
                                      LoadWarehousePort loadWarehousePort) {
         this.loadSkuPort                    = loadSkuPort;
-        this.savePort                       = savePort;
-        this.atomicStockPort                = atomicStockPort;
+        this.placementPort                  = placementPort;
         this.recordInventoryTransactionPort = recordInventoryTransactionPort;
         this.loadWarehousePort              = loadWarehousePort;
     }
@@ -55,12 +52,11 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     @Transactional
     public void setAbsolute(Long skuId, int quantity, Long actorUserId) {
         if (quantity < 0) throw new IllegalArgumentException("quantity must be ≥ 0");
-        Sku sku = requireSku(skuId);
-        int delta = quantity - (sku.getStockQuantity() != null ? sku.getStockQuantity() : 0);
-        sku.updatePriceAndStock(sku.getPrice(), quantity);
-        savePort.saveSku(sku, sku.getListingVariantId());
+        Long warehouseId = loadWarehousePort.findDefault().id();
+        int current = placementPort.totalForSku(skuId, warehouseId);
+        int delta = quantity - current;
         if (delta != 0) {
-            Long warehouseId = loadWarehousePort.findDefault().id();
+            placementPort.adjustInbound(skuId, warehouseId, delta);
             recordInventoryTransactionPort.record(new InventoryTransaction(
                     null, skuId, warehouseId, delta, InventoryTransactionType.MANUAL_ADJUSTMENT,
                     "MANUAL", null, actorUserId, null, Instant.now()));
@@ -72,15 +68,13 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     @Transactional
     public void adjust(Long skuId, int delta, Long actorUserId) {
         if (delta == 0) return;
+        Long warehouseId = loadWarehousePort.findDefault().id();
         if (delta < 0) {
             int quantity = -delta;
-            int updated = atomicStockPort.decrementIfAvailable(skuId, quantity);
-            if (updated == 0) {
-                Sku sku = requireSku(skuId);
-                int available = sku.getStockQuantity() != null ? sku.getStockQuantity() : 0;
-                throw new InsufficientStockException(skuId, available, quantity);
+            boolean ok = placementPort.decrementForSale(skuId, warehouseId, quantity);
+            if (!ok) {
+                throw new InsufficientStockException(skuId, placementPort.totalForSku(skuId, warehouseId), quantity);
             }
-            Long warehouseId = loadWarehousePort.findDefault().id();
             recordInventoryTransactionPort.record(new InventoryTransaction(
                     null, skuId, warehouseId, delta, InventoryTransactionType.MANUAL_ADJUSTMENT,
                     "MANUAL", null, actorUserId, null, Instant.now()));
@@ -117,13 +111,11 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     @Transactional
     public void decrement(Long skuId, int quantity, Long orderId, Long actorUserId) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity must be > 0");
-        int updated = atomicStockPort.decrementIfAvailable(skuId, quantity);
-        if (updated == 0) {
-            Sku sku = requireSku(skuId);
-            int available = sku.getStockQuantity() != null ? sku.getStockQuantity() : 0;
-            throw new InsufficientStockException(skuId, available, quantity);
-        }
         Long warehouseId = loadWarehousePort.findDefault().id();
+        boolean ok = placementPort.decrementForSale(skuId, warehouseId, quantity);
+        if (!ok) {
+            throw new InsufficientStockException(skuId, placementPort.totalForSku(skuId, warehouseId), quantity);
+        }
         recordInventoryTransactionPort.record(new InventoryTransaction(
                 null, skuId, warehouseId, -quantity, InventoryTransactionType.SALE,
                 "ORDER", orderId, actorUserId, null, Instant.now()));
@@ -135,11 +127,9 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     public void increment(Long skuId, int quantity, InventoryTransactionType type,
                           String referenceType, Long referenceId, Long actorUserId) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity must be > 0");
-        int updated = atomicStockPort.increment(skuId, quantity);
-        if (updated == 0) {
-            throw new IllegalArgumentException("SKU not found: id=" + skuId);
-        }
+        requireSku(skuId);
         Long warehouseId = loadWarehousePort.findDefault().id();
+        placementPort.addToInbound(skuId, warehouseId, quantity);
         recordInventoryTransactionPort.record(new InventoryTransaction(
                 null, skuId, warehouseId, quantity, type,
                 referenceType, referenceId, actorUserId, null, Instant.now()));
@@ -148,8 +138,8 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
 
     // ── Private helpers ────────────────────────────────────────────────────────
 
-    private Sku requireSku(Long skuId) {
-        return loadSkuPort.findSkuById(skuId)
+    private void requireSku(Long skuId) {
+        loadSkuPort.findSkuById(skuId)
                 .orElseThrow(() -> new IllegalArgumentException("SKU not found: id=" + skuId));
     }
 }
