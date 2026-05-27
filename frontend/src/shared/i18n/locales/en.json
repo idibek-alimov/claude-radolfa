@@ -1001,29 +1001,33 @@
       "stock": "Stock",
       "size": "Size",
       "skuCode": "SKU Code",
-      "binLocation": "Bin Location",
-      "unassigned": "Unassigned",
       "actions": {
-        "reassign": "Reassign Bin",
-        "unassign": "Unassign",
+        "relocate": "Relocate",
         "history": "View History"
       },
-      "reassign": {
-        "title": "Reassign Bin",
-        "zone": "Zone",
-        "shelf": "Shelf",
-        "bin": "Bin",
-        "selectZone": "Select a zone…",
-        "selectShelf": "Select a shelf…",
-        "selectBin": "Select a bin…",
-        "success": "Bin updated.",
-        "error": "Failed to reassign bin."
+      "placements": {
+        "title": "Placements",
+        "inbound": "Inbound / unassigned",
+        "empty": "No stock in any bin."
       },
-      "unassign": {
-        "confirmTitle": "Remove bin assignment?",
-        "confirmBody": "{product} ({size}) will no longer be tied to any bin.",
-        "success": "SKU unassigned from bin.",
-        "error": "Failed to unassign bin."
+      "relocate": {
+        "title": "Relocate Stock",
+        "from": "From bin",
+        "selectFrom": "Select source bin…",
+        "zone": "To zone",
+        "selectZone": "Select a zone…",
+        "shelf": "To shelf",
+        "selectShelf": "Select a shelf…",
+        "to": "To bin",
+        "selectBin": "Select a bin…",
+        "quantity": "Quantity",
+        "submit": "Relocate",
+        "success": "Stock relocated.",
+        "errors": {
+          "generic": "Failed to relocate stock.",
+          "insufficient": "Not enough units in the source bin.",
+          "binMismatch": "The selected bin belongs to a different warehouse."
+        }
       },
       "history": {
         "title": "Inventory History",

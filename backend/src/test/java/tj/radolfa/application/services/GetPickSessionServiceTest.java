@@ -173,9 +173,9 @@ class GetPickSessionServiceTest {
         Sku skuA = sku(SKU_A_ID, "4000000000001", "XL");
 
         var views = List.of(
-                new PlacementView("A-1-1", 40),
-                new PlacementView("B-2-3", 10),
-                new PlacementView(null, 5));
+                new PlacementView(1L, "A-1-1", 40),
+                new PlacementView(2L, "B-2-3", 10),
+                new PlacementView(null, null, 5));
         var placement = new FakePlacementPort(Map.of(SKU_A_ID, views));
 
         PickSession session = service(

@@ -1,3 +1,9 @@
+export interface Placement {
+  binId: number | null;
+  binLabel: string | null;
+  quantity: number;
+}
+
 export interface SkuLookupResponse {
   skuId: number;
   skuCode: string;
@@ -5,5 +11,5 @@ export interface SkuLookupResponse {
   productName: string;
   sizeLabel: string;
   stockQuantity: number;
-  binLocation: string | null;
+  placements: Placement[];
 }

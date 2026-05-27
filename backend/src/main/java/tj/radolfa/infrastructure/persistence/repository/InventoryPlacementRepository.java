@@ -71,14 +71,15 @@ public interface InventoryPlacementRepository extends JpaRepository<InventoryPla
      * Resolved placement views for a batch of SKUs: joins bins→shelves→zones to build labels.
      * Inbound rows (bin_id IS NULL) return null zone/shelf/bin codes. qty > 0 filter applied.
      * Ordered: bins first (qty DESC), inbound last — per SKU.
-     * Column layout: [0]=sku_id, [1]=zone_code, [2]=shelf_code, [3]=bin_code, [4]=quantity
+     * Column layout: [0]=sku_id, [1]=zone_code, [2]=shelf_code, [3]=bin_code, [4]=quantity, [5]=bin_id
      */
     @Query(value = """
             SELECT p.sku_id,
                    z.code  AS zone_code,
                    sh.code AS shelf_code,
                    b.code  AS bin_code,
-                   p.quantity
+                   p.quantity,
+                   p.bin_id
             FROM inventory_placements p
             LEFT JOIN warehouse_bins    b  ON b.id  = p.bin_id
             LEFT JOIN warehouse_shelves sh ON sh.id = b.shelf_id

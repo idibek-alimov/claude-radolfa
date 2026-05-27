@@ -220,8 +220,9 @@ public class InventoryPlacementAdapter implements InventoryPlacementPort {
             String shCode = (String) row[2];
             String bCode  = (String) row[3];
             int qty       = ((Number) row[4]).intValue();
+            Long binId    = (row[5] != null) ? ((Number) row[5]).longValue() : null;
             String label  = (zCode != null) ? zCode + "-" + shCode + "-" + bCode : null;
-            result.computeIfAbsent(skuId, k -> new ArrayList<>()).add(new PlacementView(label, qty));
+            result.computeIfAbsent(skuId, k -> new ArrayList<>()).add(new PlacementView(binId, label, qty));
         }
         return result;
     }

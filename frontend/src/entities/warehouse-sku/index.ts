@@ -1,2 +1,2 @@
-export type { SkuLookupResponse } from "./types";
+export type { SkuLookupResponse, Placement } from "./types";
 export { useLookupSkuByBarcode, useSearchSkus } from "./api";

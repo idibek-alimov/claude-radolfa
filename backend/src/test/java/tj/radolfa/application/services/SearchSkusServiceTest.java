@@ -161,8 +161,8 @@ class SearchSkusServiceTest {
         port.total = 2;
 
         var placementPort = new FakePlacementPort(Map.of(
-                skuA, List.of(new PlacementView("A-1-1", 30), new PlacementView(null, 10)),
-                skuB, List.of(new PlacementView("B-2-2", 5))));
+                skuA, List.of(new PlacementView(1L, "A-1-1", 30), new PlacementView(null, null, 10)),
+                skuB, List.of(new PlacementView(2L, "B-2-2", 5))));
 
         var result = service(port, placementPort).execute("Shirt", 1, 20);
 

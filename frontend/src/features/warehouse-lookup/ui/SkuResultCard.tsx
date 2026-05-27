@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { MapPin, History, Unlink } from "lucide-react";
+import { Move, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib";
 import type { SkuLookupResponse } from "@/entities/warehouse-sku";
-import { BinReassignmentForm } from "./BinReassignmentForm";
-import { UnassignConfirm } from "./UnassignConfirm";
+import { useLookupSkuByBarcode } from "@/entities/warehouse-sku";
+import { RelocateForm } from "./RelocateForm";
 import { InventoryHistoryDrawer } from "./InventoryHistoryDrawer";
 
 interface Props {
@@ -18,9 +18,21 @@ interface Props {
 
 export function SkuResultCard({ result, onResultChange }: Props) {
   const t = useTranslations("warehouse");
-  const [reassignOpen, setReassignOpen] = useState(false);
+  const [relocateOpen, setRelocateOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [confirmUnassign, setConfirmUnassign] = useState(false);
+  const lookup = useLookupSkuByBarcode();
+
+  const binPlacements = result.placements.filter((p) => p.binId != null);
+  const canRelocate = binPlacements.length > 0;
+
+  function handleRelocateSuccess() {
+    lookup.mutate(result.barcode, {
+      onSuccess: (fresh) => {
+        onResultChange(fresh);
+        setRelocateOpen(false);
+      },
+    });
+  }
 
   return (
     <>
@@ -57,21 +69,33 @@ export function SkuResultCard({ result, onResultChange }: Props) {
             </p>
           </div>
 
-          {/* Bin location */}
+          {/* Placements */}
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-              {t("lookup.binLocation")}
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+              {t("lookup.placements.title")}
             </p>
-            <p
-              className={cn(
-                "text-sm",
-                result.binLocation
-                  ? "font-mono text-zinc-900"
-                  : "italic text-muted-foreground",
-              )}
-            >
-              {result.binLocation ?? t("lookup.unassigned")}
-            </p>
+            {result.placements.length === 0 ? (
+              <p className="text-sm italic text-muted-foreground">
+                {t("lookup.placements.empty")}
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {result.placements.map((p, i) => (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    {p.binLabel != null ? (
+                      <span className="font-mono text-zinc-900">{p.binLabel}</span>
+                    ) : (
+                      <span className="italic text-muted-foreground">
+                        {t("lookup.placements.inbound")}
+                      </span>
+                    )}
+                    <span className="tabular-nums font-medium text-zinc-700 ml-4">
+                      {p.quantity}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Action row */}
@@ -79,19 +103,11 @@ export function SkuResultCard({ result, onResultChange }: Props) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setReassignOpen((o) => !o)}
+              disabled={!canRelocate}
+              onClick={() => setRelocateOpen((o) => !o)}
             >
-              <MapPin className="h-4 w-4 mr-1.5" />
-              {t("lookup.actions.reassign")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={!result.binLocation}
-              onClick={() => setConfirmUnassign(true)}
-            >
-              <Unlink className="h-4 w-4 mr-1.5" />
-              {t("lookup.actions.unassign")}
+              <Move className="h-4 w-4 mr-1.5" />
+              {t("lookup.actions.relocate")}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)}>
               <History className="h-4 w-4 mr-1.5" />
@@ -99,32 +115,17 @@ export function SkuResultCard({ result, onResultChange }: Props) {
             </Button>
           </div>
 
-          {/* Inline bin reassignment form */}
-          {reassignOpen && (
-            <BinReassignmentForm
+          {/* Inline relocate form */}
+          {relocateOpen && (
+            <RelocateForm
               skuId={result.skuId}
-              onSuccess={(binLabel) => {
-                onResultChange({ ...result, binLocation: binLabel });
-                setReassignOpen(false);
-              }}
-              onCancel={() => setReassignOpen(false)}
+              placements={result.placements}
+              onSuccess={handleRelocateSuccess}
+              onCancel={() => setRelocateOpen(false)}
             />
           )}
         </CardContent>
       </Card>
-
-      <UnassignConfirm
-        open={confirmUnassign}
-        skuId={result.skuId}
-        productName={result.productName}
-        sizeLabel={result.sizeLabel}
-        currentBin={result.binLocation}
-        onSuccess={() => {
-          onResultChange({ ...result, binLocation: null });
-          setConfirmUnassign(false);
-        }}
-        onClose={() => setConfirmUnassign(false)}
-      />
 
       <InventoryHistoryDrawer
         open={historyOpen}

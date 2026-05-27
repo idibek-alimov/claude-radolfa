@@ -186,9 +186,9 @@ class LookupSkuByBarcodeServiceTest {
     @DisplayName("Multi-bin SKU → placements list contains labeled bin entries")
     void multiBinSku_returnsLabeledPlacements() {
         var views = List.of(
-                new PlacementView("A-1-1", 30),
-                new PlacementView("B-2-3", 20),
-                new PlacementView(null, 10));
+                new PlacementView(1L, "A-1-1", 30),
+                new PlacementView(2L, "B-2-3", 20),
+                new PlacementView(null, null, 10));
         var port = new FakeLoadSkuByBarcodePort(Map.of("BC-002", sku("BC-002")));
         LookupSkuByBarcodeUseCase.Result result =
                 service(port, new FakeLoadListingVariantPort(variant()),
@@ -206,7 +206,7 @@ class LookupSkuByBarcodeServiceTest {
     @Test
     @DisplayName("Inbound-only SKU → one placement with null binLabel")
     void inboundOnlySku_returnsInboundPlacement() {
-        var views = List.of(new PlacementView(null, 50));
+        var views = List.of(new PlacementView(null, null, 50));
         var port = new FakeLoadSkuByBarcodePort(Map.of("BC-003", sku("BC-003")));
         LookupSkuByBarcodeUseCase.Result result =
                 service(port, new FakeLoadListingVariantPort(variant()),
