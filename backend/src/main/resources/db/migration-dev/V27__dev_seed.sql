@@ -1,5 +1,5 @@
 -- ================================================================
--- V15__dev_seed.sql
+-- V27__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -754,3 +754,71 @@ JOIN (VALUES
 ) AS b(category_name, attribute_key, is_required, sort_order)
   ON c.name = b.category_name
 ON CONFLICT (category_id, attribute_key) DO NOTHING;
+
+
+-- ================================================================
+-- 13. WAREHOUSE LOCATIONS (minimal demo data for putaway UI)
+-- ================================================================
+
+INSERT INTO warehouse_zones (warehouse_id, code, label)
+    VALUES (1, 'A', 'Zone A');
+
+INSERT INTO warehouse_shelves (zone_id, code, label)
+    SELECT id, 'A1', 'Shelf A1' FROM warehouse_zones WHERE code = 'A';
+
+INSERT INTO warehouse_bins (shelf_id, code)
+    SELECT id, '001' FROM warehouse_shelves WHERE code = 'A1' AND zone_id = (SELECT id FROM warehouse_zones WHERE code = 'A');
+
+INSERT INTO warehouse_bins (shelf_id, code)
+    SELECT id, '002' FROM warehouse_shelves WHERE code = 'A1' AND zone_id = (SELECT id FROM warehouse_zones WHERE code = 'A');
+
+
+-- ================================================================
+-- 14. INVENTORY PLACEMENTS
+-- ================================================================
+
+-- All SKUs start in the inbound pool (received but not yet put away)
+INSERT INTO inventory_placements (sku_id, warehouse_id, bin_id, quantity)
+SELECT id, 1, NULL, stock_quantity FROM skus WHERE stock_quantity > 0;
+
+-- Demo: split one SKU across two bins to show multi-bin display in the UI.
+-- Keeps SUM(placements) == skus.stock_quantity (mirror invariant).
+DO $$
+DECLARE
+    v_sku_id   BIGINT;
+    v_stock    INT;
+    v_bin1_id  BIGINT;
+    v_bin2_id  BIGINT;
+    v_in_bin1  INT;
+    v_in_bin2  INT;
+BEGIN
+    SELECT id, stock_quantity INTO v_sku_id, v_stock
+    FROM skus WHERE sku_code = 'TPL-TSHIRT-001-MBK-S';
+
+    SELECT wb.id INTO v_bin1_id
+    FROM warehouse_bins wb
+    JOIN warehouse_shelves ws ON ws.id = wb.shelf_id
+    JOIN warehouse_zones wz   ON wz.id = ws.zone_id
+    WHERE wz.code = 'A' AND ws.code = 'A1' AND wb.code = '001';
+
+    SELECT wb.id INTO v_bin2_id
+    FROM warehouse_bins wb
+    JOIN warehouse_shelves ws ON ws.id = wb.shelf_id
+    JOIN warehouse_zones wz   ON wz.id = ws.zone_id
+    WHERE wz.code = 'A' AND ws.code = 'A1' AND wb.code = '002';
+
+    IF v_stock >= 10 THEN
+        v_in_bin1 := GREATEST(v_stock / 3, 1);
+        v_in_bin2 := GREATEST(v_stock / 4, 1);
+
+        -- Drain inbound by the amount moved to bins
+        UPDATE inventory_placements
+           SET quantity = quantity - v_in_bin1 - v_in_bin2
+         WHERE sku_id = v_sku_id AND warehouse_id = 1 AND bin_id IS NULL;
+
+        -- Create bin placements
+        INSERT INTO inventory_placements (sku_id, warehouse_id, bin_id, quantity)
+        VALUES (v_sku_id, 1, v_bin1_id, v_in_bin1),
+               (v_sku_id, 1, v_bin2_id, v_in_bin2);
+    END IF;
+END $$;

@@ -26,6 +26,8 @@ import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
+import tj.radolfa.domain.exception.BinWarehouseMismatchException;
+import tj.radolfa.domain.exception.InsufficientPlacementStockException;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.exception.RefundFailedException;
@@ -218,6 +220,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<MessageResponseDto> handleInsufficientStock(InsufficientStockException ex) {
         LOG.warn("[STOCK] Insufficient stock: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientPlacementStockException.class)
+    public ResponseEntity<MessageResponseDto> handleInsufficientPlacementStock(InsufficientPlacementStockException ex) {
+        LOG.warn("[PLACEMENT] Insufficient placement stock: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(BinWarehouseMismatchException.class)
+    public ResponseEntity<MessageResponseDto> handleBinWarehouseMismatch(BinWarehouseMismatchException ex) {
+        LOG.warn("[PLACEMENT] Bin/warehouse mismatch: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 

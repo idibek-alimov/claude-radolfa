@@ -115,14 +115,6 @@ public class WarehouseLocationJpaAdapter
 
     @Override
     public void assign(Long skuId, Long binId) {
-        var sku = skuRepo.findById(skuId)
-                .orElseThrow(() -> new ResourceNotFoundException("SKU not found: " + skuId));
-        WarehouseBinEntity bin = null;
-        if (binId != null) {
-            bin = binRepo.findById(binId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Bin not found: " + binId));
-        }
-        sku.setBin(bin);
-        skuRepo.save(sku);
+        // No-op: bin assignment via inventory_placements (Phase 3 retires this port entirely)
     }
 }

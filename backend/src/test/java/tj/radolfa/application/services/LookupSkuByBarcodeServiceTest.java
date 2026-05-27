@@ -26,24 +26,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LookupSkuByBarcodeServiceTest {
 
-    static final Long SKU_ID      = 1L;
-    static final Long VARIANT_ID  = 10L;
-    static final Long BASE_ID     = 100L;
-    static final Long ZONE_ID     = 1000L;
-    static final Long SHELF_ID    = 2000L;
-    static final Long BIN_ID      = 3000L;
+    static final Long SKU_ID     = 1L;
+    static final Long VARIANT_ID = 10L;
+    static final Long BASE_ID    = 100L;
 
     // ── Fixtures ──────────────────────────────────────────────────────────────
 
     static Sku sku(String barcode) {
         return new Sku(SKU_ID, VARIANT_ID, "SKU-001", "M",
                 5, new Money(BigDecimal.TEN), barcode);
-    }
-
-    static Sku skuWithBin(String barcode) {
-        return new Sku(SKU_ID, VARIANT_ID, "SKU-001", "M",
-                5, new Money(BigDecimal.TEN), barcode,
-                null, null, null, null, BIN_ID);
     }
 
     static ListingVariant variant() {
@@ -175,30 +166,5 @@ class LookupSkuByBarcodeServiceTest {
                         new FakeLoadProductBasePort(productBase("Widget")), NO_LOCATION).execute(""));
     }
 
-    @Test
-    @DisplayName("SKU has binId, full chain resolves → binLocation formatted correctly")
-    void binAssigned_resolvesBinLocation() {
-        var zone  = new WarehouseZone(ZONE_ID,  1L, "A",  "Zone A");
-        var shelf = new WarehouseShelf(SHELF_ID, ZONE_ID, "3", "Row 3");
-        var bin   = new WarehouseBin(BIN_ID,   SHELF_ID, "7");
-        var locationPort = new FakeLoadWarehouseLocationPort(bin, shelf, zone);
-
-        var port = new FakeLoadSkuByBarcodePort(Map.of("BC-002", skuWithBin("BC-002")));
-        LookupSkuByBarcodeUseCase.Result result =
-                service(port, new FakeLoadListingVariantPort(variant()),
-                        new FakeLoadProductBasePort(productBase("Widget")), locationPort).execute("BC-002");
-
-        assertEquals("A / 3 / 7", result.binLocation());
-    }
-
-    @Test
-    @DisplayName("SKU has binId but bin lookup returns empty → binLocation is null, no crash")
-    void binAssigned_staleBinId_returnsNullBinLocation() {
-        var port = new FakeLoadSkuByBarcodePort(Map.of("BC-002", skuWithBin("BC-002")));
-        LookupSkuByBarcodeUseCase.Result result =
-                service(port, new FakeLoadListingVariantPort(variant()),
-                        new FakeLoadProductBasePort(productBase("Widget")), NO_LOCATION).execute("BC-002");
-
-        assertNull(result.binLocation());
-    }
+    // bin-location tests removed in Phase 1; Phase 4 adds placement-based tests
 }

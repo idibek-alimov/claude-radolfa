@@ -40,14 +40,8 @@ public class LookupSkuByBarcodeService implements LookupSkuByBarcodeUseCase {
                 .map(pb -> pb.getName())
                 .orElse(sku.getSkuCode());
 
+        // Phase 4 will populate placements list here; temporarily null for compile-time safety
         String binLocation = null;
-        if (sku.getBinId() != null) {
-            binLocation = loadWarehouseLocationPort.findBinById(sku.getBinId())
-                    .flatMap(bin -> loadWarehouseLocationPort.findShelfById(bin.shelfId())
-                            .flatMap(shelf -> loadWarehouseLocationPort.findZoneById(shelf.zoneId())
-                                    .map(zone -> zone.code() + " / " + shelf.code() + " / " + bin.code())))
-                    .orElse(null);
-        }
 
         return new Result(sku, productName, binLocation);
     }

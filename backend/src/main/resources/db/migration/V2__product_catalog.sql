@@ -4,8 +4,8 @@
 -- Product catalog: sequences, product bases, listing variants,
 -- images, attributes, category attribute blueprints, and SKUs.
 -- Also houses warehouse infrastructure (warehouses, zones, shelves,
--- bins) because skus.bin_id carries an inline FK to warehouse_bins
--- and these tables must therefore exist first.
+-- bins), which precede skus because inventory_placements (V26)
+-- references both warehouse_bins and skus.
 --
 -- Tables created here:
 --   warehouses
@@ -35,7 +35,7 @@ VALUES ('MAIN', 'Main Warehouse', TRUE);
 
 -- ----------------------------------------------------------------
 -- Warehouse location: Zone → Shelf → Bin
--- Placed before skus so skus.bin_id can carry an inline FK.
+-- Placed before skus because inventory_placements (V26) references both warehouse_bins and skus.
 -- ----------------------------------------------------------------
 CREATE TABLE warehouse_zones (
     id           BIGSERIAL    PRIMARY KEY,
@@ -200,7 +200,6 @@ CREATE TABLE skus (
     length_cm          INTEGER,
     width_cm           INTEGER,
     height_cm          INTEGER,
-    bin_id             BIGINT       REFERENCES warehouse_bins(id) ON DELETE SET NULL,
     version            BIGINT         NOT NULL DEFAULT 0,
     created_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ    NOT NULL DEFAULT NOW()
@@ -208,7 +207,6 @@ CREATE TABLE skus (
 
 CREATE INDEX idx_skus_variant_id ON skus (listing_variant_id);
 CREATE INDEX idx_skus_sku_code   ON skus (sku_code);
-CREATE INDEX idx_skus_bin_id     ON skus (bin_id);
 
 -- ----------------------------------------------------------------
 -- Product tags  (replaces hard-coded top_selling / featured flags)
