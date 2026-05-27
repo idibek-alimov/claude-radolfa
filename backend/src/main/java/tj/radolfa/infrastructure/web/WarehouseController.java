@@ -120,7 +120,7 @@ public class WarehouseController {
     @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
     public ResponseEntity<SkuLookupDto> lookupByBarcode(@RequestParam String code) {
         LookupSkuByBarcodeUseCase.Result result = lookupSkuByBarcodeUseCase.execute(code);
-        return ResponseEntity.ok(SkuLookupDto.from(result.sku(), result.productName(), result.binLocation()));
+        return ResponseEntity.ok(SkuLookupDto.from(result.sku(), result.productName(), result.placements()));
     }
 
     @GetMapping("/skus/search")

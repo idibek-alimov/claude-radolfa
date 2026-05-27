@@ -35,6 +35,9 @@ class GetInboundQueueServiceTest {
         @Override public int totalForSku(Long s, Long w)                        { return 0; }
         @Override public List<InventoryPlacement> placementsForSku(Long s, Long w) { return List.of(); }
         @Override public boolean hasPlacementsInBin(Long binId)                 { return false; }
+        @Override public List<tj.radolfa.domain.model.PlacementView> placementViewsForSku(Long s, Long w)        { return List.of(); }
+        @Override public java.util.Map<Long, List<tj.radolfa.domain.model.PlacementView>> placementViewsForSkus(
+                java.util.Collection<Long> ids, Long w)                                                          { return java.util.Map.of(); }
     }
 
     // ── Tests ──────────────────────────────────────────────────────────────────

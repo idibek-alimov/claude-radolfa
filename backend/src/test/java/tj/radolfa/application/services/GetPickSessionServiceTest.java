@@ -2,21 +2,28 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.out.InventoryPlacementPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.LoadWarehousePort;
+import tj.radolfa.application.readmodel.InboundQueueItem;
 import tj.radolfa.application.readmodel.PickSession;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.DeliveryType;
+import tj.radolfa.domain.model.InventoryPlacement;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.PlacementView;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.Warehouse;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +37,7 @@ class GetPickSessionServiceTest {
     static final Long SKU_B_ID  = 11L;
     static final Long ITEM_A_ID = 100L;
     static final Long ITEM_B_ID = 101L;
+    static final Long WH_ID     = 1L;
 
     // ── Fixtures ──────────────────────────────────────────────────────────────
 
@@ -75,6 +83,45 @@ class GetPickSessionServiceTest {
         }
     }
 
+    static class FakeLoadWarehousePort implements LoadWarehousePort {
+        @Override public Warehouse findDefault() {
+            return new Warehouse(WH_ID, "MAIN", "Main Warehouse", true, Instant.now());
+        }
+        @Override public Optional<Warehouse> findById(Long id) {
+            return id.equals(WH_ID) ? Optional.of(findDefault()) : Optional.empty();
+        }
+    }
+
+    static class FakePlacementPort implements InventoryPlacementPort {
+        final Map<Long, List<PlacementView>> views;
+        FakePlacementPort(Map<Long, List<PlacementView>> views) { this.views = views; }
+
+        @Override public List<PlacementView> placementViewsForSku(Long s, Long w)        { return views.getOrDefault(s, List.of()); }
+        @Override public Map<Long, List<PlacementView>> placementViewsForSkus(Collection<Long> ids, Long w) { return views; }
+        @Override public void addToInbound(Long s, Long w, int q)               {}
+        @Override public boolean decrementForSale(Long s, Long w, int q)        { return true; }
+        @Override public void putaway(Long s, Long w, Long b, int q)            {}
+        @Override public void relocate(Long s, Long w, Long f, Long t, int q)   {}
+        @Override public void adjustInbound(Long s, Long w, int d)              {}
+        @Override public int totalForSku(Long s, Long w)                        { return 0; }
+        @Override public List<InventoryPlacement> placementsForSku(Long s, Long w) { return List.of(); }
+        @Override public PageResult<InboundQueueItem> findInboundQueue(int p, int sz, String q) {
+            return new PageResult<>(List.of(), 0, p, sz, true);
+        }
+        @Override public boolean hasPlacementsInBin(Long binId) { return false; }
+    }
+
+    static final FakePlacementPort NO_PLACEMENTS = new FakePlacementPort(Map.of());
+
+    static GetPickSessionService service(FakeLoadOrderPort orderPort, FakeLoadSkuPort skuPort) {
+        return new GetPickSessionService(orderPort, skuPort, NO_PLACEMENTS, new FakeLoadWarehousePort());
+    }
+
+    static GetPickSessionService service(FakeLoadOrderPort orderPort, FakeLoadSkuPort skuPort,
+                                          FakePlacementPort placementPort) {
+        return new GetPickSessionService(orderPort, skuPort, placementPort, new FakeLoadWarehousePort());
+    }
+
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
@@ -87,11 +134,9 @@ class GetPickSessionServiceTest {
         Sku skuA = sku(SKU_A_ID, "4000000000001", "XL");
         Sku skuB = sku(SKU_B_ID, "4000000000002", "S");
 
-        var svc = new GetPickSessionService(
+        PickSession session = service(
                 new FakeLoadOrderPort(order),
-                new FakeLoadSkuPort(Map.of(SKU_A_ID, skuA, SKU_B_ID, skuB)));
-
-        PickSession session = svc.execute(ORDER_ID);
+                new FakeLoadSkuPort(Map.of(SKU_A_ID, skuA, SKU_B_ID, skuB))).execute(ORDER_ID);
 
         assertEquals(ORDER_ID, session.orderId());
         assertEquals(OrderStatus.PAID, session.status());
@@ -116,10 +161,48 @@ class GetPickSessionServiceTest {
     @Test
     @DisplayName("Order missing → ResourceNotFoundException")
     void orderMissing_throwsResourceNotFound() {
-        var svc = new GetPickSessionService(
-                new FakeLoadOrderPort(),
-                new FakeLoadSkuPort(Map.of()));
+        assertThrows(ResourceNotFoundException.class,
+                () -> service(new FakeLoadOrderPort(), new FakeLoadSkuPort(Map.of())).execute(999L));
+    }
 
-        assertThrows(ResourceNotFoundException.class, () -> svc.execute(999L));
+    @Test
+    @DisplayName("Placements from port are attached to matching items, sorted bins-first")
+    void placements_attachedToItems() {
+        OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 2, 0);
+        Order order = order(ORDER_ID, OrderStatus.PAID, List.of(itemA));
+        Sku skuA = sku(SKU_A_ID, "4000000000001", "XL");
+
+        var views = List.of(
+                new PlacementView("A-1-1", 40),
+                new PlacementView("B-2-3", 10),
+                new PlacementView(null, 5));
+        var placement = new FakePlacementPort(Map.of(SKU_A_ID, views));
+
+        PickSession session = service(
+                new FakeLoadOrderPort(order),
+                new FakeLoadSkuPort(Map.of(SKU_A_ID, skuA)),
+                placement).execute(ORDER_ID);
+
+        PickSession.Item rowA = session.items().get(0);
+        assertEquals(3, rowA.placements().size());
+        assertEquals("A-1-1", rowA.placements().get(0).binLabel());
+        assertEquals(40, rowA.placements().get(0).quantity());
+        assertEquals("B-2-3", rowA.placements().get(1).binLabel());
+        assertNull(rowA.placements().get(2).binLabel(), "inbound entry has null binLabel");
+        assertEquals(5, rowA.placements().get(2).quantity());
+    }
+
+    @Test
+    @DisplayName("Item with no placements gets an empty list (not null)")
+    void itemWithNoPlacements_getsEmptyList() {
+        OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 1, 0);
+        Order order = order(ORDER_ID, OrderStatus.PAID, List.of(itemA));
+
+        PickSession session = service(
+                new FakeLoadOrderPort(order),
+                new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, "BC", "M")))).execute(ORDER_ID);
+
+        assertNotNull(session.items().get(0).placements());
+        assertTrue(session.items().get(0).placements().isEmpty());
     }
 }

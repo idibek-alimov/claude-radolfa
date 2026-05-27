@@ -90,6 +90,9 @@ class WarehouseLocationServiceTest {
         @Override public PageResult<InboundQueueItem> findInboundQueue(int p, int sz, String q) {
             return new PageResult<>(List.of(), 0, p, sz, true);
         }
+        @Override public List<tj.radolfa.domain.model.PlacementView> placementViewsForSku(Long s, Long w)        { return List.of(); }
+        @Override public java.util.Map<Long, List<tj.radolfa.domain.model.PlacementView>> placementViewsForSkus(
+                java.util.Collection<Long> ids, Long w)                                                          { return java.util.Map.of(); }
     }
 
     static WarehouseLocationService service(FakeLoadWarehouseLocationPort load,

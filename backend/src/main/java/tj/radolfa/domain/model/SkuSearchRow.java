@@ -1,5 +1,7 @@
 package tj.radolfa.domain.model;
 
+import java.util.List;
+
 public record SkuSearchRow(
         Long   skuId,
         String skuCode,
@@ -7,5 +9,5 @@ public record SkuSearchRow(
         String sizeLabel,
         int    stockQuantity,
         String productName,
-        String binLocation
+        List<PlacementView> placements
 ) {}

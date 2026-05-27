@@ -3,8 +3,11 @@ package tj.radolfa.application.ports.out;
 import tj.radolfa.application.readmodel.InboundQueueItem;
 import tj.radolfa.domain.model.InventoryPlacement;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.PlacementView;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface InventoryPlacementPort {
 
@@ -39,4 +42,13 @@ public interface InventoryPlacementPort {
 
     /** Returns true if any placement row references this bin (qty may be 0). */
     boolean hasPlacementsInBin(Long binId);
+
+    /** Resolved display placements for a single SKU. Bins first (qty DESC), inbound last. qty > 0 only. */
+    List<PlacementView> placementViewsForSku(Long skuId, Long warehouseId);
+
+    /**
+     * Batch resolved display placements keyed by SKU id. Guard empty skuIds before calling.
+     * Bins first (qty DESC), inbound last, per SKU. qty > 0 only.
+     */
+    Map<Long, List<PlacementView>> placementViewsForSkus(Collection<Long> skuIds, Long warehouseId);
 }

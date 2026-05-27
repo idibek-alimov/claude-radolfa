@@ -18,8 +18,13 @@ import tj.radolfa.infrastructure.persistence.mappers.InventoryPlacementMapper;
 import tj.radolfa.infrastructure.persistence.repository.InventoryPlacementRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
+import tj.radolfa.domain.model.PlacementView;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Implements all placement mutations. Runs inside the calling service's @Transactional boundary.
@@ -194,6 +199,31 @@ public class InventoryPlacementAdapter implements InventoryPlacementPort {
     @Override
     public boolean hasPlacementsInBin(Long binId) {
         return placementRepo.existsByBinId(binId);
+    }
+
+    @Override
+    public List<PlacementView> placementViewsForSku(Long skuId, Long warehouseId) {
+        return placementViewsForSkus(List.of(skuId), warehouseId)
+                .getOrDefault(skuId, List.of());
+    }
+
+    @Override
+    public Map<Long, List<PlacementView>> placementViewsForSkus(Collection<Long> skuIds, Long warehouseId) {
+        if (skuIds == null || skuIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Object[]> rows = placementRepo.findPlacementViewsForSkus(skuIds, warehouseId);
+        Map<Long, List<PlacementView>> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            Long skuId    = ((Number) row[0]).longValue();
+            String zCode  = (String) row[1];
+            String shCode = (String) row[2];
+            String bCode  = (String) row[3];
+            int qty       = ((Number) row[4]).intValue();
+            String label  = (zCode != null) ? zCode + "-" + shCode + "-" + bCode : null;
+            result.computeIfAbsent(skuId, k -> new ArrayList<>()).add(new PlacementView(label, qty));
+        }
+        return result;
     }
 
     // ── private helpers ───────────────────────────────────────────────────────

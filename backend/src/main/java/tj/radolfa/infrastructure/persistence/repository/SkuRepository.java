@@ -44,11 +44,11 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
     /**
      * Full-text warehouse SKU search across skuCode, barcode, and product name.
      * Column layout: [0]=id, [1]=skuCode, [2]=barcode, [3]=sizeLabel,
-     *                [4]=stockQuantity, [5]=productName, [6]=binLocation (null — enriched via placements in Phase 4)
+     *                [4]=stockQuantity, [5]=productName
+     * Placements are enriched by SearchSkusService after this query.
      */
     @Query(value = """
-            SELECT s.id, s.sku_code, s.barcode, s.size_label, s.stock_quantity, pb.name,
-                   NULL AS bin_location
+            SELECT s.id, s.sku_code, s.barcode, s.size_label, s.stock_quantity, pb.name
             FROM skus s
             JOIN listing_variants lv ON s.listing_variant_id = lv.id
             JOIN product_bases pb    ON lv.product_base_id = pb.id

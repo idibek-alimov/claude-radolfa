@@ -475,6 +475,17 @@ class UpdateProductStockServiceTest {
 
         @Override
         public boolean hasPlacementsInBin(Long binId) { return false; }
+
+        @Override
+        public List<tj.radolfa.domain.model.PlacementView> placementViewsForSku(Long skuId, Long warehouseId) {
+            return List.of();
+        }
+
+        @Override
+        public java.util.Map<Long, List<tj.radolfa.domain.model.PlacementView>> placementViewsForSkus(
+                java.util.Collection<Long> skuIds, Long warehouseId) {
+            return java.util.Map.of();
+        }
     }
 
     static class InMemoryLoadSkuPort implements LoadSkuPort {

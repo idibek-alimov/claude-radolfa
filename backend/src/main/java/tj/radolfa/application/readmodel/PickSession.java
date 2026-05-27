@@ -2,6 +2,7 @@ package tj.radolfa.application.readmodel;
 
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PlacementView;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public record PickSession(
             String productName,
             String sizeLabel,
             int quantity,
-            int quantityPicked
+            int quantityPicked,
+            List<PlacementView> placements
     ) {}
 }

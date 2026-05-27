@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tj.radolfa.infrastructure.persistence.entity.InventoryPlacementEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,4 +66,29 @@ public interface InventoryPlacementRepository extends JpaRepository<InventoryPla
     Page<Object[]> findInboundQueue(@Param("q") String q, Pageable pageable);
 
     boolean existsByBinId(Long binId);
+
+    /**
+     * Resolved placement views for a batch of SKUs: joins bins→shelves→zones to build labels.
+     * Inbound rows (bin_id IS NULL) return null zone/shelf/bin codes. qty > 0 filter applied.
+     * Ordered: bins first (qty DESC), inbound last — per SKU.
+     * Column layout: [0]=sku_id, [1]=zone_code, [2]=shelf_code, [3]=bin_code, [4]=quantity
+     */
+    @Query(value = """
+            SELECT p.sku_id,
+                   z.code  AS zone_code,
+                   sh.code AS shelf_code,
+                   b.code  AS bin_code,
+                   p.quantity
+            FROM inventory_placements p
+            LEFT JOIN warehouse_bins    b  ON b.id  = p.bin_id
+            LEFT JOIN warehouse_shelves sh ON sh.id = b.shelf_id
+            LEFT JOIN warehouse_zones   z  ON z.id  = sh.zone_id
+            WHERE p.sku_id IN (:skuIds) AND p.warehouse_id = :wh AND p.quantity > 0
+            ORDER BY p.sku_id,
+                     CASE WHEN p.bin_id IS NULL THEN 1 ELSE 0 END,
+                     p.quantity DESC
+            """,
+           nativeQuery = true)
+    List<Object[]> findPlacementViewsForSkus(@Param("skuIds") Collection<Long> skuIds,
+                                              @Param("wh") Long warehouseId);
 }

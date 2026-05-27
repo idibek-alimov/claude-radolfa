@@ -21,7 +21,8 @@ public record PickSessionDto(
             String productName,
             String sizeLabel,
             int quantity,
-            int quantityPicked
+            int quantityPicked,
+            List<PlacementDto> placements
     ) {}
 
     public static PickSessionDto from(PickSession session) {
@@ -39,7 +40,8 @@ public record PickSessionDto(
                                 i.productName(),
                                 i.sizeLabel(),
                                 i.quantity(),
-                                i.quantityPicked()))
+                                i.quantityPicked(),
+                                i.placements().stream().map(PlacementDto::from).toList()))
                         .toList());
     }
 }

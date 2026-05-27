@@ -76,6 +76,9 @@ class RelocateStockServiceTest {
             return new PageResult<>(List.of(), 0, p, sz, true);
         }
         @Override public boolean hasPlacementsInBin(Long binId)                 { return false; }
+        @Override public List<tj.radolfa.domain.model.PlacementView> placementViewsForSku(Long s, Long w)        { return List.of(); }
+        @Override public java.util.Map<Long, List<tj.radolfa.domain.model.PlacementView>> placementViewsForSkus(
+                java.util.Collection<Long> ids, Long w)                                                          { return java.util.Map.of(); }
     }
 
     static final LoadWarehousePort FAKE_WAREHOUSE = new LoadWarehousePort() {

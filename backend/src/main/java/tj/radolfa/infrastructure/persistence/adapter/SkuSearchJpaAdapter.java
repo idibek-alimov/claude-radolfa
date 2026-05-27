@@ -38,6 +38,6 @@ public class SkuSearchJpaAdapter implements SearchSkusPort {
                 (String) r[3],
                 r[4] != null ? ((Number) r[4]).intValue() : 0,
                 (String) r[5],
-                (String) r[6]);
+                List.of());
     }
 }
