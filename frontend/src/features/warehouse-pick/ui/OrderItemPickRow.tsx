@@ -30,6 +30,34 @@ export function OrderItemPickRow({ item, flash }: Props) {
         <span className="font-medium text-sm text-zinc-900 truncate">{item.productName}</span>
         <span className="text-xs text-muted-foreground">{item.sizeLabel}</span>
         <span className="font-mono text-xs text-muted-foreground mt-0.5">{item.barcode}</span>
+        {(() => {
+          const binPlacements = item.placements.filter((p) => p.binLabel != null);
+          const onlyInbound = item.placements.length > 0 && binPlacements.length === 0;
+          if (onlyInbound) {
+            return (
+              <span className="text-xs italic text-muted-foreground mt-0.5">
+                {t("pick.session.unassignedHint")}
+              </span>
+            );
+          }
+          if (binPlacements.length === 0) return null;
+          const MAX_HINTS = 3;
+          const shown = binPlacements.slice(0, MAX_HINTS);
+          const extra = binPlacements.length - shown.length;
+          return (
+            <span className="text-xs text-muted-foreground mt-0.5">
+              <span className="mr-1">{t("pick.session.binHint")}:</span>
+              {shown.map((p, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="mx-1">·</span>}
+                  <span className="font-mono">{p.binLabel}</span>
+                  <span className="tabular-nums"> ({p.quantity})</span>
+                </span>
+              ))}
+              {extra > 0 && <span className="ml-1">+{extra}</span>}
+            </span>
+          );
+        })()}
       </div>
       <div className="flex flex-col items-end gap-2 ml-4 shrink-0">
         <span className="text-2xl font-bold tabular-nums">

@@ -1249,7 +1249,9 @@
           "pending": "Ожидает",
           "inProgress": "В процессе",
           "picked": "Собрано"
-        }
+        },
+        "binHint": "Ячейки",
+        "unassignedHint": "Не размещён — найдите вручную"
       }
     },
     "putaway": {

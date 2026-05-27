@@ -1249,7 +1249,9 @@
           "pending": "Pending",
           "inProgress": "In Progress",
           "picked": "Picked"
-        }
+        },
+        "binHint": "Bins",
+        "unassignedHint": "Unassigned — locate manually"
       }
     },
     "putaway": {

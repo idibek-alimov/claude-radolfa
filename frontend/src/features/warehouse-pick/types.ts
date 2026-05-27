@@ -8,6 +8,11 @@ export interface PickQueueItem {
   pickedUnits: number;
 }
 
+export interface PickPlacement {
+  binLabel: string | null;
+  quantity: number;
+}
+
 export interface PickSessionItem {
   orderItemId: number;
   skuCode: string;
@@ -16,6 +21,7 @@ export interface PickSessionItem {
   sizeLabel: string;
   quantity: number;
   quantityPicked: number;
+  placements: PickPlacement[];
 }
 
 export interface PickSession {
