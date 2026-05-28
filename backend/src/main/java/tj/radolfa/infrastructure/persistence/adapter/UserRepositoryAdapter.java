@@ -1,5 +1,6 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -11,6 +12,7 @@ import tj.radolfa.application.ports.out.SearchUsersPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.infrastructure.persistence.entity.LoyaltyTierEntity;
 import tj.radolfa.infrastructure.persistence.entity.UserEntity;
 import tj.radolfa.infrastructure.persistence.mappers.UserMapper;
 import tj.radolfa.infrastructure.persistence.repository.UserRepository;
@@ -28,11 +30,14 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
 
     private final UserRepository repository;
     private final UserMapper mapper;
+    private final EntityManager em;
 
     public UserRepositoryAdapter(UserRepository repository,
-            UserMapper mapper) {
+            UserMapper mapper,
+            EntityManager em) {
         this.repository = repository;
         this.mapper = mapper;
+        this.em = em;
     }
 
     @Override
@@ -50,11 +55,21 @@ public class UserRepositoryAdapter implements LoadUserPort, SaveUserPort, Search
     @Override
     public User save(User user) {
         UserEntity entity = mapper.toEntity(user);
+        // The mapper builds a detached LoyaltyTierEntity with id but null @Version,
+        // which Hibernate 6 rejects on flush. Replace with managed proxies so the
+        // session treats them as already-persistent references (no SELECT needed).
+        entity.setTier(managedTierProxy(entity.getTier()));
+        entity.setLowestTierEver(managedTierProxy(entity.getLowestTierEver()));
         UserEntity saved = repository.save(entity);
         // Reload with tier eagerly fetched to avoid LazyInitializationException
         return repository.findByIdWithTier(saved.getId())
                 .map(mapper::toUser)
                 .orElseThrow();
+    }
+
+    private LoyaltyTierEntity managedTierProxy(LoyaltyTierEntity tier) {
+        if (tier == null || tier.getId() == null) return tier;
+        return em.getReference(LoyaltyTierEntity.class, tier.getId());
     }
 
     @Override

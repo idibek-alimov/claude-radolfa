@@ -232,6 +232,16 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
+            <!-- Exclude @Tag("integration") tests from the default unit-test run.
+                 Run integration tests explicitly with: ./mvnw test -Dgroups=integration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>integration</excludedGroups>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
