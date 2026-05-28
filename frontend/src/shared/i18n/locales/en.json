@@ -278,9 +278,33 @@
         "underReviewNotice": "This product is under review. Any edit will reset it to DRAFT.",
         "dirtyResetsToDraft": "Saving will reset this product to DRAFT."
       },
+      "tabs": {
+        "ALL": "All",
+        "DRAFT": "Draft",
+        "PENDING_REVIEW": "Pending review",
+        "AWAITING_STOCK": "Awaiting stock",
+        "ACTIVE": "Active",
+        "REJECTED": "Rejected"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "rejectDialog": {
+        "trigger": "Reject",
+        "title": "Reject product",
+        "description": "Provide a reason — the MANAGER will see this on the edit page.",
+        "noteLabel": "Reason",
+        "notePlaceholder": "e.g. Missing dimensions, image quality too low…",
+        "submit": "Reject product",
+        "submitting": "Rejecting…",
+        "cancel": "Cancel"
+      },
       "toast": {
         "submitted": "Submitted for review",
-        "submitFailed": "Failed to submit for review"
+        "submitFailed": "Failed to submit for review",
+        "approved": "Product approved",
+        "rejected": "Product rejected"
       }
     },
     "orders": {

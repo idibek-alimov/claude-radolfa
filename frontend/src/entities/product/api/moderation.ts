@@ -1,5 +1,5 @@
 import { apiClient } from "@/shared/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { getErrorMessage } from "@/shared/lib";
@@ -59,5 +59,48 @@ export function useSubmitProductForReview() {
       toast.success(t("submitted"));
     },
     onError: (err) => toast.error(getErrorMessage(err)),
+  });
+}
+
+export function useApproveProduct() {
+  const qc = useQueryClient();
+  const t = useTranslations("manage.products.toast");
+
+  return useMutation({
+    mutationFn: approveProduct,
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["admin-product", id] });
+      qc.invalidateQueries({ queryKey: ["admin-products-pending-count"] });
+      toast.success(t("approved"));
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+}
+
+export function useRejectProduct() {
+  const qc = useQueryClient();
+  const t = useTranslations("manage.products.toast");
+
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      rejectProduct(id, reason),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["admin-product", id] });
+      qc.invalidateQueries({ queryKey: ["admin-products-pending-count"] });
+      toast.success(t("rejected"));
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+}
+
+export function usePendingProductCount(enabled = true) {
+  return useQuery({
+    queryKey: ["admin-products-pending-count"],
+    queryFn: fetchPendingProductCount,
+    enabled,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
 }

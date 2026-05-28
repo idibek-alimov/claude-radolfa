@@ -9,6 +9,7 @@ import { ADMIN_NAV_GROUPS } from "../model/navItems";
 import { cn } from "@/shared/lib";
 import type { AdminNavItem } from "../model/types";
 import { fetchAdminQuestionCount } from "@/entities/question";
+import { usePendingProductCount } from "@/entities/product/api/moderation";
 
 function isActive(href: string, pathname: string, exact?: boolean) {
   if (href === "/manage") return pathname === "/manage";
@@ -102,7 +103,16 @@ export function AdminSidebar() {
     refetchInterval: 60_000,
     staleTime: 30_000,
   });
-  const pendingCount = pendingCountData?.count ?? 0;
+  const questionCount = pendingCountData?.count ?? 0;
+
+  const { data: pendingProductData } = usePendingProductCount(isAdmin);
+  const productCount = pendingProductData?.count ?? 0;
+
+  function badgeCountFor(item: AdminNavItem): number {
+    if (item.badge === "questions") return questionCount;
+    if (item.badge === "products") return productCount;
+    return 0;
+  }
 
   const initials = user?.phone ? user.phone.slice(-2) : "AD";
   const roleLabel = user?.role ?? "MANAGER";
@@ -181,7 +191,7 @@ export function AdminSidebar() {
                       key={item.href}
                       item={item}
                       collapsed={collapsed}
-                      badgeCount={item.badge ? pendingCount : 0}
+                      badgeCount={badgeCountFor(item)}
                     />
                   ))}
                 </div>

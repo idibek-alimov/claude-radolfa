@@ -28,7 +28,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Catalog",
     items: [
-      { href: "/manage/products", label: "Products", icon: Package },
+      { href: "/manage/products", label: "Products", icon: Package, badge: "products" as const },
       { href: "/manage/categories", label: "Categories", icon: Folder },
       { href: "/manage/colors", label: "Colors", icon: Palette },
       { href: "/manage/tags", label: "Tags", icon: Tag, adminOnly: true },
@@ -61,7 +61,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Reviews",
     items: [
       { href: "/manage/reviews", label: "Reviews", icon: Star },
-      { href: "/manage/qa", label: "Q&A", icon: HelpCircle, badge: true },
+      { href: "/manage/qa", label: "Q&A", icon: HelpCircle, badge: "questions" as const },
       { href: "/manage/review-traits", label: "Review Traits", icon: Sparkles, adminOnly: true },
     ],
   },

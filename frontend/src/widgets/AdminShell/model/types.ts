@@ -5,7 +5,7 @@ export interface AdminNavItem {
   label: string;
   icon: LucideIcon;
   adminOnly?: boolean;
-  badge?: boolean;
+  badge?: "questions" | "products";
   exact?: boolean;
 }
 
