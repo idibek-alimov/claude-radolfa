@@ -188,7 +188,8 @@ public class CreateProductService implements CreateProductUseCase {
                     savedVariant.getSlug(), savedSkus.size());
 
             eventPublisher.publishEvent(buildIndexEvent(
-                    savedVariant, command.name(), category.name(), color.hexCode(), savedSkus));
+                    savedVariant, command.name(), category.name(), color.hexCode(), savedSkus,
+                    savedBase.getStatus() != null ? savedBase.getStatus().name() : null));
         }
 
         return savedBase.getId();
@@ -241,7 +242,7 @@ public class CreateProductService implements CreateProductUseCase {
 
     private ListingVariantIndexedEvent buildIndexEvent(ListingVariant variant, String productName,
                                                        String category, String colorHex,
-                                                       List<Sku> skus) {
+                                                       List<Sku> skus, String status) {
         Double price = skus.stream()
                 .map(Sku::getPrice)
                 .filter(java.util.Objects::nonNull)
@@ -263,6 +264,7 @@ public class CreateProductService implements CreateProductUseCase {
                 variant.getId(), variant.getProductBaseId(), variant.getSlug(),
                 productName, category, variant.getColorKey(), colorHex,
                 variant.getWebDescription(), new java.util.ArrayList<>(variant.getImages()),
-                price, totalStock, variant.getLastSyncAt(), variant.getProductCode(), skuCodes);
+                price, totalStock, variant.getLastSyncAt(), variant.getProductCode(), skuCodes,
+                status);
     }
 }

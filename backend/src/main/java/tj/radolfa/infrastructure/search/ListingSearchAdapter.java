@@ -71,7 +71,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                         String description, List<String> images,
                         Double price, Integer totalStock,
                         Instant lastSyncAt,
-                        String productCode, List<String> skuCodes) {
+                        String productCode, List<String> skuCodes,
+                        String status) {
                 try {
                         ListingDocument doc = new ListingDocument(
                                         variantId, slug, name, category,
@@ -80,7 +81,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                         lastSyncAt,
                                         productCode,
                                         skuCodes != null ? skuCodes : List.of(),
-                                        productBaseId);
+                                        productBaseId, status);
                         repository.save(doc);
                         LOG.debug("Indexed listing variant id={}, slug={}", variantId, slug);
                 } catch (Exception e) {
@@ -132,8 +133,11 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                                 .boost(5.0f))))
                                 .minimumShouldMatch("1"))._toQuery();
 
+                Query activeFilter = Query.of(q -> q.term(t -> t.field("status").value("ACTIVE")));
+                Query combined = Query.of(q -> q.bool(b -> b.must(fuzzyQuery).filter(activeFilter)));
+
                 NativeQuery searchQuery = NativeQuery.builder()
-                                .withQuery(fuzzyQuery)
+                                .withQuery(combined)
                                 .withPageable(PageRequest.of(page - 1, limit))
                                 .build();
 
@@ -190,10 +194,12 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
 
         @Override
         public List<String> autocomplete(String prefix, int limit) {
+                Query matchQuery = Query.of(q -> q.match(m -> m.field("name.autocomplete").query(prefix)));
+                Query activeFilter = Query.of(q -> q.term(t -> t.field("status").value("ACTIVE")));
+                Query combined = Query.of(q -> q.bool(b -> b.must(matchQuery).filter(activeFilter)));
+
                 NativeQuery searchQuery = NativeQuery.builder()
-                                .withQuery(Query.of(q -> q.match(m -> m
-                                                .field("name.autocomplete")
-                                                .query(prefix))))
+                                .withQuery(combined)
                                 .withPageable(PageRequest.of(0, limit))
                                 .build();
 

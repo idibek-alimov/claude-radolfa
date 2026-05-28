@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
-import tj.radolfa.application.event.ListingVariantIndexedEvent;
 import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -17,7 +16,6 @@ import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.ProductBase;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Adds a new (empty) color variant to an existing ProductBase.
@@ -28,25 +26,28 @@ public class AddVariantToProductService implements AddVariantToProductUseCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(AddVariantToProductService.class);
 
-    private final LoadProductBasePort       loadBasePort;
-    private final LoadColorPort             loadColorPort;
-    private final LoadListingVariantPort    loadVariantPort;
-    private final SaveProductHierarchyPort  savePort;
-    private final ApplicationEventPublisher eventPublisher;
-    private final ProductEditGuard          editGuard;
+    private final LoadProductBasePort        loadBasePort;
+    private final LoadColorPort              loadColorPort;
+    private final LoadListingVariantPort     loadVariantPort;
+    private final SaveProductHierarchyPort   savePort;
+    private final ApplicationEventPublisher  eventPublisher;
+    private final ProductEditGuard           editGuard;
+    private final ListingVariantIndexPayload indexPayload;
 
     public AddVariantToProductService(LoadProductBasePort loadBasePort,
                                       LoadColorPort loadColorPort,
                                       LoadListingVariantPort loadVariantPort,
                                       SaveProductHierarchyPort savePort,
                                       ApplicationEventPublisher eventPublisher,
-                                      ProductEditGuard editGuard) {
-        this.loadBasePort     = loadBasePort;
-        this.loadColorPort    = loadColorPort;
-        this.loadVariantPort  = loadVariantPort;
-        this.savePort         = savePort;
-        this.eventPublisher   = eventPublisher;
-        this.editGuard        = editGuard;
+                                      ProductEditGuard editGuard,
+                                      ListingVariantIndexPayload indexPayload) {
+        this.loadBasePort    = loadBasePort;
+        this.loadColorPort   = loadColorPort;
+        this.loadVariantPort = loadVariantPort;
+        this.savePort        = savePort;
+        this.eventPublisher  = eventPublisher;
+        this.editGuard       = editGuard;
+        this.indexPayload    = indexPayload;
     }
 
     @Override
@@ -90,10 +91,7 @@ public class AddVariantToProductService implements AddVariantToProductUseCase {
         LOG.info("[ADD-VARIANT] productBaseId={} variantId={} slug='{}' colorKey='{}'",
                 command.productBaseId(), saved.getId(), saved.getSlug(), color.colorKey());
 
-        eventPublisher.publishEvent(new ListingVariantIndexedEvent(
-                saved.getId(), command.productBaseId(), saved.getSlug(),
-                base.getName(), base.getCategory(), color.colorKey(), color.hexCode(),
-                null, List.of(), null, 0, null, saved.getProductCode(), List.of()));
+        eventPublisher.publishEvent(indexPayload.build(saved, base));
 
         return new Result(saved.getId(), saved.getSlug());
     }

@@ -96,9 +96,10 @@ class UpdateProductCategoryServiceTest {
     UpdateProductCategoryService service(FakeBaseStore store) {
         ProductEditGuard guard = new ProductEditGuard(
                 store, store, skuId -> Optional.empty(), noVariants());
+        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus(), noColors());
         return new UpdateProductCategoryService(
-                store, categoryPort(), noVariants(), noSkus(), noColors(),
-                store, event -> { /* no-op event publisher */ }, guard);
+                store, categoryPort(), noVariants(),
+                store, event -> { /* no-op event publisher */ }, guard, payload);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
