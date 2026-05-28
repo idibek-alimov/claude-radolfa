@@ -72,4 +72,7 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
     @Modifying
     @Query("UPDATE SkuEntity s SET s.stockQuantity = :qty WHERE s.id = :id")
     void setStockQuantity(@Param("id") Long id, @Param("qty") int qty);
+
+    @Query("SELECT s.listingVariant.productBase.id FROM SkuEntity s WHERE s.id = :skuId")
+    Optional<Long> findProductBaseIdBySkuId(@Param("skuId") Long skuId);
 }

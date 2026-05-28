@@ -101,7 +101,7 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
 
     static final ListingVariant FAKE_VARIANT_OBJ = new ListingVariant(VARIANT_ID, PRODUCT_ID, "BLUE", "slug",
             null, null, null, null, null, "RD-002", true, true, null, null, null, null);
-    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-002", "Guard Product", null, null, null);
+    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-002", "Guard Product", null, null, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
 
     static final LoadListingVariantPort FAKE_VARIANT = new LoadListingVariantPort() {
         @Override public Optional<ListingVariant> findVariantById(Long id) { return Optional.of(FAKE_VARIANT_OBJ); }

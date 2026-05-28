@@ -58,7 +58,7 @@ class AddVariantToProductServiceTest {
         service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher);
 
         // Default fixtures
-        fakeBase.store(new ProductBase(1L, "INTERNAL-ABC123", "Winter Jacket", "Clothing", 1L, null));
+        fakeBase.store(new ProductBase(1L, "INTERNAL-ABC123", "Winter Jacket", "Clothing", 1L, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null));
         fakeColor.store(new ColorView(10L, "red", "Red", "#FF0000"));
     }
 

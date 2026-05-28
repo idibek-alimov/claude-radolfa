@@ -41,7 +41,9 @@ public interface ProductHierarchyMapper {
                 entity.getName(),
                 entity.getCategoryName(),
                 entity.getCategory() != null ? entity.getCategory().getId() : null,
-                entity.getBrand() != null ? entity.getBrand().getId() : null);
+                entity.getBrand()    != null ? entity.getBrand().getId()    : null,
+                entity.getStatus(),
+                entity.getRejectionReason());
     }
 
     // ---- ListingVariant ----

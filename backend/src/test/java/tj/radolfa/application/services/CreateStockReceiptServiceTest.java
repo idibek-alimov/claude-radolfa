@@ -57,7 +57,7 @@ class CreateStockReceiptServiceTest {
     }
 
     static ProductBase productBase(Long id, String name) {
-        return new ProductBase(id, "EXT-" + id, name, "Category", null, null);
+        return new ProductBase(id, "EXT-" + id, name, "Category", null, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
     }
 
     // ── Fakes ─────────────────────────────────────────────────────────────────

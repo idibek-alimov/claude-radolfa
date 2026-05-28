@@ -118,7 +118,8 @@ public class CreateProductService implements CreateProductUseCase {
         // 4. Create ProductBase with auto-generated externalRef
         // Use 12 hex chars (48 bits of entropy) to avoid birthday collisions at scale.
         String externalRef = "INTERNAL-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
-        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(), category.id(), brandId);
+        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(),
+                category.id(), brandId, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
         ProductBase savedBase = savePort.saveBase(base);
 
         log.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",

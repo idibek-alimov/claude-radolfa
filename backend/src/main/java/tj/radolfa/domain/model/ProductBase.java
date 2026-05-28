@@ -1,5 +1,7 @@
 package tj.radolfa.domain.model;
 
+import tj.radolfa.domain.exception.IllegalProductStatusTransitionException;
+
 /**
  * Root of the product hierarchy — groups all colour variants and their SKUs
  * under a single reference code.
@@ -24,17 +26,23 @@ public class ProductBase {
     private Long categoryId;
     private Long brandId;
 
+    // Lifecycle
+    private ProductStatus status;
+    private String rejectionReason;
+
     /**
-     * @param id          database PK ({@code null} for unsaved instances)
-     * @param externalRef required — external template identity, must not be blank
-     * @param name        nullable — populated by import sync
-     * @param category    nullable — populated by import sync (denormalized name)
-     * @param categoryId  nullable — DB FK for the category; preferred over name for
-     *                    persistence
-     * @param brandId     nullable — Radolfa-managed
+     * @param id              database PK ({@code null} for unsaved instances)
+     * @param externalRef     required — external template identity, must not be blank
+     * @param name            nullable — populated by import sync
+     * @param category        nullable — populated by import sync (denormalized name)
+     * @param categoryId      nullable — DB FK for the category
+     * @param brandId         nullable — Radolfa-managed
+     * @param status          nullable — defaults to DRAFT when null
+     * @param rejectionReason nullable — set only when status is REJECTED
      */
     public ProductBase(Long id, String externalRef, String name, String category,
-            Long categoryId, Long brandId) {
+            Long categoryId, Long brandId,
+            ProductStatus status, String rejectionReason) {
         if (externalRef == null || externalRef.isBlank()) {
             throw new IllegalArgumentException("externalRef must not be blank");
         }
@@ -44,6 +52,8 @@ public class ProductBase {
         this.category = category;
         this.categoryId = categoryId;
         this.brandId = brandId;
+        this.status = status != null ? status : ProductStatus.DRAFT;
+        this.rejectionReason = rejectionReason;
     }
 
     /**
@@ -56,8 +66,6 @@ public class ProductBase {
 
     /**
      * Updates the product category (MANAGER / ADMIN action).
-     * Both name and ID must be provided so the adapter can update the FK without
-     * an extra round-trip.
      */
     public void updateCategory(String category, Long categoryId) {
         if (category == null || category.isBlank()) {
@@ -77,28 +85,70 @@ public class ProductBase {
         this.brandId = brandId;
     }
 
+    // ---- Lifecycle transitions ----
+
+    /** DRAFT or REJECTED → PENDING_REVIEW. Clears any previous rejection reason. */
+    public void submitForReview() {
+        if (status != ProductStatus.DRAFT && status != ProductStatus.REJECTED) {
+            throw new IllegalProductStatusTransitionException(status, ProductStatus.PENDING_REVIEW);
+        }
+        this.status = ProductStatus.PENDING_REVIEW;
+        this.rejectionReason = null;
+    }
+
+    /** PENDING_REVIEW → AWAITING_STOCK (approval collapses into the awaiting-stock state). */
+    public void approve() {
+        if (status != ProductStatus.PENDING_REVIEW) {
+            throw new IllegalProductStatusTransitionException(status, ProductStatus.AWAITING_STOCK);
+        }
+        this.status = ProductStatus.AWAITING_STOCK;
+    }
+
+    /** PENDING_REVIEW → REJECTED. Requires a non-blank reason. */
+    public void reject(String reason) {
+        if (status != ProductStatus.PENDING_REVIEW) {
+            throw new IllegalProductStatusTransitionException(status, ProductStatus.REJECTED);
+        }
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("rejection reason must not be blank");
+        }
+        this.status = ProductStatus.REJECTED;
+        this.rejectionReason = reason;
+    }
+
+    /** AWAITING_STOCK → ACTIVE. Called by the first putaway hook; irreversible. */
+    public void activate() {
+        if (status != ProductStatus.AWAITING_STOCK) {
+            throw new IllegalProductStatusTransitionException(status, ProductStatus.ACTIVE);
+        }
+        this.status = ProductStatus.ACTIVE;
+    }
+
+    /**
+     * Resets PENDING_REVIEW or REJECTED to DRAFT when any edit is made.
+     * Idempotent — no-op for DRAFT, AWAITING_STOCK, and ACTIVE.
+     */
+    public void resetToDraftOnEdit() {
+        if (status == ProductStatus.PENDING_REVIEW || status == ProductStatus.REJECTED) {
+            this.status = ProductStatus.DRAFT;
+        }
+    }
+
     // ---- Getters (no setters — mutation is controlled) ----
-    public Long getId() {
-        return id;
-    }
 
-    public String getExternalRef() {
-        return externalRef;
-    }
+    public Long getId() { return id; }
 
-    public String getName() {
-        return name;
-    }
+    public String getExternalRef() { return externalRef; }
 
-    public String getCategory() {
-        return category;
-    }
+    public String getName() { return name; }
 
-    public Long getCategoryId() {
-        return categoryId;
-    }
+    public String getCategory() { return category; }
 
-    public Long getBrandId() {
-        return brandId;
-    }
+    public Long getCategoryId() { return categoryId; }
+
+    public Long getBrandId() { return brandId; }
+
+    public ProductStatus getStatus() { return status; }
+
+    public String getRejectionReason() { return rejectionReason; }
 }

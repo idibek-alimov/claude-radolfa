@@ -49,7 +49,7 @@ class LookupSkuByBarcodeServiceTest {
     }
 
     static ProductBase productBase(String name) {
-        return new ProductBase(BASE_ID, "EXT-001", name, "Category", null, null);
+        return new ProductBase(BASE_ID, "EXT-001", name, "Category", null, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
     }
 
     // ── Fakes ─────────────────────────────────────────────────────────────────

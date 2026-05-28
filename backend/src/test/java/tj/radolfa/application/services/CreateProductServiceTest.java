@@ -641,7 +641,8 @@ class CreateProductServiceTest {
             baseSaveCount++;
             lastSavedBase = new ProductBase(
                     idGen.getAndIncrement(), base.getExternalRef(),
-                    base.getName(), base.getCategory(), base.getCategoryId(), base.getBrandId());
+                    base.getName(), base.getCategory(), base.getCategoryId(), base.getBrandId(),
+                    base.getStatus(), base.getRejectionReason());
             return lastSavedBase;
         }
 

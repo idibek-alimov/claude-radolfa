@@ -822,3 +822,5 @@ BEGIN
                (v_sku_id, 1, v_bin2_id, v_in_bin2);
     END IF;
 END $$;
+
+UPDATE product_bases SET status = 'ACTIVE';

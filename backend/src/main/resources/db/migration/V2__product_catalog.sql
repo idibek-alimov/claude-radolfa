@@ -80,18 +80,21 @@ CREATE SEQUENCE listing_variant_code_seq START WITH 10001 INCREMENT BY 1;
 -- Product bases
 -- ----------------------------------------------------------------
 CREATE TABLE product_bases (
-    id            BIGSERIAL    PRIMARY KEY,
-    external_ref  VARCHAR(64)  NOT NULL UNIQUE,
-    name          VARCHAR(255),
-    category_id   BIGINT       REFERENCES categories(id),
-    category_name VARCHAR(255),
-    brand_id      BIGINT       REFERENCES brands(id),
-    version       BIGINT       NOT NULL DEFAULT 0,
-    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    id               BIGSERIAL    PRIMARY KEY,
+    external_ref     VARCHAR(64)  NOT NULL UNIQUE,
+    name             VARCHAR(255),
+    category_id      BIGINT       REFERENCES categories(id),
+    category_name    VARCHAR(255),
+    brand_id         BIGINT       REFERENCES brands(id),
+    status           VARCHAR(32)  NOT NULL DEFAULT 'DRAFT',
+    rejection_reason TEXT,
+    version          BIGINT       NOT NULL DEFAULT 0,
+    created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_product_bases_external_ref ON product_bases (external_ref);
+CREATE INDEX idx_product_bases_status       ON product_bases (status);
 
 -- ----------------------------------------------------------------
 -- Listing variants
