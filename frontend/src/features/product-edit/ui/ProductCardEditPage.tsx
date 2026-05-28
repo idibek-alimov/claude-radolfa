@@ -20,7 +20,9 @@ import { SharedHeaderCard } from "./SharedHeaderCard";
 import { VariantPanel } from "./VariantPanel";
 import { SaveBar } from "./SaveBar";
 import { DiscardChangesDialog } from "./DiscardChangesDialog";
+import { RejectionNoteBanner } from "@/features/product-management/ui/RejectionNoteBanner";
 import { ProductCampaignsPanel } from "@/widgets/product-campaigns-panel";
+import { ProductStatus } from "@/entities/product/model/types";
 
 interface Props {
   productBaseId: number;
@@ -66,6 +68,8 @@ export function ProductCardEditPage({ productBaseId }: Props) {
       categoryId: null,
       categoryName: null,
       variants: [],
+      status: ProductStatus.DRAFT,
+      rejectionReason: null,
     }
   );
   const { commit, isSaving } = useCommitDraft(productBaseId);
@@ -193,6 +197,11 @@ export function ProductCardEditPage({ productBaseId }: Props) {
           <span className="text-sm font-medium text-foreground">Edit</span>
         </header>
 
+        {/* Rejection note — only shown when an ADMIN has rejected this product */}
+        {card.status === ProductStatus.REJECTED && card.rejectionReason && (
+          <RejectionNoteBanner reason={card.rejectionReason} />
+        )}
+
         {/* Shared header — mutates ProductBase fields */}
         <SharedHeaderCard card={card} />
 
@@ -232,6 +241,8 @@ export function ProductCardEditPage({ productBaseId }: Props) {
           onSave={handleSave}
           onDiscard={draftApi.reset}
           isSaving={isSaving}
+          status={card.status}
+          productBaseId={productBaseId}
         />
 
         {/* Add Color dialog */}

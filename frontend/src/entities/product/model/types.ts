@@ -2,6 +2,14 @@ import type { PaginatedResponse } from "@/shared/api/types";
 import type { Tag } from "@/entities/tag";
 import type { ReviewTrait } from "@/entities/review-trait";
 
+export enum ProductStatus {
+  DRAFT = "DRAFT",
+  PENDING_REVIEW = "PENDING_REVIEW",
+  AWAITING_STOCK = "AWAITING_STOCK",
+  ACTIVE = "ACTIVE",
+  REJECTED = "REJECTED",
+}
+
 /**
  * A purchasable unit — one size of one colour variant.
  * Displayed on the product detail page as a size selector.
@@ -143,6 +151,20 @@ export interface ProductCard {
   categoryId: number | null;
   categoryName: string | null;
   variants: ProductCardVariant[];
+  status: ProductStatus;
+  rejectionReason: string | null;
+}
+
+/** One row in the admin products list. Mirrors AdminProductRowDto. */
+export interface AdminProductRow {
+  productBaseId: number;
+  externalRef: string | null;
+  name: string;
+  status: ProductStatus;
+  rejectionReason: string | null;
+  primaryImageUrl: string | null;
+  productCode: string | null;
+  updatedAt: string;
 }
 
 /** One color variant inside a ProductCard. */

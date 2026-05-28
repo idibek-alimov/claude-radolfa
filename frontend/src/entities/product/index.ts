@@ -11,7 +11,10 @@ export type {
     CollectionPage,
     CategoryTree,
     Color,
+    AdminProductRow,
 } from "./model/types";
+export { ProductStatus } from "./model/types";
+export { ProductStatusBadge } from "./ui/ProductStatusBadge";
 export { VariantTabBar } from "./ui/VariantTabBar";
 export type { VariantTabBarItem } from "./ui/VariantTabBar";
 export { ColorPickerDialog } from "./ui/ColorPickerDialog";

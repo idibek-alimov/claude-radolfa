@@ -261,6 +261,28 @@
     "linkedTraits": "Linked traits",
     "linkedTraitsHelp": "Reviews on products in this category will be asked these questions.",
     "noTraitsAvailable": "No traits available — define some in Review Traits first.",
+    "products": {
+      "status": {
+        "DRAFT": "Draft",
+        "PENDING_REVIEW": "Pending review",
+        "AWAITING_STOCK": "Awaiting stock",
+        "ACTIVE": "Active",
+        "REJECTED": "Rejected"
+      },
+      "tableUpdated": "Updated",
+      "rejection": {
+        "banner": "This product was rejected. Reason: \"{reason}\". Edit and resubmit when ready."
+      },
+      "saveBar": {
+        "submitForReview": "Submit for review",
+        "underReviewNotice": "This product is under review. Any edit will reset it to DRAFT.",
+        "dirtyResetsToDraft": "Saving will reset this product to DRAFT."
+      },
+      "toast": {
+        "submitted": "Submitted for review",
+        "submitFailed": "Failed to submit for review"
+      }
+    },
     "orders": {
       "title": "Order Management",
       "searchPlaceholder": "Search by phone or order ID…",

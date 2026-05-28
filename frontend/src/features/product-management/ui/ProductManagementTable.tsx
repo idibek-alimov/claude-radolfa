@@ -4,8 +4,8 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { fetchListings, searchListings } from "@/entities/product/api";
-import type { ListingVariant } from "@/entities/product/model/types";
+import { fetchAdminProducts } from "@/entities/product/api/moderation";
+import { ProductStatusBadge } from "@/entities/product/ui/ProductStatusBadge";
 import {
   Table,
   TableHeader,
@@ -17,12 +17,22 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Pencil, Lock, Search, Package, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Search, Package, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useDynamicPageSize } from "@/shared/lib";
 
+function formatUpdatedAt(iso: string): string {
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+}
+
 export function ProductManagementTable() {
   const t = useTranslations("manage");
+  const tp = useTranslations("manage.products");
   const router = useRouter();
 
   const [page, setPage] = useState(1);
@@ -44,19 +54,12 @@ export function ProductManagementTable() {
   }, []);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["listings", page, debouncedSearch, pageSize],
-    queryFn: () =>
-      debouncedSearch
-        ? searchListings(debouncedSearch, page, pageSize)
-        : fetchListings(page, pageSize),
+    queryKey: ["admin-products", { page, search: debouncedSearch, size: pageSize }],
+    queryFn: () => fetchAdminProducts({ search: debouncedSearch, page, size: pageSize }),
     placeholderData: keepPreviousData,
   });
 
-  const listings = data?.content ?? [];
-
-  const displayPrice = (item: ListingVariant) => `${item.originalPrice.toFixed(2)} TJS`;
-  const computeStock = (item: ListingVariant) =>
-    item.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
+  const rows = data?.content ?? [];
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -77,7 +80,7 @@ export function ProductManagementTable() {
       </div>
 
       <div ref={cardRef} className="flex-1 min-h-0 overflow-auto bg-card rounded-xl border shadow-sm">
-        {isLoading && listings.length === 0 ? (
+        {isLoading && rows.length === 0 ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -89,22 +92,20 @@ export function ProductManagementTable() {
               <TableRow>
                 <TableHead className="pl-4 w-[56px]">{t("tableImage")}</TableHead>
                 <TableHead>{t("tableProduct")}</TableHead>
-                <TableHead>{t("tableSlugKey")}</TableHead>
-                <TableHead>{t("tablePrice")}</TableHead>
-                <TableHead>{t("tableStock")}</TableHead>
                 <TableHead>{t("tableStatus")}</TableHead>
+                <TableHead>{tp("tableUpdated")}</TableHead>
                 <TableHead className="text-right pr-4">{t("tableActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {listings.map((item) => (
-                <TableRow key={item.variantId}>
+              {rows.map((row) => (
+                <TableRow key={row.productBaseId}>
                   <TableCell className="pl-4">
-                    {item.images?.[0] ? (
+                    {row.primaryImageUrl ? (
                       <div className="relative h-10 w-10 rounded-md border overflow-hidden">
                         <Image
-                          src={item.images[0]}
-                          alt={item.colorDisplayName}
+                          src={row.primaryImageUrl}
+                          alt={row.name}
                           width={40}
                           height={40}
                           className="object-cover aspect-square"
@@ -119,35 +120,25 @@ export function ProductManagementTable() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium text-sm">{item.colorDisplayName}</p>
+                      <p className="font-medium text-sm">{row.name}</p>
                       <p className="text-xs text-muted-foreground truncate max-w-xs">
-                        {item.productCode}
+                        {row.externalRef ?? row.productCode}
                       </p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                      {item.slug}
-                    </code>
+                    <ProductStatusBadge status={row.status} />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{displayPrice(item)}</span>
-                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {formatUpdatedAt(row.updatedAt)}
+                    </span>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{computeStock(item)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell />
                   <TableCell className="text-right pr-4">
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => router.push(`/manage/products/${item.productBaseId}/edit`)}
+                      onClick={() => router.push(`/manage/products/${row.productBaseId}/edit`)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -158,7 +149,7 @@ export function ProductManagementTable() {
           </Table>
         )}
 
-        {listings.length === 0 && !isLoading && (
+        {rows.length === 0 && !isLoading && (
           <div className="p-12 text-center text-muted-foreground">
             {debouncedSearch
               ? t("noProductsMatching", { search: debouncedSearch })
