@@ -59,7 +59,8 @@ class UpdateProductStockServiceTest {
         placementPort = new FakeInventoryPlacementPort();
         loadSkuPort   = new InMemoryLoadSkuPort();
         ledgerPort    = new FakeRecordInventoryTransactionPort();
-        service = new UpdateProductStockService(loadSkuPort, placementPort, ledgerPort, FAKE_WAREHOUSE);
+        service = new UpdateProductStockService(loadSkuPort, placementPort, ledgerPort, FAKE_WAREHOUSE,
+                ProductEditGuardTestUtil.noOp());
     }
 
     // ── decrement (legacy signature) ──────────────────────────────────────────

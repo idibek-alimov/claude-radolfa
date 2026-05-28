@@ -33,22 +33,26 @@ public class AddVariantToProductService implements AddVariantToProductUseCase {
     private final LoadListingVariantPort    loadVariantPort;
     private final SaveProductHierarchyPort  savePort;
     private final ApplicationEventPublisher eventPublisher;
+    private final ProductEditGuard          editGuard;
 
     public AddVariantToProductService(LoadProductBasePort loadBasePort,
                                       LoadColorPort loadColorPort,
                                       LoadListingVariantPort loadVariantPort,
                                       SaveProductHierarchyPort savePort,
-                                      ApplicationEventPublisher eventPublisher) {
+                                      ApplicationEventPublisher eventPublisher,
+                                      ProductEditGuard editGuard) {
         this.loadBasePort     = loadBasePort;
         this.loadColorPort    = loadColorPort;
         this.loadVariantPort  = loadVariantPort;
         this.savePort         = savePort;
         this.eventPublisher   = eventPublisher;
+        this.editGuard        = editGuard;
     }
 
     @Override
     @Transactional
     public Result execute(Command command) {
+        editGuard.resetIfNeeded(command.productBaseId());
         ProductBase base = loadBasePort.findById(command.productBaseId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "ProductBase not found: id=" + command.productBaseId()));

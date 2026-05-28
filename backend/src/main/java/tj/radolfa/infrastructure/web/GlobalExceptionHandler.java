@@ -28,6 +28,7 @@ import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
 import tj.radolfa.domain.exception.BinNotEmptyException;
 import tj.radolfa.domain.exception.BinWarehouseMismatchException;
+import tj.radolfa.domain.exception.IllegalProductStatusTransitionException;
 import tj.radolfa.domain.exception.InsufficientPlacementStockException;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
@@ -241,6 +242,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BinWarehouseMismatchException.class)
     public ResponseEntity<MessageResponseDto> handleBinWarehouseMismatch(BinWarehouseMismatchException ex) {
         LOG.warn("[PLACEMENT] Bin/warehouse mismatch: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalProductStatusTransitionException.class)
+    public ResponseEntity<MessageResponseDto> handleIllegalProductStatusTransition(
+            IllegalProductStatusTransitionException ex) {
+        LOG.warn("[LIFECYCLE] Illegal product status transition: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }

@@ -269,6 +269,8 @@ public class ProductHierarchyAdapter
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "ProductBase not found: id=" + base.getId()));
             entity.setName(base.getName());
+            entity.setStatus(base.getStatus());
+            entity.setRejectionReason(base.getRejectionReason());
         } else {
             // Create new
             entity = mapper.toBaseEntity(base);

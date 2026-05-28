@@ -26,18 +26,22 @@ public class AddSkuToVariantService implements AddSkuToVariantUseCase {
     private final LoadListingVariantPort    loadVariantPort;
     private final SaveProductHierarchyPort  savePort;
     private final BarcodeGenerator          barcodeGenerator;
+    private final ProductEditGuard          editGuard;
 
     public AddSkuToVariantService(LoadListingVariantPort loadVariantPort,
                                   SaveProductHierarchyPort savePort,
-                                  BarcodeGenerator barcodeGenerator) {
+                                  BarcodeGenerator barcodeGenerator,
+                                  ProductEditGuard editGuard) {
         this.loadVariantPort  = loadVariantPort;
         this.savePort         = savePort;
         this.barcodeGenerator = barcodeGenerator;
+        this.editGuard        = editGuard;
     }
 
     @Override
     @Transactional
     public Long execute(Command command) {
+        editGuard.resetIfNeeded(command.productBaseId());
         ListingVariant variant = loadVariantPort.findVariantById(command.variantId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "ListingVariant not found: id=" + command.variantId()));

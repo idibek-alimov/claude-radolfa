@@ -1,5 +1,7 @@
 package tj.radolfa.application.readmodel;
 
+import tj.radolfa.domain.model.ProductStatus;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -16,7 +18,9 @@ public record ProductCardDto(
         String brand,
         Long categoryId,
         String categoryName,
-        List<VariantSummary> variants
+        List<VariantSummary> variants,
+        ProductStatus status,
+        String rejectionReason
 ) {
 
     /**

@@ -21,16 +21,20 @@ public class UpdateProductNameService implements UpdateProductNameUseCase {
 
     private final LoadProductBasePort      loadProductBasePort;
     private final SaveProductHierarchyPort savePort;
+    private final ProductEditGuard         editGuard;
 
     public UpdateProductNameService(LoadProductBasePort loadProductBasePort,
-                                    SaveProductHierarchyPort savePort) {
+                                    SaveProductHierarchyPort savePort,
+                                    ProductEditGuard editGuard) {
         this.loadProductBasePort = loadProductBasePort;
         this.savePort            = savePort;
+        this.editGuard           = editGuard;
     }
 
     @Override
     @Transactional
     public void execute(Long productBaseId, String newName) {
+        editGuard.resetIfNeeded(productBaseId);
         ProductBase base = loadProductBasePort.findById(productBaseId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "ProductBase not found: id=" + productBaseId));

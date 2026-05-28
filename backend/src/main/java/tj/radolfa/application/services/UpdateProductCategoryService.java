@@ -42,6 +42,7 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
         private final LoadColorPort loadColorPort;
         private final SaveProductHierarchyPort savePort;
         private final ApplicationEventPublisher eventPublisher;
+        private final ProductEditGuard editGuard;
 
         public UpdateProductCategoryService(LoadProductBasePort loadProductBasePort,
                         LoadCategoryPort loadCategoryPort,
@@ -49,7 +50,8 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                         LoadSkuPort loadSkuPort,
                         LoadColorPort loadColorPort,
                         SaveProductHierarchyPort savePort,
-                        ApplicationEventPublisher eventPublisher) {
+                        ApplicationEventPublisher eventPublisher,
+                        ProductEditGuard editGuard) {
                 this.loadProductBasePort = loadProductBasePort;
                 this.loadCategoryPort = loadCategoryPort;
                 this.loadListingVariantPort = loadListingVariantPort;
@@ -57,11 +59,14 @@ public class UpdateProductCategoryService implements UpdateProductCategoryUseCas
                 this.loadColorPort = loadColorPort;
                 this.savePort = savePort;
                 this.eventPublisher = eventPublisher;
+                this.editGuard = editGuard;
         }
 
         @Override
         @Transactional
         public void execute(Long productBaseId, Long categoryId) {
+                editGuard.resetIfNeeded(productBaseId);
+
                 // 1. Resolve category
                 CategoryView category = loadCategoryPort.findById(categoryId)
                                 .orElseThrow(() -> new IllegalArgumentException(

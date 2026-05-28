@@ -55,7 +55,8 @@ class AddVariantToProductServiceTest {
         eventPublisher  = event -> {
             if (event instanceof ListingVariantIndexedEvent e) publishedEvents.add(e);
         };
-        service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher);
+        service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher,
+                new ProductEditGuard(fakeBase, fakeSave, id -> java.util.Optional.empty(), fakeVariant));
 
         // Default fixtures
         fakeBase.store(new ProductBase(1L, "INTERNAL-ABC123", "Winter Jacket", "Clothing", 1L, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null));

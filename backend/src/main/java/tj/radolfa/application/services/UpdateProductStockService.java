@@ -35,15 +35,18 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     private final InventoryPlacementPort         placementPort;
     private final RecordInventoryTransactionPort recordInventoryTransactionPort;
     private final LoadWarehousePort              loadWarehousePort;
+    private final ProductEditGuard               editGuard;
 
     public UpdateProductStockService(LoadSkuPort loadSkuPort,
                                      InventoryPlacementPort placementPort,
                                      RecordInventoryTransactionPort recordInventoryTransactionPort,
-                                     LoadWarehousePort loadWarehousePort) {
+                                     LoadWarehousePort loadWarehousePort,
+                                     ProductEditGuard editGuard) {
         this.loadSkuPort                    = loadSkuPort;
         this.placementPort                  = placementPort;
         this.recordInventoryTransactionPort = recordInventoryTransactionPort;
         this.loadWarehousePort              = loadWarehousePort;
+        this.editGuard                      = editGuard;
     }
 
     // ── UpdateProductStockUseCase ──────────────────────────────────────────────
@@ -51,6 +54,7 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     @Override
     @Transactional
     public void setAbsolute(Long skuId, int quantity, Long actorUserId) {
+        editGuard.resetIfNeededBySkuId(skuId);
         if (quantity < 0) throw new IllegalArgumentException("quantity must be ≥ 0");
         Long warehouseId = loadWarehousePort.findDefault().id();
         int current = placementPort.totalForSku(skuId, warehouseId);
@@ -68,6 +72,7 @@ public class UpdateProductStockService implements UpdateProductStockUseCase, Sto
     @Transactional
     public void adjust(Long skuId, int delta, Long actorUserId) {
         if (delta == 0) return;
+        editGuard.resetIfNeededBySkuId(skuId);
         Long warehouseId = loadWarehousePort.findDefault().id();
         if (delta < 0) {
             int quantity = -delta;
