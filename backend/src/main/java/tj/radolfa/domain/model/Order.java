@@ -22,6 +22,7 @@ public record Order(
         Long courierId,
         String trackingNumber,
         LocalDate estimatedDeliveryDate,
+        Instant claimedAt,
         Instant shippedAt,
         Instant deliveredAt,
         Instant cancelledAt,
@@ -55,7 +56,7 @@ public record Order(
                 .preferredTimeWindow(preferredTimeWindow).pickpointId(pickpointId)
                 .courierId(courierId).trackingNumber(trackingNumber)
                 .estimatedDeliveryDate(estimatedDeliveryDate)
-                .shippedAt(shippedAt).deliveredAt(deliveredAt)
+                .claimedAt(claimedAt).shippedAt(shippedAt).deliveredAt(deliveredAt)
                 .cancelledAt(cancelledAt).refundedAt(refundedAt)
                 .outForDeliveryAt(outForDeliveryAt).deliveryAttemptedAt(deliveryAttemptedAt)
                 .deliveryAttemptCount(deliveryAttemptCount).deliveryAttemptReason(deliveryAttemptReason)
@@ -87,6 +88,7 @@ public record Order(
         private Long courierId;
         private String trackingNumber;
         private LocalDate estimatedDeliveryDate;
+        private Instant claimedAt;
         private Instant shippedAt;
         private Instant deliveredAt;
         private Instant cancelledAt;
@@ -123,6 +125,7 @@ public record Order(
         public Builder courierId(Long v)                       { this.courierId = v; return this; }
         public Builder trackingNumber(String v)                { this.trackingNumber = v; return this; }
         public Builder estimatedDeliveryDate(LocalDate v)      { this.estimatedDeliveryDate = v; return this; }
+        public Builder claimedAt(Instant v)                    { this.claimedAt = v; return this; }
         public Builder shippedAt(Instant v)                    { this.shippedAt = v; return this; }
         public Builder deliveredAt(Instant v)                  { this.deliveredAt = v; return this; }
         public Builder cancelledAt(Instant v)                  { this.cancelledAt = v; return this; }
@@ -148,7 +151,7 @@ public record Order(
                     loyaltyPointsRedeemed, loyaltyPointsAwarded,
                     deliveryType, deliveryAddress, preferredTimeWindow, pickpointId,
                     courierId, trackingNumber, estimatedDeliveryDate,
-                    shippedAt, deliveredAt, cancelledAt, refundedAt,
+                    claimedAt, shippedAt, deliveredAt, cancelledAt, refundedAt,
                     outForDeliveryAt, deliveryAttemptedAt, deliveryAttemptCount,
                     deliveryAttemptReason, deliveryPhotoUrl, readyForPickupAt,
                     returnInitiatedAt, returnInitiatedByUserId, returnedToWarehouseAt,
