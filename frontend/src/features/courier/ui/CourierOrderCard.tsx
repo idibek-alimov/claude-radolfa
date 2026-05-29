@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { Loader2, MapPin, Phone } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/ui/button";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
-import { useMarkCollected } from "@/features/courier/api";
+import {
+  useMarkCollected,
+  useClaimOrder,
+  useRetryDelivery,
+} from "@/features/courier/api";
 import { getErrorMessage } from "@/shared/lib";
 import { toast } from "sonner";
 import type { CourierOrder } from "@/entities/user";
@@ -16,13 +21,36 @@ interface Props {
 }
 
 export function CourierOrderCard({ order }: Props) {
+  const t = useTranslations("courier");
   const collect = useMarkCollected();
+  const claim   = useClaimOrder();
+  const retry   = useRetryDelivery();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [attemptOpen, setAttemptOpen] = useState(false);
 
   function handleCollect() {
     collect.mutate(order.orderId, {
       onError: (err) => toast.error(getErrorMessage(err, "Failed to mark collected")),
+    });
+  }
+
+  function handleClaim() {
+    claim.mutate(order.orderId, {
+      onSuccess: () => toast.success(t("claimSuccess")),
+      onError: (err) => {
+        const status = (err as { response?: { status?: number } }).response?.status;
+        if (status === 409) {
+          toast.error(t("claimConflict"));
+        } else {
+          toast.error(getErrorMessage(err, "Failed to claim order"));
+        }
+      },
+    });
+  }
+
+  function handleRetry() {
+    retry.mutate(order.orderId, {
+      onError: (err) => toast.error(getErrorMessage(err, "Failed to retry delivery")),
     });
   }
 
@@ -74,29 +102,58 @@ export function CourierOrderCard({ order }: Props) {
         <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 text-center font-medium">
           Cancelled — no action required
         </div>
-      ) : order.status === "SHIPPED" ? (
+      ) : order.status === "PICKED" ? (
+        /* Available pool — courier claims */
+        <Button
+          className="w-full h-12"
+          onClick={handleClaim}
+          disabled={claim.isPending}
+        >
+          {claim.isPending ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("claiming")}</>
+          ) : (
+            t("claim")
+          )}
+        </Button>
+      ) : order.status === "CLAIMED" ? (
+        /* Courier's own claimed order — collect it */
         <Button
           className="w-full h-12"
           onClick={handleCollect}
           disabled={collect.isPending}
         >
           {collect.isPending ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Updating…</>
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("updating")}</>
           ) : (
-            "I've Collected This Order"
+            t("collectOrder")
           )}
         </Button>
       ) : order.status === "OUT_FOR_DELIVERY" ? (
-        <Button className="w-full h-12" onClick={() => setConfirmOpen(true)}>
-          Confirm Delivery
-        </Button>
+        /* Confirm delivery (primary) + couldn't deliver (secondary) */
+        <div className="space-y-2">
+          <Button className="w-full h-12" onClick={() => setConfirmOpen(true)}>
+            {t("confirmDelivery")}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-10 border-amber-300 text-amber-800 hover:bg-amber-50"
+            onClick={() => setAttemptOpen(true)}
+          >
+            {t("couldNotDeliver")}
+          </Button>
+        </div>
       ) : order.status === "DELIVERY_ATTEMPTED" ? (
+        /* Retry delivery → OUT_FOR_DELIVERY + fresh code */
         <Button
-          variant="outline"
-          className="w-full h-12 border-amber-300 text-amber-800 hover:bg-amber-50"
-          onClick={() => setAttemptOpen(true)}
+          className="w-full h-12"
+          onClick={handleRetry}
+          disabled={retry.isPending}
         >
-          Record Another Attempt
+          {retry.isPending ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("retrying")}</>
+          ) : (
+            t("retry")
+          )}
         </Button>
       ) : null}
 

@@ -1003,6 +1003,7 @@
   "courier": {
     "title": "Мои доставки",
     "tab": {
+      "available": "Доступные",
       "toCollect": "Забрать",
       "inTransit": "В пути",
       "attempted": "Попытка совершена"
@@ -1011,6 +1012,15 @@
     "of": "из",
     "noOrders": "Заказов в этой категории нет.",
     "collectOrder": "Я забрал этот заказ",
+    "updating": "Обновление…",
+    "claim": "Взять этот заказ",
+    "claiming": "Принятие…",
+    "claimSuccess": "Заказ успешно принят",
+    "claimConflict": "Заказ уже принят другим курьером",
+    "confirmDelivery": "Подтвердить доставку",
+    "couldNotDeliver": "Не удалось доставить",
+    "retry": "Повторная доставка",
+    "retrying": "Повтор…",
     "recordAttempt": "Зафиксировать ещё одну попытку",
     "attemptReason": "Причина",
     "attemptPhoto": "Фото (необязательно)"

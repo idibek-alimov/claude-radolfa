@@ -1,5 +1,5 @@
 // Synced from backend — do not edit manually
-export type OrderStatus = "PENDING" | "PAID" | "PICKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "RETURN_INITIATED" | "RETURNED_TO_WAREHOUSE" | "DELIVERED" | "CANCELLED" | "REFUNDED" | "RECALL_REQUESTED";
+export type OrderStatus = "PENDING" | "PAID" | "PICKED" | "CLAIMED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "RETURN_INITIATED" | "RETURNED_TO_WAREHOUSE" | "DELIVERED" | "CANCELLED" | "REFUNDED" | "RECALL_REQUESTED";
 
 export interface OrderItem {
   productName: string;

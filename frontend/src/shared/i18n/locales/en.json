@@ -1003,6 +1003,7 @@
   "courier": {
     "title": "My Deliveries",
     "tab": {
+      "available": "Available",
       "toCollect": "To Collect",
       "inTransit": "In Transit",
       "attempted": "Attempted"
@@ -1011,6 +1012,15 @@
     "of": "of",
     "noOrders": "No orders in this category.",
     "collectOrder": "I've Collected This Order",
+    "updating": "Updating…",
+    "claim": "Claim this order",
+    "claiming": "Claiming…",
+    "claimSuccess": "Order claimed successfully",
+    "claimConflict": "Already claimed by another courier",
+    "confirmDelivery": "Confirm Delivery",
+    "couldNotDeliver": "Couldn't deliver",
+    "retry": "Retry delivery",
+    "retrying": "Retrying…",
     "recordAttempt": "Record Another Attempt",
     "attemptReason": "Attempt reason",
     "attemptPhoto": "Upload photo (optional)"

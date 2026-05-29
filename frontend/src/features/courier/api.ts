@@ -65,3 +65,37 @@ export function useMarkAttempted() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["courier-orders"] }),
   });
 }
+
+export function useAvailableOrders(page: number, size: number = 20) {
+  return useQuery({
+    queryKey: ["courier-available", page, size],
+    queryFn: () =>
+      apiClient
+        .get<PaginatedResponse<CourierOrder>>("/api/v1/courier/orders/available", {
+          params: { page, size },
+        })
+        .then((r) => r.data),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useClaimOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: number) =>
+      apiClient.post(`/api/v1/courier/orders/${orderId}/claim`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["courier-available"] });
+      qc.invalidateQueries({ queryKey: ["courier-orders"] });
+    },
+  });
+}
+
+export function useRetryDelivery() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: number) =>
+      apiClient.post(`/api/v1/courier/orders/${orderId}/retry`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["courier-orders"] }),
+  });
+}

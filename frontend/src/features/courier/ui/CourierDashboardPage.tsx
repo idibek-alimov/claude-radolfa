@@ -6,9 +6,10 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import type { OrderStatus } from "@/entities/order/model/types";
-import { useCourierOrders } from "@/features/courier/api";
+import { useCourierOrders, useAvailableOrders } from "@/features/courier/api";
 import { useDeliverySocket } from "@/shared/lib/useDeliverySocket";
 import { CourierTabPanel } from "./CourierTabPanel";
+import { AvailableTabPanel } from "./AvailableTabPanel";
 
 function TabBadge({ count, amber }: { count: number; amber?: boolean }) {
   if (count === 0) return null;
@@ -24,23 +25,27 @@ function TabBadge({ count, amber }: { count: number; amber?: boolean }) {
   );
 }
 
-const COLLECT_STATUSES: OrderStatus[] = ["SHIPPED"];
+const COLLECT_STATUSES: OrderStatus[] = ["CLAIMED"];
 const TRANSIT_STATUSES: OrderStatus[] = ["OUT_FOR_DELIVERY"];
 const ATTEMPTED_STATUSES: OrderStatus[] = ["DELIVERY_ATTEMPTED"];
 
 export function CourierDashboardPage() {
   const qc = useQueryClient();
   const t = useTranslations("courier");
-  const [pages, setPages] = useState({ collect: 1, transit: 1, attempted: 1 });
+  const [pages, setPages] = useState({ available: 1, collect: 1, transit: 1, attempted: 1 });
 
-  // Page-1 queries for badge counts — deduped with CourierTabPanel's queries at page=1
-  const collectCount = useCourierOrders(COLLECT_STATUSES, 1);
-  const transitCount = useCourierOrders(TRANSIT_STATUSES, 1);
+  // Page-1 queries for badge counts — deduped with tab panel queries at page=1
+  const availableCount = useAvailableOrders(1);
+  const collectCount   = useCourierOrders(COLLECT_STATUSES, 1);
+  const transitCount   = useCourierOrders(TRANSIT_STATUSES, 1);
   const attemptedCount = useCourierOrders(ATTEMPTED_STATUSES, 1);
 
   const { connected } = useDeliverySocket({
     topic: "/user/queue/delivery",
-    onMessage: () => qc.invalidateQueries({ queryKey: ["courier-orders"] }),
+    onMessage: () => {
+      qc.invalidateQueries({ queryKey: ["courier-orders"] });
+      qc.invalidateQueries({ queryKey: ["courier-available"] });
+    },
   });
 
   const attemptedTotal = attemptedCount.data?.totalElements ?? 0;
@@ -61,8 +66,12 @@ export function CourierDashboardPage() {
           </span>
         </div>
 
-        <Tabs defaultValue="collect">
+        <Tabs defaultValue="available">
           <TabsList className="w-full">
+            <TabsTrigger value="available" className="flex-1">
+              {t("tab.available")}
+              <TabBadge count={availableCount.data?.totalElements ?? 0} />
+            </TabsTrigger>
             <TabsTrigger value="collect" className="flex-1">
               {t("tab.toCollect")}
               <TabBadge count={collectCount.data?.totalElements ?? 0} />
@@ -79,6 +88,13 @@ export function CourierDashboardPage() {
               <TabBadge count={attemptedTotal} amber />
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="available" className="mt-4">
+            <AvailableTabPanel
+              page={pages.available}
+              onPageChange={(p) => setPages((prev) => ({ ...prev, available: p }))}
+            />
+          </TabsContent>
 
           <TabsContent value="collect" className="mt-4">
             <CourierTabPanel
