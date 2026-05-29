@@ -46,3 +46,18 @@ export function useScanUnit(orderId: number) {
     },
   });
 }
+
+export function useCompletePickSession(orderId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiClient.post(`/api/v1/admin/warehouse/pick-sessions/${orderId}/complete`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["warehouse-pick-session", orderId] });
+      qc.invalidateQueries({ queryKey: ["warehouse-pick-queue"] });
+      qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-order-summary"] });
+    },
+  });
+}

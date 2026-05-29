@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/lib";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { usePickSession } from "../api";
+import { usePickSession, useCompletePickSession } from "../api";
 import { PickScanInput } from "./PickScanInput";
 import { OrderItemPickRow } from "./OrderItemPickRow";
 
@@ -21,10 +23,18 @@ export function PickSessionPage({ orderId }: Props) {
   const router = useRouter();
   const { data: session, isLoading, isError } = usePickSession(orderId);
   const [lastScannedItemId, setLastScannedItemId] = useState<number | null>(null);
+  const complete = useCompletePickSession(orderId);
 
   function handleScanned(orderItemId: number) {
     setLastScannedItemId(orderItemId);
     setTimeout(() => setLastScannedItemId(null), 600);
+  }
+
+  function handleComplete() {
+    complete.mutate(undefined, {
+      onSuccess: () => toast.success(t("pick.session.completeSuccess")),
+      onError: (e) => toast.error(getErrorMessage(e)),
+    });
   }
 
   if (isLoading) {
@@ -59,6 +69,7 @@ export function PickSessionPage({ orderId }: Props) {
   const totalUnits = session.items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPicked = session.items.reduce((sum, i) => sum + i.quantityPicked, 0);
   const isPicked = session.status === "PICKED";
+  const allPicked = totalUnits > 0 && totalPicked === totalUnits;
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
@@ -123,6 +134,22 @@ export function PickSessionPage({ orderId }: Props) {
                 </p>
               </CardContent>
             </Card>
+            {allPicked && !isPicked && (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-muted-foreground text-center">
+                  {t("pick.session.allScannedHint")}
+                </p>
+                <Button
+                  className="w-full"
+                  disabled={complete.isPending}
+                  onClick={handleComplete}
+                >
+                  {complete.isPending
+                    ? t("pick.session.completing")
+                    : t("pick.session.completeButton")}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Right: item rows */}

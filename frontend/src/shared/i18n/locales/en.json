@@ -1297,7 +1297,11 @@
           "picked": "Picked"
         },
         "binHint": "Bins",
-        "unassignedHint": "Unassigned — locate manually"
+        "unassignedHint": "Unassigned — locate manually",
+        "completeButton": "Complete pick",
+        "completing": "Completing…",
+        "completeSuccess": "Order marked as picked",
+        "allScannedHint": "All items scanned. Click Complete to finalize."
       }
     },
     "putaway": {
