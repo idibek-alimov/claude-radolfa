@@ -3,7 +3,6 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.warehouse.ScanOrderItemUnitUseCase;
-import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadWarehousePort;
@@ -32,20 +31,17 @@ public class ScanOrderItemUnitService implements ScanOrderItemUnitUseCase {
     private final SaveOrderItemPickStatePort saveOrderItemPickStatePort;
     private final RecordInventoryTransactionPort recordInventoryTransactionPort;
     private final LoadWarehousePort loadWarehousePort;
-    private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
 
     public ScanOrderItemUnitService(LoadOrderPort loadOrderPort,
                                     LoadSkuPort loadSkuPort,
                                     SaveOrderItemPickStatePort saveOrderItemPickStatePort,
                                     RecordInventoryTransactionPort recordInventoryTransactionPort,
-                                    LoadWarehousePort loadWarehousePort,
-                                    UpdateOrderStatusUseCase updateOrderStatusUseCase) {
+                                    LoadWarehousePort loadWarehousePort) {
         this.loadOrderPort = loadOrderPort;
         this.loadSkuPort = loadSkuPort;
         this.saveOrderItemPickStatePort = saveOrderItemPickStatePort;
         this.recordInventoryTransactionPort = recordInventoryTransactionPort;
         this.loadWarehousePort = loadWarehousePort;
-        this.updateOrderStatusUseCase = updateOrderStatusUseCase;
     }
 
     @Override
@@ -102,10 +98,6 @@ public class ScanOrderItemUnitService implements ScanOrderItemUnitUseCase {
         Order reloaded = loadOrderPort.loadById(cmd.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + cmd.orderId()));
         boolean orderFullyPicked = reloaded.items().stream().allMatch(OrderItem::isFullyPicked);
-        if (orderFullyPicked) {
-            updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
-                    cmd.orderId(), OrderStatus.PICKED, null, null, null));
-        }
 
         return new Result(matchedItem.getId(), newPickedQty, matchedItem.getQuantity(), orderFullyPicked);
     }

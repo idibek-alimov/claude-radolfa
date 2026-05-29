@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tj.radolfa.application.ports.in.warehouse.CompletePickSessionUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetInboundQueueUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetPickSessionUseCase;
 import tj.radolfa.application.ports.in.warehouse.GetWarehousePickQueueUseCase;
@@ -91,6 +92,7 @@ public class WarehouseController {
     private final GetWarehousePickQueueUseCase         getWarehousePickQueueUseCase;
     private final GetPickSessionUseCase                getPickSessionUseCase;
     private final ScanOrderItemUnitUseCase             scanOrderItemUnitUseCase;
+    private final CompletePickSessionUseCase           completePickSessionUseCase;
     private final LoadOrderPort                        loadOrderPort;
     private final LoadSkuPort                          loadSkuPort;
     private final LoadUserPort                         loadUserPort;
@@ -365,5 +367,16 @@ public class WarehouseController {
         var result = scanOrderItemUnitUseCase.execute(
                 new ScanOrderItemUnitUseCase.Command(orderId, body.scannedBarcode(), principal.userId()));
         return ResponseEntity.ok(ScanResultDto.from(result));
+    }
+
+    @PostMapping("/pick-sessions/{orderId}/complete")
+    @Operation(summary = "Complete a pick session (PAID → PICKED) once all units are scanned")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Void> completePickSession(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        completePickSessionUseCase.execute(
+                new CompletePickSessionUseCase.Command(orderId, principal.userId()));
+        return ResponseEntity.noContent().build();
     }
 }
