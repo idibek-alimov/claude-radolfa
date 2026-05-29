@@ -60,6 +60,11 @@ CREATE INDEX idx_orders_external_order_id ON orders (external_order_id) WHERE ex
 CREATE INDEX idx_orders_courier_id        ON orders (courier_id);
 
 -- ----------------------------------------------------------------
+-- Sequence for human-readable order codes (ORD-NNNNN)
+-- ----------------------------------------------------------------
+CREATE SEQUENCE order_external_code_seq START WITH 10001 INCREMENT BY 1;
+
+-- ----------------------------------------------------------------
 -- Order items
 -- ----------------------------------------------------------------
 CREATE TABLE order_items (

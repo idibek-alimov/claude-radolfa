@@ -38,13 +38,16 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     private final OrderRepository repository;
     private final OrderMapper mapper;
     private final EntityManager em;
+    private final OrderCodeGenerator orderCodeGenerator;
 
     public OrderRepositoryAdapter(OrderRepository repository,
                                   OrderMapper mapper,
-                                  EntityManager em) {
+                                  EntityManager em,
+                                  OrderCodeGenerator orderCodeGenerator) {
         this.repository = repository;
         this.mapper = mapper;
         this.em = em;
+        this.orderCodeGenerator = orderCodeGenerator;
     }
 
     @Override
@@ -129,6 +132,9 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
             mapper.updateEntity(order, entity);
         } else {
             entity = mapper.toEntity(order);
+            if (entity.getExternalOrderId() == null) {
+                entity.setExternalOrderId(orderCodeGenerator.generate());
+            }
             entity.setUser(em.getReference(UserEntity.class, order.userId()));
 
             if (entity.getItems() != null) {
