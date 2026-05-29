@@ -2,7 +2,8 @@ package tj.radolfa.application.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tj.radolfa.application.ports.in.order.MarkOutForDeliveryUseCase;
+import tj.radolfa.application.ports.in.order.GenerateDeliveryCodeUseCase;
+import tj.radolfa.application.ports.in.order.RetryDeliveryUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
 import tj.radolfa.domain.exception.CourierAccessDeniedException;
@@ -13,18 +14,21 @@ import tj.radolfa.domain.model.OrderStatus;
 import java.time.Instant;
 
 @Service
-public class MarkOutForDeliveryService implements MarkOutForDeliveryUseCase {
+public class RetryDeliveryService implements RetryDeliveryUseCase {
 
-    private final LoadOrderPort            loadOrderPort;
-    private final SaveOrderPort            saveOrderPort;
-    private final OrderNotificationService orderNotificationService;
+    private final LoadOrderPort             loadOrderPort;
+    private final SaveOrderPort             saveOrderPort;
+    private final OrderNotificationService  orderNotificationService;
+    private final GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase;
 
-    public MarkOutForDeliveryService(LoadOrderPort loadOrderPort,
-                                     SaveOrderPort saveOrderPort,
-                                     OrderNotificationService orderNotificationService) {
-        this.loadOrderPort            = loadOrderPort;
-        this.saveOrderPort            = saveOrderPort;
-        this.orderNotificationService = orderNotificationService;
+    public RetryDeliveryService(LoadOrderPort loadOrderPort,
+                                SaveOrderPort saveOrderPort,
+                                OrderNotificationService orderNotificationService,
+                                GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase) {
+        this.loadOrderPort              = loadOrderPort;
+        this.saveOrderPort              = saveOrderPort;
+        this.orderNotificationService   = orderNotificationService;
+        this.generateDeliveryCodeUseCase = generateDeliveryCodeUseCase;
     }
 
     @Override
@@ -33,9 +37,9 @@ public class MarkOutForDeliveryService implements MarkOutForDeliveryUseCase {
         Order order = loadOrderPort.loadById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
 
-        if (order.status() != OrderStatus.CLAIMED) {
+        if (order.status() != OrderStatus.DELIVERY_ATTEMPTED) {
             throw new IllegalStateException(
-                    "Order must be CLAIMED to mark as out for delivery, current status: " + order.status());
+                    "Order must be DELIVERY_ATTEMPTED to retry delivery, current status: " + order.status());
         }
 
         if (order.courierId() == null || !order.courierId().equals(courierId)) {
@@ -49,6 +53,7 @@ public class MarkOutForDeliveryService implements MarkOutForDeliveryUseCase {
                 .build();
 
         saveOrderPort.save(updated);
+        generateDeliveryCodeUseCase.execute(orderId);
         orderNotificationService.notify(updated);
     }
 }

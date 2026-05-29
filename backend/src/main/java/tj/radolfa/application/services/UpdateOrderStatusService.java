@@ -60,7 +60,11 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         boolean toShipped         = command.newStatus() == OrderStatus.SHIPPED;
         boolean toDelivered       = command.newStatus() == OrderStatus.DELIVERED;
         boolean toReadyForPickup  = command.newStatus() == OrderStatus.READY_FOR_PICKUP;
-        Long      courierId       = toShipped ? command.courierId()             : order.courierId();
+        boolean toUnclaim         = order.status() == OrderStatus.CLAIMED
+                                    && command.newStatus() == OrderStatus.PICKED;
+        Long      courierId       = toShipped  ? command.courierId()
+                                               : (toUnclaim ? null : order.courierId());
+        Instant claimedAt         = toUnclaim ? null : order.claimedAt();
         String trackingNumber     = toShipped ? command.trackingNumber()        : order.trackingNumber();
         LocalDate edd             = toShipped ? command.estimatedDeliveryDate() : order.estimatedDeliveryDate();
         Instant now               = Instant.now();
@@ -71,6 +75,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         Order updated = order.toBuilder()
                 .status(command.newStatus())
                 .courierId(courierId)
+                .claimedAt(claimedAt)
                 .trackingNumber(trackingNumber)
                 .estimatedDeliveryDate(edd)
                 .shippedAt(shippedAt)
@@ -110,12 +115,11 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         boolean valid = switch (order.status()) {
             case PENDING            -> to == OrderStatus.PAID;
             case PAID               -> to == OrderStatus.PICKED;
-            case PICKED             -> pickpoint ? (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP)
-                                                 : to == OrderStatus.SHIPPED;
+            case PICKED             -> pickpoint && (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP);
+            case CLAIMED            -> !pickpoint && to == OrderStatus.PICKED; // admin unclaim
             case SHIPPED            -> (!pickpoint && to == OrderStatus.DELIVERED)
                                     || (pickpoint  && to == OrderStatus.READY_FOR_PICKUP);
             case READY_FOR_PICKUP   -> pickpoint  && to == OrderStatus.DELIVERED;
-            case DELIVERY_ATTEMPTED -> !pickpoint && to == OrderStatus.SHIPPED;
             default                 -> false;
         };
         if (!valid) {

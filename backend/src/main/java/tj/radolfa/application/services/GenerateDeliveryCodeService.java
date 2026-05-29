@@ -50,6 +50,7 @@ public class GenerateDeliveryCodeService
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
 
         if (order.status() != OrderStatus.CLAIMED
+                && order.status() != OrderStatus.OUT_FOR_DELIVERY
                 && order.status() != OrderStatus.SHIPPED
                 && order.status() != OrderStatus.READY_FOR_PICKUP) {
             throw new IllegalStateException(

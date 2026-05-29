@@ -15,6 +15,7 @@ import tj.radolfa.application.ports.in.order.GetAvailableOrdersUseCase;
 import tj.radolfa.application.ports.in.order.GetCourierOrdersUseCase;
 import tj.radolfa.application.ports.in.order.MarkDeliveryAttemptedUseCase;
 import tj.radolfa.application.ports.in.order.MarkOutForDeliveryUseCase;
+import tj.radolfa.application.ports.in.order.RetryDeliveryUseCase;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.domain.model.DeliveryAttemptReason;
@@ -36,15 +37,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/courier")
 public class CourierController {
 
-    private final GetCourierOrdersUseCase       getCourierOrdersUseCase;
-    private final GetAvailableOrdersUseCase     getAvailableOrdersUseCase;
-    private final ClaimOrderUseCase             claimOrderUseCase;
-    private final ConfirmRecallReceivedUseCase  confirmRecallReceivedUseCase;
-    private final MarkOutForDeliveryUseCase     markOutForDeliveryUseCase;
+    private final GetCourierOrdersUseCase        getCourierOrdersUseCase;
+    private final GetAvailableOrdersUseCase      getAvailableOrdersUseCase;
+    private final ClaimOrderUseCase              claimOrderUseCase;
+    private final ConfirmRecallReceivedUseCase   confirmRecallReceivedUseCase;
+    private final MarkOutForDeliveryUseCase      markOutForDeliveryUseCase;
     private final ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase;
-    private final MarkDeliveryAttemptedUseCase  markDeliveryAttemptedUseCase;
-    private final LoadUserPort                  loadUserPort;
-    private final LoadSkuPort                   loadSkuPort;
+    private final MarkDeliveryAttemptedUseCase   markDeliveryAttemptedUseCase;
+    private final RetryDeliveryUseCase           retryDeliveryUseCase;
+    private final LoadUserPort                   loadUserPort;
+    private final LoadSkuPort                    loadSkuPort;
 
     public CourierController(GetCourierOrdersUseCase getCourierOrdersUseCase,
                              GetAvailableOrdersUseCase getAvailableOrdersUseCase,
@@ -53,21 +55,23 @@ public class CourierController {
                              MarkOutForDeliveryUseCase markOutForDeliveryUseCase,
                              ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase,
                              MarkDeliveryAttemptedUseCase markDeliveryAttemptedUseCase,
+                             RetryDeliveryUseCase retryDeliveryUseCase,
                              LoadUserPort loadUserPort,
                              LoadSkuPort loadSkuPort) {
-        this.getCourierOrdersUseCase       = getCourierOrdersUseCase;
-        this.getAvailableOrdersUseCase     = getAvailableOrdersUseCase;
-        this.claimOrderUseCase             = claimOrderUseCase;
-        this.confirmRecallReceivedUseCase  = confirmRecallReceivedUseCase;
-        this.markOutForDeliveryUseCase     = markOutForDeliveryUseCase;
+        this.getCourierOrdersUseCase        = getCourierOrdersUseCase;
+        this.getAvailableOrdersUseCase      = getAvailableOrdersUseCase;
+        this.claimOrderUseCase              = claimOrderUseCase;
+        this.confirmRecallReceivedUseCase   = confirmRecallReceivedUseCase;
+        this.markOutForDeliveryUseCase      = markOutForDeliveryUseCase;
         this.confirmWithDeliveryCodeUseCase = confirmWithDeliveryCodeUseCase;
-        this.markDeliveryAttemptedUseCase  = markDeliveryAttemptedUseCase;
-        this.loadUserPort                  = loadUserPort;
-        this.loadSkuPort                   = loadSkuPort;
+        this.markDeliveryAttemptedUseCase   = markDeliveryAttemptedUseCase;
+        this.retryDeliveryUseCase           = retryDeliveryUseCase;
+        this.loadUserPort                   = loadUserPort;
+        this.loadSkuPort                    = loadSkuPort;
     }
 
     private static final List<OrderStatus> DEFAULT_STATUSES = List.of(
-            OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERY_ATTEMPTED);
+            OrderStatus.CLAIMED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERY_ATTEMPTED);
 
     record ConfirmRequest(@NotBlank String code) {}
 
@@ -138,6 +142,15 @@ public class CourierController {
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         markDeliveryAttemptedUseCase.execute(new MarkDeliveryAttemptedUseCase.Command(
                 orderId, principal.userId(), body.reason(), body.photoUrl()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/orders/{orderId}/retry")
+    @PreAuthorize("hasRole('COURIER')")
+    public ResponseEntity<Void> retry(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        retryDeliveryUseCase.execute(orderId, principal.userId());
         return ResponseEntity.noContent().build();
     }
 

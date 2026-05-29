@@ -35,6 +35,16 @@ class UpdateOrderStatusServiceTest {
                 .build();
     }
 
+    static Order homeClaimedOrder() {
+        return new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.CLAIMED)
+                .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
+                .deliveryType(DeliveryType.HOME).deliveryAddress("123 Main St")
+                .preferredTimeWindow("MORNING")
+                .courierId(99L).claimedAt(Instant.now())
+                .build();
+    }
+
     static Order homeShippedOrder() {
         return new Order.Builder()
                 .id(1L).userId(10L).status(OrderStatus.SHIPPED)
@@ -125,38 +135,38 @@ class UpdateOrderStatusServiceTest {
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("HOME PICKED→SHIPPED with courierId succeeds; courier fields persisted")
-    void homeShipWithCourier_succeeds() {
-        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), save);
-
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "TST123",
-                LocalDate.of(2026, 6, 1)));
-
-        Order saved = save.last();
-        assertEquals(OrderStatus.SHIPPED, saved.status());
-        assertEquals(99L, saved.courierId());
-        assertEquals("TST123", saved.trackingNumber());
-        assertEquals(LocalDate.of(2026, 6, 1), saved.estimatedDeliveryDate());
-    }
-
-    @Test
-    @DisplayName("HOME PICKED→SHIPPED without courierId throws IllegalArgumentException")
-    void homeShipWithoutCourier_throws() {
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), new CapturingSaveOrderPort());
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, null, null, null)));
-        assertTrue(ex.getMessage().contains("Courier ID is required"));
-    }
-
-    @Test
-    @DisplayName("HOME PICKED→SHIPPED without courierId (null) throws")
-    void homeShipWithNullCourier_throws() {
+    @DisplayName("HOME PICKED→SHIPPED is now rejected (couriers claim instead)")
+    void homePickedToShipped_nowRejected() {
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, null, null, null)));
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "TST123",
+                        LocalDate.of(2026, 6, 1))));
+    }
+
+    @Test
+    @DisplayName("HOME CLAIMED→PICKED (admin unclaim) succeeds; courierId and claimedAt are cleared")
+    void homeUnclaimSucceeds_courierAndClaimedAtCleared() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeClaimedOrder(), save);
+
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+
+        Order saved = save.last();
+        assertEquals(OrderStatus.PICKED, saved.status());
+        assertNull(saved.courierId(),  "courierId must be null after unclaim");
+        assertNull(saved.claimedAt(),  "claimedAt must be null after unclaim");
+    }
+
+    @Test
+    @DisplayName("PICKPOINT PICKED→SHIPPED succeeds (staff-driven arrival flow)")
+    void pickpointPickedToShipped_succeeds() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
+
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+
+        assertEquals(OrderStatus.SHIPPED, save.last().status());
     }
 
     @Test
@@ -233,17 +243,6 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKPOINT PICKED→SHIPPED succeeds (staff-driven arrival flow requires SHIPPED as intermediate)")
-    void pickpointPickedToShipped_succeeds() {
-        var saveOrder = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), saveOrder);
-
-        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
-
-        assertEquals(OrderStatus.SHIPPED, saveOrder.last().status());
-    }
-
-    @Test
     @DisplayName("HOME PAID→READY_FOR_PICKUP throws (cross-track forbidden)")
     void homePaidToReadyForPickup_throws() {
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
@@ -253,7 +252,7 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("HOME SHIPPED→DELIVERED still works (regression)")
+    @DisplayName("HOME SHIPPED→DELIVERED still works (regression — in-flight orders)")
     void homeShippedToDelivered_regression() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeShippedOrder(), save);
@@ -264,13 +263,13 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("Successful HOME PICKED→SHIPPED fires exactly one SHIPPED notification")
+    @DisplayName("PICKPOINT PICKED→SHIPPED fires exactly one SHIPPED notification")
     void notification_firedOnSuccess() {
         CountingNotificationPort port = new CountingNotificationPort();
         CapturingSaveOrderPort save   = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PICKED), save, port);
+        UpdateOrderStatusService svc  = service(pickpointOrder(OrderStatus.PICKED), save, port);
 
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
 
         assertEquals(1, port.updateCount);
         assertEquals(OrderStatus.SHIPPED, port.lastStatus);
@@ -290,13 +289,13 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PICKED→SHIPPED sets shippedAt; deliveredAt and cancelledAt remain null")
-    void pickedToShipped_setsShippedAt() {
+    @DisplayName("PICKPOINT PICKED→SHIPPED sets shippedAt; deliveredAt remains null")
+    void pickpointPickedToShipped_setsShippedAt() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PICKED), save);
+        UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
         Instant before = Instant.now();
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
         Instant after = Instant.now();
 
         Order saved = save.last();
@@ -329,13 +328,13 @@ class UpdateOrderStatusServiceTest {
     @DisplayName("Status update preserves all unrelated fields unchanged")
     void statusUpdate_preservesUnrelatedFields() {
         Instant created = Instant.parse("2026-01-01T00:00:00Z");
+        // Use pickpoint PICKED → SHIPPED for this coverage test (HOME PICKED→SHIPPED now invalid)
         Order pristine = new Order.Builder()
                 .id(42L).userId(7L).externalOrderId("EXT-XYZ")
                 .status(OrderStatus.PICKED).totalAmount(new Money(new BigDecimal("123.45")))
                 .items(List.of()).createdAt(created)
                 .loyaltyPointsRedeemed(150).loyaltyPointsAwarded(30)
-                .deliveryType(DeliveryType.HOME).deliveryAddress("Addr Line 1")
-                .preferredTimeWindow("9-12").pickpointId(99L)
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(99L)
                 .build();
 
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
@@ -344,8 +343,7 @@ class UpdateOrderStatusServiceTest {
                 new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
                 NO_DELIVERY_EVENTS);
 
-        svc.execute(new Command(42L, OrderStatus.SHIPPED,
-                99L, "TR-001", LocalDate.of(2026, 6, 1)));
+        svc.execute(new Command(42L, OrderStatus.SHIPPED, null, null, null));
 
         Order out = save.last();
         assertEquals(42L,              out.id());
@@ -355,16 +353,11 @@ class UpdateOrderStatusServiceTest {
         assertEquals(created,          out.createdAt());
         assertEquals(150,              out.loyaltyPointsRedeemed());
         assertEquals(30,               out.loyaltyPointsAwarded());
-        assertEquals(DeliveryType.HOME, out.deliveryType());
-        assertEquals("Addr Line 1",    out.deliveryAddress());
-        assertEquals("9-12",           out.preferredTimeWindow());
+        assertEquals(DeliveryType.PICKPOINT, out.deliveryType());
         assertEquals(99L,              out.pickpointId());
         assertNull(out.cancelledAt());
         assertNull(out.refundedAt());
-        // Status and shipping fields must be updated
         assertEquals(OrderStatus.SHIPPED, out.status());
-        assertEquals(99L,      out.courierId());
-        assertEquals("TR-001", out.trackingNumber());
     }
 
     @Test
@@ -388,8 +381,8 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("Admin DELIVERY_ATTEMPTED → SHIPPED reschedule succeeds and triggers delivery code regeneration")
-    void deliveryAttemptedToShipped_rescheduleTriggersFreshCode() {
+    @DisplayName("Admin DELIVERY_ATTEMPTED → SHIPPED is no longer valid (courier self-retry via RetryDeliveryService)")
+    void deliveryAttemptedToShipped_nowRejected() {
         Order attemptedOrder = new Order.Builder()
                 .id(1L).userId(10L).status(OrderStatus.DELIVERY_ATTEMPTED)
                 .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
@@ -397,16 +390,9 @@ class UpdateOrderStatusServiceTest {
                 .courierId(99L).deliveryAttemptCount(1)
                 .build();
 
-        FakeGenerateDeliveryCodeUseCase fakeCodeGen = new FakeGenerateDeliveryCodeUseCase();
-        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        UpdateOrderStatusService svc = new UpdateOrderStatusService(
-                orderPort(attemptedOrder), save,
-                new OrderNotificationService(silentPort()), fakeCodeGen, NO_DELIVERY_EVENTS);
+        UpdateOrderStatusService svc = service(attemptedOrder, new CapturingSaveOrderPort());
 
-        svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null));
-
-        assertEquals(OrderStatus.SHIPPED, save.last().status());
-        assertEquals(1L, fakeCodeGen.lastOrderId,
-                "GenerateDeliveryCodeUseCase must be called with the rescheduled order id");
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null)));
     }
 }
