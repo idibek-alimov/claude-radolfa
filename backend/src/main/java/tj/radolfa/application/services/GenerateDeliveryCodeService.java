@@ -49,7 +49,9 @@ public class GenerateDeliveryCodeService
         var order = loadOrderPort.loadById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
 
-        if (order.status() != OrderStatus.SHIPPED && order.status() != OrderStatus.READY_FOR_PICKUP) {
+        if (order.status() != OrderStatus.CLAIMED
+                && order.status() != OrderStatus.SHIPPED
+                && order.status() != OrderStatus.READY_FOR_PICKUP) {
             throw new IllegalStateException(
                     "Cannot generate a delivery code for order in status: " + order.status());
         }

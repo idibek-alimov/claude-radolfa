@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.out.ClaimOrderPort;
 import tj.radolfa.application.ports.out.LoadAdminOrdersPort;
 import tj.radolfa.application.ports.out.LoadCourierOrderStatsPort;
 import tj.radolfa.application.ports.out.LoadCourierOrdersPort;
@@ -13,6 +14,7 @@ import tj.radolfa.application.ports.out.LoadExpiringPickpointOrdersPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPickpointOrdersPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
@@ -32,7 +34,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, LoadAdminOrdersPort,
-        LoadCourierOrdersPort, LoadPickpointOrdersPort, LoadCourierOrderStatsPort,
+        LoadCourierOrdersPort, ClaimOrderPort, LoadPickpointOrdersPort, LoadCourierOrderStatsPort,
         LoadExpiringPickpointOrdersPort {
 
     private final OrderRepository repository;
@@ -216,5 +218,23 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
                                 ((Number) row[1]).longValue(),
                                 ((Number) row[2]).longValue(),
                                 ((Number) row[3]).longValue())));
+    }
+
+    @Override
+    public PageResult<Order> loadAvailablePoolPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").ascending());
+        var pg = repository.findByStatusAndCourierIdIsNullAndDeliveryType(
+                OrderStatus.PICKED, DeliveryType.HOME, pageable);
+        return new PageResult<>(
+                pg.getContent().stream().map(mapper::toOrder).toList(),
+                pg.getTotalElements(),
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pg.isLast());
+    }
+
+    @Override
+    public boolean claimIfAvailable(Long orderId, Long courierId, Instant claimedAt) {
+        return repository.claimIfAvailable(orderId, courierId, claimedAt) == 1;
     }
 }

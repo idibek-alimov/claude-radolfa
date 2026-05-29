@@ -20,6 +20,7 @@ import tj.radolfa.domain.exception.DeliveryCodeExpiredException;
 import tj.radolfa.domain.exception.DeliveryCodeMismatchException;
 import tj.radolfa.domain.exception.DeliveryCodeNotFoundException;
 import tj.radolfa.domain.exception.DiscountConflictException;
+import tj.radolfa.domain.exception.OrderAlreadyClaimedException;
 import tj.radolfa.domain.exception.OrderRecallNotAllowedException;
 import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.DuplicateReviewException;
@@ -323,6 +324,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PickpointCodeLockoutException.class)
     public ResponseEntity<MessageResponseDto> handlePickpointCodeLockout(PickpointCodeLockoutException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(OrderAlreadyClaimedException.class)
+    public ResponseEntity<MessageResponseDto> handleOrderAlreadyClaimed(OrderAlreadyClaimedException ex) {
+        LOG.warn("[CONFLICT] Order already claimed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 

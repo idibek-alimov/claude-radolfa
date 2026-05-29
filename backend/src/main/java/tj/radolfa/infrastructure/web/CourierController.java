@@ -8,8 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tj.radolfa.application.ports.in.order.ClaimOrderUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmRecallReceivedUseCase;
 import tj.radolfa.application.ports.in.order.ConfirmWithDeliveryCodeUseCase;
+import tj.radolfa.application.ports.in.order.GetAvailableOrdersUseCase;
 import tj.radolfa.application.ports.in.order.GetCourierOrdersUseCase;
 import tj.radolfa.application.ports.in.order.MarkDeliveryAttemptedUseCase;
 import tj.radolfa.application.ports.in.order.MarkOutForDeliveryUseCase;
@@ -35,27 +37,33 @@ import java.util.stream.Collectors;
 public class CourierController {
 
     private final GetCourierOrdersUseCase       getCourierOrdersUseCase;
-    private final ConfirmRecallReceivedUseCase   confirmRecallReceivedUseCase;
-    private final MarkOutForDeliveryUseCase      markOutForDeliveryUseCase;
+    private final GetAvailableOrdersUseCase     getAvailableOrdersUseCase;
+    private final ClaimOrderUseCase             claimOrderUseCase;
+    private final ConfirmRecallReceivedUseCase  confirmRecallReceivedUseCase;
+    private final MarkOutForDeliveryUseCase     markOutForDeliveryUseCase;
     private final ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase;
-    private final MarkDeliveryAttemptedUseCase   markDeliveryAttemptedUseCase;
-    private final LoadUserPort                   loadUserPort;
-    private final LoadSkuPort                    loadSkuPort;
+    private final MarkDeliveryAttemptedUseCase  markDeliveryAttemptedUseCase;
+    private final LoadUserPort                  loadUserPort;
+    private final LoadSkuPort                   loadSkuPort;
 
     public CourierController(GetCourierOrdersUseCase getCourierOrdersUseCase,
+                             GetAvailableOrdersUseCase getAvailableOrdersUseCase,
+                             ClaimOrderUseCase claimOrderUseCase,
                              ConfirmRecallReceivedUseCase confirmRecallReceivedUseCase,
                              MarkOutForDeliveryUseCase markOutForDeliveryUseCase,
                              ConfirmWithDeliveryCodeUseCase confirmWithDeliveryCodeUseCase,
                              MarkDeliveryAttemptedUseCase markDeliveryAttemptedUseCase,
                              LoadUserPort loadUserPort,
                              LoadSkuPort loadSkuPort) {
-        this.getCourierOrdersUseCase      = getCourierOrdersUseCase;
-        this.confirmRecallReceivedUseCase = confirmRecallReceivedUseCase;
-        this.markOutForDeliveryUseCase    = markOutForDeliveryUseCase;
+        this.getCourierOrdersUseCase       = getCourierOrdersUseCase;
+        this.getAvailableOrdersUseCase     = getAvailableOrdersUseCase;
+        this.claimOrderUseCase             = claimOrderUseCase;
+        this.confirmRecallReceivedUseCase  = confirmRecallReceivedUseCase;
+        this.markOutForDeliveryUseCase     = markOutForDeliveryUseCase;
         this.confirmWithDeliveryCodeUseCase = confirmWithDeliveryCodeUseCase;
-        this.markDeliveryAttemptedUseCase = markDeliveryAttemptedUseCase;
-        this.loadUserPort                 = loadUserPort;
-        this.loadSkuPort                  = loadSkuPort;
+        this.markDeliveryAttemptedUseCase  = markDeliveryAttemptedUseCase;
+        this.loadUserPort                  = loadUserPort;
+        this.loadSkuPort                   = loadSkuPort;
     }
 
     private static final List<OrderStatus> DEFAULT_STATUSES = List.of(
@@ -78,21 +86,28 @@ public class CourierController {
                 : statuses;
 
         PageResult<Order> result = getCourierOrdersUseCase.execute(principal.userId(), resolvedStatuses, page, size);
-
-        Set<Long> skuIds = result.content().stream()
-                .flatMap(o -> o.items() == null ? java.util.stream.Stream.empty() : o.items().stream())
-                .map(OrderItem::getSkuId)
-                .filter(id -> id != null)
-                .collect(Collectors.toSet());
-        Map<Long, Sku> skuMap = loadSkuPort.findAllByIdsAsMap(skuIds);
-
-        List<CourierOrderDto> dtos = result.content().stream().map(order -> {
-            User customer = loadUserPort.loadById(order.userId()).orElse(null);
-            return CourierOrderDto.from(order, customer, skuMap);
-        }).toList();
-
         return ResponseEntity.ok(PageResponse.from(
-                new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+                new PageResult<>(toDtos(result), result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @GetMapping("/orders/available")
+    @PreAuthorize("hasRole('COURIER')")
+    public ResponseEntity<PageResponse<CourierOrderDto>> getAvailableOrders(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PageResult<Order> result = getAvailableOrdersUseCase.execute(page, size);
+        return ResponseEntity.ok(PageResponse.from(
+                new PageResult<>(toDtos(result), result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @PostMapping("/orders/{orderId}/claim")
+    @PreAuthorize("hasRole('COURIER')")
+    public ResponseEntity<Void> claim(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        claimOrderUseCase.execute(new ClaimOrderUseCase.Command(orderId, principal.userId()));
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/orders/{orderId}/collect")
@@ -133,5 +148,21 @@ public class CourierController {
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         confirmRecallReceivedUseCase.execute(orderId, principal.userId());
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private List<CourierOrderDto> toDtos(PageResult<Order> result) {
+        Set<Long> skuIds = result.content().stream()
+                .flatMap(o -> o.items() == null ? java.util.stream.Stream.empty() : o.items().stream())
+                .map(OrderItem::getSkuId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, Sku> skuMap = loadSkuPort.findAllByIdsAsMap(skuIds);
+
+        return result.content().stream().map(order -> {
+            User customer = loadUserPort.loadById(order.userId()).orElse(null);
+            return CourierOrderDto.from(order, customer, skuMap);
+        }).toList();
     }
 }
