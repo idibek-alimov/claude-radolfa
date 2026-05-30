@@ -1,8 +1,10 @@
 # =============================================================================
-# Radolfa Frontend - Multi-stage Dockerfile
-# Stage 1: Dependencies
-# Stage 2: Build
-# Stage 3: Runtime (standalone output)
+# Radolfa Storefront - Multi-stage Dockerfile
+# Build context: frontend/ (the npm workspace root)
+#
+# Stage 1: Dependencies  — install all workspace deps via npm ci
+# Stage 2: Build         — build @radolfa/storefront
+# Stage 3: Runtime       — run the standalone server
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -12,10 +14,13 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Copy workspace root manifests
+COPY package.json package-lock.json ./
 
-# Install dependencies
+# Copy the app package manifest so npm ci resolves it as a workspace member
+COPY apps/storefront/package.json ./apps/storefront/package.json
+
+# Install all workspace dependencies (hoisted to /app/node_modules)
 RUN npm ci
 
 # -----------------------------------------------------------------------------
@@ -25,11 +30,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependencies from deps stage
+# Copy hoisted node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy the full workspace tree (source + config)
 COPY . .
 
-# Set environment variables for build
+# Build-time environment
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
@@ -43,11 +50,13 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG BACKEND_INTERNAL_URL=http://localhost:8080
 ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
 
-# Build the application (outputs to .next/standalone with output: 'standalone')
-RUN npm run build
+# Build the storefront workspace app
+RUN npm run build -w @radolfa/storefront
 
 # -----------------------------------------------------------------------------
 # Stage 3: Runtime (standalone)
+# The standalone output mirrors the monorepo tree under .next/standalone,
+# so the entry point is apps/storefront/server.js relative to the output root.
 # -----------------------------------------------------------------------------
 FROM node:20-alpine AS runner
 
@@ -57,18 +66,15 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Set environment variables
+# Runtime environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy standalone output
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy the full standalone tree (includes all workspace dependencies)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/storefront/.next/standalone ./
 
-# Copy public folder if it exists (optional assets)
-# Using a workaround since COPY fails if source doesn't exist
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json.bak
-RUN rm ./package.json.bak
+# Copy the static assets next to where the standalone server expects them
+COPY --from=builder --chown=nextjs:nodejs /app/apps/storefront/.next/static ./apps/storefront/.next/static
 
 # Switch to non-root user
 USER nextjs
@@ -76,7 +82,6 @@ USER nextjs
 # Expose the application port
 EXPOSE 3000
 
-# Set the port
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
@@ -85,4 +90,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Start the standalone server
-CMD ["node", "server.js"]
+CMD ["node", "apps/storefront/server.js"]

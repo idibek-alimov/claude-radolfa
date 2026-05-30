@@ -1,4 +1,8 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const withNextIntl = createNextIntlPlugin("./src/shared/i18n/request.ts");
 
@@ -6,6 +10,10 @@ const withNextIntl = createNextIntlPlugin("./src/shared/i18n/request.ts");
 const nextConfig = {
   // Enable standalone output for Docker deployment (smaller image size)
   output: "standalone",
+
+  // Point file-tracing root at the workspace root so the standalone bundle
+  // resolves hoisted node_modules from frontend/ (the npm workspace root).
+  outputFileTracingRoot: path.join(__dirname, "../../"),
 
   // Proxy API requests to the backend.
   // Local dev (next dev): BACKEND_INTERNAL_URL unset → falls back to localhost:8080
