@@ -12,7 +12,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/shared/ui/breadcrumb";
+} from "@radolfa/shared/ui/breadcrumb";
 
 export default function CollectionViewAllPage({
   params,

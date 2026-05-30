@@ -4,7 +4,10 @@ import path from "path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const withNextIntl = createNextIntlPlugin("./src/shared/i18n/request.ts");
+// next-intl request config now lives in @radolfa/shared
+const withNextIntl = createNextIntlPlugin(
+  "../../packages/shared/src/i18n/request.ts"
+);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -14,6 +17,9 @@ const nextConfig = {
   // Point file-tracing root at the workspace root so the standalone bundle
   // resolves hoisted node_modules from frontend/ (the npm workspace root).
   outputFileTracingRoot: path.join(__dirname, "../../"),
+
+  // Let Next.js compile the local workspace package (not published to npm).
+  transpilePackages: ["@radolfa/shared"],
 
   // Proxy API requests to the backend.
   // Local dev (next dev): BACKEND_INTERNAL_URL unset → falls back to localhost:8080

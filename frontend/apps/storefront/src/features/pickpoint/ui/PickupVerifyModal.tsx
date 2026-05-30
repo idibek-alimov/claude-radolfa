@@ -9,17 +9,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/shared/ui/dialog";
+} from "@radolfa/shared/ui/dialog";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "@/shared/ui/tabs";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+} from "@radolfa/shared/ui/tabs";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
 import { useVerifyPickup } from "@/features/pickpoint/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 interface Props {
   open: boolean;

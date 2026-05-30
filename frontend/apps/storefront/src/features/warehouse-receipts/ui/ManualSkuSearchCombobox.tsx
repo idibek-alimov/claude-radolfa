@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronsUpDown, Loader2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -11,9 +11,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/shared/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
-import { useDebounce } from "@/shared/lib";
+} from "@radolfa/shared/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@radolfa/shared/ui/popover";
+import { useDebounce } from "@radolfa/shared/lib";
 import { useSearchSkus } from "@/entities/warehouse-sku";
 import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 

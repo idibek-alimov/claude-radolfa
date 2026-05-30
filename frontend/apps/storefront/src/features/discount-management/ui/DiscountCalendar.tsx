@@ -3,10 +3,10 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { fetchDiscounts } from "../api";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 
 interface Props {
   selectedDate: string | null; // "YYYY-MM-DD" or null

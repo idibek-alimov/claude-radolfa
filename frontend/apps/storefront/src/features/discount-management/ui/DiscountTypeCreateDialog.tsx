@@ -7,17 +7,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import { createDiscountType, updateDiscountType } from "../api";
 import type { DiscountType, StackingPolicy } from "../model/types";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 import { Loader2, Tag, ListOrdered, Layers } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { cn } from "@/shared/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@radolfa/shared/ui/radio-group";
+import { cn } from "@radolfa/shared/lib/utils";
 
 const ACCENT_COLORS = [
   "#F97316",

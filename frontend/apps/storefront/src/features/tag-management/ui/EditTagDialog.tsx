@@ -8,13 +8,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import { TagBadge } from "@/entities/tag";
 import { updateTag } from "@/entities/tag/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { Tag } from "@/entities/tag";
 
 interface EditTagDialogProps {

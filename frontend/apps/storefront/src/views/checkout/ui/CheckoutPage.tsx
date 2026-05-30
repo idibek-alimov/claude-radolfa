@@ -23,25 +23,25 @@ import {
   Clock,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@radolfa/shared/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { cn } from "@/shared/lib/utils";
+} from "@radolfa/shared/ui/select";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { cn } from "@radolfa/shared/lib/utils";
 import { useCartQuery, useApplyCoupon, useRemoveCoupon } from "@/features/cart";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { checkout, TIME_WINDOW_CODES, type DeliveryType, type TimeWindowCode } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { useCancelOrder } from "@/entities/order";
-import { getErrorMessage, isCouponsEnabled } from "@/shared/lib";
+import { getErrorMessage, isCouponsEnabled } from "@radolfa/shared/lib";
 
 function AmenityBadge({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (

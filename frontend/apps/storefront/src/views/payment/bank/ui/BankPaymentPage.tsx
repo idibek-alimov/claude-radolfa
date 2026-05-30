@@ -9,10 +9,10 @@ import { useQuery } from "@tanstack/react-query";
 import { CreditCard, Loader2, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { getPaymentStatus } from "@/features/payment/api";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 
 function formatCardNumber(raw: string): string {
   const digits = raw.replace(/\D/g, "").slice(0, 16);

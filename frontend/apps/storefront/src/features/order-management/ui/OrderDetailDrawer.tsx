@@ -10,22 +10,22 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/shared/ui/sheet";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/sheet";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
-import { Skeleton } from "@/shared/ui/skeleton";
+} from "@radolfa/shared/ui/select";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
 import type { OrderStatus } from "@/entities/order";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 import type { AdminOrderDetail } from "@/entities/order";
 

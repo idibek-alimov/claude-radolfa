@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { useAdminShell } from "../model/AdminShellContext";
 import { ADMIN_NAV_GROUPS } from "../model/navItems";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import type { AdminNavItem } from "../model/types";
 import { fetchAdminQuestionCount } from "@/entities/question";
 import { usePendingProductCount } from "@/entities/product/api/moderation";

@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import type { PaginatedResponse } from "@/shared/api/types";
+import apiClient from "@radolfa/shared/api/axios";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { SkuLookupResponse } from "./types";
 
 export function useLookupSkuByBarcode() {

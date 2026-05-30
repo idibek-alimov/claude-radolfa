@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { fetchRatingSummary } from "../api";
-import { StarRating } from "@/shared/ui/StarRating";
+import { StarRating } from "@radolfa/shared/ui/StarRating";
 
 interface RatingSummaryCardProps {
   slug: string;

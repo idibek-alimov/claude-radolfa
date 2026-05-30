@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, TrendingUp, Calendar, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { fetchAdminOrderSummary } from "@/features/admin-dashboard";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import type { RecentOrder } from "@/features/admin-dashboard";
 

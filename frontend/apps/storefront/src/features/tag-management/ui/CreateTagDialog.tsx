@@ -9,13 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import { TagBadge } from "@/entities/tag";
 import { createTag } from "@/entities/tag/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 export function CreateTagDialog() {
   const [open, setOpen] = useState(false);

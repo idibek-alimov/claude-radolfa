@@ -12,8 +12,8 @@ import { ReviewPhotoStrip } from "./ReviewPhotoStrip";
 import type { ReviewSortOption } from "../model/types";
 import type { ReviewFilters } from "../model/filters";
 import { defaultReviewFilters } from "../model/filters";
-import { Input } from "@/shared/ui/input";
-import { useDebounce } from "@/shared/lib";
+import { Input } from "@radolfa/shared/ui/input";
+import { useDebounce } from "@radolfa/shared/lib";
 
 const PREVIEW_SIZE = 6;
 const FULL_SIZE = 10;

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
-import { Button } from "@/shared/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radolfa/shared/ui/tabs";
+import { Button } from "@radolfa/shared/ui/button";
 import { DiscountTable } from "./DiscountTable";
 import { DiscountTypesPanel } from "./DiscountTypesPanel";
 import { DiscountedProductsTable } from "./DiscountedProductsTable";

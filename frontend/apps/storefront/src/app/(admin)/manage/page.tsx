@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { reindexSearch } from "@/features/search/api";
 import type { ReindexResult } from "@/features/search/api";
-import { Button } from "@/shared/ui/button";
-import { getErrorMessage } from "@/shared/lib";
+import { Button } from "@radolfa/shared/ui/button";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { RefreshCw, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DashboardKpiRow, ModerationAlertsRow, ActiveDiscountsWidget, OrderSummaryWidget } from "@/widgets/AdminDashboard";

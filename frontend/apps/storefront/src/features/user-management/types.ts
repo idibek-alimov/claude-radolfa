@@ -1,6 +1,6 @@
 import type { LoyaltyProfile } from "@/entities/loyalty";
-import type { PaginatedResponse } from "@/shared/api/types";
-import { UserRole } from "@/entities/user";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
+import { UserRole } from "@radolfa/shared/user";
 
 export type { PaginatedResponse };
 

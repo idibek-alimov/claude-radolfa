@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
 import { AdminShellProvider, useAdminShell } from "../model/AdminShellContext";
 import { AdminTopBar } from "./AdminTopBar";
 import { AdminSidebar } from "./AdminSidebar";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 
 function AdminShellInner({ children }: { children: React.ReactNode }) {
   const { collapsed } = useAdminShell();

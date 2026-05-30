@@ -4,10 +4,10 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ScanLine, ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Card, CardContent } from "@radolfa/shared/ui/card";
 import {
   Table,
   TableBody,
@@ -15,8 +15,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
-import { useDebounce, formatDate } from "@/shared/lib";
+} from "@radolfa/shared/ui/table";
+import { useDebounce, formatDate } from "@radolfa/shared/lib";
 import { usePickQueue } from "../api";
 
 export function PickQueuePage() {

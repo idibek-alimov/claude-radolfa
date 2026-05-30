@@ -17,10 +17,10 @@ import { useMyOrderDetail } from "../api";
 import { useDeliveryCode } from "@/entities/order/api";
 import { OrderStatusBadge } from "@/entities/order";
 import { PickupCodeDisplay } from "@/entities/order/ui/PickupCodeDisplay";
-import { formatPrice, formatDate } from "@/shared/lib/format";
-import { getErrorMessage } from "@/shared/lib";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Badge } from "@/shared/ui/badge";
+import { formatPrice, formatDate } from "@radolfa/shared/lib/format";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Badge } from "@radolfa/shared/ui/badge";
 import type { OrderStatus } from "@/entities/order/model/types";
 import type { MyOrderDetail } from "../types";
 

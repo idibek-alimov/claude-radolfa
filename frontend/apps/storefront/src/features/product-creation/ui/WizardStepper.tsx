@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@radolfa/shared/lib/utils";
 
 const STEPS = [
   { label: "Basic Information", description: "Name, category, attributes" },

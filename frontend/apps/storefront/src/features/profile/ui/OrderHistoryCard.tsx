@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { OrderStatusBadge } from "@/entities/order";
-import { formatDate, formatPrice } from "@/shared/lib/format";
+import { formatDate, formatPrice } from "@radolfa/shared/lib/format";
 import type { Order } from "@/features/profile/types";
 
 export function OrderHistoryCard({ order }: { order: Order }) {

@@ -7,9 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { CustomerReturn } from "@/entities/pickpoint";
 import { useApproveRefund } from "../api";
 

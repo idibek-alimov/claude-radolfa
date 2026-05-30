@@ -1,5 +1,5 @@
-import { apiClient } from "@/shared/api";
-import type { PaginatedResponse } from "@/shared/api/types";
+import { apiClient } from "@radolfa/shared/api";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type {
   Sku,
   ListingVariant,

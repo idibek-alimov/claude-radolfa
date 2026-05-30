@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Trash2, Box } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Card } from "@/shared/ui/card";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Card } from "@radolfa/shared/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,15 +16,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
+} from "@radolfa/shared/ui/tooltip";
 import { useBinsByShelf } from "@/entities/warehouse-location";
 import type { WarehouseBinDto } from "@/entities/warehouse-location";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { useDeleteBin } from "../api";
 import { CreateBinDialog } from "./CreateBinDialog";
 

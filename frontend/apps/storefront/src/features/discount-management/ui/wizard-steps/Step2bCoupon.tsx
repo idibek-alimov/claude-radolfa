@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { useDebounce } from "@/shared/lib";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { useDebounce } from "@radolfa/shared/lib";
 import { fetchCouponAvailable } from "../../api";
 import type { DiscountWizardState } from "../DiscountCreationWizard";
 import { Tag, CheckCircle2, XCircle, Loader2 } from "lucide-react";

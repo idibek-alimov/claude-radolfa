@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Calendar } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { cn } from "@radolfa/shared/lib/utils";
+import { Button } from "@radolfa/shared/ui/button";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
-import type { PickpointOrder } from "@/entities/user";
+import type { PickpointOrder } from "@radolfa/shared/user";
 import { PickupVerifyModal } from "./PickupVerifyModal";
 import { InitiateReturnConfirmDialog } from "./InitiateReturnConfirmDialog";
 

@@ -8,14 +8,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
 import { updateBlueprintEntry } from "@/features/product-creation/api/blueprint";
 import type {
   AdminBlueprintEntry,
   UpdateBlueprintEntryRequest,
 } from "@/features/product-creation/model/types";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { BlueprintEntryForm, type BlueprintFormValue } from "./BlueprintEntryForm";
 
 interface Props {

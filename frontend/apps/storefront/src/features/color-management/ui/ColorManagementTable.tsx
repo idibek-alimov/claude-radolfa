@@ -12,11 +12,11 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/table";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { CreateColorDialog } from "./CreateColorDialog";
 import { Check, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";

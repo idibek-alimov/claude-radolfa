@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 import type {
   ReviewTrait,
   CreateReviewTraitRequest,

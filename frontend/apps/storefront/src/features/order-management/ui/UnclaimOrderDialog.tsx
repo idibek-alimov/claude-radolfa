@@ -11,9 +11,9 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 interface UnclaimOrderDialogProps {
   open: boolean;

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 
 interface Props {
   code: string;

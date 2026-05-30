@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Star } from "lucide-react";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { useMyReviewProgress } from "@/features/profile/api";
 import { fetchReviewReward } from "@/entities/loyalty/api";
 

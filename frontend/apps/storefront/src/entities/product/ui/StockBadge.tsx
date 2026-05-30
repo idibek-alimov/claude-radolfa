@@ -1,4 +1,4 @@
-import { Badge } from "@/shared/ui/badge";
+import { Badge } from "@radolfa/shared/ui/badge";
 import { useTranslations } from "next-intl";
 
 interface StockBadgeProps {

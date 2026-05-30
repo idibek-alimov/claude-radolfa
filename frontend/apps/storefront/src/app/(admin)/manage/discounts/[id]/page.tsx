@@ -6,9 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, ArrowLeft, Edit2 } from "lucide-react";
 import Link from "next/link";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   fetchDiscountById,
   fetchDiscountMetrics,

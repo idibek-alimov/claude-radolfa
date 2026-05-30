@@ -9,7 +9,7 @@ import { ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchDiscountById, createDiscount, updateDiscount } from "../api";
 import type { AmountType } from "../model/types";
-import { getErrorMessage } from "@/shared/lib/utils";
+import { getErrorMessage } from "@radolfa/shared/lib/utils";
 import { DiscountWizardStepper } from "./DiscountWizardStepper";
 import { WizardFooter } from "@/features/product-creation/ui/WizardFooter";
 import { Step1Details } from "./wizard-steps/Step1Details";
@@ -17,7 +17,7 @@ import { Step2Schedule } from "./wizard-steps/Step2Schedule";
 import { Step2bLimitsCoupon } from "./wizard-steps/Step2bLimitsCoupon";
 import { Step3Targets } from "./wizard-steps/Step3Targets";
 import { Step4Review } from "./wizard-steps/Step4Review";
-import { isCouponsEnabled } from "@/shared/lib";
+import { isCouponsEnabled } from "@radolfa/shared/lib";
 
 export type SegmentSelection =
   | { type: "LOYALTY_TIER"; tierId: number }

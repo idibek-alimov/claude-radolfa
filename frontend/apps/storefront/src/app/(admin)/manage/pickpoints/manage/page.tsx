@@ -1,6 +1,6 @@
 "use client";
 
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
 import { PickpointManagementPanel } from "@/features/pickpoint-management";
 
 export default function PickpointsPage() {

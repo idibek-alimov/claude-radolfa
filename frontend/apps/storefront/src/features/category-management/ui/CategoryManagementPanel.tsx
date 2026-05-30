@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { createCategory, updateCategory, deleteCategory, fetchCategoryTraitIds } from "@/entities/category";
 import { fetchReviewTraits } from "@/entities/review-trait";
 import type { ReviewTrait } from "@/entities/review-trait";
@@ -18,11 +18,11 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import {
   Folder,
   FolderPlus,

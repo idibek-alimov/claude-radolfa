@@ -8,4 +8,4 @@ export interface SearchParams {
 }
 
 /** Paginated response returned by the search API. */
-export type SearchResult = import("@/shared/api").PaginatedResponse<ListingVariant>;
+export type SearchResult = import("@radolfa/shared/api").PaginatedResponse<ListingVariant>;

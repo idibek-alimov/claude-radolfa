@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 import type { ProductCard } from "@/entities/product/model/types";
 
 export interface SkuDefinition {

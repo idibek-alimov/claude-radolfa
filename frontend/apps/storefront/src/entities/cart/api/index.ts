@@ -1,4 +1,4 @@
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type { ApplyCouponResponse, Cart } from "../model/types";
 
 export async function getCart(): Promise<Cart> {

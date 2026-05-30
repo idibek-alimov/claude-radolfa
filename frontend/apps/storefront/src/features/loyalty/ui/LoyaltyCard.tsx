@@ -3,7 +3,7 @@
 import { Star, Percent, BadgeDollarSign } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { LoyaltyProfile } from "@/entities/loyalty";
-import { formatPrice } from "@/shared/lib";
+import { formatPrice } from "@radolfa/shared/lib";
 
 interface LoyaltyCardProps {
   loyalty: LoyaltyProfile;

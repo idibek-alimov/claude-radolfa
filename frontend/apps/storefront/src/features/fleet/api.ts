@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import type { CourierFleetEntry, CourierSummary } from "@/entities/user";
+import apiClient from "@radolfa/shared/api/axios";
+import type { CourierFleetEntry, CourierSummary } from "@radolfa/shared/user";
 
 export function useFleetSummary() {
   return useQuery({

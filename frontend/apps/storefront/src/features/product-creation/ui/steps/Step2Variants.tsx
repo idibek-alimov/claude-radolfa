@@ -35,8 +35,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { fetchColors } from "@/entities/color";
 import { VariantTabBar, ColorPickerDialog } from "@/entities/product";
 import { uploadProductImage } from "../../api/imageUpload";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,8 +46,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
-import { cn } from "@/shared/lib/utils";
+} from "@radolfa/shared/ui/alert-dialog";
+import { cn } from "@radolfa/shared/lib/utils";
 import type {
   WizardState,
   VariantDraft,

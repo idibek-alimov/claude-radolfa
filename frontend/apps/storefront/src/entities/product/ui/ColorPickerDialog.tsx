@@ -7,8 +7,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { cn } from "@/shared/lib/utils";
+} from "@radolfa/shared/ui/dialog";
+import { cn } from "@radolfa/shared/lib/utils";
 import type { Color } from "@/entities/product/model/types";
 
 interface ColorPickerDialogProps {

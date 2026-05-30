@@ -12,8 +12,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
+} from "@radolfa/shared/ui/table";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,16 +23,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Badge } from "@/shared/ui/badge";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/tooltip";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { CreateReviewTraitDialog } from "./CreateReviewTraitDialog";
 import { EditReviewTraitDialog } from "./EditReviewTraitDialog";
 import type { ReviewTrait } from "@/entities/review-trait";

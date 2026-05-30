@@ -4,10 +4,10 @@ import { useRef, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ScanBarcode, Loader2 } from "lucide-react";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { Card, CardContent } from "@/shared/ui/card";
-import { getErrorMessage } from "@/shared/lib";
+import { Input } from "@radolfa/shared/ui/input";
+import { Button } from "@radolfa/shared/ui/button";
+import { Card, CardContent } from "@radolfa/shared/ui/card";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { useLookupSkuByBarcode } from "@/entities/warehouse-sku";
 import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 

@@ -6,16 +6,16 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Textarea } from "@/shared/ui/textarea";
-import { Label } from "@/shared/ui/label";
-import { Slider } from "@/shared/ui/slider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Textarea } from "@radolfa/shared/ui/textarea";
+import { Label } from "@radolfa/shared/ui/label";
+import { Slider } from "@radolfa/shared/ui/slider";
 import { fetchMyDeliveredOrders } from "@/entities/order";
 import { submitReview, uploadReviewPhotos } from "@/entities/review";
 import type { ReviewTrait } from "@/entities/review-trait";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 const MAX_PHOTOS = 5;
 

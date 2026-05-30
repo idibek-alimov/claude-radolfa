@@ -1,6 +1,6 @@
 "use client";
 
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
 import { CustomerReturnsQueuePage } from "@/features/customer-return-management/ui/CustomerReturnsQueuePage";
 
 export default function CustomerReturnsPage() {

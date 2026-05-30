@@ -8,7 +8,7 @@ import { fetchListingBySlug } from "@/entities/product/api";
 import { fetchQuestions } from "@/entities/question/api";
 import { QuestionList } from "@/entities/question";
 import { AskQuestionDialog } from "@/features/ask-question";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 
 interface ProductQuestionsPageProps {
   slug: string;

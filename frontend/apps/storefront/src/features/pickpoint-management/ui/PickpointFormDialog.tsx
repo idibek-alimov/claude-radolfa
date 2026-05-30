@@ -8,8 +8,8 @@ import {
   useUpdatePickpoint,
   type Pickpoint,
 } from "@/entities/pickpoint";
-import { getErrorMessage } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +17,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Switch } from "@/shared/ui/switch";
-import { Textarea } from "@/shared/ui/textarea";
+} from "@radolfa/shared/ui/dialog";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { Switch } from "@radolfa/shared/ui/switch";
+import { Textarea } from "@radolfa/shared/ui/textarea";
 
 interface PickpointFormDialogProps {
   open: boolean;

@@ -5,8 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Pencil } from "lucide-react";
 import { fetchMyDeliveredOrders } from "@/entities/order";
-import { Button } from "@/shared/ui/button";
-import { Card } from "@/shared/ui/card";
+import { Button } from "@radolfa/shared/ui/button";
+import { Card } from "@radolfa/shared/ui/card";
 import type { ReviewTrait } from "@/entities/review-trait";
 import { SubmitReviewForm } from "./SubmitReviewForm";
 

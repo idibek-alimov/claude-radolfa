@@ -9,14 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@radolfa/shared/ui/radio-group";
 import { AlertCircle, Plus } from "lucide-react";
 import { createReviewTrait } from "@/entities/review-trait";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { ReviewTraitInputType } from "@/entities/review-trait";
 
 const KEY_REGEX = /^[a-z][a-z0-9_]*$/;

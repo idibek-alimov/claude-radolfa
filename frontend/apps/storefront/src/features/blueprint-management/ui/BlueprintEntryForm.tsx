@@ -1,10 +1,10 @@
 "use client";
 
 import { X } from "lucide-react";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { Button } from "@radolfa/shared/ui/button";
 import type { BlueprintFieldType } from "@/features/product-creation/model/types";
 
 export interface BlueprintFormValue {

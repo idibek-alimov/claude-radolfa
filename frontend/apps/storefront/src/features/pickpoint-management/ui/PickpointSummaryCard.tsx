@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@radolfa/shared/lib/utils";
 import type { PickpointSummary } from "@/entities/pickpoint";
 
 interface Props {

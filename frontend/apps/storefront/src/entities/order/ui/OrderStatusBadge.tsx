@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@radolfa/shared/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
   PAID:      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",

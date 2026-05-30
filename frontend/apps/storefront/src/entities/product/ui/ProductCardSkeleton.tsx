@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 
 export default function ProductCardSkeleton() {
   return (

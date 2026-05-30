@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 
 export async function uploadProductImage(file: File): Promise<{ url: string }> {
   const form = new FormData();

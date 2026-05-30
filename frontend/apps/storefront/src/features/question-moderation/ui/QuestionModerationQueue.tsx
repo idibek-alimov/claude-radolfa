@@ -10,18 +10,18 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+} from "@radolfa/shared/ui/card";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
-import { useDebounce } from "@/shared/lib";
+} from "@radolfa/shared/ui/select";
+import { useDebounce } from "@radolfa/shared/lib";
 
 type StatusFilter = "PENDING" | "PUBLISHED" | "REJECTED";
 type SortOption = "createdAt_ASC" | "createdAt_DESC" | "answeredAt_DESC";

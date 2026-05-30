@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import type { PaginatedResponse } from "@/shared/api/types";
+import apiClient from "@radolfa/shared/api/axios";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import { Order, UpdateProfileRequest, User } from "./types";
 import type { MyReturn } from "./types";
 

@@ -3,20 +3,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { Lock, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Input } from "@/shared/ui/input";
+import { Input } from "@radolfa/shared/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
+} from "@radolfa/shared/ui/select";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
+} from "@radolfa/shared/ui/tooltip";
 import { fetchCategoryTree } from "@/entities/product/api";
 import { useDraft } from "../model/ProductCardDraftContext";
 import type { ProductCard, CategoryTree } from "@/entities/product/model/types";

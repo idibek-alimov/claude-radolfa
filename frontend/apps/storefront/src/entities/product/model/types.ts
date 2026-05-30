@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "@/shared/api/types";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { Tag } from "@/entities/tag";
 import type { ReviewTrait } from "@/entities/review-trait";
 

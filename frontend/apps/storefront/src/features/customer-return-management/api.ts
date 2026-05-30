@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type { CustomerReturn } from "@/entities/pickpoint";
-import type { PaginatedResponse } from "@/shared/api/types";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 
 export function useApproveRefund() {
   const qc = useQueryClient();

@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
+import { Button } from "@radolfa/shared/ui/button";
+import { Badge } from "@radolfa/shared/ui/badge";
 import { deleteBlueprintEntry } from "@/features/product-creation/api/blueprint";
 import type { AdminBlueprintEntry } from "@/features/product-creation/model/types";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { EditBlueprintEntryDialog } from "./EditBlueprintEntryDialog";
 
 interface Props {

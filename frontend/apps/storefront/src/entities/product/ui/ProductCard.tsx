@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
 import { TagBadge } from "@/entities/tag";
-import { Badge } from "@/shared/ui/badge";
-import { formatPrice } from "@/shared/lib/format";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { formatPrice } from "@radolfa/shared/lib/format";
 import { useTranslations } from "next-intl";
 
 interface ProductCardProps {

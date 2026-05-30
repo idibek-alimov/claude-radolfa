@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { X, Minus, Plus } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import type { CartItem } from "@/entities/cart";
-import { formatPrice } from "@/shared/lib/format";
+import { formatPrice } from "@radolfa/shared/lib/format";
 import { useUpdateCartItem, useRemoveCartItem } from "../hooks/useCart";
 
 interface CartItemRowProps {

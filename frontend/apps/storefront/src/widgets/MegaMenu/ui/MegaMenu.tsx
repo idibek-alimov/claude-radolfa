@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { fetchCategoryTree } from "@/entities/product/api";
 import { useTranslations } from "next-intl";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import type { CategoryTree } from "@/entities/product/model/types";
 
 /* ── Desktop MegaMenu ──────────────────────────────────────────── */

@@ -8,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Textarea } from "@/shared/ui/textarea";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Textarea } from "@radolfa/shared/ui/textarea";
+import { Label } from "@radolfa/shared/ui/label";
 import { useTranslations } from "next-intl";
 import { useRejectProduct } from "@/entities/product/api/moderation";
 

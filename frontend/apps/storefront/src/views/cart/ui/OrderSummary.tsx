@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Trash2, BadgeCheck, ShieldCheck, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import { useClearCart } from "@/features/cart";
-import { formatPrice } from "@/shared/lib/format";
+import { formatPrice } from "@radolfa/shared/lib/format";
 import type { Cart } from "@/entities/cart";
 
 interface OrderSummaryProps {

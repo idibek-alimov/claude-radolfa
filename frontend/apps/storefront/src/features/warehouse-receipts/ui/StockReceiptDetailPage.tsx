@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
-import { Card, CardContent } from "@/shared/ui/card";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { formatDate } from "@/shared/lib";
-import { cn } from "@/shared/lib";
+import { Card, CardContent } from "@radolfa/shared/ui/card";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { formatDate } from "@radolfa/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import { useStockReceipt } from "../api";
 import { ReceiptLineItemsTable } from "./ReceiptLineItemsTable";
 

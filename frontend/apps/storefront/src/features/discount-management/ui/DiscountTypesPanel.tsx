@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +11,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/shared/ui/dialog";
+} from "@radolfa/shared/ui/dialog";
 import { fetchDiscountTypes, deleteDiscountType } from "../api";
 import { DiscountTypeCard } from "./DiscountTypeCard";
 import { DiscountTypeCreateDialog } from "./DiscountTypeCreateDialog";
 import type { DiscountType } from "../model/types";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 

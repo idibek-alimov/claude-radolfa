@@ -1,9 +1,9 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import apiClient from "@/shared/api/axios";
-import { getErrorMessage } from "@/shared/lib";
-import type { PaginatedResponse } from "@/shared/api/types";
+import apiClient from "@radolfa/shared/api/axios";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { CustomerReturn, Resellability } from "@/entities/pickpoint";
 
 export interface ItemReview {

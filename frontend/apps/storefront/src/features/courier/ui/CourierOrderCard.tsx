@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { Loader2, MapPin, Phone } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import {
   useMarkCollected,
   useClaimOrder,
   useRetryDelivery,
 } from "@/features/courier/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
-import type { CourierOrder } from "@/entities/user";
+import type { CourierOrder } from "@radolfa/shared/user";
 import { DeliveryConfirmModal } from "./DeliveryConfirmModal";
 import { DeliveryAttemptModal } from "./DeliveryAttemptModal";
 

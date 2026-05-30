@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { cn } from "@/shared/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { cn } from "@radolfa/shared/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
 import type { OrderStatus } from "@/entities/order/model/types";
 import { useCourierOrders, useAvailableOrders } from "@/features/courier/api";
-import { useDeliverySocket } from "@/shared/lib/useDeliverySocket";
+import { useDeliverySocket } from "@radolfa/shared/lib/useDeliverySocket";
 import { CourierTabPanel } from "./CourierTabPanel";
 import { AvailableTabPanel } from "./AvailableTabPanel";
 

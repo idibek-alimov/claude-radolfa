@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
+} from "@radolfa/shared/ui/table";
 import type { AdminOrderItem } from "@/entities/order";
 
 function StockBadge({ item }: { item: AdminOrderItem }) {

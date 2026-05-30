@@ -8,7 +8,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/shared/ui/sheet";
+} from "@radolfa/shared/ui/sheet";
 import {
   Table,
   TableHeader,
@@ -16,13 +16,13 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+} from "@radolfa/shared/ui/table";
+import { Input } from "@radolfa/shared/ui/input";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { fetchCampaignSkus, fetchDiscountById } from "../api";
 import { ChevronLeft, ChevronRight, Search, Package } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 
 interface CampaignSkuDrawerProps {
   campaignId: number | null;

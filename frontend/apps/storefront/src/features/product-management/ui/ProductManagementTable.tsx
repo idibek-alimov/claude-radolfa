@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { fetchAdminProducts, useApproveProduct, usePendingProductCount } from "@/entities/product/api/moderation";
 import { ProductStatusBadge } from "@/entities/product/ui/ProductStatusBadge";
 import { ProductStatus } from "@/entities/product/model/types";
@@ -16,14 +16,14 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
+} from "@radolfa/shared/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { Pencil, Search, Package, Plus, ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useDynamicPageSize } from "@/shared/lib";
+import { useDynamicPageSize } from "@radolfa/shared/lib";
 
 const STATUS_TABS = [
   "ALL",

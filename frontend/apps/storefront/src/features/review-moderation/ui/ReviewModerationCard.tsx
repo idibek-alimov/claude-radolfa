@@ -2,14 +2,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Star, CheckCircle, XCircle, Image as ImageIcon } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
+import { Button } from "@radolfa/shared/ui/button";
+import { Badge } from "@radolfa/shared/ui/badge";
 import { approveReview, rejectReview } from "@/entities/review";
 import type { ReviewAdminView } from "@/entities/review";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
-import { useAuth } from "@/features/auth";
-import { UserRole } from "@/entities/user";
+import { useAuth } from "@radolfa/shared/auth";
+import { UserRole } from "@radolfa/shared/user";
 import { ReplyDialog } from "./ReplyDialog";
 
 interface ReviewModerationCardProps {

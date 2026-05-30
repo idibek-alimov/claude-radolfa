@@ -1,7 +1,7 @@
 "use client";
 
 import { Info, Loader2, Save, SendHorizonal, Undo2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import { useTranslations } from "next-intl";
 import { useDraft } from "../model/ProductCardDraftContext";
 import { ProductStatus } from "@/entities/product/model/types";

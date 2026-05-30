@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import { useDraft } from "../model/ProductCardDraftContext";
 import type { VariantDraft } from "../model/useProductCardDraft";
 

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import type { PaginatedResponse } from "@/shared/api/types";
+import apiClient from "@radolfa/shared/api/axios";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { OrderStatus } from "@/entities/order/model/types";
-import type { PickpointOrder } from "@/entities/user";
+import type { PickpointOrder } from "@radolfa/shared/user";
 import type {
   CustomerReturn,
   CustomerReturnStatus,

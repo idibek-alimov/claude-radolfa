@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { Menu, ArrowLeft, LogOut } from "lucide-react";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { useAdminShell } from "../model/AdminShellContext";
 import { AdminBreadcrumb } from "./AdminBreadcrumb";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
-import { Badge } from "@/shared/ui/badge";
-import { cn } from "@/shared/lib";
+} from "@radolfa/shared/ui/dropdown-menu";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { cn } from "@radolfa/shared/lib";
 
 const ROLE_BADGE: Record<string, string> = {
   ADMIN: "bg-rose-500/10 text-rose-400 border-rose-500/20",

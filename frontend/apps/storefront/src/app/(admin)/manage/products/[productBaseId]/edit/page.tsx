@@ -1,4 +1,4 @@
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
 import { ProductCardEditPage } from "@/features/product-edit";
 
 interface Props {

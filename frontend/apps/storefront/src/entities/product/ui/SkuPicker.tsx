@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Button } from "@radolfa/shared/ui/button";
 import { SkuPickerVariantCard } from "./SkuPickerVariantCard";
 import { SkuPickerSelectedPanel } from "./SkuPickerSelectedPanel";
 import { useSkuSearch } from "../api/useSkuSearch";

@@ -1,4 +1,4 @@
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type { AdminOrderSummary } from "@/entities/order";
 
 /** GET /api/v1/admin/orders/summary — ADMIN only */

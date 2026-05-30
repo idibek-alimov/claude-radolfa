@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Ban, Bike, Car, Home, MapPin, RefreshCw, RotateCcw, Truck, Undo2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,15 +14,15 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/shared/ui/breadcrumb";
+} from "@radolfa/shared/ui/breadcrumb";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrder, useUpdateOrderStatus } from "@/entities/order";
-import { getErrorMessage, formatDate, formatPrice } from "@/shared/lib";
-import { useAuth } from "@/features/auth";
+import { getErrorMessage, formatDate, formatPrice } from "@radolfa/shared/lib";
+import { useAuth } from "@radolfa/shared/auth";
 import type { AdminOrderDetail, OrderStatus } from "@/entities/order";
 import { useRegenerateDeliveryCode } from "@/features/fleet/api";
 import { useAdminCustomerReturnsForOrder } from "../api";
-import { SectionCard } from "@/shared/ui/section-card";
+import { SectionCard } from "@radolfa/shared/ui/section-card";
 import { FulfillmentTimeline } from "./FulfillmentTimeline";
 import { OrderItemsStockTable } from "./OrderItemsStockTable";
 import { ShipOrderModal } from "./ShipOrderModal";

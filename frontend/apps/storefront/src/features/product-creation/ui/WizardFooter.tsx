@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 
 interface Props {
   step: number;

@@ -11,15 +11,15 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+} from "@radolfa/shared/ui/table";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
 import { OrderStatusBadge } from "@/entities/order/ui/OrderStatusBadge";
 import { useAdminOrders } from "@/entities/order";
 import type { AdminOrderListItem } from "@/entities/order";
-import { useDynamicPageSize } from "@/shared/lib";
+import { useDynamicPageSize } from "@radolfa/shared/lib";
 
 const TAB_GROUPS = {
   "needs-action": {

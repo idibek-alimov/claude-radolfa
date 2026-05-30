@@ -24,6 +24,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@radolfa/shared/*": [
+        "../../packages/shared/src/*"
       ]
     },
     "target": "ES2017"

@@ -6,7 +6,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { searchListings } from "@/entities/product";
 import { ProductGrid } from "@/widgets/ProductList";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 const PRODUCT_CODE_RE = /^RD-\d{5,}$/i;

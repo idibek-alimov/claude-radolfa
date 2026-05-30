@@ -1,8 +1,8 @@
 "use client";
 
 import { X, Package2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Button } from "@radolfa/shared/ui/button";
+import { ScrollArea } from "@radolfa/shared/ui/scroll-area";
 
 interface SelectedSkuEntry {
   skuCode: string;

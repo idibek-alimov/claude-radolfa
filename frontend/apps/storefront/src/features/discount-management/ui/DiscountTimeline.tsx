@@ -3,12 +3,12 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, CalendarRange, AlertTriangle } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radolfa/shared/ui/tooltip";
 import { fetchDiscounts, fetchDiscountOverlaps } from "../api";
 import type { DiscountResponse } from "../model/types";
-import { getErrorMessage } from "@/shared/lib/utils";
+import { getErrorMessage } from "@radolfa/shared/lib/utils";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

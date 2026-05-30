@@ -1,4 +1,4 @@
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type {
   DiscountResponse,
   DiscountFormValues,
@@ -14,7 +14,7 @@ import type {
   TopCampaignRow,
   AnalyticsConfig,
 } from "../model/types";
-import type { PaginatedResponse } from "@/shared/api/types";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 
 // ── Discount Types ────────────────────────────────────────────────
 

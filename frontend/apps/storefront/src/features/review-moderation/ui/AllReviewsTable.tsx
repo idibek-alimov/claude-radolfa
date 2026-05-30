@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchAllAdminReviews } from "@/entities/review";
-import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { Button } from "@radolfa/shared/ui/button";
 import { ReplyDialog } from "./ReplyDialog";
 import Link from "next/link";
 

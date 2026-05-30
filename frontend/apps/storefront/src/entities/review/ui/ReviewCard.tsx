@@ -5,13 +5,13 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ThumbsUp, ThumbsDown, Store, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { StarRating } from "@/shared/ui/StarRating";
-import { Button } from "@/shared/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog";
+import { StarRating } from "@radolfa/shared/ui/StarRating";
+import { Button } from "@radolfa/shared/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radolfa/shared/ui/tooltip";
+import { Dialog, DialogContent, DialogTitle } from "@radolfa/shared/ui/dialog";
 import { ShareableReviewCard } from "./ShareableReviewCard";
 import { shareReview } from "../lib/shareReview";
-import { getErrorMessage } from "@/shared/lib/utils";
+import { getErrorMessage } from "@radolfa/shared/lib/utils";
 import type { StorefrontReview, MatchingSize } from "../model/types";
 
 const MAX_VISIBLE_PHOTOS = 4;

@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { cn } from "@radolfa/shared/lib/utils";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/table";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { CustomerReturn, CustomerReturnStatus } from "@/entities/pickpoint";
 import { useAdminCustomerReturns } from "../api";
 import { ApproveRefundDialog } from "./ApproveRefundDialog";

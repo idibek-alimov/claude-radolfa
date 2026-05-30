@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type { CustomerReturn } from "@/entities/pickpoint";
 
 export function useAdminCustomerReturnsForOrder(orderId: number) {

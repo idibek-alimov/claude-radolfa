@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Bike, Car, Truck, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@radolfa/shared/ui/card";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { useFleetSummary } from "@/features/fleet/api";
-import type { CourierFleetEntry } from "@/entities/user";
+import type { CourierFleetEntry } from "@radolfa/shared/user";
 import { BulkReassignDialog } from "./BulkReassignDialog";
 
 const VEHICLE_ICONS: Record<string, React.ReactNode> = {

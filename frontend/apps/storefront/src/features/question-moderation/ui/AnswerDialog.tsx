@@ -12,12 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Textarea } from "@/shared/ui/textarea";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Textarea } from "@radolfa/shared/ui/textarea";
+import { Label } from "@radolfa/shared/ui/label";
 import { answerQuestion, updateAnswer } from "@/entities/question";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 
 interface AnswerDialogProps {

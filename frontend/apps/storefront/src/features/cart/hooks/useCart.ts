@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { getCart, addToCart, updateCartItem, removeCartItem, clearCart, applyCoupon, removeCoupon } from "@/entities/cart";
 import type { Cart } from "@/entities/cart";
 

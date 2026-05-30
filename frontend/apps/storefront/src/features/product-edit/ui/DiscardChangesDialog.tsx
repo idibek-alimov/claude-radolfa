@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 
 interface Props {
   open: boolean;

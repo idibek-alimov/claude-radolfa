@@ -1,10 +1,10 @@
 "use client";
 
 import { toast } from "sonner";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { cn } from "@radolfa/shared/lib/utils";
+import { Button } from "@radolfa/shared/ui/button";
 import { useConfirmCustomerReturnSent } from "@/features/pickpoint/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { CustomerReturn } from "@/entities/pickpoint";
 
 interface Props {

@@ -17,7 +17,7 @@ import {
 } from "../model/types";
 import { fetchBlueprint } from "../api/blueprint";
 import { createProduct } from "../api/createProduct";
-import { getErrorMessage } from "@/shared/lib/utils";
+import { getErrorMessage } from "@radolfa/shared/lib/utils";
 import { WizardStepper } from "./WizardStepper";
 import { WizardFooter } from "./WizardFooter";
 import { Step1BaseInfo } from "./steps/Step1BaseInfo";

@@ -5,9 +5,9 @@ import { Star, MessageSquare, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { fetchPendingReviews } from "@/entities/review";
 import { fetchAdminQuestions } from "@/entities/question";
-import { useAuth } from "@/features/auth";
-import { cn } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
+import { useAuth } from "@radolfa/shared/auth";
+import { cn } from "@radolfa/shared/lib";
+import { Button } from "@radolfa/shared/ui/button";
 import type { ReviewAdminView } from "@/entities/review";
 import type { QuestionAdminView } from "@/entities/question";
 

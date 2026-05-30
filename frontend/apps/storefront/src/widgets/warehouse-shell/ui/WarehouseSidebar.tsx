@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { WAREHOUSE_NAV_ITEMS } from "../model/navItems";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 
 function isActive(href: string, pathname: string) {
   return pathname.startsWith(href);

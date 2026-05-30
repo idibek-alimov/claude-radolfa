@@ -1,9 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
-import { cn } from "@/shared/lib";
-import { formatPrice } from "@/shared/lib/format";
+import { ToggleGroup, ToggleGroupItem } from "@radolfa/shared/ui/toggle-group";
+import { cn } from "@radolfa/shared/lib";
+import { formatPrice } from "@radolfa/shared/lib/format";
 import type { CustomerReturnItem, Resellability, ReturnReason } from "@/entities/pickpoint";
 
 const REASON_STYLES: Record<ReturnReason, string> = {

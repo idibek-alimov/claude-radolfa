@@ -1,8 +1,8 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
-import { isCouponsEnabled } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib/utils";
+import { isCouponsEnabled } from "@radolfa/shared/lib";
 
 const BASE_STEPS = [
   { label: "Campaign Details", description: "Title, type, discount & color" },

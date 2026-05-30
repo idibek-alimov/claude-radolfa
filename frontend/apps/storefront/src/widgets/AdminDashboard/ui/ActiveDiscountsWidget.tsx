@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Tag, AlertTriangle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { fetchDiscounts } from "@/features/discount-management/api";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import type { DiscountResponse } from "@/features/discount-management/model/types";
 
 function hexToRgba(hex: string, alpha: number): string {

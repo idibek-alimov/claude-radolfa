@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import type { PaginatedResponse } from "@/shared/api/types";
+import apiClient from "@radolfa/shared/api/axios";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { CreateStockReceiptRequest, StockReceiptDto } from "./types";
 
 export function useStockReceipts(page: number, search: string) {

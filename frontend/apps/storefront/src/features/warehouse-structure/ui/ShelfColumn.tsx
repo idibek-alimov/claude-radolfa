@@ -5,10 +5,10 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Trash2, Layers } from "lucide-react";
 import { useQueries } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Card } from "@/shared/ui/card";
+import apiClient from "@radolfa/shared/api/axios";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Card } from "@radolfa/shared/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,15 +18,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
+} from "@radolfa/shared/ui/tooltip";
 import { useShelvesByZone } from "@/entities/warehouse-location";
 import type { WarehouseShelfDto, WarehouseBinDto } from "@/entities/warehouse-location";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { useDeleteShelf } from "../api";
 import { CreateShelfDialog } from "./CreateShelfDialog";
 

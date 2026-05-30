@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import { useCartQuery } from "@/features/cart";
-import { formatPrice } from "@/shared/lib/format";
+import { formatPrice } from "@radolfa/shared/lib/format";
 import { CartPageSkeleton } from "./CartPageSkeleton";
 import { CartItemList } from "./CartItemList";
 import { OrderSummary } from "./OrderSummary";

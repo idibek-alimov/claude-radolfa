@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 import { searchListings } from "@/entities/product";
 import type { SearchParams, SearchResult } from "@/features/search";
 

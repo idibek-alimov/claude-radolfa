@@ -3,17 +3,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
-import { useAuth } from "@/features/auth";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
+import { useAuth } from "@radolfa/shared/auth";
 import { updateProfile } from "@/features/profile/api";
 import { ReviewProgressCard } from "@/features/profile/ui/ReviewProgressCard";
 import { ProfileOrdersTab } from "@/features/profile/ui/ProfileOrdersTab";
 import { CustomerReturnsListPage } from "@/features/profile/ui/CustomerReturnsListPage";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
-import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { getErrorMessage } from "@/shared/lib";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radolfa/shared/ui/tabs";
+import { Avatar, AvatarFallback } from "@radolfa/shared/ui/avatar";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import {
   User,
   ShoppingBag,

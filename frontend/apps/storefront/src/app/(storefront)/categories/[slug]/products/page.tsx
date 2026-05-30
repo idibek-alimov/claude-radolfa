@@ -12,7 +12,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/shared/ui/breadcrumb";
+} from "@radolfa/shared/ui/breadcrumb";
 import { useTranslations } from "next-intl";
 
 const PAGE_LIMIT = 12;

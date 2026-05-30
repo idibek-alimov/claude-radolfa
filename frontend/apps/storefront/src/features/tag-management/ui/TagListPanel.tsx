@@ -6,7 +6,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchTags, TagBadge } from "@/entities/tag";
 import { deleteTag } from "@/entities/tag/api";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,15 +16,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/tooltip";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { CreateTagDialog } from "./CreateTagDialog";
 import { EditTagDialog } from "./EditTagDialog";
 import type { Tag } from "@/entities/tag";

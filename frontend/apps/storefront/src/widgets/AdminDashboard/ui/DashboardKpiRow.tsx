@@ -7,7 +7,7 @@ import { fetchDiscounts } from "@/features/discount-management/api";
 import { fetchUsers } from "@/features/user-management";
 import { fetchPendingReviews } from "@/entities/review";
 import { fetchAdminQuestions } from "@/entities/question";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import type { LucideIcon } from "lucide-react";
 
 interface KpiCardProps {

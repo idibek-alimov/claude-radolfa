@@ -9,25 +9,25 @@ import {
   type Pickpoint,
   type UpsertPickpointHoursPayload,
 } from "@/entities/pickpoint";
-import { getErrorMessage } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
-import { Switch } from "@/shared/ui/switch";
+} from "@radolfa/shared/ui/select";
+import { Switch } from "@radolfa/shared/ui/switch";
 
 const DAY_LABELS = [
   "Monday",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radolfa/shared/ui/tabs";
 import { UserManagementTable } from "@/features/user-management";
 import type { UserTableVariant } from "@/features/user-management";
 

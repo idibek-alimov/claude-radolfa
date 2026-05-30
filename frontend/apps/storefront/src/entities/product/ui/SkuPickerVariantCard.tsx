@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { cn } from "@/shared/lib";
+import { Checkbox } from "@radolfa/shared/ui/checkbox";
+import { cn } from "@radolfa/shared/lib";
 import type { ListingVariant } from "../model/types";
 
 interface Props {

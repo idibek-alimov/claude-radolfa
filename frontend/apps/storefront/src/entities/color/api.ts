@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 import type { Color } from "@/entities/product/model/types";
 
 /** Fetch all colors. Used for product creation form dropdowns. */

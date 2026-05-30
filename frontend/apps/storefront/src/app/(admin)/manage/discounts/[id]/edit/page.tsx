@@ -1,4 +1,4 @@
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
 import { DiscountCreationWizard } from "@/features/discount-management/ui/DiscountCreationWizard";
 
 interface Props {

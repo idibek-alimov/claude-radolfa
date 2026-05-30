@@ -1,19 +1,19 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
+} from "@radolfa/shared/ui/select";
 import { fetchDiscountTypes } from "../../api";
 import { DiscountWizardPreview } from "../DiscountWizardPreview";
 import type { DiscountWizardState } from "../DiscountCreationWizard";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@radolfa/shared/lib/utils";
 import { Settings2, Palette, Tag } from "lucide-react";
 
 const ACCENT_COLORS = [

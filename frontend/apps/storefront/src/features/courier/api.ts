@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
-import type { CourierOrder } from "@/entities/user";
-import type { PaginatedResponse } from "@/shared/api/types";
+import apiClient from "@radolfa/shared/api/axios";
+import type { CourierOrder } from "@radolfa/shared/user";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { OrderStatus } from "@/entities/order/model/types";
 
 export const DELIVERY_ATTEMPT_REASONS = [

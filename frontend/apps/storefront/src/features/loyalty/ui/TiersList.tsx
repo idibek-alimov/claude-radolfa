@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Star, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLoyaltyTiers } from "@/entities/loyalty";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { formatPrice } from "@/shared/lib/format";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { formatPrice } from "@radolfa/shared/lib/format";
 import type { LoyaltyTier } from "@/entities/loyalty";
 
 interface TiersListProps {

@@ -1,4 +1,4 @@
-import type { User } from "@/entities/user";
+import type { User } from "@radolfa/shared/user";
 import type { OrderStatus, OrderItem } from "@/entities/order/model/types";
 import type { CustomerReturnStatus } from "@/entities/pickpoint";
 

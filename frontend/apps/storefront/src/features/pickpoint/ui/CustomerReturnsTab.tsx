@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { usePickpointCustomerReturns } from "@/features/pickpoint/api";
 import { CustomerReturnCard } from "./CustomerReturnCard";
 

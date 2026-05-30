@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type { MyOrderDetail } from "./types";
 
 async function getMyOrderDetail(id: string): Promise<MyOrderDetail> {

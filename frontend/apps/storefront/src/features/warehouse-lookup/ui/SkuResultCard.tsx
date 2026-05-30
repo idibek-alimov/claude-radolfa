@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Move, History } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/button";
-import { cn } from "@/shared/lib";
+import { Card, CardContent, CardHeader, CardTitle } from "@radolfa/shared/ui/card";
+import { Button } from "@radolfa/shared/ui/button";
+import { cn } from "@radolfa/shared/lib";
 import type { SkuLookupResponse } from "@/entities/warehouse-sku";
 import { useLookupSkuByBarcode } from "@/entities/warehouse-sku";
 import { RelocateForm } from "./RelocateForm";

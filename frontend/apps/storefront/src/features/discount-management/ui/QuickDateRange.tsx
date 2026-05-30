@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 
 interface QuickDateRangeProps {
   onSelect: (from: string, to: string) => void;

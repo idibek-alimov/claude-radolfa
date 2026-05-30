@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import type { OrderStatus } from "@/entities/order/model/types";
 import { useCourierOrders } from "@/features/courier/api";
 import { CourierOrderCard } from "./CourierOrderCard";

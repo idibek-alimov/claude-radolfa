@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Forklift } from "lucide-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
-import { useDebounce } from "@/shared/lib";
+} from "@radolfa/shared/ui/table";
+import { useDebounce } from "@radolfa/shared/lib";
 import { useInboundQueue } from "../api";
 import type { InboundQueueItem } from "../types";
 import { PutawayDialog } from "./PutawayDialog";

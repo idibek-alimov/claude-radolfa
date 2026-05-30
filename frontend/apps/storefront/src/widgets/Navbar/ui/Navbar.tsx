@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { SearchBar } from "@/features/search";
 import { useQuery } from "@tanstack/react-query";
 import { getMyOrders } from "@/features/profile/api";
@@ -22,7 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
-} from "@/shared/ui/sheet";
+} from "@radolfa/shared/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/shared/ui/dropdown-menu";
+} from "@radolfa/shared/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -40,7 +40,7 @@ import {
   AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import { MegaMenu, MegaMenuMobile } from "@/widgets/MegaMenu";
 import { CartIconButton } from "@/features/cart";
 import LanguageSwitcher from "./LanguageSwitcher";

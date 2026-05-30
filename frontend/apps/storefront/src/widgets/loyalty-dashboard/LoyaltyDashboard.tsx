@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { LoyaltyProfile } from "@/entities/loyalty";
 import { LoyaltyCard, TierProgress, TiersList } from "@/features/loyalty";
-import { formatPrice } from "@/shared/lib/format";
+import { formatPrice } from "@radolfa/shared/lib/format";
 
 interface LoyaltyDashboardProps {
   loyalty: LoyaltyProfile;

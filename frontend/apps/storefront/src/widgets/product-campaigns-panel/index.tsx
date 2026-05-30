@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import { Tag, Crown, CalendarOff, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -22,7 +22,7 @@ import {
   fetchDiscountById,
   updateDiscount,
 } from "@/features/discount-management/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { CampaignSummary } from "@/features/discount-management/model/types";
 
 interface Props {

@@ -20,20 +20,20 @@ import {
 } from "lucide-react";
 import { fetchDiscountOverlaps, fetchDiscountTypes } from "../../api";
 import type { CampaignSummary } from "../../model/types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
+import { Checkbox } from "@radolfa/shared/ui/checkbox";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@radolfa/shared/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
-import { Switch } from "@/shared/ui/switch";
-import { cn } from "@/shared/lib/utils";
+} from "@radolfa/shared/ui/select";
+import { Switch } from "@radolfa/shared/ui/switch";
+import { cn } from "@radolfa/shared/lib/utils";
 
 type TargetMode = "SKU" | "CATEGORY" | "SEGMENT";
 

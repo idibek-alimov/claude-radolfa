@@ -5,11 +5,11 @@ import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Package } from "lucide-react";
 import Link from "next/link";
 import { useMyReturns } from "../api";
-import { formatPrice, formatDate } from "@/shared/lib/format";
-import { getErrorMessage } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { formatPrice, formatDate } from "@radolfa/shared/lib/format";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import { Button } from "@radolfa/shared/ui/button";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import type { CustomerReturnStatus } from "@/entities/pickpoint";
 
 const RETURN_STATUS_STYLES: Record<

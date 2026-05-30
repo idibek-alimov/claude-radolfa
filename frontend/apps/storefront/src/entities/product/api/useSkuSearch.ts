@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchListings, searchListings } from "./index";
-import { useDebounce } from "@/shared/lib";
+import { useDebounce } from "@radolfa/shared/lib";
 
 export function useSkuSearch(query: string, page: number) {
   const debouncedQuery = useDebounce(query.trim(), 300);

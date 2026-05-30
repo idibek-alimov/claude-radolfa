@@ -7,7 +7,7 @@ import {
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { fetchUsers, toggleUserStatus } from "../api";
 import type { UserDto } from "../types";
 
@@ -26,12 +26,12 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Badge } from "@/shared/ui/badge";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { getErrorMessage, useDynamicPageSize } from "@/shared/lib";
+} from "@radolfa/shared/ui/table";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { getErrorMessage, useDynamicPageSize } from "@radolfa/shared/lib";
 import {
   Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight,
   Lock, Plus, Pencil, Truck,

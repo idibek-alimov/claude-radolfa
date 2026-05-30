@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 import type { Tag } from "../model/types";
 
 /** GET /api/v1/tags — public, no auth required */

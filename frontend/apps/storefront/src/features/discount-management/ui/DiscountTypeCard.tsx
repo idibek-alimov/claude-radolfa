@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import type { DiscountType } from "../model/types";
 import { Pencil, Trash2, Layers } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@radolfa/shared/lib/utils";
 
 const ACCENT_COLORS = [
   "#F97316", // orange

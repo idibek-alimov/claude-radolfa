@@ -12,11 +12,11 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@/shared/ui/alert-dialog";
-import { Label } from "@/shared/ui/label";
-import { Textarea } from "@/shared/ui/textarea";
+} from "@radolfa/shared/ui/alert-dialog";
+import { Label } from "@radolfa/shared/ui/label";
+import { Textarea } from "@radolfa/shared/ui/textarea";
 import { useCancelOrder } from "@/entities/order";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 interface CancelOrderModalProps {
   open: boolean;

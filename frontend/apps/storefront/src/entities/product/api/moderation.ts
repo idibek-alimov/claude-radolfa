@@ -1,9 +1,9 @@
-import { apiClient } from "@/shared/api";
+import { apiClient } from "@radolfa/shared/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { getErrorMessage } from "@/shared/lib";
-import type { PaginatedResponse } from "@/shared/api/types";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { AdminProductRow } from "@/entities/product/model/types";
 import type { ProductStatus } from "@/entities/product/model/types";
 

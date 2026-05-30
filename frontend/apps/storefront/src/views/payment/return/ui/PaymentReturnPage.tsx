@@ -13,9 +13,9 @@ import {
   Loader2,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import { getPaymentStatus } from "@/features/payment";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 30000;

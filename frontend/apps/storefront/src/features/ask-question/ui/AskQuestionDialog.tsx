@@ -10,13 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Textarea } from "@/shared/ui/textarea";
-import { Label } from "@/shared/ui/label";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Textarea } from "@radolfa/shared/ui/textarea";
+import { Label } from "@radolfa/shared/ui/label";
 import { askQuestion } from "@/entities/question";
-import { useAuth } from "@/features/auth";
-import { getErrorMessage } from "@/shared/lib";
+import { useAuth } from "@radolfa/shared/auth";
+import { getErrorMessage } from "@radolfa/shared/lib";
 
 interface AskQuestionDialogProps {
   productBaseId: number;

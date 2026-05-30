@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { MapPin, Pencil, Plus, Search, Clock } from "lucide-react";
 import { useAdminPickpoints, type Pickpoint } from "@/entities/pickpoint";
-import { useDebounce, getErrorMessage } from "@/shared/lib";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
+import { useDebounce, getErrorMessage } from "@radolfa/shared/lib";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
+} from "@radolfa/shared/ui/table";
 import { PickpointFormDialog } from "./PickpointFormDialog";
 import { PickpointHoursDialog } from "./PickpointHoursDialog";
 

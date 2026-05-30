@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { cn } from "@/shared/lib/utils";
-import type { PickpointOrder } from "@/entities/user";
+import { Checkbox } from "@radolfa/shared/ui/checkbox";
+import { cn } from "@radolfa/shared/lib/utils";
+import type { PickpointOrder } from "@radolfa/shared/user";
 
 const COLLAPSED_ITEM_LIMIT = 3;
 

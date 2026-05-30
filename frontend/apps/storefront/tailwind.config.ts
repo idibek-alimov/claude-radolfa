@@ -13,6 +13,8 @@ const config: Config = {
     "./src/shared/**/*.{js,ts,jsx,tsx,mdx}",
     // Legacy components (if any)
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    // Shared package — UI classes must not be purged
+    "../../packages/shared/src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

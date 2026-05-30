@@ -1,7 +1,7 @@
 "use client";
 
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
 import { QuickDateRange } from "../QuickDateRange";
 import type { DiscountWizardState } from "../DiscountCreationWizard";
 import { CalendarDays, Clock } from "lucide-react";

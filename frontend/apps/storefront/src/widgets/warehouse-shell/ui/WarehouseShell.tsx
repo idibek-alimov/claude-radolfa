@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ProtectedRoute from "@/shared/components/ProtectedRoute";
+import ProtectedRoute from "@radolfa/shared/components/ProtectedRoute";
 import { WarehouseSidebar } from "./WarehouseSidebar";
 
 export function WarehouseShell({ children }: { children: React.ReactNode }) {

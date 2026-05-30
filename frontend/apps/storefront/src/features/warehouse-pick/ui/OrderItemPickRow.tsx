@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import type { PickSessionItem } from "../types";
 
 interface Props {

@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { Clock } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/shared/ui/dialog";
+} from "@radolfa/shared/ui/dialog";
 import { useConfirmReturnedToWarehouse } from "@/features/pickpoint/api";
-import { getErrorMessage } from "@/shared/lib";
-import type { PickpointOrder } from "@/entities/user";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import type { PickpointOrder } from "@radolfa/shared/user";
 
 interface Props {
   order: PickpointOrder;

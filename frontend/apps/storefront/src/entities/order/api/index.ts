@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import apiClient from "@/shared/api/axios";
+import apiClient from "@radolfa/shared/api/axios";
 import type { DeliveredOrder, AdminOrderListItem, AdminOrderDetail, AdminOrderSummary, OrderStatus } from "../model/types";
-import type { PaginatedResponse } from "@/shared/api/types";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 
 /** Fetch authenticated user's delivered orders — used for review submission. */
 export const fetchMyDeliveredOrders = (): Promise<DeliveredOrder[]> =>

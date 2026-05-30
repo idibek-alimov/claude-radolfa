@@ -4,9 +4,9 @@ import { useRef, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ScanBarcode, Loader2 } from "lucide-react";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
-import { cn, getErrorMessage } from "@/shared/lib";
+import { Input } from "@radolfa/shared/ui/input";
+import { Button } from "@radolfa/shared/ui/button";
+import { cn, getErrorMessage } from "@radolfa/shared/lib";
 import { useScanUnit } from "../api";
 
 interface Props {

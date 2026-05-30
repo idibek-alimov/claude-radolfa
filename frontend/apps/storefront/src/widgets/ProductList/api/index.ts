@@ -1,5 +1,5 @@
 import { fetchListings } from "@/entities/product";
-import type { PaginatedResponse } from "@/shared/api/types";
+import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import type { ListingVariant } from "@/entities/product";
 
 export type { PaginatedResponse };

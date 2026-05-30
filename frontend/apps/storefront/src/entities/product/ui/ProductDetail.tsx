@@ -20,18 +20,18 @@ import {
 import { fetchListingBySlug, fetchListings } from "@/entities/product/api";
 import type { Sku } from "@/entities/product";
 import { useAddToCart } from "@/features/cart";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@radolfa/shared/auth";
 import { ReviewsAndQuestionsSection } from "@/widgets/reviews-questions";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { getErrorMessage } from "@/shared/lib";
-import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import { Badge } from "@radolfa/shared/ui/badge";
+import { Button } from "@radolfa/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "@/shared/ui/dialog";
+} from "@radolfa/shared/ui/dialog";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -39,12 +39,12 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/shared/ui/breadcrumb";
+} from "@radolfa/shared/ui/breadcrumb";
 import StockBadge from "./StockBadge";
 import ProductCard from "./ProductCard";
 import ProductCardSkeleton from "./ProductCardSkeleton";
 import ProductDetailSkeleton from "./ProductDetailSkeleton";
-import { formatPrice } from "@/shared/lib/format";
+import { formatPrice } from "@radolfa/shared/lib/format";
 
 /* ── Animation variants ────────────────────────────────────────── */
 

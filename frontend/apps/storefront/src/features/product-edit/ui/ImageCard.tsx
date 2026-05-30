@@ -31,8 +31,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { uploadListingImage, removeListingImage } from "@/entities/product/api";
 import { reorderVariantImages } from "@/entities/product/api/admin";
-import { getErrorMessage } from "@/shared/lib";
-import { cn } from "@/shared/lib/utils";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import { cn } from "@radolfa/shared/lib/utils";
 import type { ProductCardImage } from "@/entities/product/model/types";
 
 interface Props {

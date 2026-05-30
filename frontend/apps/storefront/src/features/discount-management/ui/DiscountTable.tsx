@@ -9,25 +9,25 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Checkbox } from "@/shared/ui/checkbox";
+} from "@radolfa/shared/ui/table";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Checkbox } from "@radolfa/shared/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
+} from "@radolfa/shared/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+} from "@radolfa/shared/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +37,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/shared/ui/alert-dialog";
+} from "@radolfa/shared/ui/alert-dialog";
 import {
   fetchDiscounts,
   fetchDiscountTypes,
@@ -55,8 +55,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shared/ui/tooltip";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/tooltip";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 import {
   ChevronUp,
@@ -77,7 +77,7 @@ import {
   Users,
   Ticket,
 } from "lucide-react";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import { CampaignSkuDrawer } from "./CampaignSkuDrawer";
 
 

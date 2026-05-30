@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save, Loader2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@radolfa/shared/ui/button";
 import { TagBadge } from "@/entities/tag";
 import { fetchTags, setVariantTags } from "@/entities/tag/api";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { Tag } from "@/entities/tag";
 
 interface TagAssignmentCardProps {

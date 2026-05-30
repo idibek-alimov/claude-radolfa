@@ -10,11 +10,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { getErrorMessage } from "@/shared/lib";
+} from "@radolfa/shared/ui/select";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { useWarehouseZones, useShelvesByZone, useBinsByShelf } from "@/entities/warehouse-location";
 import type { Placement } from "@/entities/warehouse-sku";
 import { useRelocateStock } from "../api";

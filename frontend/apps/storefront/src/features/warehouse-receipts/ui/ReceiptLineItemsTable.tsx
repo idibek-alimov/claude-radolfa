@@ -9,9 +9,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
+} from "@radolfa/shared/ui/table";
+import { Input } from "@radolfa/shared/ui/input";
+import { Button } from "@radolfa/shared/ui/button";
 import type { LineItem } from "../types";
 
 interface EditableProps {

@@ -8,14 +8,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Input } from "@radolfa/shared/ui/input";
+import { Label } from "@radolfa/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@radolfa/shared/ui/radio-group";
 import { AlertCircle, Lock } from "lucide-react";
 import { updateReviewTrait } from "@/entities/review-trait";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import type { ReviewTrait, ReviewTraitInputType } from "@/entities/review-trait";
 
 interface EditReviewTraitDialogProps {

@@ -4,19 +4,19 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { cn } from "@/shared/lib/utils";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Button } from "@/shared/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { useAuth } from "@/features/auth";
+import { cn } from "@radolfa/shared/lib/utils";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
+import { useAuth } from "@radolfa/shared/auth";
 import {
   usePickpointOrders,
   usePickpointCustomerReturns,
   useConfirmArrival,
 } from "@/features/pickpoint/api";
-import { useDeliverySocket } from "@/shared/lib/useDeliverySocket";
-import { getErrorMessage } from "@/shared/lib";
-import type { PickpointOrder } from "@/entities/user";
+import { useDeliverySocket } from "@radolfa/shared/lib/useDeliverySocket";
+import { getErrorMessage } from "@radolfa/shared/lib";
+import type { PickpointOrder } from "@radolfa/shared/user";
 import { IncomingPackageCard } from "./IncomingPackageCard";
 import { PickpointOrderCard } from "./PickpointOrderCard";
 import { ReturnInProgressCard } from "./ReturnInProgressCard";

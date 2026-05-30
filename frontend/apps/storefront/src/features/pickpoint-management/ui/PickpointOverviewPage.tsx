@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { Button } from "@radolfa/shared/ui/button";
 import { usePickpointSummaries } from "@/entities/pickpoint";
-import { getErrorMessage } from "@/shared/lib";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { PickpointSummaryCard } from "./PickpointSummaryCard";
 
 export function PickpointOverviewPage() {

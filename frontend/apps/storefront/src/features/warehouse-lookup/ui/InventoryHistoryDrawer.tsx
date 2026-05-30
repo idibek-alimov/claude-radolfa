@@ -9,7 +9,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/shared/ui/sheet";
+} from "@radolfa/shared/ui/sheet";
 import {
   Table,
   TableBody,
@@ -17,11 +17,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/shared/ui/table";
-import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { cn } from "@/shared/lib";
-import { formatDate } from "@/shared/lib/format";
+} from "@radolfa/shared/ui/table";
+import { Button } from "@radolfa/shared/ui/button";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
+import { cn } from "@radolfa/shared/lib";
+import { formatDate } from "@radolfa/shared/lib/format";
 import type { InventoryTransactionType } from "../types";
 import { useInventoryHistory } from "../api";
 

@@ -7,15 +7,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Button } from "@/shared/ui/button";
-import { Label } from "@/shared/ui/label";
-import { Badge } from "@/shared/ui/badge";
+} from "@radolfa/shared/ui/dialog";
+import { Button } from "@radolfa/shared/ui/button";
+import { Label } from "@radolfa/shared/ui/label";
+import { Badge } from "@radolfa/shared/ui/badge";
 import { useLoyaltyTiers } from "@/entities/loyalty/api";
 import { changeUserRole, assignUserTier, setLoyaltyPermanent } from "../api";
 import type { UserDto } from "../types";
-import { UserRole } from "@/entities/user";
-import { getErrorMessage } from "@/shared/lib";
+import { UserRole } from "@radolfa/shared/user";
+import { getErrorMessage } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 
 const ROLE_RANK: Record<string, number> = { USER: 0, MANAGER: 1, ADMIN: 2 };

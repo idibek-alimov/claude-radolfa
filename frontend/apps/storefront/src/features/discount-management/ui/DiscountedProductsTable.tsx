@@ -11,18 +11,18 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/shared/ui/table";
-import { Input } from "@/shared/ui/input";
-import { Skeleton } from "@/shared/ui/skeleton";
+} from "@radolfa/shared/ui/table";
+import { Input } from "@radolfa/shared/ui/input";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shared/ui/select";
+} from "@radolfa/shared/ui/select";
 import { fetchDiscountedProducts, fetchDiscounts } from "../api";
-import { cn } from "@/shared/lib";
+import { cn } from "@radolfa/shared/lib";
 import { Search, Package } from "lucide-react";
 
 const PAGE_SIZE = 20;
