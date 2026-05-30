@@ -1368,5 +1368,28 @@
     "create": {
       "invalidQuantity": "Quantity must be at least 1 for every line."
     }
+  },
+  "seller": {
+    "title": "Seller Portal",
+    "nav": {
+      "dashboard": "Dashboard",
+      "products": "My Products",
+      "orders": "My Orders"
+    },
+    "dashboard": {
+      "heading": "Welcome to your Seller Portal",
+      "subtitle": "Your seller dashboard will appear here once the marketplace is live."
+    },
+    "products": {
+      "title": "My Products",
+      "empty": "Your product listings will appear here once the marketplace backend is ready."
+    },
+    "orders": {
+      "title": "My Orders",
+      "empty": "Your orders will appear here once the marketplace backend is ready."
+    },
+    "common": {
+      "logout": "Log out"
+    }
   }
 }

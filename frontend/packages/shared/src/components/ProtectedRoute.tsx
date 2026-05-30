@@ -14,7 +14,7 @@ function navigateAbsolute(path: string) {
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: "USER" | "MANAGER" | "ADMIN" | "COURIER" | "PICKPOINT_STAFF" | "WAREHOUSE_MANAGER";
+    requiredRole?: "USER" | "MANAGER" | "ADMIN" | "COURIER" | "PICKPOINT_STAFF" | "WAREHOUSE_MANAGER" | "SELLER";
 }
 
 const ROLE_HIERARCHY: Record<string, number> = {
@@ -23,7 +23,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
     ADMIN: 2,
 };
 
-const LATERAL_ROLES = new Set(["COURIER", "PICKPOINT_STAFF", "WAREHOUSE_MANAGER"]);
+const LATERAL_ROLES = new Set(["COURIER", "PICKPOINT_STAFF", "WAREHOUSE_MANAGER", "SELLER"]);
 
 function hasRequiredRole(
     userRole: string | undefined,

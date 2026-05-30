@@ -34,10 +34,11 @@ export default function LoginForm() {
     onSuccess: (auth) => {
       const role = auth.user.role;
       const target =
-        role === "COURIER" ? "/courier" :
-        role === "PICKPOINT_STAFF" ? "/pickpoint" :
-        role === "WAREHOUSE_MANAGER" ? "/warehouse" :
-        role === "ADMIN" || role === "MANAGER" ? "/manage" :
+        role === "SELLER"            ? "/ops/seller"    :
+        role === "COURIER"           ? "/ops/courier"   :
+        role === "PICKPOINT_STAFF"   ? "/ops/pickpoint" :
+        role === "WAREHOUSE_MANAGER" ? "/ops/warehouse" :
+        role === "ADMIN" || role === "MANAGER" ? "/ops/manage" :
         "/";
       window.location.href = target;
     },
