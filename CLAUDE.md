@@ -160,4 +160,12 @@ Three roles: `USER`, `MANAGER`, `ADMIN`. `ADMIN` is the only role that can edit 
 
 **After implementation:** run `/audit-data` to validate Hexagonal + FSD compliance. Run `/review` for any security-sensitive code.
 
-**CRITICAL — Explicit permission required before any code is written:** Answering a design question (e.g. "Option A", "yes", "agreed") is NOT permission to implement. I must wait for an explicit instruction such as "go ahead", "implement it", or "just do it" before writing or modifying any code.
+**CRITICAL — Explicit permission required before any code is written:** Answering a design question, approving a plan, or any implicit signal is NOT permission to implement. I must wait for the user to type one of these exact phrases:
+
+- **"start coding"**
+- **"implement it"**
+
+If it is time to write code and I have not received one of those phrases, I must stop and ask:
+> "Please type **start coding** or **implement it** to give me the go-ahead."
+
+No other wording counts. This rule overrides ExitPlanMode's "you can now start coding" message.

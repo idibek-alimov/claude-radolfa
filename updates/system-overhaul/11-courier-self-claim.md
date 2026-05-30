@@ -15,7 +15,7 @@
 | 3 | Backend: rewire pipeline — `CLAIMED → OUT_FOR_DELIVERY` collect, delivery-code at `CLAIMED`, drop admin HOME ship-assignment from transition matrix, admin unclaim (`CLAIMED → PICKED`) | ✅ Complete |
 | 4 | Frontend (courier): **Available** tab + **Claim** action; **To Collect** now reads `CLAIMED`; new hooks | ✅ Complete |
 | 5 | Frontend (admin): remove HOME ship/assign-courier modal; read-only monitoring + **Unclaim** rescue action | ✅ Complete |
-| 6 | Frontend (customer + bridge): add `CLAIMED` to TS `OrderStatus`; i18n (internal "Claimed" / customer "Being prepared"); customer timeline mapping | ⬜ Not started |
+| 6 | Frontend (customer + bridge): add `CLAIMED` to TS `OrderStatus`; i18n (internal "Claimed" / customer "Being prepared"); customer timeline mapping | ✅ Complete |
 
 ---
 

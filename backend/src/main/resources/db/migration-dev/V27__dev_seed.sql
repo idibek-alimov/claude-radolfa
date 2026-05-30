@@ -48,7 +48,9 @@ INSERT INTO users (phone, role, name, loyalty_points) VALUES
     ('+992902345678', 'MANAGER',           NULL,              30),
     ('+992903456789', 'ADMIN',             NULL,              50),
     ('+992904567890', 'USER',              NULL,              5200),
-    ('+992905678901', 'WAREHOUSE_MANAGER', 'Warehouse Staff', 0);
+    ('+992905678901', 'WAREHOUSE_MANAGER', 'Warehouse Staff', 0),
+    ('+992906789012', 'COURIER',           'Test Courier',    0),
+    ('+992907890123', 'PICKPOINT_STAFF',   'Test Staff',      0);
 
 -- User 1: Gold tier, close to Platinum
 UPDATE users SET
@@ -691,6 +693,12 @@ ON CONFLICT DO NOTHING;
 INSERT INTO pickpoint (name, address, active) VALUES
     ('Radolfa — Центр',    'г. Душанбе, пр. Рудаки, 42', TRUE),
     ('Radolfa — Сомони',   'г. Душанбе, ул. Сомони, 17', TRUE);
+
+-- Update pickpoint staff assignment
+UPDATE users SET pickpoint_id = (SELECT id FROM pickpoint WHERE name = 'Radolfa — Центр') WHERE phone = '+992907890123';
+
+-- Update courier fields
+UPDATE users SET vehicle_type = 'VAN', max_payload_kg = 500.00 WHERE phone = '+992906789012';
 
 -- ================================================================
 -- 8b. PICK-TEST ORDERS (PAID, real SKU refs for scan verification)
