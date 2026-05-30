@@ -28,20 +28,33 @@ Sub-level instructions live in `backend/CLAUDE.md` and `frontend/CLAUDE.md`. Rea
 ./mvnw test -pl backend -Dtest=CreateProductServiceTest#shouldCreateProductWithVariants
 ```
 
-### Frontend (Next.js 15 + React 19)
+### Frontend (npm workspace — Next.js 15 + React 19)
+
+The frontend is an npm workspace with two Next.js apps and one shared package:
+- `apps/storefront` — customer storefront (served at `/`)
+- `apps/ops` — internal ops portal (served at `/ops`, roles: MANAGER, ADMIN, WAREHOUSE_MANAGER, COURIER, PICKPOINT_STAFF)
+- `packages/shared` — `@radolfa/shared` (Axios client, ProtectedRoute, useAuth, shadcn UI, i18n, user entity)
 
 ```bash
-# Install dependencies
+# Install dependencies (run from frontend/)
 npm install --prefix frontend
 
-# Start dev server (set API base URL)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run dev --prefix frontend
+# Start storefront dev server
+npm run dev:storefront --prefix frontend
 
-# Build for production
+# Start ops portal dev server (port 3001)
+npm run dev:ops --prefix frontend
+
+# Build both apps for production
 npm run build --prefix frontend
 
-# Lint
+# Build individually
+npm run build:storefront --prefix frontend
+npm run build:ops --prefix frontend
+
+# Lint / typecheck across all workspaces
 npm run lint --prefix frontend
+npm run typecheck --prefix frontend
 ```
 
 ### Infrastructure

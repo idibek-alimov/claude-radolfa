@@ -1,9 +1,33 @@
 # Radolfa Frontend — Technical Constitution
 
+## Workspace Layout
+
+```
+frontend/                      # npm workspace root
+├── apps/
+│   ├── storefront/            # @radolfa/storefront — customer app (serves at /)
+│   └── ops/                   # @radolfa/ops — internal ops portal (serves at /ops)
+└── packages/
+    └── shared/                # @radolfa/shared — Axios, ProtectedRoute, useAuth, shadcn UI, i18n, user entity
+```
+
+**Ops portal roles:** MANAGER, ADMIN, WAREHOUSE_MANAGER, COURIER, PICKPOINT_STAFF (each gated by their route-group layout).
+
+**Dev commands:**
+```bash
+npm run dev:storefront   # storefront on :3000
+npm run dev:ops          # ops portal on :3001 (basePath /ops)
+npm run build            # build both apps
+npm run lint             # lint all workspaces
+npm run typecheck        # typecheck all workspaces
+```
+
+---
+
 ## Stack
 - Next.js 15 (App Router), React 19, TypeScript strict mode
 - TanStack Query v5 — server state. React context / `useState` — client state. No Redux/Zustand.
-- Tailwind CSS + Shadcn UI (`shared/ui/`). Axios at `shared/api/axios.ts` (`withCredentials: true`).
+- Tailwind CSS + Shadcn UI (`@radolfa/shared/ui`). Axios at `@radolfa/shared/api/axios` (`withCredentials: true`).
 
 ---
 
@@ -14,6 +38,8 @@ app → pages → widgets → features → entities → shared
 ```
 
 Cross-slice imports at the same layer are **forbidden**. Logic (hooks, mutations) lives in `features/` or `entities/`, never in `app/`. `"use client"` only for browser APIs / event handlers / hooks — prefer Server Components for layout wrappers.
+
+Shared cross-cutting code (Axios client, `ProtectedRoute`, `useAuth`, shadcn primitives, i18n, `UserRole`, `user` entity) lives exclusively in `packages/shared` — neither app keeps a private copy.
 
 ---
 

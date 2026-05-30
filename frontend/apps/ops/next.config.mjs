@@ -31,12 +31,16 @@ const nextConfig = {
   async rewrites() {
     const backendUrl =
       process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8080";
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${backendUrl}/api/:path*`,
-      },
-    ];
+    return {
+      // beforeFiles rewrites run before basePath is applied, so the source
+      // stays at /api/:path* rather than being prefixed to /ops/api/:path*.
+      beforeFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${backendUrl}/api/:path*`,
+        },
+      ],
+    };
   },
 
   images: {
