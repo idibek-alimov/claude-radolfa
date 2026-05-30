@@ -26,14 +26,14 @@ import type { MyOrderDetail } from "../types";
 
 /* ── Timeline constants (mirrors OrderHistoryCard pattern) ─────── */
 
-const HOME_STEPS      = ["PENDING", "PAID", "SHIPPED",          "DELIVERED"] as const;
+const HOME_STEPS      = ["PENDING", "PAID", "OUT_FOR_DELIVERY", "DELIVERED"] as const;
 const PICKPOINT_STEPS = ["PENDING", "PAID", "READY_FOR_PICKUP", "DELIVERED"] as const;
 type AnyStep = (typeof HOME_STEPS)[number] | (typeof PICKPOINT_STEPS)[number];
 
 const STEP_ICONS: Record<AnyStep, LucideIcon> = {
   PENDING:          Clock,
   PAID:             Check,
-  SHIPPED:          Truck,
+  OUT_FOR_DELIVERY: Truck,
   READY_FOR_PICKUP: PackageCheck,
   DELIVERED:        CircleCheckBig,
 };
@@ -41,7 +41,7 @@ const STEP_ICONS: Record<AnyStep, LucideIcon> = {
 const STEP_KEYS: Record<AnyStep, string> = {
   PENDING:          "orderPlaced",
   PAID:             "statusPaid",
-  SHIPPED:          "orderShipped",
+  OUT_FOR_DELIVERY: "orderOutForDelivery",
   READY_FOR_PICKUP: "orderReadyForPickup",
   DELIVERED:        "orderDelivered",
 };
@@ -54,7 +54,13 @@ const RETURN_STATUSES = new Set<OrderStatus>([
 ]);
 
 function getStepIndex(status: string, steps: readonly string[]): number {
-  const idx = steps.indexOf(status);
+  // Normalize internal-only or transitional statuses so the customer progress
+  // bar lands on the nearest visible step.
+  const normalized =
+    status === "PICKED" || status === "CLAIMED" ? "PAID"
+    : status === "DELIVERY_ATTEMPTED"           ? "OUT_FOR_DELIVERY"
+    : status;
+  const idx = steps.indexOf(normalized);
   return idx === -1 ? 0 : idx;
 }
 
@@ -188,7 +194,7 @@ export function CustomerOrderDetailPage() {
         <h1 className="text-xl font-semibold">
           {t("orderNumber")} #{order.id}
         </h1>
-        <OrderStatusBadge status={order.status} />
+        <OrderStatusBadge status={order.status} namespace="profile.status" />
       </div>
 
       {/* Return / Recall Banners */}
