@@ -1,8 +1,16 @@
 "use client";
 
 import { useAuth } from "@radolfa/shared/auth";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+
+// Use window.location.assign for cross-app navigation (bypasses Next.js basePath).
+// When ops runs at basePath="/ops", router.push("/login") would resolve to /ops/login
+// which does not exist in ops. Absolute navigation lands on the storefront correctly.
+function navigateAbsolute(path: string) {
+    if (typeof window !== "undefined") {
+        window.location.assign(path);
+    }
+}
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -34,22 +42,21 @@ export default function ProtectedRoute({
     requiredRole,
 }: ProtectedRouteProps) {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const router = useRouter();
 
     useEffect(() => {
         if (!isLoading) {
-            // Not authenticated at all
+            // Not authenticated at all — navigate absolutely so ops basePath is bypassed
             if (!isAuthenticated) {
-                router.push("/login");
+                navigateAbsolute("/login");
                 return;
             }
 
-            // Check role if required
+            // Check role if required — send to storefront home on wrong role
             if (!hasRequiredRole(user?.role, requiredRole)) {
-                router.push("/");
+                navigateAbsolute("/");
             }
         }
-    }, [isAuthenticated, isLoading, user, requiredRole, router]);
+    }, [isAuthenticated, isLoading, user, requiredRole]);
 
     // Show loading state
     if (isLoading) {
@@ -96,7 +103,7 @@ export default function ProtectedRoute({
                         <span className="font-semibold">{requiredRole}</span> role.
                     </p>
                     <button
-                        onClick={() => router.push("/")}
+                        onClick={() => navigateAbsolute("/")}
                         className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
                     >
                         Go to Home

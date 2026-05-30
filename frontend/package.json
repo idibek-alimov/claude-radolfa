@@ -6,6 +6,9 @@
     "dev:storefront": "npm run dev -w @radolfa/storefront",
     "build:storefront": "npm run build -w @radolfa/storefront",
     "start:storefront": "npm run start -w @radolfa/storefront",
+    "dev:ops": "npm run dev -w @radolfa/ops",
+    "build:ops": "npm run build -w @radolfa/ops",
+    "start:ops": "npm run start -w @radolfa/ops",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   }
