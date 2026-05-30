@@ -11,10 +11,10 @@
 | Phase | Description | Status |
 |---|---|---|
 | 1 | Backend: domain — add `CLAIMED` `OrderStatus` + `claimedAt` timestamp (enum, `Order` record/builder, `OrderEntity`, `OrderMapper`, edit-original `V3__commerce.sql`) | ✅ Complete |
-| 2 | Backend: available-pool query + concurrency-safe `ClaimOrderUseCase`/service + `POST /courier/orders/{id}/claim` + `GET /courier/orders/available` | ⬜ Not started |
-| 3 | Backend: rewire pipeline — `CLAIMED → OUT_FOR_DELIVERY` collect, delivery-code at `CLAIMED`, drop admin HOME ship-assignment from transition matrix, admin unclaim (`CLAIMED → PICKED`) | ⬜ Not started |
+| 2 | Backend: available-pool query + concurrency-safe `ClaimOrderUseCase`/service + `POST /courier/orders/{id}/claim` + `GET /courier/orders/available` | ✅ Complete |
+| 3 | Backend: rewire pipeline — `CLAIMED → OUT_FOR_DELIVERY` collect, delivery-code at `CLAIMED`, drop admin HOME ship-assignment from transition matrix, admin unclaim (`CLAIMED → PICKED`) | ✅ Complete |
 | 4 | Frontend (courier): **Available** tab + **Claim** action; **To Collect** now reads `CLAIMED`; new hooks | ✅ Complete |
-| 5 | Frontend (admin): remove HOME ship/assign-courier modal; read-only monitoring + **Unclaim** rescue action | ⬜ Not started |
+| 5 | Frontend (admin): remove HOME ship/assign-courier modal; read-only monitoring + **Unclaim** rescue action | ✅ Complete |
 | 6 | Frontend (customer + bridge): add `CLAIMED` to TS `OrderStatus`; i18n (internal "Claimed" / customer "Being prepared"); customer timeline mapping | ⬜ Not started |
 
 ---

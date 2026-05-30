@@ -113,8 +113,9 @@ export function FulfillmentTimeline({
   const t = useTranslations("manage.orders.timeline");
 
   const isHome      = deliveryType !== "PICKPOINT";
-  const isPaid      = ["PAID", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERY_ATTEMPTED",
+  const isPaid      = ["PAID", "PICKED", "CLAIMED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERY_ATTEMPTED",
                        "READY_FOR_PICKUP", "DELIVERED", "REFUNDED"].includes(status);
+  const isClaimed   = ["CLAIMED", "OUT_FOR_DELIVERY", "DELIVERY_ATTEMPTED", "DELIVERED", "REFUNDED"].includes(status);
   const isShipped   = ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERY_ATTEMPTED",
                        "READY_FOR_PICKUP", "DELIVERED", "REFUNDED"].includes(status);
   const isOutFor    = ["OUT_FOR_DELIVERY", "DELIVERY_ATTEMPTED", "DELIVERED", "REFUNDED"].includes(status);
@@ -127,11 +128,11 @@ export function FulfillmentTimeline({
 
   const nodes: TimelineNode[] = isHome
     ? [
-        { label: t("created"),       timestamp: createdAt,        reached: true,       isCurrent: status === "PENDING" && !isCancelled && !isRefunded },
-        { label: t("paid"),          timestamp: null,             reached: isPaid,      isCurrent: status === "PAID" && !isCancelled && !isRefunded },
-        { label: shippedLabel,       timestamp: shippedAt,        reached: isShipped,   isCurrent: status === "SHIPPED" && !isCancelled && !isRefunded },
-        { label: "Out for delivery", timestamp: outForDeliveryAt ?? null, reached: isOutFor, isCurrent: status === "OUT_FOR_DELIVERY", isOutForDelivery: isOutFor },
-        { label: t("delivered"),     timestamp: deliveredAt,      reached: isDelivered, isCurrent: status === "DELIVERED" },
+        { label: t("created"),       timestamp: createdAt,               reached: true,       isCurrent: status === "PENDING" && !isCancelled && !isRefunded },
+        { label: t("paid"),          timestamp: null,                    reached: isPaid,      isCurrent: (status === "PAID" || status === "PICKED") && !isCancelled && !isRefunded },
+        { label: t("claimed"),       timestamp: null,                    reached: isClaimed,   isCurrent: status === "CLAIMED" && !isCancelled && !isRefunded },
+        { label: "Out for delivery", timestamp: outForDeliveryAt ?? null, reached: isOutFor,   isCurrent: status === "OUT_FOR_DELIVERY", isOutForDelivery: isOutFor },
+        { label: t("delivered"),     timestamp: deliveredAt,             reached: isDelivered, isCurrent: status === "DELIVERED" },
       ]
     : [
         { label: t("created"),     timestamp: createdAt,  reached: true,        isCurrent: status === "PENDING" && !isCancelled && !isRefunded },

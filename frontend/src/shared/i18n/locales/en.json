@@ -333,7 +333,8 @@
         "REFUNDED": "Refunded",
         "RETURN_INITIATED": "Return initiated",
         "RETURNED_TO_WAREHOUSE": "Returned to warehouse",
-        "RECALL_REQUESTED": "Recall Requested"
+        "RECALL_REQUESTED": "Recall Requested",
+        "CLAIMED": "Claimed"
       },
       "deliveryType": {
         "HOME": "Home",
@@ -382,6 +383,8 @@
         "timeWindow": "Time window: {value}",
         "pickupPoint": "Pickup Point",
         "shipment": "Shipment",
+        "claimedBy": "Claimed by",
+        "unclaim": "Unclaim",
         "tracking": "Tracking",
         "eta": "ETA",
         "loyaltyPoints": "Loyalty Points",
@@ -433,6 +436,7 @@
         "paid": "Paid",
         "shipped": "Shipped",
         "ready": "Ready",
+        "claimed": "Claimed",
         "delivered": "Delivered",
         "cancelled": "Cancelled",
         "refunded": "Refunded"
@@ -445,7 +449,9 @@
         "cancelled": "Order cancelled.",
         "cancelFailed": "Failed to cancel order.",
         "refunded": "Order refunded.",
-        "refundFailed": "Failed to refund order."
+        "refundFailed": "Failed to refund order.",
+        "unclaimed": "Order returned to the available pool.",
+        "unclaimFailed": "Failed to unclaim order."
       },
       "refundModal": {
         "title": "Refund Order #{id}?",
@@ -460,6 +466,7 @@
       "tabInFulfillment": "In Fulfillment",
       "tabCompleted": "Completed",
       "awaitingArrivalCallout": "Awaiting pickup point staff to confirm package arrival.",
+      "awaitingClaim": "Awaiting a courier to claim this order from the available pool.",
       "empty": "No orders found.",
       "page": "Page {page}",
       "total": "{count, plural, one {# order total} other {# orders total}}",
@@ -467,6 +474,13 @@
         "title": "Awaiting warehouse pick verification",
         "body": "A warehouse worker must scan all items before this order can be shipped.",
         "openInWarehouse": "Open in warehouse"
+      },
+      "unclaimModal": {
+        "title": "Return order #{id} to the pool?",
+        "description": "This unassigns {courier} and returns the order to the available pool for any courier to claim.",
+        "keep": "Keep Assignment",
+        "confirm": "Unclaim",
+        "unclaiming": "Unclaiming…"
       }
     }
   },

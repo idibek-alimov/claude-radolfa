@@ -29,6 +29,7 @@ import { ShipOrderModal } from "./ShipOrderModal";
 import { CancelOrderModal } from "./CancelOrderModal";
 import { RefundOrderModal } from "./RefundOrderModal";
 import { RedirectToPickpointDialog } from "./RedirectToPickpointDialog";
+import { UnclaimOrderDialog } from "./UnclaimOrderDialog";
 
 const VEHICLE_ICONS: Record<string, React.ReactNode> = {
   BICYCLE:    <Bike className="h-3 w-3" />,
@@ -87,6 +88,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const [cancelOpen, setCancelOpen]     = useState(false);
   const [refundOpen, setRefundOpen]     = useState(false);
   const [redirectOpen, setRedirectOpen] = useState(false);
+  const [unclaimOpen, setUnclaimOpen]   = useState(false);
 
   function handleStatusChange(newStatus: OrderStatus) {
     updateStatus.mutate(
@@ -129,15 +131,17 @@ export function AdminOrderDetailView({ orderId }: Props) {
   const isFinalState      = order.status === "DELIVERED"
                          || order.status === "CANCELLED"
                          || order.status === "REFUNDED";
-  const showShipButton    = order.status === "PICKED" && (order.deliveryType === "HOME" || order.deliveryType === "PICKPOINT");
+  const showShipButton    = order.status === "PICKED" && order.deliveryType === "PICKPOINT";
   const showAdvanceButton = nextStatus !== null && !showShipButton;
   const showCancelButton  = !isFinalState;
   const showRefundButton  = isAdmin && (order.status === "DELIVERED" || order.status === "CANCELLED");
   const showRedirectButton = order.status === "DELIVERY_ATTEMPTED" && order.deliveryType === "HOME";
-  const showRegenCodeButton = ["SHIPPED", "OUT_FOR_DELIVERY", "READY_FOR_PICKUP"].includes(order.status);
+  const showRegenCodeButton = ["CLAIMED", "SHIPPED", "OUT_FOR_DELIVERY", "READY_FOR_PICKUP"].includes(order.status);
+  const showUnclaimButton  = order.status === "CLAIMED" && order.deliveryType === "HOME";
 
   const hasAnyButton = showShipButton || showAdvanceButton || showCancelButton
-                    || showRefundButton || showRedirectButton || showRegenCodeButton;
+                    || showRefundButton || showRedirectButton || showRegenCodeButton
+                    || showUnclaimButton;
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -175,6 +179,12 @@ export function AdminOrderDetailView({ orderId }: Props) {
           </div>
         )}
 
+        {order.status === "PICKED" && order.deliveryType === "HOME" && (
+          <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+            {t("awaitingClaim")}
+          </div>
+        )}
+
         {order.status === "PAID" && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <p className="font-medium">{t("awaitingPick.title")}</p>
@@ -209,6 +219,12 @@ export function AdminOrderDetailView({ orderId }: Props) {
               <Button variant="outline" onClick={() => setRedirectOpen(true)}>
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Redirect to Pickpoint
+              </Button>
+            )}
+            {showUnclaimButton && (
+              <Button variant="outline" onClick={() => setUnclaimOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />
+                {t("detail.unclaim")}
               </Button>
             )}
             {showRegenCodeButton && (
@@ -359,7 +375,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
 
           {/* Shipment / courier */}
           {order.courierName && (
-            <SectionCard title={t("detail.shipment")}>
+            <SectionCard title={order.status === "CLAIMED" ? t("detail.claimedBy") : t("detail.shipment")}>
               <div className="flex items-center gap-2 mb-2">
                 <Truck className="h-4 w-4 text-primary shrink-0" />
                 <span className="text-sm font-medium">{order.courierName}</span>
@@ -457,6 +473,7 @@ export function AdminOrderDetailView({ orderId }: Props) {
       <CancelOrderModal open={cancelOpen} onClose={() => setCancelOpen(false)} orderId={orderId} />
       <RefundOrderModal open={refundOpen} onClose={() => setRefundOpen(false)} orderId={orderId} />
       <RedirectToPickpointDialog open={redirectOpen} onClose={() => setRedirectOpen(false)} orderId={orderId} />
+      <UnclaimOrderDialog open={unclaimOpen} onClose={() => setUnclaimOpen(false)} orderId={orderId} />
     </div>
   );
 }
