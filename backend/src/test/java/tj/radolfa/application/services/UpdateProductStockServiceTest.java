@@ -3,16 +3,20 @@ package tj.radolfa.application.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.in.product.SkuEditActor;
 import tj.radolfa.application.ports.out.InventoryPlacementPort;
+import tj.radolfa.application.ports.out.LoadSkuOwnerPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadWarehousePort;
 import tj.radolfa.application.ports.out.RecordInventoryTransactionPort;
+import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.model.InventoryPlacement;
 import tj.radolfa.domain.model.InventoryTransaction;
 import tj.radolfa.domain.model.InventoryTransactionType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.domain.model.Warehouse;
 
 import java.math.BigDecimal;
@@ -39,11 +43,17 @@ class UpdateProductStockServiceTest {
     private static final Long USER_ID    = 42L;
     private static final Long BIN_A      = 100L;
     private static final Long BIN_B      = 200L;
+    private static final Long SELLER_A   = 50L;
+    private static final Long SELLER_B   = 51L;
 
-    private FakeInventoryPlacementPort       placementPort;
-    private InMemoryLoadSkuPort              loadSkuPort;
+    private static final SkuEditActor ADMIN_ACTOR =
+            new SkuEditActor(UserRole.ADMIN, USER_ID, null);
+
+    private FakeInventoryPlacementPort         placementPort;
+    private InMemoryLoadSkuPort                loadSkuPort;
     private FakeRecordInventoryTransactionPort ledgerPort;
-    private UpdateProductStockService        service;
+    private FakeSkuOwnerPort                   ownerPort;   // default: Radolfa-owned
+    private UpdateProductStockService          service;
 
     static final LoadWarehousePort FAKE_WAREHOUSE = new LoadWarehousePort() {
         @Override public Warehouse findDefault() {
@@ -59,11 +69,12 @@ class UpdateProductStockServiceTest {
         placementPort = new FakeInventoryPlacementPort();
         loadSkuPort   = new InMemoryLoadSkuPort();
         ledgerPort    = new FakeRecordInventoryTransactionPort();
-        service = new UpdateProductStockService(loadSkuPort, placementPort, ledgerPort, FAKE_WAREHOUSE,
-                ProductEditGuardTestUtil.noOp());
+        ownerPort     = new FakeSkuOwnerPort(null); // default: Radolfa-owned (ADMIN short-circuits)
+        service = new UpdateProductStockService(loadSkuPort, ownerPort, placementPort, ledgerPort,
+                FAKE_WAREHOUSE, ProductEditGuardTestUtil.noOp());
     }
 
-    // ── decrement (legacy signature) ──────────────────────────────────────────
+    // ── decrement (legacy signature — system path, no guard) ──────────────────
 
     @Test
     void decrement_happyPath_stockReduced() {
@@ -174,7 +185,7 @@ class UpdateProductStockServiceTest {
         assertTrue(ledgerPort.recorded.isEmpty());
     }
 
-    // ── increment (legacy signature) ──────────────────────────────────────────
+    // ── increment (legacy signature — system path, no guard) ──────────────────
 
     @Test
     void increment_happyPath_stockIncreased() {
@@ -247,14 +258,14 @@ class UpdateProductStockServiceTest {
         assertEquals(InventoryTransactionType.RECALL_RETURN, ledgerPort.recorded.get(0).type());
     }
 
-    // ── setAbsolute ────────────────────────────────────────────────────────────
+    // ── setAbsolute (user-facing, ownership-guarded) ──────────────────────────
 
     @Test
     @DisplayName("setAbsolute raises stock → records MANUAL_ADJUSTMENT with positive delta")
     void setAbsolute_increaseStock_recordsManualAdjustment() {
         placementPort.put(SKU_ID, 7);
 
-        service.setAbsolute(SKU_ID, 10, USER_ID);
+        service.setAbsolute(SKU_ID, 10, ADMIN_ACTOR);
 
         assertEquals(10, placementPort.stockOf(SKU_ID));
         assertEquals(1, ledgerPort.recorded.size());
@@ -271,7 +282,7 @@ class UpdateProductStockServiceTest {
     void setAbsolute_decreaseStock_recordsManualAdjustment() {
         placementPort.put(SKU_ID, 10);
 
-        service.setAbsolute(SKU_ID, 3, USER_ID);
+        service.setAbsolute(SKU_ID, 3, ADMIN_ACTOR);
 
         assertEquals(3, placementPort.stockOf(SKU_ID));
         assertEquals(1, ledgerPort.recorded.size());
@@ -283,9 +294,64 @@ class UpdateProductStockServiceTest {
     void setAbsolute_noDelta_noLedgerRow() {
         placementPort.put(SKU_ID, 7);
 
-        service.setAbsolute(SKU_ID, 7, USER_ID);
+        service.setAbsolute(SKU_ID, 7, ADMIN_ACTOR);
 
         assertTrue(ledgerPort.recorded.isEmpty(), "delta=0 must not write a ledger row");
+    }
+
+    // ── Ownership guard tests (setAbsolute & adjust) ──────────────────────────
+
+    @Test
+    @DisplayName("Seller sets absolute stock of their own SKU → succeeds, ledger row written")
+    void seller_own_sku_setAbsolute_succeeds() {
+        placementPort.put(SKU_ID, 5);
+        ownerPort.sellerId = SELLER_A;
+
+        SkuEditActor seller = new SkuEditActor(UserRole.SELLER, 99L, SELLER_A);
+        service.setAbsolute(SKU_ID, 20, seller);
+
+        assertEquals(20, placementPort.stockOf(SKU_ID));
+        assertEquals(1, ledgerPort.recorded.size());
+    }
+
+    @Test
+    @DisplayName("Seller adjusts stock of their own SKU → succeeds")
+    void seller_own_sku_adjust_succeeds() {
+        placementPort.put(SKU_ID, 5);
+        loadSkuPort.put(sku(SKU_ID, 5));
+        ownerPort.sellerId = SELLER_A;
+
+        SkuEditActor seller = new SkuEditActor(UserRole.SELLER, 99L, SELLER_A);
+        service.adjust(SKU_ID, 3, seller);
+
+        assertEquals(8, placementPort.stockOf(SKU_ID));
+    }
+
+    @Test
+    @DisplayName("Seller sets stock of another seller's SKU → FieldLockException, no ledger row")
+    void seller_foreign_sku_setAbsolute_denied() {
+        placementPort.put(SKU_ID, 5);
+        ownerPort.sellerId = SELLER_B;
+
+        SkuEditActor seller = new SkuEditActor(UserRole.SELLER, 99L, SELLER_A);
+        assertThrows(FieldLockException.class, () -> service.setAbsolute(SKU_ID, 20, seller));
+
+        // Stock unchanged, no ledger row
+        assertEquals(5, placementPort.stockOf(SKU_ID));
+        assertTrue(ledgerPort.recorded.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Seller sets stock of Radolfa-owned SKU (sellerId=null) → FieldLockException, no ledger row")
+    void seller_radolfa_sku_setAbsolute_denied() {
+        placementPort.put(SKU_ID, 5);
+        // ownerPort.sellerId stays null (Radolfa-owned)
+
+        SkuEditActor seller = new SkuEditActor(UserRole.SELLER, 99L, SELLER_A);
+        assertThrows(FieldLockException.class, () -> service.setAbsolute(SKU_ID, 20, seller));
+
+        assertEquals(5, placementPort.stockOf(SKU_ID));
+        assertTrue(ledgerPort.recorded.isEmpty());
     }
 
     // ── concurrency ───────────────────────────────────────────────────────────
@@ -334,6 +400,19 @@ class UpdateProductStockServiceTest {
 
     // ── in-memory fakes ───────────────────────────────────────────────────────
 
+    /** Configurable owner port — sellerId field can be mutated per test. */
+    static class FakeSkuOwnerPort implements LoadSkuOwnerPort {
+        Long sellerId; // null = Radolfa-owned
+
+        FakeSkuOwnerPort(Long sellerId) { this.sellerId = sellerId; }
+
+        @Override
+        public Optional<SkuOwner> findBySkuId(Long skuId) {
+            if (!SKU_ID.equals(skuId)) return Optional.empty();
+            return Optional.of(new SkuOwner(skuId, sellerId));
+        }
+    }
+
     static class FakeRecordInventoryTransactionPort implements RecordInventoryTransactionPort {
         final List<InventoryTransaction> recorded = Collections.synchronizedList(new ArrayList<>());
 
@@ -350,8 +429,6 @@ class UpdateProductStockServiceTest {
      */
     static class FakeInventoryPlacementPort implements InventoryPlacementPort {
 
-        // key: skuId * 10000 + (binId == null ? 0 : binId) — simple composite for test scale
-        // Using a nested map for clarity: skuId → (binId/*null for inbound*/ → quantity)
         private final Map<Long, Map<Long, Integer>> store = new HashMap<>();
 
         void put(Long skuId, int qty) {

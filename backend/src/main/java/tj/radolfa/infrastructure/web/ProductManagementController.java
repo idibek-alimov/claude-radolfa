@@ -28,8 +28,10 @@ import tj.radolfa.application.ports.in.product.SubmitProductForReviewUseCase;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
+import tj.radolfa.application.ports.in.product.SkuEditActor;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.application.ports.in.product.UpdateSkuDimensionsUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
 import tj.radolfa.application.readmodel.AdminProductRow;
@@ -321,9 +323,11 @@ public class ProductManagementController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updatePrice(
             @PathVariable Long skuId,
-            @Valid @RequestBody UpdatePriceRequestDto request) {
+            @Valid @RequestBody UpdatePriceRequestDto request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
-        updateProductPriceUseCase.execute(skuId, new Money(request.price()));
+        SkuEditActor actor = new SkuEditActor(UserRole.ADMIN, principal.userId(), null);
+        updateProductPriceUseCase.execute(skuId, new Money(request.price()), actor);
         return ResponseEntity.ok(MessageResponseDto.success("Price updated successfully."));
     }
 
@@ -347,10 +351,11 @@ public class ProductManagementController {
             @RequestBody UpdateStockRequestDto request,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
+        SkuEditActor actor = new SkuEditActor(UserRole.ADMIN, principal.userId(), null);
         if (request.quantity() != null) {
-            updateProductStockUseCase.setAbsolute(skuId, request.quantity(), principal.userId());
+            updateProductStockUseCase.setAbsolute(skuId, request.quantity(), actor);
         } else {
-            updateProductStockUseCase.adjust(skuId, request.delta(), principal.userId());
+            updateProductStockUseCase.adjust(skuId, request.delta(), actor);
         }
         return ResponseEntity.ok(MessageResponseDto.success("Stock updated successfully."));
     }

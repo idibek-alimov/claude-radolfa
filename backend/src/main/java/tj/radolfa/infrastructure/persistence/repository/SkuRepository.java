@@ -75,4 +75,12 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
 
     @Query("SELECT s.listingVariant.productBase.id FROM SkuEntity s WHERE s.id = :skuId")
     Optional<Long> findProductBaseIdBySkuId(@Param("skuId") Long skuId);
+
+    /**
+     * Returns [skuId, sellerId] for the given SKU so callers can resolve ownership.
+     * sellerId is null when the product is Radolfa-owned (product_bases.seller_id IS NULL).
+     * Returns an empty list when the SKU id does not exist.
+     */
+    @Query("SELECT s.id, s.listingVariant.productBase.sellerId FROM SkuEntity s WHERE s.id = :skuId")
+    List<Object[]> findSkuOwnerRow(@Param("skuId") Long skuId);
 }
