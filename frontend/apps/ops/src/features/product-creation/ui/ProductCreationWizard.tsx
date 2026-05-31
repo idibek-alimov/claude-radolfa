@@ -14,6 +14,7 @@ import {
   isStep2Valid,
   validateStep4,
   WIZARD_DRAFT_KEY,
+  type WizardState,
 } from "../model/types";
 import { fetchBlueprint } from "../api/blueprint";
 import { createProduct } from "../api/createProduct";
@@ -38,7 +39,14 @@ const slideVariants = {
   }),
 };
 
-export function ProductCreationWizard() {
+interface Props {
+  /** Override the create API function (defaults to admin POST /api/v1/admin/products). */
+  createFn?: (state: WizardState) => Promise<{ productBaseId: number }>;
+  /** Path to navigate to on success (defaults to "/manage"). */
+  successPath?: string;
+}
+
+export function ProductCreationWizard({ createFn, successPath = "/manage" }: Props = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { state, update, hydrated } = useWizardState();
@@ -56,12 +64,13 @@ export function ProductCreationWizard() {
   });
 
   const submitMutation = useMutation({
-    mutationFn: () => createProduct(state),
+    mutationFn: () => (createFn ? createFn(state) : createProduct(state)),
     onSuccess: () => {
       localStorage.removeItem(WIZARD_DRAFT_KEY);
       queryClient.invalidateQueries({ queryKey: ["listings"] });
+      queryClient.invalidateQueries({ queryKey: ["seller-products"] });
       toast.success("Product created successfully!");
-      router.push("/manage");
+      router.push(successPath);
     },
     onError: (err) => {
       toast.error(getErrorMessage(err, "Failed to create product"));

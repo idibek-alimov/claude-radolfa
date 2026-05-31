@@ -160,6 +160,7 @@ export function ProductManagementTable() {
                 <TableHead className="pl-4 w-[56px]">{t("tableImage")}</TableHead>
                 <TableHead>{t("tableProduct")}</TableHead>
                 <TableHead>{t("tableStatus")}</TableHead>
+                <TableHead>Seller</TableHead>
                 <TableHead>{tp("tableUpdated")}</TableHead>
                 <TableHead className="text-right pr-4">{t("tableActions")}</TableHead>
               </TableRow>
@@ -195,6 +196,11 @@ export function ProductManagementTable() {
                   </TableCell>
                   <TableCell>
                     <ProductStatusBadge status={row.status} />
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">
+                      {row.sellerShopName ?? "Radolfa"}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">

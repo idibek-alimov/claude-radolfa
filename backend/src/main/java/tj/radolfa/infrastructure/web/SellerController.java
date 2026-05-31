@@ -13,10 +13,12 @@ import tj.radolfa.application.ports.in.product.SkuEditActor;
 import tj.radolfa.application.ports.in.product.SubmitProductForReviewUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
+import tj.radolfa.application.ports.in.seller.GetMyProductCardUseCase;
 import tj.radolfa.application.ports.in.seller.GetMySellerProfileUseCase;
 import tj.radolfa.application.ports.in.seller.ListMyOrderItemsUseCase;
 import tj.radolfa.infrastructure.web.dto.SellerOrderItemDto;
 import tj.radolfa.application.readmodel.AdminProductRow;
+import tj.radolfa.application.readmodel.ProductCardDto;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.ProductAttribute;
@@ -44,6 +46,7 @@ public class SellerController {
     private final UpdateProductPriceUseCase       updateProductPriceUseCase;
     private final UpdateProductStockUseCase       updateProductStockUseCase;
     private final ListMyOrderItemsUseCase         listMyOrderItemsUseCase;
+    private final GetMyProductCardUseCase         getMyProductCardUseCase;
 
     public SellerController(GetMySellerProfileUseCase getMySellerProfileUseCase,
                             CreateProductUseCase createProductUseCase,
@@ -51,7 +54,8 @@ public class SellerController {
                             SubmitProductForReviewUseCase submitProductForReviewUseCase,
                             UpdateProductPriceUseCase updateProductPriceUseCase,
                             UpdateProductStockUseCase updateProductStockUseCase,
-                            ListMyOrderItemsUseCase listMyOrderItemsUseCase) {
+                            ListMyOrderItemsUseCase listMyOrderItemsUseCase,
+                            GetMyProductCardUseCase getMyProductCardUseCase) {
         this.getMySellerProfileUseCase      = getMySellerProfileUseCase;
         this.createProductUseCase           = createProductUseCase;
         this.listAdminProductsUseCase       = listAdminProductsUseCase;
@@ -59,6 +63,7 @@ public class SellerController {
         this.updateProductPriceUseCase      = updateProductPriceUseCase;
         this.updateProductStockUseCase      = updateProductStockUseCase;
         this.listMyOrderItemsUseCase        = listMyOrderItemsUseCase;
+        this.getMyProductCardUseCase        = getMyProductCardUseCase;
     }
 
     /** GET /api/v1/seller/me — return the caller's seller profile. */
@@ -114,6 +119,23 @@ public class SellerController {
         Long productBaseId = createProductUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("productBaseId", productBaseId));
+    }
+
+    /**
+     * GET /api/v1/seller/me/products/{productBaseId}
+     * Load the full product card for a product the caller owns.
+     * Ownership is asserted server-side — a seller cannot fetch another seller's or a
+     * Radolfa-owned product (→ 403 / FieldLockException).
+     */
+    @GetMapping("/me/products/{productBaseId}")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<ProductCardDto> getMyProductCard(
+            @PathVariable Long productBaseId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+
+        Long sellerId = getMySellerProfileUseCase.execute(principal.userId()).id();
+        ProductCardDto card = getMyProductCardUseCase.execute(productBaseId, sellerId);
+        return ResponseEntity.ok(card);
     }
 
     /**

@@ -388,7 +388,12 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             <h1 className="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold text-foreground leading-snug">
               {productName}
             </h1>
-
+            <p className="text-sm text-muted-foreground mt-1">
+              Sold by:{" "}
+              <span className="font-medium">
+                {listing.sellerShopName ?? "Radolfa"}
+              </span>
+            </p>
           </div>
 
           {/* ── Price block ───────────────────────────────────────── */}

@@ -96,6 +96,10 @@ export interface ListingVariantDetail extends ListingVariant {
   attributes:    Attribute[];
   siblingVariants: SiblingVariant[];
   reviewTraits: ReviewTrait[];
+  /** null = Radolfa-owned. */
+  sellerId: number | null;
+  /** null = Radolfa-owned; render "Sold by Radolfa" in that case. */
+  sellerShopName: string | null;
 }
 
 /** Paginated response for listings — alias of the shared generic. */

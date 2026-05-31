@@ -15,6 +15,7 @@ import {
   Truck,
   Settings,
   PackageMinus,
+  Store,
 } from "lucide-react";
 import type { AdminNavGroup } from "./types";
 
@@ -54,7 +55,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "People",
     items: [
-      { href: "/manage/users", label: "Users", icon: Users },
+      { href: "/manage/users",   label: "Users",   icon: Users },
+      { href: "/manage/sellers", label: "Sellers", icon: Store, adminOnly: true },
     ],
   },
   {

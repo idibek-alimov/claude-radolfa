@@ -66,7 +66,6 @@ export enum UserRole {
   COURIER = "COURIER",
   PICKPOINT_STAFF = "PICKPOINT_STAFF",
   WAREHOUSE_MANAGER = "WAREHOUSE_MANAGER",
-  /** Frontend-only placeholder. Backend addition (seller_id columns + /api/v1/seller/* endpoints) is a separate marketplace plan. */
   SELLER = "SELLER",
 }
 

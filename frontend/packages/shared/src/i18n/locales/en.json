@@ -482,6 +482,20 @@
         "confirm": "Unclaim",
         "unclaiming": "Unclaiming…"
       }
+    },
+    "sellers": {
+      "title": "Sellers",
+      "createSeller": "Create seller",
+      "searchPlaceholder": "Search by shop name…",
+      "empty": "No sellers yet.",
+      "total": "{count} sellers",
+      "page": "Page {page}",
+      "columns": {
+        "shopName": "Shop name",
+        "userId": "User ID",
+        "bio": "Bio",
+        "created": "Created"
+      }
     }
   },
   "profile": {
@@ -1377,16 +1391,53 @@
       "orders": "My Orders"
     },
     "dashboard": {
-      "heading": "Welcome to your Seller Portal",
-      "subtitle": "Your seller dashboard will appear here once the marketplace is live."
+      "heading": "Seller Portal",
+      "subtitle": "Overview of your catalog and order activity.",
+      "stats": {
+        "totalProducts": "Total products",
+        "drafts": "Drafts",
+        "pending": "Pending review",
+        "active": "Active",
+        "orderItems": "Order items"
+      }
     },
     "products": {
       "title": "My Products",
-      "empty": "Your product listings will appear here once the marketplace backend is ready."
+      "empty": "No products found.",
+      "submitForReview": "Submit for review",
+      "edit": "Edit",
+      "createProduct": "Create product",
+      "searchPlaceholder": "Search products…",
+      "total": "{count} products",
+      "page": "Page {page}",
+      "skuSaved": "SKU saved",
+      "columns": {
+        "image": "Image",
+        "product": "Product",
+        "status": "Status",
+        "updated": "Updated",
+        "actions": "Actions"
+      }
     },
     "orders": {
       "title": "My Orders",
-      "empty": "Your orders will appear here once the marketplace backend is ready."
+      "empty": "No order items yet.",
+      "columns": {
+        "orderId": "Order",
+        "product": "Product",
+        "sku": "SKU",
+        "qty": "Qty",
+        "price": "Price",
+        "status": "Status",
+        "date": "Date"
+      },
+      "searchPlaceholder": "Search by product or SKU…",
+      "sortDate": "Date",
+      "sortStatus": "Status",
+      "sortDesc": "↓ Newest",
+      "sortAsc": "↑ Oldest",
+      "total": "{count} order items",
+      "page": "Page {page}"
     },
     "common": {
       "logout": "Log out"

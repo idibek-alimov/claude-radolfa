@@ -9,7 +9,7 @@ import { Button } from "@radolfa/shared/ui/button";
 import { Input } from "@radolfa/shared/ui/input";
 import { addSkuToVariant } from "@/entities/product/api/admin";
 import { getErrorMessage, useCopyToClipboard } from "@radolfa/shared/lib";
-import { useDraft } from "../model/ProductCardDraftContext";
+import { useDraftOptional } from "../model/ProductCardDraftContext";
 import type { ProductCardSku } from "@/entities/product/model/types";
 import { SkuLogisticsDialog } from "./SkuLogisticsDialog";
 
@@ -19,23 +19,31 @@ interface Props {
   variantId: number;
   skus: ProductCardSku[];
   isAdmin: boolean;
+  /** When provided the card operates in seller mode: price/stock are editable via direct save, sizeLabel is read-only. */
+  onSellerSave?: (skuId: number, price: number, stock: number) => Promise<void>;
 }
 
-export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: Props) {
+export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin, onSellerSave }: Props) {
   const t = useTranslations("manage");
   const queryClient = useQueryClient();
-  const { draft, updateSkuField } = useDraft();
+  const draftCtx = useDraftOptional();
+
+  const isSellerMode = !!onSellerSave;
 
   const [logisticsSkuId, setLogisticsSkuId] = useState<number | null>(null);
   const logisticsSku = logisticsSkuId !== null ? skus.find((s) => s.skuId === logisticsSkuId) ?? null : null;
 
-  // Add Size form state (stays local — creation action, not an edit)
+  // Add Size form state (admin only)
   const [addingSize, setAddingSize] = useState(false);
   const [newSizeLabel, setNewSizeLabel] = useState("");
   const [newPrice, setNewPrice] = useState("0");
   const [newStock, setNewStock] = useState("0");
 
-  const variantDraft = draft.variants[variantId];
+  // Seller mode: local per-row edit state
+  const [skuEdits, setSkuEdits] = useState<Record<number, { price: string; stock: string }>>({});
+  const [saving, setSaving] = useState<Record<number, boolean>>({});
+
+  const variantDraft = draftCtx?.draft.variants[variantId];
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-product", productBaseId] });
@@ -83,13 +91,45 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
     setNewStock("0");
   };
 
+  function getSellerEdit(skuId: number, field: "price" | "stock", defaultVal: number): string {
+    return skuEdits[skuId]?.[field] ?? String(defaultVal);
+  }
+
+  function setSellerEdit(skuId: number, field: "price" | "stock", value: string) {
+    setSkuEdits((prev) => ({ ...prev, [skuId]: { ...prev[skuId], [field]: value } }));
+  }
+
+  async function handleSellerSave(sku: ProductCardSku) {
+    const newPrice = parseFloat(skuEdits[sku.skuId]?.price ?? String(sku.originalPrice));
+    const newStock = parseInt(skuEdits[sku.skuId]?.stock ?? String(sku.stockQuantity), 10);
+    const priceChanged = !isNaN(newPrice) && newPrice !== sku.originalPrice;
+    const stockChanged = !isNaN(newStock) && newStock !== sku.stockQuantity;
+    if (!priceChanged && !stockChanged) return;
+
+    setSaving((prev) => ({ ...prev, [sku.skuId]: true }));
+    try {
+      await onSellerSave!(sku.skuId, newPrice, newStock);
+      setSkuEdits((prev) => { const next = { ...prev }; delete next[sku.skuId]; return next; });
+    } finally {
+      setSaving((prev) => ({ ...prev, [sku.skuId]: false }));
+    }
+  }
+
+  function sellerRowDirty(sku: ProductCardSku): boolean {
+    const p = skuEdits[sku.skuId]?.price;
+    const s = skuEdits[sku.skuId]?.stock;
+    const priceChanged = p !== undefined && parseFloat(p) !== sku.originalPrice;
+    const stockChanged = s !== undefined && parseInt(s, 10) !== sku.stockQuantity;
+    return priceChanged || stockChanged;
+  }
+
   return (
     <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           {t("sizesAndStock")}
         </h2>
-        {!isAdmin && (
+        {!isAdmin && !isSellerMode && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" />
             {t("priceStockAdminOnly")}
@@ -104,10 +144,10 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
               <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground w-[180px]">
                 {t("size")}
               </th>
-              <th className={`px-3 py-2 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>
+              <th className={`px-3 py-2 text-xs font-medium text-muted-foreground ${(isAdmin || isSellerMode) ? "text-left" : "text-right"}`}>
                 {t("price")} (TJS)
               </th>
-              <th className={`px-3 py-2 text-xs font-medium text-muted-foreground ${isAdmin ? "text-left" : "text-right"}`}>
+              <th className={`px-3 py-2 text-xs font-medium text-muted-foreground ${(isAdmin || isSellerMode) ? "text-left" : "text-right"}`}>
                 {t("stock")}
               </th>
               <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">
@@ -121,20 +161,48 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
               const skuDraft = variantDraft?.skus[sku.skuId];
               return (
                 <tr key={sku.skuId} className="border-b last:border-0">
-                  {/* Size label — editable for everyone */}
+                  {/* Size label — read-only in seller mode (ADMIN-only field), editable in admin mode */}
                   <td className="px-2 py-1.5">
-                    <Input
-                      value={skuDraft?.sizeLabel ?? sku.sizeLabel}
-                      onChange={(e) =>
-                        updateSkuField(variantId, sku.skuId, "sizeLabel", e.target.value)
-                      }
-                      className="h-7 text-sm"
-                    />
+                    {isSellerMode ? (
+                      <span className="px-1 text-sm font-medium">{sku.sizeLabel}</span>
+                    ) : (
+                      <Input
+                        value={skuDraft?.sizeLabel ?? sku.sizeLabel}
+                        onChange={(e) =>
+                          draftCtx?.updateSkuField(variantId, sku.skuId, "sizeLabel", e.target.value)
+                        }
+                        className="h-7 text-sm"
+                      />
+                    )}
                   </td>
 
-                  {isAdmin ? (
+                  {isSellerMode ? (
                     <>
-                      {/* Price — ADMIN only */}
+                      {/* Price — editable by seller via direct save */}
+                      <td className="px-2 py-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={getSellerEdit(sku.skuId, "price", sku.originalPrice)}
+                          onChange={(e) => setSellerEdit(sku.skuId, "price", e.target.value)}
+                          className="h-7 w-28 text-sm"
+                        />
+                      </td>
+                      {/* Stock — editable by seller via direct save */}
+                      <td className="px-2 py-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={getSellerEdit(sku.skuId, "stock", sku.stockQuantity)}
+                          onChange={(e) => setSellerEdit(sku.skuId, "stock", e.target.value)}
+                          className="h-7 w-20 text-sm"
+                        />
+                      </td>
+                    </>
+                  ) : isAdmin ? (
+                    <>
+                      {/* Price — ADMIN draft */}
                       <td className="px-2 py-1.5">
                         <Input
                           type="number"
@@ -142,7 +210,7 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
                           step={0.01}
                           value={skuDraft?.price ?? sku.originalPrice}
                           onChange={(e) =>
-                            updateSkuField(
+                            draftCtx?.updateSkuField(
                               variantId,
                               sku.skuId,
                               "price",
@@ -152,15 +220,14 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
                           className="h-7 w-28 text-sm"
                         />
                       </td>
-
-                      {/* Stock — ADMIN only */}
+                      {/* Stock — ADMIN draft */}
                       <td className="px-2 py-1.5">
                         <Input
                           type="number"
                           min={0}
                           value={skuDraft?.stockQuantity ?? sku.stockQuantity}
                           onChange={(e) =>
-                            updateSkuField(
+                            draftCtx?.updateSkuField(
                               variantId,
                               sku.skuId,
                               "stockQuantity",
@@ -192,20 +259,36 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
                     </>
                   )}
 
-                  {/* Barcode — read-only for MANAGER and ADMIN */}
+                  {/* Barcode — read-only for all */}
                   <SkuBarcodeCell barcode={sku.barcode} />
 
-                  {/* Logistics button — MANAGER + ADMIN */}
+                  {/* Action column: logistics (admin/manager) or per-row save (seller) */}
                   <td className="px-1 py-1.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      title="Logistics dimensions"
-                      onClick={() => setLogisticsSkuId(sku.skuId)}
-                    >
-                      <Ruler className="h-3.5 w-3.5" />
-                    </Button>
+                    {isSellerMode ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        disabled={saving[sku.skuId] || !sellerRowDirty(sku)}
+                        onClick={() => handleSellerSave(sku)}
+                      >
+                        {saving[sku.skuId] ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        title="Logistics dimensions"
+                        onClick={() => setLogisticsSkuId(sku.skuId)}
+                      >
+                        <Ruler className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               );
@@ -214,8 +297,8 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin }: 
         </table>
       </div>
 
-      {/* Add Size — ADMIN only */}
-      {isAdmin && (
+      {/* Add Size — ADMIN only (not seller mode) */}
+      {isAdmin && !isSellerMode && (
         <div>
           {addingSize ? (
             <div className="border rounded-lg p-3 bg-muted/30 space-y-3">

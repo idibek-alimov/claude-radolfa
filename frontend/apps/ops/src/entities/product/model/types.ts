@@ -165,6 +165,10 @@ export interface AdminProductRow {
   primaryImageUrl: string | null;
   productCode: string | null;
   updatedAt: string;
+  /** null = Radolfa-owned. */
+  sellerId: number | null;
+  /** null = Radolfa-owned. */
+  sellerShopName: string | null;
 }
 
 /** One color variant inside a ProductCard. */

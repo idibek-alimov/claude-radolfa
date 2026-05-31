@@ -20,3 +20,7 @@ export function useDraft(): ProductCardDraftApi {
   if (!ctx) throw new Error("useDraft must be used inside ProductCardDraftProvider");
   return ctx;
 }
+
+export function useDraftOptional(): ProductCardDraftApi | null {
+  return useContext(Ctx);
+}
