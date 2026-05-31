@@ -24,7 +24,7 @@ CREATE TABLE order_statuses (
 );
 
 -- Seed lookup values (present in all environments)
-INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC'), ('COURIER'), ('PICKPOINT_STAFF'), ('WAREHOUSE_MANAGER');
+INSERT INTO roles (name) VALUES ('USER'), ('MANAGER'), ('ADMIN'), ('SYNC'), ('COURIER'), ('PICKPOINT_STAFF'), ('WAREHOUSE_MANAGER'), ('SELLER');
 INSERT INTO order_statuses (name) VALUES ('PENDING'), ('PAID'), ('PICKED'), ('CLAIMED'), ('SHIPPED'), ('OUT_FOR_DELIVERY'), ('DELIVERY_ATTEMPTED'), ('RECALL_REQUESTED'), ('READY_FOR_PICKUP'), ('RETURN_INITIATED'), ('RETURNED_TO_WAREHOUSE'), ('DELIVERED'), ('CANCELLED'), ('REFUNDED');
 
 -- ----------------------------------------------------------------

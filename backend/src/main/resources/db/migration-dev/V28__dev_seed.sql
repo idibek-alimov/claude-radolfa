@@ -1,5 +1,5 @@
 -- ================================================================
--- V27__dev_seed.sql
+-- V28__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -832,3 +832,17 @@ BEGIN
 END $$;
 
 UPDATE product_bases SET status = 'ACTIVE';
+
+
+-- ================================================================
+-- SELLERS (marketplace Phase 1 — dev only)
+-- ================================================================
+
+INSERT INTO users (phone, role, name, loyalty_points) VALUES
+    ('+992908901234', 'SELLER', NULL, 0);
+
+INSERT INTO sellers (user_id, shop_name, logo_url, bio) VALUES
+    ((SELECT id FROM users WHERE phone = '+992908901234'),
+     'Test Shop',
+     NULL,
+     'A test seller for local development');
