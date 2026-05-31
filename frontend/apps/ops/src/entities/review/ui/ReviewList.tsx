@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { storefrontUrl } from "@radolfa/shared/lib";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -36,8 +35,6 @@ export function ReviewList({
 }: ReviewListProps) {
   const t = useTranslations("reviews");
   const tCommon = useTranslations("common");
-  const router = useRouter();
-
   // Uncontrolled internal state (used when no external filters are wired)
   const [internalSort, setInternalSort] = useState<ReviewSortOption>("newest");
   const [internalHasPhotos, setInternalHasPhotos] = useState(false);
@@ -122,7 +119,7 @@ export function ReviewList({
         <ReviewPhotoStrip
           photoUrls={allPhotos}
           totalCount={totalReviews}
-          onSeeAll={() => router.push(reviewsPageUrl)}
+          onSeeAll={() => window.open(storefrontUrl(reviewsPageUrl), "_blank", "noopener,noreferrer")}
         />
 
         {isLoading ? (
@@ -166,12 +163,15 @@ export function ReviewList({
         )}
 
         <div className="flex justify-center">
-          <Link
-            href={reviewsPageUrl}
+          {/* Cross-app link: opens storefront reviews page in a new tab */}
+          <a
+            href={storefrontUrl(reviewsPageUrl)}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm px-5 py-2 rounded-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
           >
             {t("seeAll")}
-          </Link>
+          </a>
         </div>
       </div>
     );

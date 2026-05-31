@@ -7,7 +7,7 @@ import { fetchAllAdminReviews } from "@/entities/review";
 import { Badge } from "@radolfa/shared/ui/badge";
 import { Button } from "@radolfa/shared/ui/button";
 import { ReplyDialog } from "./ReplyDialog";
-import Link from "next/link";
+import { storefrontUrl } from "@radolfa/shared/lib";
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   APPROVED: { label: "Approved", className: "bg-green-100 text-green-700" },
@@ -84,13 +84,14 @@ export function AllReviewsTable() {
                         ))}
                       </div>
                     </div>
-                    <Link
-                      href={`/products/${review.variantSlug}`}
+                    <a
+                      href={storefrontUrl(`/products/${review.variantSlug}`)}
                       className="text-xs text-primary hover:underline truncate block"
                       target="_blank"
+                      rel="noopener noreferrer"
                     >
                       {review.variantSlug}
-                    </Link>
+                    </a>
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0">
                     {new Date(review.createdAt).toLocaleDateString()}

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Pencil, ExternalLink, Package } from "lucide-react";
@@ -17,7 +16,7 @@ import { Button } from "@radolfa/shared/ui/button";
 import { Textarea } from "@radolfa/shared/ui/textarea";
 import { Label } from "@radolfa/shared/ui/label";
 import { answerQuestion, updateAnswer } from "@/entities/question";
-import { getErrorMessage } from "@radolfa/shared/lib";
+import { getErrorMessage, storefrontUrl } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 
 interface AnswerDialogProps {
@@ -123,15 +122,17 @@ export function AnswerDialog({
                   <span className="text-xs text-muted-foreground">{colorName}</span>
                 </div>
               )}
+              {/* /products (plural) — singular /product was a path bug */}
               {productSlug && (
-                <Link
-                  href={`/product/${productSlug}`}
+                <a
+                  href={storefrontUrl(`/products/${productSlug}`)}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
                 >
                   View Product
                   <ExternalLink className="h-3 w-3" />
-                </Link>
+                </a>
               )}
             </div>
           </div>

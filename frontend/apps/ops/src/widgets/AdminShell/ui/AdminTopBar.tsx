@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Menu, ArrowLeft, LogOut } from "lucide-react";
+import { storefrontUrl } from "@radolfa/shared/lib";
 import { useAuth } from "@radolfa/shared/auth";
 import { useAdminShell } from "../model/AdminShellContext";
 import { AdminBreadcrumb } from "./AdminBreadcrumb";
@@ -71,13 +71,14 @@ export function AdminTopBar() {
 
       <div className="ml-auto flex items-center gap-2">
         {/* Back to store */}
-        <Link
-          href="/"
+        {/* storefrontUrl() swaps port in dev, no-op behind nginx */}
+        <a
+          href={storefrontUrl("/")}
           className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
         >
           <ArrowLeft className="h-3 w-3" />
           Store
-        </Link>
+        </a>
 
         {/* User avatar dropdown */}
         <DropdownMenu>
@@ -105,9 +106,9 @@ export function AdminTopBar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/profile" className="cursor-pointer">
+              <a href={storefrontUrl("/profile")} className="cursor-pointer">
                 Profile
-              </Link>
+              </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

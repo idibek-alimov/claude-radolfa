@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { storefrontUrl } from "@radolfa/shared/lib";
 import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
@@ -31,8 +31,9 @@ export default function ProductCard({ listing }: ProductCardProps) {
   const isOutOfStock = stock === 0;
   const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
 
+  // Cross-app link: opens storefront product page in a new tab
   return (
-    <Link href={`/products/${listing.slug}`} className="group block">
+    <a href={storefrontUrl(`/products/${listing.slug}`)} target="_blank" rel="noopener noreferrer" className="group block">
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}
@@ -202,6 +203,6 @@ export default function ProductCard({ listing }: ProductCardProps) {
           </div>
         </div>
       </motion.div>
-    </Link>
+    </a>
   );
 }

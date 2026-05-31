@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { storefrontUrl } from "@radolfa/shared/lib";
 
 export interface VariantPill {
   slug: string;
@@ -19,10 +19,13 @@ export function ReviewVariantFilterStrip({ variants }: ReviewVariantFilterStripP
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      {/* Cross-app links: open storefront product reviews in a new tab */}
       {variants.map((v) => (
-        <Link
+        <a
           key={v.slug}
-          href={`/products/${v.slug}/reviews`}
+          href={storefrontUrl(`/products/${v.slug}/reviews`)}
+          target="_blank"
+          rel="noopener noreferrer"
           className={`flex items-center gap-2 rounded-full border px-3 py-1.5 shrink-0 transition-colors ${
             v.isActive
               ? "border-primary bg-primary/5 text-primary"
@@ -41,7 +44,7 @@ export function ReviewVariantFilterStrip({ variants }: ReviewVariantFilterStripP
             </div>
           )}
           <span className="text-sm font-medium whitespace-nowrap">{v.label}</span>
-        </Link>
+        </a>
       ))}
     </div>
   );

@@ -8,6 +8,7 @@ import { Package, AlertCircle, ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@radolfa/shared/ui/button";
 import { Input } from "@radolfa/shared/ui/input";
 import { useTranslations } from "next-intl";
+import { opsUrl, storefrontUrl } from "../../lib/appNav";
 
 type Step = "phone" | "otp";
 
@@ -33,13 +34,15 @@ export default function LoginForm() {
     mutationFn: verifyOtp,
     onSuccess: (auth) => {
       const role = auth.user.role;
+      // Cross-app redirect: staff → ops (port-swapped in dev, relative behind nginx),
+      // regular user → storefront home.
       const target =
-        role === "SELLER"            ? "/ops/seller"    :
-        role === "COURIER"           ? "/ops/courier"   :
-        role === "PICKPOINT_STAFF"   ? "/ops/pickpoint" :
-        role === "WAREHOUSE_MANAGER" ? "/ops/warehouse" :
-        role === "ADMIN" || role === "MANAGER" ? "/ops/manage" :
-        "/";
+        role === "SELLER"            ? opsUrl("/ops/seller")    :
+        role === "COURIER"           ? opsUrl("/ops/courier")   :
+        role === "PICKPOINT_STAFF"   ? opsUrl("/ops/pickpoint") :
+        role === "WAREHOUSE_MANAGER" ? opsUrl("/ops/warehouse") :
+        role === "ADMIN" || role === "MANAGER" ? opsUrl("/ops/manage") :
+        storefrontUrl("/");
       window.location.href = target;
     },
     onError: (err: Error) => {

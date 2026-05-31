@@ -6,7 +6,7 @@ import { Button } from "@radolfa/shared/ui/button";
 import { Badge } from "@radolfa/shared/ui/badge";
 import { approveReview, rejectReview } from "@/entities/review";
 import type { ReviewAdminView } from "@/entities/review";
-import { getErrorMessage } from "@radolfa/shared/lib";
+import { getErrorMessage, storefrontUrl } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 import { useAuth } from "@radolfa/shared/auth";
 import { UserRole } from "@radolfa/shared/user";
@@ -57,7 +57,7 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
             </span>
           </div>
           <a
-            href={`/products/${review.variantSlug}`}
+            href={storefrontUrl(`/products/${review.variantSlug}`)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary underline-offset-2 hover:underline"

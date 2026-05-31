@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { XCircle, ExternalLink, Package } from "lucide-react";
 import { Button } from "@radolfa/shared/ui/button";
@@ -18,7 +17,7 @@ import {
 } from "@radolfa/shared/ui/alert-dialog";
 import { rejectQuestion } from "@/entities/question";
 import type { QuestionAdminView } from "@/entities/question";
-import { getErrorMessage } from "@radolfa/shared/lib";
+import { getErrorMessage, storefrontUrl } from "@radolfa/shared/lib";
 import { toast } from "sonner";
 import { AnswerDialog } from "./AnswerDialog";
 
@@ -73,14 +72,16 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
                 <span className="text-xs text-muted-foreground truncate">{question.colorName}</span>
               </div>
             )}
-            <Link
-              href={`/product/${question.productSlug}`}
+            {/* /products (plural) — singular /product was a path bug */}
+            <a
+              href={storefrontUrl(`/products/${question.productSlug}`)}
               target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
             >
               View Product
               <ExternalLink className="h-3 w-3" />
-            </Link>
+            </a>
           </div>
         </div>
 

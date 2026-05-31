@@ -46,6 +46,7 @@ import { CartIconButton } from "@/features/cart";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { opsUrl } from "@radolfa/shared/lib";
 
 /* ── Role-based Avatar ─────────────────────────────────────────── */
 function UserAvatar({
@@ -240,10 +241,11 @@ function DesktopAuth() {
           </DropdownMenuItem>
           {(user.role === "MANAGER" || user.role === "ADMIN") && (
             <DropdownMenuItem asChild className="py-3 cursor-pointer">
-              <Link href="/manage">
+              {/* Cross-app link: opsUrl() swaps port in dev, relative behind nginx */}
+              <a href={opsUrl("/ops/manage")}>
                 <Settings className="mr-2 h-4 w-4" />
                 {t("management")}
-              </Link>
+              </a>
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator className="my-1" />
@@ -356,13 +358,14 @@ function MobileMenu() {
 
             {(user?.role === "MANAGER" || user?.role === "ADMIN") && (
               <SheetClose asChild>
-                <Link
-                  href="/manage"
+                {/* Cross-app link: opsUrl() swaps port in dev, relative behind nginx */}
+                <a
+                  href={opsUrl("/ops/manage")}
                   className="flex items-center gap-2.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors py-3 px-2 rounded-lg hover:bg-purple-50"
                 >
                   <Settings className="h-4 w-4" />
                   {t("management")}
-                </Link>
+                </a>
               </SheetClose>
             )}
 

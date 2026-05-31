@@ -108,7 +108,7 @@ export function ReturnReviewPage({ id }: Props) {
               </dt>
               <dd className="font-medium">
                 <a
-                  href={`/admin/orders/${data.orderId}`}
+                  href={`/manage/orders/${data.orderId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline underline-offset-2"
