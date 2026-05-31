@@ -13,12 +13,15 @@ public record AdminProductRowDto(
         String rejectionReason,
         String primaryImageUrl,
         String productCode,
-        Instant updatedAt) {
+        Instant updatedAt,
+        Long sellerId,
+        String sellerShopName) {
 
     public static AdminProductRowDto from(AdminProductRow row) {
         return new AdminProductRowDto(
                 row.productBaseId(), row.externalRef(), row.name(),
                 row.status(), row.rejectionReason(),
-                row.primaryImageUrl(), row.productCode(), row.updatedAt());
+                row.primaryImageUrl(), row.productCode(), row.updatedAt(),
+                row.sellerId(), row.sellerShopName());
     }
 }

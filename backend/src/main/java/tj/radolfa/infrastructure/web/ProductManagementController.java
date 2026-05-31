@@ -28,6 +28,7 @@ import tj.radolfa.application.ports.in.product.SubmitProductForReviewUseCase;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
+import tj.radolfa.application.ports.in.product.ProductActor;
 import tj.radolfa.application.ports.in.product.SkuEditActor;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
@@ -467,8 +468,9 @@ public class ProductManagementController {
             @RequestParam(required = false) ProductStatus status,
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        PageResult<AdminProductRow> result = listAdminProductsUseCase.execute(status, search, page, size, null);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long sellerId) {
+        PageResult<AdminProductRow> result = listAdminProductsUseCase.execute(status, search, page, size, sellerId);
         return PageResponse.from(result.map(AdminProductRowDto::from));
     }
 
@@ -493,7 +495,9 @@ public class ProductManagementController {
     public MessageResponseDto submitProductForReview(
             @PathVariable Long productBaseId,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
-        submitProductForReviewUseCase.execute(productBaseId, principal.userId());
+        ProductActor actor = new ProductActor(
+                UserRole.valueOf(principal.role()), principal.userId(), null);
+        submitProductForReviewUseCase.execute(productBaseId, actor);
         return MessageResponseDto.success("Submitted for review");
     }
 

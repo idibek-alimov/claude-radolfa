@@ -41,7 +41,9 @@ public class AdminProductPageAdapter implements LoadAdminProductPagePort {
                         p.getRejectionReason(),
                         p.getPrimaryImageUrl(),
                         p.getProductCode(),
-                        p.getUpdatedAt()))
+                        p.getUpdatedAt(),
+                        p.getSellerId(),
+                        p.getSellerShopName()))
                 .toList();
 
         return new PageResult<>(rows, pageResult.getTotalElements(), page, size, !pageResult.hasNext());

@@ -12,4 +12,6 @@ public record AdminProductRow(
         String rejectionReason,
         String primaryImageUrl,
         String productCode,
-        Instant updatedAt) {}
+        Instant updatedAt,
+        Long sellerId,
+        String sellerShopName) {}

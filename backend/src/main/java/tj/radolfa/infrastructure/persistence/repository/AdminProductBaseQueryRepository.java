@@ -25,8 +25,11 @@ public interface AdminProductBaseQueryRepository extends JpaRepository<ProductBa
                 pb.rejection_reason AS rejectionReason,
                 img.image_url       AS primaryImageUrl,
                 lv.product_code     AS productCode,
-                pb.updated_at       AS updatedAt
+                pb.updated_at       AS updatedAt,
+                pb.seller_id        AS sellerId,
+                s.shop_name         AS sellerShopName
             FROM product_bases pb
+            LEFT JOIN sellers s ON s.id = pb.seller_id
             LEFT JOIN LATERAL (
                 SELECT id, product_code
                 FROM listing_variants
@@ -74,5 +77,7 @@ public interface AdminProductBaseQueryRepository extends JpaRepository<ProductBa
         String  getPrimaryImageUrl();
         String  getProductCode();
         Instant getUpdatedAt();
+        Long    getSellerId();
+        String  getSellerShopName();
     }
 }

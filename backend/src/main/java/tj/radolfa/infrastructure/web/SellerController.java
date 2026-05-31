@@ -8,7 +8,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.ListAdminProductsUseCase;
+import tj.radolfa.application.ports.in.product.ProductActor;
 import tj.radolfa.application.ports.in.product.SkuEditActor;
+import tj.radolfa.application.ports.in.product.SubmitProductForReviewUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.seller.GetMySellerProfileUseCase;
@@ -33,22 +35,25 @@ import java.util.Map;
 @RequestMapping("/api/v1/seller")
 public class SellerController {
 
-    private final GetMySellerProfileUseCase  getMySellerProfileUseCase;
-    private final CreateProductUseCase       createProductUseCase;
-    private final ListAdminProductsUseCase   listAdminProductsUseCase;
-    private final UpdateProductPriceUseCase  updateProductPriceUseCase;
-    private final UpdateProductStockUseCase  updateProductStockUseCase;
+    private final GetMySellerProfileUseCase       getMySellerProfileUseCase;
+    private final CreateProductUseCase            createProductUseCase;
+    private final ListAdminProductsUseCase        listAdminProductsUseCase;
+    private final SubmitProductForReviewUseCase   submitProductForReviewUseCase;
+    private final UpdateProductPriceUseCase       updateProductPriceUseCase;
+    private final UpdateProductStockUseCase       updateProductStockUseCase;
 
     public SellerController(GetMySellerProfileUseCase getMySellerProfileUseCase,
                             CreateProductUseCase createProductUseCase,
                             ListAdminProductsUseCase listAdminProductsUseCase,
+                            SubmitProductForReviewUseCase submitProductForReviewUseCase,
                             UpdateProductPriceUseCase updateProductPriceUseCase,
                             UpdateProductStockUseCase updateProductStockUseCase) {
-        this.getMySellerProfileUseCase = getMySellerProfileUseCase;
-        this.createProductUseCase      = createProductUseCase;
-        this.listAdminProductsUseCase  = listAdminProductsUseCase;
-        this.updateProductPriceUseCase = updateProductPriceUseCase;
-        this.updateProductStockUseCase = updateProductStockUseCase;
+        this.getMySellerProfileUseCase      = getMySellerProfileUseCase;
+        this.createProductUseCase           = createProductUseCase;
+        this.listAdminProductsUseCase       = listAdminProductsUseCase;
+        this.submitProductForReviewUseCase  = submitProductForReviewUseCase;
+        this.updateProductPriceUseCase      = updateProductPriceUseCase;
+        this.updateProductStockUseCase      = updateProductStockUseCase;
     }
 
     /** GET /api/v1/seller/me — return the caller's seller profile. */
@@ -124,6 +129,24 @@ public class SellerController {
         PageResult<AdminProductRow> result =
                 listAdminProductsUseCase.execute(status, search, page, size, sellerId);
         return PageResponse.from(result.map(AdminProductRowDto::from));
+    }
+
+    /**
+     * POST /api/v1/seller/me/products/{productBaseId}/submit-for-review
+     * Submit a DRAFT or REJECTED product that the caller owns for admin review.
+     * sellerId is resolved server-side — a seller cannot submit another seller's or
+     * a Radolfa-owned product (→ 403).
+     */
+    @PostMapping("/me/products/{productBaseId}/submit-for-review")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<MessageResponseDto> submitMyProductForReview(
+            @PathVariable Long productBaseId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+
+        Long sellerId = getMySellerProfileUseCase.execute(principal.userId()).id();
+        ProductActor actor = new ProductActor(UserRole.SELLER, principal.userId(), sellerId);
+        submitProductForReviewUseCase.execute(productBaseId, actor);
+        return ResponseEntity.ok(MessageResponseDto.success("Submitted for review."));
     }
 
     /**
