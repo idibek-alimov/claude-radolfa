@@ -43,7 +43,7 @@ class GetPickSessionServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null);
     }
 
     static Sku sku(Long id, String barcode, String sizeLabel) {

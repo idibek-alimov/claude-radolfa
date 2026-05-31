@@ -14,6 +14,8 @@ import tj.radolfa.application.ports.in.product.SubmitProductForReviewUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
 import tj.radolfa.application.ports.in.seller.GetMySellerProfileUseCase;
+import tj.radolfa.application.ports.in.seller.ListMyOrderItemsUseCase;
+import tj.radolfa.infrastructure.web.dto.SellerOrderItemDto;
 import tj.radolfa.application.readmodel.AdminProductRow;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.PageResult;
@@ -41,19 +43,22 @@ public class SellerController {
     private final SubmitProductForReviewUseCase   submitProductForReviewUseCase;
     private final UpdateProductPriceUseCase       updateProductPriceUseCase;
     private final UpdateProductStockUseCase       updateProductStockUseCase;
+    private final ListMyOrderItemsUseCase         listMyOrderItemsUseCase;
 
     public SellerController(GetMySellerProfileUseCase getMySellerProfileUseCase,
                             CreateProductUseCase createProductUseCase,
                             ListAdminProductsUseCase listAdminProductsUseCase,
                             SubmitProductForReviewUseCase submitProductForReviewUseCase,
                             UpdateProductPriceUseCase updateProductPriceUseCase,
-                            UpdateProductStockUseCase updateProductStockUseCase) {
+                            UpdateProductStockUseCase updateProductStockUseCase,
+                            ListMyOrderItemsUseCase listMyOrderItemsUseCase) {
         this.getMySellerProfileUseCase      = getMySellerProfileUseCase;
         this.createProductUseCase           = createProductUseCase;
         this.listAdminProductsUseCase       = listAdminProductsUseCase;
         this.submitProductForReviewUseCase  = submitProductForReviewUseCase;
         this.updateProductPriceUseCase      = updateProductPriceUseCase;
         this.updateProductStockUseCase      = updateProductStockUseCase;
+        this.listMyOrderItemsUseCase        = listMyOrderItemsUseCase;
     }
 
     /** GET /api/v1/seller/me — return the caller's seller profile. */
@@ -190,5 +195,26 @@ public class SellerController {
             updateProductStockUseCase.adjust(skuId, request.delta(), actor);
         }
         return ResponseEntity.ok(MessageResponseDto.success("Stock updated successfully."));
+    }
+
+    /**
+     * GET /api/v1/seller/me/orders
+     * Returns the order items attributed to this seller (seller_id snapshot from checkout).
+     * Read-only — Radolfa fulfils all orders; sellers get visibility, not fulfilment controls.
+     * Supports server-side search (product name / sku code), sort, and pagination.
+     */
+    @GetMapping("/me/orders")
+    @PreAuthorize("hasRole('SELLER')")
+    public PageResponse<SellerOrderItemDto> listMyOrders(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "orderCreatedAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+
+        Long sellerId = getMySellerProfileUseCase.execute(principal.userId()).id();
+        var result = listMyOrderItemsUseCase.execute(sellerId, search, sortBy, sortDir, page, size);
+        return PageResponse.from(result.map(SellerOrderItemDto::from));
     }
 }

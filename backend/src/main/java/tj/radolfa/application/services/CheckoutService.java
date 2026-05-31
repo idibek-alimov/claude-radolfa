@@ -345,7 +345,10 @@ public class CheckoutService implements CheckoutUseCase {
         ProductBase product = productById.get(variant.getProductBaseId());
         if (product == null) throw new IllegalStateException("Product not found: " + variant.getProductBaseId());
 
+        // product.getSellerId() is the snapshot: null = Radolfa-owned.
+        // This value must never be recomputed from the product after placement.
         return new OrderItem(null, cartItem.getSkuId(), variant.getId(), sku.getSkuCode(),
-                product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot(), 0, null, null);
+                product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot(), 0, null, null,
+                product.getSellerId());
     }
 }

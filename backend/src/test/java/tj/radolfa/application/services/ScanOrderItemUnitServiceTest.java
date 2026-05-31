@@ -48,7 +48,7 @@ class ScanOrderItemUnitServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null);
     }
 
     static Sku sku(Long id, String barcode) {
@@ -109,7 +109,7 @@ class ScanOrderItemUnitServiceTest {
                             if (!orderItemId.equals(i.getId())) return i;
                             return new OrderItem(i.getId(), i.getSkuId(), i.getListingVariantId(),
                                     i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(),
-                                    newCount, newCount >= i.getQuantity() ? Instant.now() : null, null);
+                                    newCount, newCount >= i.getQuantity() ? Instant.now() : null, null, i.getSellerId());
                         })
                         .toList();
                 orderPort.update(order.toBuilder().items(updated).build());

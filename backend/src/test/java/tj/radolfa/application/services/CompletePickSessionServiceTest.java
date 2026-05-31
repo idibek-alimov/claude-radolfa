@@ -34,7 +34,7 @@ class CompletePickSessionServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, picked >= qty ? Instant.now() : null, null);
+                new Money(BigDecimal.TEN), picked, picked >= qty ? Instant.now() : null, null, null);
     }
 
     static Order orderWithStatus(OrderStatus status, List<OrderItem> items) {
