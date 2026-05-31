@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import apiClient from "@radolfa/shared/api/axios";
 import type { User } from "./types";
+import { currentAppLoginPath, currentAppHomePath } from "../../lib/appNav";
 
 interface AuthState {
   user: User | null;
@@ -26,7 +26,6 @@ interface UseAuthReturn extends AuthState {
  * from the cookie-authenticated session. No tokens are stored client-side.
  */
 export function useAuth(): UseAuthReturn {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -74,8 +73,15 @@ export function useAuth(): UseAuthReturn {
       isLoading: false,
     });
     queryClient.clear();
-    router.push("/");
-  }, [router, queryClient]);
+    // Same-app logout: ops staff land on /ops/login, storefront customers on /.
+    // Full reload (window.location) bypasses the basePath-aware Next.js router
+    // so the path is not double-prefixed.
+    window.location.assign(
+      window.location.pathname.startsWith("/ops")
+        ? currentAppLoginPath()
+        : currentAppHomePath(),
+    );
+  }, [queryClient]);
 
   const updateUser = useCallback((newUser: User) => {
     setAuthState((prev) => ({ ...prev, user: newUser }));

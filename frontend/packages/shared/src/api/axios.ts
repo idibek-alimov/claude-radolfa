@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { currentAppLoginPath } from "../lib/appNav";
 
 interface RetryableConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -87,10 +88,12 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError as AxiosError);
 
-      // Refresh failed — show toast and redirect to login
+      // Refresh failed — redirect to the current app's login (same-app, never cross-port).
+      // The guard uses .includes("/login") to match both /login (storefront) and
+      // /ops/login (ops) and avoid redirect loops.
       if (
         typeof window !== "undefined" &&
-        !window.location.pathname.startsWith("/login")
+        !window.location.pathname.includes("/login")
       ) {
         const { toast } = await import("sonner");
         toast.error(
@@ -98,7 +101,7 @@ apiClient.interceptors.response.use(
           { duration: 4000 }
         );
         setTimeout(() => {
-          window.location.href = "/login";
+          window.location.href = currentAppLoginPath();
         }, 1500);
       }
 

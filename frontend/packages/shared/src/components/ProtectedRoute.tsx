@@ -1,25 +1,8 @@
 "use client";
 
-import { useAuth } from "@radolfa/shared/auth";
 import { useEffect } from "react";
-
-// Use window.location.assign for cross-app navigation (bypasses Next.js basePath).
-// When ops is accessed directly on port 3001 (dev server or exposed docker port),
-// /login would land back on the ops app. Detect port 3001 and swap to port 3000
-// where the storefront lives. Through nginx (port 80/443) same-origin works fine.
-function storefrontUrl(path: string): string {
-    if (typeof window === "undefined") return path;
-    if (window.location.port === "3001") {
-        return `${window.location.protocol}//${window.location.hostname}:3000${path}`;
-    }
-    return path;
-}
-
-function navigateAbsolute(path: string) {
-    if (typeof window !== "undefined") {
-        window.location.assign(storefrontUrl(path));
-    }
-}
+import { useAuth } from "@radolfa/shared/auth";
+import { currentAppLoginPath, currentAppHomePath } from "../lib/appNav";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -54,15 +37,18 @@ export default function ProtectedRoute({
 
     useEffect(() => {
         if (!isLoading) {
-            // Not authenticated at all — navigate absolutely so ops basePath is bypassed
+            // Not authenticated — redirect to the current app's login page.
+            // currentAppLoginPath() returns the full basePath-inclusive path
+            // (ops → /ops/login, storefront → /login), so window.location is
+            // used rather than the basePath-aware Next.js router.
             if (!isAuthenticated) {
-                navigateAbsolute("/login");
+                window.location.assign(currentAppLoginPath());
                 return;
             }
 
-            // Check role if required — send to storefront home on wrong role
+            // Wrong role — send to this app's home.
             if (!hasRequiredRole(user?.role, requiredRole)) {
-                navigateAbsolute("/");
+                window.location.assign(currentAppHomePath());
             }
         }
     }, [isAuthenticated, isLoading, user, requiredRole]);
@@ -112,7 +98,7 @@ export default function ProtectedRoute({
                         <span className="font-semibold">{requiredRole}</span> role.
                     </p>
                     <button
-                        onClick={() => navigateAbsolute("/")}
+                        onClick={() => window.location.assign(currentAppHomePath())}
                         className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
                     >
                         Go to Home
