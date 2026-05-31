@@ -19,7 +19,7 @@ public class ListAdminProductsService implements ListAdminProductsUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResult<AdminProductRow> execute(ProductStatus status, String search, int page, int size) {
-        return loadAdminProductPagePort.findAdminPage(status, search, page, size);
+    public PageResult<AdminProductRow> execute(ProductStatus status, String search, int page, int size, Long sellerId) {
+        return loadAdminProductPagePort.findAdminPage(status, search, page, size, sellerId);
     }
 }

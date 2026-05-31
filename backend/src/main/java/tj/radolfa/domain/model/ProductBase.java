@@ -26,6 +26,9 @@ public class ProductBase {
     private Long categoryId;
     private Long brandId;
 
+    // Marketplace ownership — null = Radolfa-owned
+    private final Long sellerId;
+
     // Lifecycle
     private ProductStatus status;
     private String rejectionReason;
@@ -39,10 +42,11 @@ public class ProductBase {
      * @param brandId         nullable — Radolfa-managed
      * @param status          nullable — defaults to DRAFT when null
      * @param rejectionReason nullable — set only when status is REJECTED
+     * @param sellerId        nullable — {@code null} means Radolfa-owned (marketplace Phase 2+)
      */
     public ProductBase(Long id, String externalRef, String name, String category,
             Long categoryId, Long brandId,
-            ProductStatus status, String rejectionReason) {
+            ProductStatus status, String rejectionReason, Long sellerId) {
         if (externalRef == null || externalRef.isBlank()) {
             throw new IllegalArgumentException("externalRef must not be blank");
         }
@@ -54,6 +58,17 @@ public class ProductBase {
         this.brandId = brandId;
         this.status = status != null ? status : ProductStatus.DRAFT;
         this.rejectionReason = rejectionReason;
+        this.sellerId = sellerId;
+    }
+
+    /**
+     * Convenience constructor for Radolfa-owned products ({@code sellerId = null}).
+     * All existing call sites use this form — unchanged for backward compatibility.
+     */
+    public ProductBase(Long id, String externalRef, String name, String category,
+            Long categoryId, Long brandId,
+            ProductStatus status, String rejectionReason) {
+        this(id, externalRef, name, category, categoryId, brandId, status, rejectionReason, null);
     }
 
     /**
@@ -151,4 +166,7 @@ public class ProductBase {
     public ProductStatus getStatus() { return status; }
 
     public String getRejectionReason() { return rejectionReason; }
+
+    /** {@code null} means the product is owned by Radolfa (not a marketplace seller). */
+    public Long getSellerId() { return sellerId; }
 }

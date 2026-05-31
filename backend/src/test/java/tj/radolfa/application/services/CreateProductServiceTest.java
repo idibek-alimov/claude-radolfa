@@ -98,6 +98,27 @@ class CreateProductServiceTest {
     }
 
     @Test
+    @DisplayName("Seller-owned product — sellerId is persisted on ProductBase")
+    void execute_withSellerId_sellerIdPersistedOnBase() {
+        Command cmd = commandWithSeller(
+                List.of(variantDef(10L, List.of(skuDef("M", "49.99", 10)))), 7L);
+
+        service.execute(cmd);
+
+        assertEquals(7L, fakeSave.lastSavedBase.getSellerId());
+    }
+
+    @Test
+    @DisplayName("Radolfa-owned product (sellerId=null) — sellerId is null on ProductBase")
+    void execute_withoutSellerId_sellerIdIsNull() {
+        Command cmd = commandWith(List.of(variantDef(10L, List.of(skuDef("M", "49.99", 10)))));
+
+        service.execute(cmd);
+
+        assertNull(fakeSave.lastSavedBase.getSellerId());
+    }
+
+    @Test
     @DisplayName("Creates multiple variants in a single call")
     void execute_multipleVariants_createsAllVariants() {
         fakeColor.store(new ColorView(20L, "blue", "Blue", "#0000FF"));
@@ -201,7 +222,7 @@ class CreateProductServiceTest {
     @DisplayName("Product is created without a brand when brandId is null")
     void execute_noBrand_productBaseHasNullBrandId() {
         Command cmd = new Command("T-Shirt", 1L, null,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))), null);
 
         service.execute(cmd);
 
@@ -213,7 +234,7 @@ class CreateProductServiceTest {
     void execute_withBrand_productBaseHasBrandId() {
         fakeBrand.store(new BrandView(7L, "Nike"));
         Command cmd = new Command("T-Shirt", 1L, 7L,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))), null);
 
         service.execute(cmd);
 
@@ -288,7 +309,7 @@ class CreateProductServiceTest {
     @DisplayName("Throws ResourceNotFoundException when category does not exist")
     void execute_categoryNotFound_throws() {
         Command cmd = new Command("T-Shirt", 999L, null,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))), null);
 
         assertThrows(ResourceNotFoundException.class, () -> service.execute(cmd));
         assertEquals(0, fakeSave.baseSaveCount, "No product should be saved");
@@ -302,7 +323,7 @@ class CreateProductServiceTest {
     @DisplayName("Throws ResourceNotFoundException when brandId is provided but brand does not exist")
     void execute_brandNotFound_throws() {
         Command cmd = new Command("T-Shirt", 1L, 999L,
-                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))));
+                List.of(variantDef(10L, List.of(skuDef("S", "29.99", 5)))), null);
 
         assertThrows(ResourceNotFoundException.class, () -> service.execute(cmd));
         assertEquals(0, fakeSave.baseSaveCount);
@@ -555,7 +576,11 @@ class CreateProductServiceTest {
     // =========================================================
 
     private Command commandWith(List<VariantDefinition> variants) {
-        return new Command("Test Product", 1L, null, variants);
+        return new Command("Test Product", 1L, null, variants, null); // sellerId = null → Radolfa-owned
+    }
+
+    private Command commandWithSeller(List<VariantDefinition> variants, Long sellerId) {
+        return new Command("Test Product", 1L, null, variants, sellerId);
     }
 
     private VariantDefinition variantDef(Long colorId, List<SkuDefinition> skus) {
@@ -642,7 +667,7 @@ class CreateProductServiceTest {
             lastSavedBase = new ProductBase(
                     idGen.getAndIncrement(), base.getExternalRef(),
                     base.getName(), base.getCategory(), base.getCategoryId(), base.getBrandId(),
-                    base.getStatus(), base.getRejectionReason());
+                    base.getStatus(), base.getRejectionReason(), base.getSellerId());
             return lastSavedBase;
         }
 

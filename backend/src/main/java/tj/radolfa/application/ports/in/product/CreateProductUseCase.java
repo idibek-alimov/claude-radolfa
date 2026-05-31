@@ -23,7 +23,9 @@ public interface CreateProductUseCase {
             String name,
             Long   categoryId,
             Long   brandId,
-            List<VariantDefinition> variants
+            List<VariantDefinition> variants,
+            /** Nullable — {@code null} means Radolfa-owned; set to the seller's id for marketplace products. */
+            Long   sellerId
     ) {
         public record VariantDefinition(
                 Long colorId,

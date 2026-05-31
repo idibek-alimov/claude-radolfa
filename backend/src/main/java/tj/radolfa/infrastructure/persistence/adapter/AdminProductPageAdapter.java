@@ -24,13 +24,13 @@ public class AdminProductPageAdapter implements LoadAdminProductPagePort {
 
     @Override
     public PageResult<AdminProductRow> findAdminPage(ProductStatus status, String search,
-                                                     int page, int size) {
+                                                     int page, int size, Long sellerId) {
         String safeSearch = (search == null) ? "" : search.trim();
         String statusStr  = (status != null) ? status.name() : null;
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Page<AdminProductRowProjection> pageResult =
-                queryRepo.findAdminPage(statusStr, safeSearch, pageable);
+                queryRepo.findAdminPage(statusStr, safeSearch, sellerId, pageable);
 
         List<AdminProductRow> rows = pageResult.getContent().stream()
                 .map(p -> new AdminProductRow(

@@ -48,6 +48,10 @@ public class ProductBaseEntity extends BaseAuditEntity {
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
 
+    /** Nullable — null means Radolfa-owned. Marketplace Phase 2+. */
+    @Column(name = "seller_id")
+    private Long sellerId;
+
     @OneToMany(mappedBy = "productBase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingVariantEntity> variants = new ArrayList<>();
 }

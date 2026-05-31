@@ -119,7 +119,7 @@ public class CreateProductService implements CreateProductUseCase {
         // Use 12 hex chars (48 bits of entropy) to avoid birthday collisions at scale.
         String externalRef = "INTERNAL-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
         ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(),
-                category.id(), brandId, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
+                category.id(), brandId, tj.radolfa.domain.model.ProductStatus.DRAFT, null, command.sellerId());
         ProductBase savedBase = savePort.saveBase(base);
 
         log.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",

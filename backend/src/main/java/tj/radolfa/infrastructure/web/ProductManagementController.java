@@ -200,7 +200,8 @@ public class ProductManagementController {
                                 v.widthCm(),
                                 v.heightCm(),
                                 v.depthCm()))
-                        .toList());
+                        .toList(),
+                null); // sellerId = null → Radolfa-owned
 
         Long productBaseId = createProductUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -462,7 +463,7 @@ public class ProductManagementController {
             @RequestParam(defaultValue = "") String search,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PageResult<AdminProductRow> result = listAdminProductsUseCase.execute(status, search, page, size);
+        PageResult<AdminProductRow> result = listAdminProductsUseCase.execute(status, search, page, size, null);
         return PageResponse.from(result.map(AdminProductRowDto::from));
     }
 

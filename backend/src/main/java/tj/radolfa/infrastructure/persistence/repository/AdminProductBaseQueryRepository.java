@@ -43,6 +43,7 @@ public interface AdminProductBaseQueryRepository extends JpaRepository<ProductBa
               AND (:search = ''
                    OR LOWER(pb.name)         LIKE LOWER(CONCAT('%', :search, '%'))
                    OR LOWER(pb.external_ref) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (:sellerId IS NULL OR pb.seller_id = :sellerId)
             ORDER BY pb.id DESC
             """,
             countQuery = """
@@ -52,11 +53,13 @@ public interface AdminProductBaseQueryRepository extends JpaRepository<ProductBa
               AND (:search = ''
                    OR LOWER(pb.name)         LIKE LOWER(CONCAT('%', :search, '%'))
                    OR LOWER(pb.external_ref) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (:sellerId IS NULL OR pb.seller_id = :sellerId)
             """,
             nativeQuery = true)
     Page<AdminProductRowProjection> findAdminPage(
             @Param("status") String status,
             @Param("search") String search,
+            @Param("sellerId") Long sellerId,
             Pageable pageable);
 
     @Query(value = "SELECT COUNT(*) FROM product_bases WHERE status = :status", nativeQuery = true)
