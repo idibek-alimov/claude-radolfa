@@ -4,11 +4,20 @@ import { useAuth } from "@radolfa/shared/auth";
 import { useEffect } from "react";
 
 // Use window.location.assign for cross-app navigation (bypasses Next.js basePath).
-// When ops runs at basePath="/ops", router.push("/login") would resolve to /ops/login
-// which does not exist in ops. Absolute navigation lands on the storefront correctly.
+// When ops is accessed directly on port 3001 (dev server or exposed docker port),
+// /login would land back on the ops app. Detect port 3001 and swap to port 3000
+// where the storefront lives. Through nginx (port 80/443) same-origin works fine.
+function storefrontUrl(path: string): string {
+    if (typeof window === "undefined") return path;
+    if (window.location.port === "3001") {
+        return `${window.location.protocol}//${window.location.hostname}:3000${path}`;
+    }
+    return path;
+}
+
 function navigateAbsolute(path: string) {
     if (typeof window !== "undefined") {
-        window.location.assign(path);
+        window.location.assign(storefrontUrl(path));
     }
 }
 
