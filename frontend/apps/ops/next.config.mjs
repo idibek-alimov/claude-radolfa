@@ -32,12 +32,14 @@ const nextConfig = {
     const backendUrl =
       process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8080";
     return {
-      // beforeFiles rewrites run before basePath is applied, so the source
-      // stays at /api/:path* rather than being prefixed to /ops/api/:path*.
+      // basePath: false skips the automatic /ops prefix on this rewrite source,
+      // so browser requests to /api/:path* are proxied correctly even though
+      // the app's basePath is /ops.
       beforeFiles: [
         {
           source: "/api/:path*",
           destination: `${backendUrl}/api/:path*`,
+          basePath: false,
         },
       ],
     };

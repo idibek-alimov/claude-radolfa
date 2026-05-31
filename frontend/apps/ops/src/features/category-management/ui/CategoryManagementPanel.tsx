@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@radolfa/shared/auth";
@@ -379,9 +380,9 @@ export function CategoryManagementPanel() {
           {allTraits.length === 0 && (
             <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1">
               No traits available —{" "}
-              <a href="/manage/review-traits" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+              <Link href="/manage/review-traits" className="inline-flex items-center gap-0.5 text-primary hover:underline">
                 define some in Review Traits <ExternalLink className="h-3 w-3" />
-              </a>
+              </Link>
             </p>
           )}
           {formError && (
@@ -466,9 +467,9 @@ export function CategoryManagementPanel() {
             {allTraits.length === 0 && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 No traits available \u2014{" "}
-                <a href="/manage/review-traits" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+                <Link href="/manage/review-traits" className="inline-flex items-center gap-0.5 text-primary hover:underline">
                   define some in Review Traits <ExternalLink className="h-3 w-3" />
-                </a>
+                </Link>
               </p>
             )}
             {editError && (
