@@ -96,6 +96,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      network: host
     container_name: radolfa-backend
     restart: always
     depends_on:
@@ -163,6 +164,7 @@ services:
     build:
       context: ./frontend
       dockerfile: apps/storefront/Dockerfile
+      network: host
       args:
         NEXT_PUBLIC_API_BASE_URL: ""
         BACKEND_INTERNAL_URL: http://backend:8080
@@ -203,6 +205,7 @@ services:
     build:
       context: ./frontend
       dockerfile: apps/ops/Dockerfile
+      network: host
       args:
         NEXT_PUBLIC_API_BASE_URL: ""
         BACKEND_INTERNAL_URL: http://backend:8080

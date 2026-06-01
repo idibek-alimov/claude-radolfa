@@ -50,7 +50,14 @@ INSERT INTO users (phone, role, name, loyalty_points) VALUES
     ('+992904567890', 'USER',              NULL,              5200),
     ('+992905678901', 'WAREHOUSE_MANAGER', 'Warehouse Staff', 0),
     ('+992906789012', 'COURIER',           'Test Courier',    0),
-    ('+992907890123', 'PICKPOINT_STAFF',   'Test Staff',      0);
+    ('+992907890123', 'PICKPOINT_STAFF',   'Test Staff',      0),
+    ('+992908901234', 'SELLER',            NULL,              0);
+
+INSERT INTO sellers (user_id, shop_name, logo_url, bio) VALUES
+    ((SELECT id FROM users WHERE phone = '+992908901234'),
+     'Test Shop',
+     NULL,
+     'A test seller for local development');
 
 -- User 1: Gold tier, close to Platinum
 UPDATE users SET
@@ -834,15 +841,3 @@ END $$;
 UPDATE product_bases SET status = 'ACTIVE';
 
 
--- ================================================================
--- SELLERS (marketplace Phase 1 — dev only)
--- ================================================================
-
-INSERT INTO users (phone, role, name, loyalty_points) VALUES
-    ('+992908901234', 'SELLER', NULL, 0);
-
-INSERT INTO sellers (user_id, shop_name, logo_url, bio) VALUES
-    ((SELECT id FROM users WHERE phone = '+992908901234'),
-     'Test Shop',
-     NULL,
-     'A test seller for local development');

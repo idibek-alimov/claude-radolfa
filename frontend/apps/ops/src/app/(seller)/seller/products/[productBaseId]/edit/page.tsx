@@ -1,9 +1,10 @@
 import { SellerProductEditPage } from "@/features/seller-products/ui/SellerProductEditPage";
 
-export default function Page({
+export default async function Page({
   params,
 }: {
-  params: { productBaseId: string };
+  params: Promise<{ productBaseId: string }>;
 }) {
-  return <SellerProductEditPage productBaseId={Number(params.productBaseId)} />;
+  const { productBaseId } = await params;
+  return <SellerProductEditPage productBaseId={Number(productBaseId)} />;
 }
