@@ -3,6 +3,9 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ProductActivatedEvent;
+import tj.radolfa.application.ports.out.ActivateProductPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
@@ -33,19 +36,25 @@ public class CreateStockReceiptService implements CreateStockReceiptUseCase {
     private final LoadProductBasePort      loadProductBasePort;
     private final StockAdjustmentPort      stockAdjustmentPort;
     private final LoadWarehousePort        loadWarehousePort;
+    private final ActivateProductPort      activateProductPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CreateStockReceiptService(SaveStockReceiptPort saveStockReceiptPort,
                                      LoadSkuPort loadSkuPort,
                                      LoadListingVariantPort loadListingVariantPort,
                                      LoadProductBasePort loadProductBasePort,
                                      StockAdjustmentPort stockAdjustmentPort,
-                                     LoadWarehousePort loadWarehousePort) {
+                                     LoadWarehousePort loadWarehousePort,
+                                     ActivateProductPort activateProductPort,
+                                     ApplicationEventPublisher eventPublisher) {
         this.saveStockReceiptPort   = saveStockReceiptPort;
         this.loadSkuPort            = loadSkuPort;
         this.loadListingVariantPort = loadListingVariantPort;
         this.loadProductBasePort    = loadProductBasePort;
         this.stockAdjustmentPort    = stockAdjustmentPort;
         this.loadWarehousePort      = loadWarehousePort;
+        this.activateProductPort    = activateProductPort;
+        this.eventPublisher         = eventPublisher;
     }
 
     @Override
@@ -97,6 +106,13 @@ public class CreateStockReceiptService implements CreateStockReceiptUseCase {
             stockAdjustmentPort.increment(item.skuId(), item.quantityReceived(),
                     InventoryTransactionType.RECEIPT, "STOCK_RECEIPT", saved.getId(),
                     command.adminUserId());
+        }
+
+        for (Long productBaseId : productBaseIds) {
+            int updated = activateProductPort.activateIfAwaitingStock(productBaseId);
+            if (updated == 1) {
+                eventPublisher.publishEvent(new ProductActivatedEvent(productBaseId));
+            }
         }
 
         return saved;

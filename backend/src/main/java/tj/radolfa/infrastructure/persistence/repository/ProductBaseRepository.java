@@ -12,7 +12,7 @@ public interface ProductBaseRepository extends JpaRepository<ProductBaseEntity, 
 
     Optional<ProductBaseEntity> findByExternalRef(String externalRef);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE ProductBaseEntity p SET p.status = tj.radolfa.domain.model.ProductStatus.ACTIVE " +
            "WHERE p.id = :id AND p.status = tj.radolfa.domain.model.ProductStatus.AWAITING_STOCK")
     int activateIfAwaitingStock(@Param("id") Long id);

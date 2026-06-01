@@ -3,5 +3,5 @@ export default function SellerProductEditLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <div className="-m-6 lg:-m-8">{children}</div>;
 }

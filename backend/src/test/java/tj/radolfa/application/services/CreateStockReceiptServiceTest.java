@@ -2,9 +2,12 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
+import tj.radolfa.application.event.ProductActivatedEvent;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase.Command;
 import tj.radolfa.application.ports.in.warehouse.CreateStockReceiptUseCase.ItemCommand;
+import tj.radolfa.application.ports.out.ActivateProductPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
@@ -17,6 +20,7 @@ import tj.radolfa.domain.model.InventoryTransactionType;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.ProductBase;
+import tj.radolfa.domain.model.ProductStatus;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.StockReceipt;
 import tj.radolfa.domain.model.StockReceiptItem;
@@ -126,6 +130,26 @@ class CreateStockReceiptServiceTest {
         }
     }
 
+    static class FakeActivateProductPort implements ActivateProductPort {
+        final Map<Long, ProductStatus> baseStatus;
+        FakeActivateProductPort(Map<Long, ProductStatus> baseStatus) {
+            this.baseStatus = new HashMap<>(baseStatus);
+        }
+        @Override
+        public int activateIfAwaitingStock(Long productBaseId) {
+            if (baseStatus.get(productBaseId) == ProductStatus.AWAITING_STOCK) {
+                baseStatus.put(productBaseId, ProductStatus.ACTIVE);
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    static class RecordingEventPublisher implements ApplicationEventPublisher {
+        final List<Object> events = new ArrayList<>();
+        @Override public void publishEvent(Object event) { events.add(event); }
+    }
+
     static class CapturingStockAdjustmentPort implements StockAdjustmentPort {
         record IncrementCall(Long skuId, int qty, InventoryTransactionType type,
                              String referenceType, Long referenceId, Long actorUserId) {}
@@ -146,9 +170,20 @@ class CreateStockReceiptServiceTest {
                                       FakeLoadSkuPort skuPort,
                                       FakeLoadListingVariantPort variantPort,
                                       FakeLoadProductBasePort productBasePort,
-                                      CapturingStockAdjustmentPort stock) {
+                                      CapturingStockAdjustmentPort stock,
+                                      FakeActivateProductPort activate,
+                                      RecordingEventPublisher publisher) {
         return new CreateStockReceiptService(save, skuPort, variantPort, productBasePort, stock,
-                new FakeLoadWarehousePort());
+                new FakeLoadWarehousePort(), activate, publisher);
+    }
+
+    CreateStockReceiptService service(FakeSaveStockReceiptPort save,
+                                      FakeLoadSkuPort skuPort,
+                                      FakeLoadListingVariantPort variantPort,
+                                      FakeLoadProductBasePort productBasePort,
+                                      CapturingStockAdjustmentPort stock) {
+        return service(save, skuPort, variantPort, productBasePort, stock,
+                new FakeActivateProductPort(Map.of()), new RecordingEventPublisher());
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -266,5 +301,68 @@ class CreateStockReceiptServiceTest {
         assertEquals(1, stock.calls.size());
         assertEquals(result.getId(), stock.calls.get(0).referenceId());
         assertEquals(7, stock.calls.get(0).qty());
+    }
+
+    @Test
+    @DisplayName("Receipt for AWAITING_STOCK product flips it to ACTIVE and publishes exactly one ProductActivatedEvent")
+    void receipt_awaitingStockProduct_flipsToActiveAndPublishesEvent() {
+        var save     = new FakeSaveStockReceiptPort();
+        var stock    = new CapturingStockAdjustmentPort();
+        var activate = new FakeActivateProductPort(Map.of(PRODUCT_A_ID, ProductStatus.AWAITING_STOCK));
+        var publisher = new RecordingEventPublisher();
+        var skus     = Map.of(SKU_A_ID, sku(SKU_A_ID, VARIANT_A_ID, "SKU-A"));
+        var variants = Map.of(VARIANT_A_ID, variant(VARIANT_A_ID, PRODUCT_A_ID));
+        var productBases = Map.of(PRODUCT_A_ID, productBase(PRODUCT_A_ID, "Widget"));
+        var svc = service(save, new FakeLoadSkuPort(skus),
+                new FakeLoadListingVariantPort(variants), new FakeLoadProductBasePort(productBases),
+                stock, activate, publisher);
+
+        svc.execute(new Command(ADMIN_ID, null, null, List.of(new ItemCommand(SKU_A_ID, 5, null))));
+
+        assertEquals(ProductStatus.ACTIVE, activate.baseStatus.get(PRODUCT_A_ID));
+        assertEquals(1, publisher.events.size());
+        assertEquals(new ProductActivatedEvent(PRODUCT_A_ID), publisher.events.get(0));
+    }
+
+    @Test
+    @DisplayName("Receipt for already-ACTIVE product: no status flip, no event")
+    void receipt_alreadyActiveProduct_noFlipNoEvent() {
+        var save     = new FakeSaveStockReceiptPort();
+        var stock    = new CapturingStockAdjustmentPort();
+        var activate = new FakeActivateProductPort(Map.of(PRODUCT_A_ID, ProductStatus.ACTIVE));
+        var publisher = new RecordingEventPublisher();
+        var skus     = Map.of(SKU_A_ID, sku(SKU_A_ID, VARIANT_A_ID, "SKU-A"));
+        var variants = Map.of(VARIANT_A_ID, variant(VARIANT_A_ID, PRODUCT_A_ID));
+        var productBases = Map.of(PRODUCT_A_ID, productBase(PRODUCT_A_ID, "Widget"));
+        var svc = service(save, new FakeLoadSkuPort(skus),
+                new FakeLoadListingVariantPort(variants), new FakeLoadProductBasePort(productBases),
+                stock, activate, publisher);
+
+        svc.execute(new Command(ADMIN_ID, null, null, List.of(new ItemCommand(SKU_A_ID, 3, null))));
+
+        assertEquals(ProductStatus.ACTIVE, activate.baseStatus.get(PRODUCT_A_ID), "status unchanged");
+        assertTrue(publisher.events.isEmpty(), "no event when already active");
+    }
+
+    @Test
+    @DisplayName("Two SKUs on the same product base in one receipt → at most one activation event")
+    void receipt_twoSkusSameProduct_singleActivationEvent() {
+        var save     = new FakeSaveStockReceiptPort();
+        var stock    = new CapturingStockAdjustmentPort();
+        var activate = new FakeActivateProductPort(Map.of(PRODUCT_A_ID, ProductStatus.AWAITING_STOCK));
+        var publisher = new RecordingEventPublisher();
+        var skus     = Map.of(SKU_A_ID, sku(SKU_A_ID, VARIANT_A_ID, "SKU-A"),
+                              SKU_B_ID, sku(SKU_B_ID, VARIANT_A_ID, "SKU-B"));
+        var variants = Map.of(VARIANT_A_ID, variant(VARIANT_A_ID, PRODUCT_A_ID));
+        var productBases = Map.of(PRODUCT_A_ID, productBase(PRODUCT_A_ID, "Widget"));
+        var svc = service(save, new FakeLoadSkuPort(skus),
+                new FakeLoadListingVariantPort(variants), new FakeLoadProductBasePort(productBases),
+                stock, activate, publisher);
+
+        svc.execute(new Command(ADMIN_ID, null, null,
+                List.of(new ItemCommand(SKU_A_ID, 2, null), new ItemCommand(SKU_B_ID, 3, null))));
+
+        assertEquals(ProductStatus.ACTIVE, activate.baseStatus.get(PRODUCT_A_ID));
+        assertEquals(1, publisher.events.size(), "exactly one event even with two SKUs on same product");
     }
 }

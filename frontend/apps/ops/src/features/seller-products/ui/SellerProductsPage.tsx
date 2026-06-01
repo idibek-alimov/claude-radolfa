@@ -7,10 +7,8 @@ import {
   useMyProducts,
   useSubmitMyProductForReview,
 } from "@/entities/seller/api/seller";
-import { createMyProduct } from "@/entities/seller/api/seller";
 import { ProductStatusBadge } from "@/entities/product/ui/ProductStatusBadge";
 import { ProductStatus } from "@/entities/product/model/types";
-import { ProductCreationWizard } from "@/features/product-creation";
 import {
   Table,
   TableHeader,
@@ -23,12 +21,6 @@ import { Tabs, TabsList, TabsTrigger } from "@radolfa/shared/ui/tabs";
 import { Button } from "@radolfa/shared/ui/button";
 import { Input } from "@radolfa/shared/ui/input";
 import { Skeleton } from "@radolfa/shared/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@radolfa/shared/ui/dialog";
 import {
   Package,
   Plus,
@@ -70,7 +62,6 @@ export function SellerProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const [showCreateWizard, setShowCreateWizard] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const pageSize = useDynamicPageSize(cardRef, 57);
 
@@ -106,7 +97,7 @@ export function SellerProductsPage() {
     <div className="flex flex-col flex-1 min-h-0 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("products.title")}</h1>
-        <Button className="gap-1.5" onClick={() => setShowCreateWizard(true)}>
+        <Button className="gap-1.5" onClick={() => router.push("/seller/products/create")}>
           <Plus className="h-4 w-4" />
           {t("products.createProduct")}
         </Button>
@@ -255,18 +246,6 @@ export function SellerProductsPage() {
         </div>
       )}
 
-      {/* Create Product Wizard (Dialog) */}
-      <Dialog open={showCreateWizard} onOpenChange={setShowCreateWizard}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t("products.createProduct")}</DialogTitle>
-          </DialogHeader>
-          <ProductCreationWizard
-            createFn={createMyProduct}
-            successPath="/seller/products"
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
