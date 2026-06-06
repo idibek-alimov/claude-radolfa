@@ -30,4 +30,20 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
         SELECT id FROM descendants
         """, nativeQuery = true)
     List<Long> findAllDescendantIds(@Param("rootId") Long rootId);
+
+    /**
+     * Returns direct (non-rolled-up) per-category aggregates for active products.
+     * Column layout: [0]=categoryId, [1]=productCount (DISTINCT product_base ids), [2]=minPrice.
+     * COUNT(DISTINCT pb.id) prevents SKU join from inflating the count.
+     */
+    @Query("""
+        SELECT pb.category.id, COUNT(DISTINCT pb.id), MIN(s.originalPrice)
+        FROM ProductBaseEntity pb
+        LEFT JOIN pb.variants lv
+        LEFT JOIN lv.skus s
+        WHERE pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
+          AND pb.category.id IS NOT NULL
+        GROUP BY pb.category.id
+        """)
+    List<Object[]> aggregateActiveProductsByCategory();
 }

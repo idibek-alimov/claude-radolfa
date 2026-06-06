@@ -100,6 +100,7 @@ public class CategoryController {
         List<CategoryTreeDto> childDtos = children.stream()
                 .map(child -> toTreeDto(child, childrenMap))
                 .toList();
-        return new CategoryTreeDto(view.id(), view.name(), view.slug(), childDtos);
+        return new CategoryTreeDto(view.id(), view.name(), view.slug(),
+                view.productCount(), view.minPrice(), childDtos);
     }
 }
