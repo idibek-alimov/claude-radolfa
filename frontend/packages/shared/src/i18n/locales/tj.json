@@ -92,7 +92,8 @@
     "startTitle": "Ҷустуҷӯро оғоз кунед",
     "startDescription": "Сатри ҷустуҷӯро истифода баред, то молҳоро дар каталоги Radolfa ёбед.",
     "resultsFor": "Натиҷаҳо барои",
-    "productsFound": "{count} мол ёфт шуд"
+    "productsFound": "{count} мол ёфт шуд",
+    "submit": "Ёфтан"
   },
   "common": {
     "home": "Асосӣ",
@@ -652,6 +653,7 @@
     "outOfStockWarning": "Баъзе молҳо дастрас нестанд. Лутфан онҳоро аз сабад хориҷ кунед.",
     "viewCart": "Дидани сабад",
     "openCart": "Кушодани сабад",
+    "bag": "Сумка",
     "noImage": "Расм нест",
     "securePayment": "Пардохти бехатар",
     "easyReturns": "Бозгардонии осон",

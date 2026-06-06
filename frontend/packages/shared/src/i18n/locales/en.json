@@ -92,7 +92,8 @@
     "startTitle": "Start your search",
     "startDescription": "Use the search bar above to find products across the Radolfa catalog.",
     "resultsFor": "Results for",
-    "productsFound": "{count} products found"
+    "productsFound": "{count} products found",
+    "submit": "Search"
   },
   "common": {
     "home": "Home",
@@ -666,6 +667,7 @@
     "outOfStockWarning": "Some items are out of stock. Remove them to continue.",
     "viewCart": "View Cart",
     "openCart": "Open cart",
+    "bag": "Bag",
     "noImage": "No image",
     "securePayment": "Secure Payment",
     "easyReturns": "Easy Returns",
