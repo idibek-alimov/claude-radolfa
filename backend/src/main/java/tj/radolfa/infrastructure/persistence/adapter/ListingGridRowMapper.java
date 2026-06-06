@@ -6,10 +6,14 @@ import tj.radolfa.application.readmodel.SkuDto;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
+import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,8 +39,10 @@ final class ListingGridRowMapper {
                                        Map<Long, DiscountInfo> discountMap,
                                        Map<Long, List<SkuDto>> skuMap,
                                        Map<Long, List<TagView>> tagMap,
-                                       Map<Long, ProductRatingSummaryEntity> ratingMap) {
+                                       Map<Long, ProductRatingSummaryEntity> ratingMap,
+                                       Map<Long, String> sellerMap) {
         Long variantId = (Long) row[0];
+        Long productBaseId = (Long) row[11];
         DiscountInfo discount = discountMap.get(variantId);
         ProductRatingSummaryEntity rating = ratingMap.get(variantId);
 
@@ -48,7 +54,7 @@ final class ListingGridRowMapper {
         boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
 
         return new ListingVariantDto(
-                (Long) row[11],    // productBaseId
+                productBaseId,
                 variantId,
                 (String) row[1],   // slug
                 (String) row[2],   // colorDisplayName (product name)
@@ -69,7 +75,28 @@ final class ListingGridRowMapper {
                 (String) row[9],   // productCode
                 skuMap.getOrDefault(variantId, List.of()),
                 rating != null ? rating.getAverageRating() : null,
-                rating != null ? rating.getReviewCount() : 0);
+                rating != null ? rating.getReviewCount() : 0,
+                sellerMap.get(productBaseId)); // null = Radolfa-owned
+    }
+
+    /** Batch-loads a productBaseId → shopName map for the given product base IDs. */
+    static Map<Long, String> loadSellerNameMap(List<Long> productBaseIds,
+                                               ProductBaseRepository productBaseRepo,
+                                               SellerRepository sellerRepo) {
+        if (productBaseIds.isEmpty()) return Map.of();
+        List<Object[]> pairs = productBaseRepo.findSellerIdsByIds(productBaseIds);
+        if (pairs.isEmpty()) return Map.of();
+
+        Map<Long, Long> baseToSeller = pairs.stream()
+                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+
+        List<Long> sellerIds = new ArrayList<>(new HashSet<>(baseToSeller.values()));
+        Map<Long, String> sellerNameById = sellerRepo.findAllById(sellerIds).stream()
+                .collect(Collectors.toMap(s -> s.getId(), s -> s.getShopName()));
+
+        return baseToSeller.entrySet().stream()
+                .filter(e -> sellerNameById.containsKey(e.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> sellerNameById.get(e.getValue())));
     }
 
     static Map<Long, ProductRatingSummaryEntity> loadRatingMap(List<Long> variantIds,

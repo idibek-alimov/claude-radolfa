@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductBaseRepository extends JpaRepository<ProductBaseEntity, Long> {
@@ -16,4 +17,8 @@ public interface ProductBaseRepository extends JpaRepository<ProductBaseEntity, 
     @Query("UPDATE ProductBaseEntity p SET p.status = tj.radolfa.domain.model.ProductStatus.ACTIVE " +
            "WHERE p.id = :id AND p.status = tj.radolfa.domain.model.ProductStatus.AWAITING_STOCK")
     int activateIfAwaitingStock(@Param("id") Long id);
+
+    /** Returns [productBaseId, sellerId] pairs for the given IDs, skipping Radolfa-owned (sellerId IS NULL). */
+    @Query("SELECT pb.id, pb.sellerId FROM ProductBaseEntity pb WHERE pb.id IN :ids AND pb.sellerId IS NOT NULL")
+    List<Object[]> findSellerIdsByIds(@Param("ids") List<Long> ids);
 }

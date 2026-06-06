@@ -51,7 +51,8 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(),
                 Map.of(),
-                Map.of(variantId, summary));
+                Map.of(variantId, summary),
+                Map.of());
 
         assertNotNull(dto.ratingAverage());
         assertEquals(0, new BigDecimal("4.80").compareTo(dto.ratingAverage()));
@@ -69,7 +70,8 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(),
                 Map.of(),
-                Map.of()); // empty ratingMap
+                Map.of(), // empty ratingMap
+                Map.of());
 
         assertNull(dto.ratingAverage());
         assertEquals(0, dto.reviewCount());
@@ -86,6 +88,7 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(variantId, List.of(new SkuDto(1L, "RD-001-S", "S", 5,
                         new BigDecimal("199.00"), null, null, null, null, null))),
+                Map.of(),
                 Map.of(),
                 Map.of());
 
@@ -119,6 +122,7 @@ class ListingGridRowMapperTest {
                 row(variantId),
                 Map.of(),
                 Map.of(variantId, discountInfo),
+                Map.of(),
                 Map.of(),
                 Map.of(),
                 Map.of());

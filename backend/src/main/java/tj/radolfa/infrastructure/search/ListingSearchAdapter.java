@@ -19,7 +19,9 @@ import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
+import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
@@ -27,6 +29,8 @@ import tj.radolfa.application.readmodel.SkuDto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,19 +57,25 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         private final SkuRepository skuRepo;
         private final ListingVariantRepository variantRepo;
         private final ProductRatingSummaryRepository ratingRepo;
+        private final ProductBaseRepository productBaseRepo;
+        private final SellerRepository sellerRepo;
 
         public ListingSearchAdapter(ListingSearchRepository repository,
                         ElasticsearchOperations operations,
                         DiscountEnrichmentAdapter discountEnrichment,
                         SkuRepository skuRepo,
                         ListingVariantRepository variantRepo,
-                        ProductRatingSummaryRepository ratingRepo) {
+                        ProductRatingSummaryRepository ratingRepo,
+                        ProductBaseRepository productBaseRepo,
+                        SellerRepository sellerRepo) {
                 this.repository = repository;
                 this.operations = operations;
                 this.discountEnrichment = discountEnrichment;
                 this.skuRepo = skuRepo;
                 this.variantRepo = variantRepo;
                 this.ratingRepo = ratingRepo;
+                this.productBaseRepo = productBaseRepo;
+                this.sellerRepo = sellerRepo;
         }
 
         // ---- ListingIndexPort (write) ----
@@ -159,10 +169,16 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 .toList();
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
-                // Batch-load SKUs, tags, and ratings from DB
+                // Batch-load SKUs, tags, ratings, and seller names from DB
                 Map<Long, List<SkuDto>> skuMap = loadSkuMap(variantIds);
                 Map<Long, List<TagView>> tagMap = loadTagMap(variantIds);
                 Map<Long, ProductRatingSummaryEntity> ratingMap = loadRatingMap(variantIds);
+
+                List<Long> productBaseIds = items.stream()
+                                .map(ListingVariantDto::productBaseId)
+                                .distinct()
+                                .toList();
+                Map<Long, String> sellerMap = loadSellerMap(productBaseIds);
 
                 List<ListingVariantDto> enriched = items.stream()
                                 .map(dto -> {
@@ -191,7 +207,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                         tags, dto.productCode(),
                                                         skus,
                                                         rating != null ? rating.getAverageRating() : null,
-                                                        rating != null ? rating.getReviewCount() : 0);
+                                                        rating != null ? rating.getReviewCount() : 0,
+                                                        sellerMap.get(dto.productBaseId()));
                                 })
                                 .toList();
 
@@ -246,8 +263,23 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 doc.getProductCode(),
                                 List.of(), // skus — batch-loaded post-query
                                 null,    // ratingAverage — batch-loaded post-query
-                                0        // reviewCount — batch-loaded post-query
+                                0,       // reviewCount — batch-loaded post-query
+                                null     // sellerShopName — batch-loaded post-query
                 );
+        }
+
+        private Map<Long, String> loadSellerMap(List<Long> productBaseIds) {
+                if (productBaseIds.isEmpty()) return Map.of();
+                List<Object[]> pairs = productBaseRepo.findSellerIdsByIds(productBaseIds);
+                if (pairs.isEmpty()) return Map.of();
+                Map<Long, Long> baseToSeller = pairs.stream()
+                                .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+                List<Long> sellerIds = new ArrayList<>(new HashSet<>(baseToSeller.values()));
+                Map<Long, String> sellerNameById = sellerRepo.findAllById(sellerIds).stream()
+                                .collect(Collectors.toMap(s -> s.getId(), s -> s.getShopName()));
+                return baseToSeller.entrySet().stream()
+                                .filter(e -> sellerNameById.containsKey(e.getValue()))
+                                .collect(Collectors.toMap(Map.Entry::getKey, e -> sellerNameById.get(e.getValue())));
         }
 
         private Map<Long, List<TagView>> loadTagMap(List<Long> variantIds) {

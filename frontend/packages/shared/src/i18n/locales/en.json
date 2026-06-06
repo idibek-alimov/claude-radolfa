@@ -103,6 +103,7 @@
     "productsCount": "{count} products",
     "viewAll": "View All",
     "inStock": "{count} in stock",
+    "addToCart": "Add to Cart",
     "outOfStock": "Out of stock",
     "lowStock": "Only {count} left",
     "popular": "Popular",

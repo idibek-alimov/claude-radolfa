@@ -10,7 +10,9 @@ import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.D
 import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.OrderItemRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
+import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
@@ -38,17 +40,23 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
     private final DiscountEnrichmentAdapter discountEnrichment;
     private final OrderItemRepository orderItemRepo;
     private final ProductRatingSummaryRepository ratingRepo;
+    private final ProductBaseRepository productBaseRepo;
+    private final SellerRepository sellerRepo;
 
     public HomeCollectionsAdapter(ListingVariantRepository variantRepo,
                                   SkuRepository skuRepo,
                                   DiscountEnrichmentAdapter discountEnrichment,
                                   OrderItemRepository orderItemRepo,
-                                  ProductRatingSummaryRepository ratingRepo) {
+                                  ProductRatingSummaryRepository ratingRepo,
+                                  ProductBaseRepository productBaseRepo,
+                                  SellerRepository sellerRepo) {
         this.variantRepo = variantRepo;
         this.skuRepo = skuRepo;
         this.discountEnrichment = discountEnrichment;
         this.orderItemRepo = orderItemRepo;
         this.ratingRepo = ratingRepo;
+        this.productBaseRepo = productBaseRepo;
+        this.sellerRepo = sellerRepo;
     }
 
     // ---- Homepage preview (limited, no pagination metadata) ----
@@ -127,15 +135,20 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
         List<Long> variantIds = rows.stream()
                 .map(row -> (Long) row[0])
                 .toList();
+        List<Long> productBaseIds = rows.stream()
+                .map(row -> (Long) row[11])
+                .distinct()
+                .toList();
 
         Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
         Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
         Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
         Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
         Map<Long, ProductRatingSummaryEntity> ratingMap = ListingGridRowMapper.loadRatingMap(variantIds, ratingRepo);
+        Map<Long, String> sellerMap = ListingGridRowMapper.loadSellerNameMap(productBaseIds, productBaseRepo, sellerRepo);
 
         return rows.stream()
-                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap))
+                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap, sellerMap))
                 .toList();
     }
 

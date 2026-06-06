@@ -16,6 +16,7 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
@@ -51,17 +52,20 @@ public class ListingReadAdapter implements LoadListingPort {
         private final SkuRepository skuRepo;
         private final DiscountEnrichmentAdapter discountEnrichment;
         private final SellerRepository sellerRepo;
+        private final ProductBaseRepository productBaseRepo;
         private final ProductRatingSummaryRepository ratingRepo;
 
         public ListingReadAdapter(ListingVariantRepository variantRepo,
                         SkuRepository skuRepo,
                         DiscountEnrichmentAdapter discountEnrichment,
                         SellerRepository sellerRepo,
+                        ProductBaseRepository productBaseRepo,
                         ProductRatingSummaryRepository ratingRepo) {
                 this.variantRepo = variantRepo;
                 this.skuRepo = skuRepo;
                 this.discountEnrichment = discountEnrichment;
                 this.sellerRepo = sellerRepo;
+                this.productBaseRepo = productBaseRepo;
                 this.ratingRepo = ratingRepo;
         }
 
@@ -105,15 +109,20 @@ public class ListingReadAdapter implements LoadListingPort {
                 List<Long> variantIds = raw.getContent().stream()
                                 .map(row -> (Long) row[0])
                                 .toList();
+                List<Long> productBaseIds = raw.getContent().stream()
+                                .map(row -> (Long) row[11])
+                                .distinct()
+                                .toList();
 
                 Map<Long, List<String>> imageMap = ListingGridRowMapper.loadImageMap(variantIds, variantRepo);
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
                 Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
                 Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
                 Map<Long, ProductRatingSummaryEntity> ratingMap = ListingGridRowMapper.loadRatingMap(variantIds, ratingRepo);
+                Map<Long, String> sellerMap = ListingGridRowMapper.loadSellerNameMap(productBaseIds, productBaseRepo, sellerRepo);
 
                 List<ListingVariantDto> content = raw.getContent().stream()
-                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap))
+                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap, sellerMap))
                                 .toList();
 
                 return new PageResult<>(content, raw.getTotalElements(), page, limit,

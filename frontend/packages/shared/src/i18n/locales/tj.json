@@ -103,6 +103,7 @@
     "productsCount": "{count} мол",
     "viewAll": "Ҳама",
     "inStock": "{count} мавҷуд",
+    "addToCart": "Ба сабад илова кунед",
     "outOfStock": "Мавҷуд нест",
     "lowStock": "Танҳо {count} монд",
     "popular": "Маъмул",

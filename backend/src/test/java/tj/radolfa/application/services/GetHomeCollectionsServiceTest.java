@@ -123,7 +123,7 @@ class GetHomeCollectionsServiceTest {
                 null, null, null, null, null,
                 null, null, false, List.of(),
                 null, List.of(),
-                null, 0);
+                null, 0, null);
     }
 
     // ---- Fake out-port ----

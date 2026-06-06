@@ -103,6 +103,7 @@
     "productsCount": "{count} товаров",
     "viewAll": "Все",
     "inStock": "{count} в наличии",
+    "addToCart": "Добавить в корзину",
     "outOfStock": "Нет в наличии",
     "lowStock": "Осталось {count}",
     "popular": "Популярное",

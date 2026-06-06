@@ -64,6 +64,8 @@ export interface ListingVariant {
   // Rating — from product_rating_summaries (null/0 when no reviews yet)
   ratingAverage: number | null;
   reviewCount: number;
+  /** null = Radolfa-owned; non-null = third-party seller's shop name. */
+  sellerShopName: string | null;
 }
 
 /**
