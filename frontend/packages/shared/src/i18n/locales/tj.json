@@ -1393,5 +1393,20 @@
     "common": {
       "logout": "Баромадан"
     }
+  },
+  "home": {
+    "crownTierEyebrow": "Сатҳи Crown",
+    "crownOffLine1": "{pct}% тахфиф,",
+    "crownOffLine2": "ҳамеша.",
+    "crownFromOrder": "Аз фармоиши 2-юм.",
+    "crownCta": "Узви Crown шавед",
+    "loyaltyStripTitle": "Сатҳи Crown · {pct}% тахфиф ҳамеша",
+    "loyaltyStripSubtext": "Бо нархҳои акция ҷамъ мешавад. Аз фармоиши 2-юм фаъол мешавад.",
+    "shopByCategory": "Аз рӯи категория харид кунед",
+    "categories": "Категорияҳо",
+    "itemCount": "{count} мол",
+    "fromPrice": "Аз {price} ТСМ",
+    "seeAll": "Ҳамаашро бинед →",
+    "seeAllShort": "Ҳама →"
   }
 }

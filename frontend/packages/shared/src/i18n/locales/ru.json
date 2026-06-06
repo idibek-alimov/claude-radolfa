@@ -1444,5 +1444,20 @@
     "common": {
       "logout": "Выйти"
     }
+  },
+  "home": {
+    "crownTierEyebrow": "Уровень Crown",
+    "crownOffLine1": "Скидка {pct}%,",
+    "crownOffLine2": "навсегда.",
+    "crownFromOrder": "Со 2-го заказа.",
+    "crownCta": "Стать Crown",
+    "loyaltyStripTitle": "Crown уровень · {pct}% скидка навсегда",
+    "loyaltyStripSubtext": "Суммируется с акционными ценами. Активируется со 2-го заказа.",
+    "shopByCategory": "Выбрать категорию",
+    "categories": "Категории",
+    "itemCount": "{count} товаров",
+    "fromPrice": "От {price} TJS",
+    "seeAll": "Смотреть все →",
+    "seeAllShort": "Все →"
   }
 }

@@ -1444,5 +1444,20 @@
     "common": {
       "logout": "Log out"
     }
+  },
+  "home": {
+    "crownTierEyebrow": "Crown tier",
+    "crownOffLine1": "{pct}% off,",
+    "crownOffLine2": "forever.",
+    "crownFromOrder": "Yours from order #2.",
+    "crownCta": "Join Crown",
+    "loyaltyStripTitle": "Crown tier · {pct}% off forever",
+    "loyaltyStripSubtext": "Stacks with sale prices. Unlocks after your 2nd order.",
+    "shopByCategory": "Shop by category",
+    "categories": "Categories",
+    "itemCount": "{count} items",
+    "fromPrice": "From {price} TJS",
+    "seeAll": "See all →",
+    "seeAllShort": "All →"
   }
 }
