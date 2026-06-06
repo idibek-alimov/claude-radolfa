@@ -17,7 +17,9 @@ import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
+import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
@@ -50,17 +52,20 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
         private final DiscountEnrichmentAdapter discountEnrichment;
         private final SkuRepository skuRepo;
         private final ListingVariantRepository variantRepo;
+        private final ProductRatingSummaryRepository ratingRepo;
 
         public ListingSearchAdapter(ListingSearchRepository repository,
                         ElasticsearchOperations operations,
                         DiscountEnrichmentAdapter discountEnrichment,
                         SkuRepository skuRepo,
-                        ListingVariantRepository variantRepo) {
+                        ListingVariantRepository variantRepo,
+                        ProductRatingSummaryRepository ratingRepo) {
                 this.repository = repository;
                 this.operations = operations;
                 this.discountEnrichment = discountEnrichment;
                 this.skuRepo = skuRepo;
                 this.variantRepo = variantRepo;
+                this.ratingRepo = ratingRepo;
         }
 
         // ---- ListingIndexPort (write) ----
@@ -154,9 +159,10 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 .toList();
                 Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
 
-                // Batch-load SKUs and tags from DB
+                // Batch-load SKUs, tags, and ratings from DB
                 Map<Long, List<SkuDto>> skuMap = loadSkuMap(variantIds);
                 Map<Long, List<TagView>> tagMap = loadTagMap(variantIds);
+                Map<Long, ProductRatingSummaryEntity> ratingMap = loadRatingMap(variantIds);
 
                 List<ListingVariantDto> enriched = items.stream()
                                 .map(dto -> {
@@ -173,6 +179,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                         boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
                                         List<SkuDto> skus = skuMap.getOrDefault(dto.variantId(), List.of());
                                         List<TagView> tags = tagMap.getOrDefault(dto.variantId(), List.of());
+                                        ProductRatingSummaryEntity rating = ratingMap.get(dto.variantId());
                                         return new ListingVariantDto(
                                                         dto.productBaseId(), dto.variantId(), dto.slug(), dto.colorDisplayName(),
                                                         dto.categoryName(), dto.colorKey(), dto.colorHex(),
@@ -182,7 +189,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                         null, null, // loyaltyPrice, loyaltyPercentage — enriched by controller
                                                         isPartialDiscount,
                                                         tags, dto.productCode(),
-                                                        skus);
+                                                        skus,
+                                                        rating != null ? rating.getAverageRating() : null,
+                                                        rating != null ? rating.getReviewCount() : 0);
                                 })
                                 .toList();
 
@@ -233,9 +242,11 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 null,    // loyaltyPrice — enriched by controller
                                 null,    // loyaltyPercentage
                                 false,   // isPartialDiscount — enriched post-query
-                                List.of(), // tags — not stored in ES index
+                                List.of(), // tags — batch-loaded post-query
                                 doc.getProductCode(),
-                                List.of() // skus — batch-loaded post-query
+                                List.of(), // skus — batch-loaded post-query
+                                null,    // ratingAverage — batch-loaded post-query
+                                0        // reviewCount — batch-loaded post-query
                 );
         }
 
@@ -247,6 +258,12 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                 Collectors.mapping(
                                                                 row -> new TagView((Long) row[1], (String) row[2], (String) row[3]),
                                                                 Collectors.toList())));
+        }
+
+        private Map<Long, ProductRatingSummaryEntity> loadRatingMap(List<Long> variantIds) {
+                if (variantIds.isEmpty()) return Map.of();
+                return ratingRepo.findAllById(variantIds).stream()
+                                .collect(Collectors.toMap(ProductRatingSummaryEntity::getListingVariantId, e -> e));
         }
 
         private Map<Long, List<SkuDto>> loadSkuMap(List<Long> variantIds) {

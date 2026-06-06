@@ -7,8 +7,10 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadHomeCollectionsPort;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
+import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
 import tj.radolfa.infrastructure.persistence.repository.OrderItemRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
@@ -35,15 +37,18 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
     private final SkuRepository skuRepo;
     private final DiscountEnrichmentAdapter discountEnrichment;
     private final OrderItemRepository orderItemRepo;
+    private final ProductRatingSummaryRepository ratingRepo;
 
     public HomeCollectionsAdapter(ListingVariantRepository variantRepo,
                                   SkuRepository skuRepo,
                                   DiscountEnrichmentAdapter discountEnrichment,
-                                  OrderItemRepository orderItemRepo) {
+                                  OrderItemRepository orderItemRepo,
+                                  ProductRatingSummaryRepository ratingRepo) {
         this.variantRepo = variantRepo;
         this.skuRepo = skuRepo;
         this.discountEnrichment = discountEnrichment;
         this.orderItemRepo = orderItemRepo;
+        this.ratingRepo = ratingRepo;
     }
 
     // ---- Homepage preview (limited, no pagination metadata) ----
@@ -127,9 +132,10 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
         Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(variantIds);
         Map<Long, List<SkuDto>> skuMap = ListingGridRowMapper.loadSkuMap(variantIds, skuRepo);
         Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
+        Map<Long, ProductRatingSummaryEntity> ratingMap = ListingGridRowMapper.loadRatingMap(variantIds, ratingRepo);
 
         return rows.stream()
-                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap))
+                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap))
                 .toList();
     }
 

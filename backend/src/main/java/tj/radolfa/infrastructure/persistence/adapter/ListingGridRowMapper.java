@@ -4,13 +4,16 @@ import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
+import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * Shared utility for mapping JPQL grid query rows ({@code Object[]})
@@ -31,9 +34,11 @@ final class ListingGridRowMapper {
     static ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
                                        Map<Long, DiscountInfo> discountMap,
                                        Map<Long, List<SkuDto>> skuMap,
-                                       Map<Long, List<TagView>> tagMap) {
+                                       Map<Long, List<TagView>> tagMap,
+                                       Map<Long, ProductRatingSummaryEntity> ratingMap) {
         Long variantId = (Long) row[0];
         DiscountInfo discount = discountMap.get(variantId);
+        ProductRatingSummaryEntity rating = ratingMap.get(variantId);
 
         BigDecimal originalPrice = discount != null ? discount.originalPrice() : toBigDecimal(row[6]);
         BigDecimal discountPrice = discount != null ? discount.discountedPrice() : null;
@@ -62,7 +67,16 @@ final class ListingGridRowMapper {
                 isPartialDiscount,
                 tagMap.getOrDefault(variantId, List.of()),
                 (String) row[9],   // productCode
-                skuMap.getOrDefault(variantId, List.of()));
+                skuMap.getOrDefault(variantId, List.of()),
+                rating != null ? rating.getAverageRating() : null,
+                rating != null ? rating.getReviewCount() : 0);
+    }
+
+    static Map<Long, ProductRatingSummaryEntity> loadRatingMap(List<Long> variantIds,
+                                                                ProductRatingSummaryRepository ratingRepo) {
+        if (variantIds.isEmpty()) return Map.of();
+        return ratingRepo.findAllById(variantIds).stream()
+                .collect(Collectors.toMap(ProductRatingSummaryEntity::getListingVariantId, Function.identity()));
     }
 
     static Map<Long, List<String>> loadImageMap(List<Long> variantIds,

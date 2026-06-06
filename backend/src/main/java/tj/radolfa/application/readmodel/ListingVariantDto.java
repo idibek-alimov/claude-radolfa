@@ -45,7 +45,9 @@ public record ListingVariantDto(
         boolean isPartialDiscount,
         List<TagView> tags,
         String productCode,
-        List<SkuDto> skus) {
+        List<SkuDto> skus,
+        BigDecimal ratingAverage,
+        Integer reviewCount) {
 
     /** Lightweight tag projection returned in listing responses. */
     public record TagView(Long id, String name, String colorHex) {}
@@ -90,6 +92,7 @@ public record ListingVariantDto(
                 colorKey, colorHex, webDescription, images,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
-                tags, productCode, loyaltySkus);
+                tags, productCode, loyaltySkus,
+                ratingAverage, reviewCount);
     }
 }
