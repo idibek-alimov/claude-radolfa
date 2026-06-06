@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import tj.radolfa.application.ports.in.GetHomeCollectionsUseCase;
+import tj.radolfa.application.ports.in.home.GetActiveHomeBannersUseCase;
 import tj.radolfa.application.readmodel.CollectionPageDto;
 import tj.radolfa.application.readmodel.HomeSectionDto;
+import tj.radolfa.infrastructure.web.dto.HomeBannerDto;
 
 import java.util.List;
 
@@ -25,11 +27,14 @@ import java.util.List;
 public class HomeController {
 
     private final GetHomeCollectionsUseCase getHomeCollectionsUseCase;
+    private final GetActiveHomeBannersUseCase getActiveHomeBannersUseCase;
     private final TierPricingEnricher tierPricing;
 
     public HomeController(GetHomeCollectionsUseCase getHomeCollectionsUseCase,
+                          GetActiveHomeBannersUseCase getActiveHomeBannersUseCase,
                           TierPricingEnricher tierPricing) {
         this.getHomeCollectionsUseCase = getHomeCollectionsUseCase;
+        this.getActiveHomeBannersUseCase = getActiveHomeBannersUseCase;
         this.tierPricing = tierPricing;
     }
 
@@ -38,6 +43,15 @@ public class HomeController {
                description = "Returns ordered sections (Featured, New Arrivals, Deals) for the homepage")
     public ResponseEntity<List<HomeSectionDto>> collections() {
         return ResponseEntity.ok(tierPricing.enrichSections(getHomeCollectionsUseCase.getHomeSections()));
+    }
+
+    @GetMapping("/banner")
+    @Operation(summary = "Active home banners",
+               description = "Returns all active banners for the MAIN and WELCOME hero slots.")
+    public ResponseEntity<List<HomeBannerDto>> activeBanners() {
+        List<HomeBannerDto> dtos = getActiveHomeBannersUseCase.execute()
+                .stream().map(HomeBannerDto::from).toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/collections/{key}")

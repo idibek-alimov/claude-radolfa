@@ -1,5 +1,5 @@
 -- ================================================================
--- V29__dev_reviews.sql
+-- V30__dev_reviews.sql
 --
 -- DEV ONLY — Seed reviews, rating summaries, and supporting orders.
 -- Gives enough data to exercise every UI path:

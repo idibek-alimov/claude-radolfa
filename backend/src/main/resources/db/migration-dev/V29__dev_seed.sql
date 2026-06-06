@@ -1,5 +1,5 @@
 -- ================================================================
--- V28__dev_seed.sql
+-- V29__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -839,5 +839,15 @@ BEGIN
 END $$;
 
 UPDATE product_bases SET status = 'ACTIVE';
+
+-- ----------------------------------------------------------------
+-- Home banners (MAIN + WELCOME sample data)
+-- ----------------------------------------------------------------
+INSERT INTO home_banners (slot, title, subtitle, badge_text, cta_label, cta_url, bg_color_hex, active)
+VALUES
+    ('MAIN',    'Super Sale — up to 70% off',  'Ends Sunday. Use code RADO70 at checkout.',
+     'Limited time', 'Shop the sale', '/collections/on_sale', '#CB11AB', TRUE),
+    ('WELCOME', 'New here? Welcome!',           'Get 10% off your first order.',
+     'First-order offer', 'Claim offer', '/collections/new_arrivals', '#1A1A2E', TRUE);
 
 
