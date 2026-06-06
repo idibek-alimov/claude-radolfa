@@ -21,4 +21,8 @@ public interface LoadHomeCollectionsPort {
     PageResult<ListingVariantDto> loadNewArrivalsPage(int page, int limit);
 
     PageResult<ListingVariantDto> loadOnSalePage(int page, int limit);
+
+    List<ListingVariantDto> loadTopSellers(int limit);
+
+    PageResult<ListingVariantDto> loadTopSellersPage(int page, int limit);
 }

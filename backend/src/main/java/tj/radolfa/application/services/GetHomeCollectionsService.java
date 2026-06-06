@@ -29,6 +29,7 @@ public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
 
     private static final Map<String, String> KEY_TO_TITLE = Map.of(
             "featured", "Featured",
+            "top_sellers", "Top Sellers",
             "new_arrivals", "New Arrivals",
             "on_sale", "Deals"
     );
@@ -45,6 +46,9 @@ public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
 
         addIfNotEmpty(sections, "featured", "Featured",
                 loadHomeCollectionsPort.loadFeatured(SECTION_LIMIT));
+
+        addIfNotEmpty(sections, "top_sellers", "Top Sellers",
+                loadHomeCollectionsPort.loadTopSellers(SECTION_LIMIT));
 
         addIfNotEmpty(sections, "new_arrivals", "New Arrivals",
                 loadHomeCollectionsPort.loadNewArrivals(SECTION_LIMIT));
@@ -64,6 +68,7 @@ public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
 
         PageResult<ListingVariantDto> result = switch (key) {
             case "featured" -> loadHomeCollectionsPort.loadFeaturedPage(page, limit);
+            case "top_sellers" -> loadHomeCollectionsPort.loadTopSellersPage(page, limit);
             case "new_arrivals" -> loadHomeCollectionsPort.loadNewArrivalsPage(page, limit);
             case "on_sale" -> loadHomeCollectionsPort.loadOnSalePage(page, limit);
             default -> throw new IllegalStateException("Unknown key: " + key);
