@@ -10,6 +10,7 @@ export type {
     HomeSection,
     CollectionPage,
     CategoryTree,
+    HomeBanner,
     Color,
     AdminProductRow,
 } from "./model/types";
@@ -33,4 +34,5 @@ export {
     fetchCollectionPage,
     fetchCategoryProducts,
     fetchCategoryTree,
+    fetchHomeBanners,
 } from "./api";

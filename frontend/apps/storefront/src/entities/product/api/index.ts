@@ -7,6 +7,7 @@ import type {
   HomeSection,
   CollectionPage,
   CategoryTree,
+  HomeBanner,
 } from "@/entities/product/model/types";
 
 export interface UpdateListingRequest {
@@ -142,6 +143,12 @@ export async function fetchCategoryProducts(
 export async function fetchCategoryTree(): Promise<CategoryTree[]> {
   const { data } = await apiClient.get<CategoryTree[]>("/api/v1/categories");
   return data;
+}
+
+/** Active hero/welcome banners for the homepage. */
+export async function fetchHomeBanners(): Promise<HomeBanner[]> {
+  const { data } = await apiClient.get<HomeBanner[]>("/api/v1/home/banner");
+  return data ?? [];
 }
 
 /** Remove an image from a listing (manager only). */

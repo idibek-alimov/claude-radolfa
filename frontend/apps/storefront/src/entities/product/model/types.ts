@@ -61,6 +61,9 @@ export interface ListingVariant {
   loyaltyPrice: number | null;        // null for guests / no-tier users
   loyaltyPercentage: number | null;   // user's own tier %, null for guests / no-tier
   isPartialDiscount: boolean;         // true = only some sizes are on sale
+  // Rating — from product_rating_summaries (null/0 when no reviews yet)
+  ratingAverage: number | null;
+  reviewCount: number;
 }
 
 /**
@@ -125,6 +128,7 @@ export interface CollectionPage {
 
 /**
  * Category tree node returned by GET /api/v1/categories.
+ * productCount and minPrice include descendants (rollup).
  */
 export interface CategoryTree {
   id: number;
@@ -132,6 +136,25 @@ export interface CategoryTree {
   slug: string;
   parentId: number | null;
   children: CategoryTree[];
+  productCount: number;
+  minPrice: number | null;
+}
+
+/**
+ * Hero/Welcome banner managed via Ops portal.
+ * Mirrors HomeBannerDto from the backend.
+ */
+export interface HomeBanner {
+  id: number;
+  slot: "MAIN" | "WELCOME";
+  title: string;
+  subtitle: string | null;
+  badgeText: string | null;
+  ctaLabel: string | null;
+  ctaUrl: string | null;
+  bgColorHex: string | null;
+  expiresAt: string | null;
+  active: boolean;
 }
 
 /**

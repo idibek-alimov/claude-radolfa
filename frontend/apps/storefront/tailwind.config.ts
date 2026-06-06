@@ -23,6 +23,17 @@ const config: Config = {
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       colors: {
+        // Design-system tokens (B-Magenta reference)
+        ink:     "#1A0A18",
+        mag:     "#CB11AB",
+        maglo:   "#9A0E81",
+        maghi:   "#FF3DD8",
+        gold:    "#FFCC4F",
+        sale:    "#FF1F4A",
+        emerald: "#1F8A5B",
+        plum:    "#F4E0EE",
+        soft:    "#FFF7FB",
+        // Shadcn semantic tokens (keep as-is)
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
