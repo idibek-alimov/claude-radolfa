@@ -24,12 +24,12 @@ const config: Config = {
       },
       colors: {
         // Design-system tokens (B-Magenta reference)
-        ink:     "#1A0A18",
+        ink:     "#0E1116",
         mag:     "#CB11AB",
         maglo:   "#9A0E81",
         maghi:   "#FF3DD8",
-        gold:    "#FFCC4F",
-        sale:    "#FF1F4A",
+        gold:    "#C8A24C",
+        sale:    "#D11A2A",
         emerald: "#1F8A5B",
         plum:    "#F4E0EE",
         soft:    "#FFF7FB",

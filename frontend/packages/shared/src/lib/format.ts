@@ -1,10 +1,9 @@
-/**
- * Format a price value for display.
- * Returns "—" for null/undefined values.
- */
+const priceFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
 export function formatPrice(price: number | null | undefined): string {
   if (price == null) return "—";
-  return `${price.toFixed(2)} TJS`;
+  // narrow no-break space as thousands separator → "3 807 TJS"
+  return `${priceFormatter.format(price).replace(/,/g, " ")} TJS`;
 }
 
 /**

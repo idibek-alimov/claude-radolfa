@@ -74,97 +74,114 @@ export default function ProductCard({
     ? "text-rose-600"
     : "text-foreground";
 
-  // ── HOME variant ─────────────────────────────────────────────────────────
+  // ── HOME variant (B-Magenta reference) ──────────────────────────────────
   if (variant === "home") {
+    const homeHeroPriceClass = hasLoyalty
+      ? "text-gold"
+      : hasDiscount
+      ? "text-mag"
+      : "text-ink";
+
+    const hasOverlayBadges = hasDiscount || (hasLoyalty && listing.loyaltyPercentage != null) || listing.tags.length > 0;
+
     return (
-      <div className="group flex flex-col h-full rounded-xl border bg-card shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 overflow-hidden">
-        <Link href={`/products/${listing.slug}`} className="block flex-1 flex flex-col">
-          {/* Image */}
-          <div className="relative w-full aspect-[3/4] bg-muted rounded-t-xl overflow-hidden">
-            {coverImage ? (
-              <Image
-                src={coverImage}
-                alt={listing.colorDisplayName ?? "Product image"}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                unoptimized
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-muted-foreground text-xs">No image</span>
-              </div>
-            )}
+      <Link
+        href={`/products/${listing.slug}`}
+        className="group flex flex-col rounded-[14px] overflow-visible border border-[rgba(14,17,22,0.07)] bg-card shadow-[0_1px_3px_rgba(14,17,22,0.06)] hover:-translate-y-1 hover:shadow-md transition-all duration-150 ease-out"
+      >
+        {/* Image */}
+        <div className="relative w-full aspect-[3/4] overflow-hidden rounded-[14px_14px_10px_10px] bg-[#F2EBDB] flex-shrink-0">
+          {coverImage ? (
+            <Image
+              src={coverImage}
+              alt={listing.colorDisplayName ?? "Product image"}
+              fill
+              className="object-cover group-hover:scale-[1.04] transition-transform duration-300"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-[#8B7355] text-[11px] opacity-60">No image</span>
+            </div>
+          )}
 
-            {isOutOfStock && (
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                <Badge variant="destructive" className="text-xs">
-                  {tc("outOfStock")}
-                </Badge>
-              </div>
-            )}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <Badge variant="destructive" className="text-xs">
+                {tc("outOfStock")}
+              </Badge>
+            </div>
+          )}
 
-            {/* Bottom-left: discount + tags stacked */}
-            {(DiscountBadge || TagBadges) && (
-              <div className="absolute bottom-2 left-2 flex flex-col gap-0.5">
-                {DiscountBadge}
-                {TagBadges}
-              </div>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="p-2 flex flex-col gap-0.5 flex-1">
-            {/* Price row */}
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              {hasLoyalty && (
-                <Crown className="h-3 w-3 text-amber-500 shrink-0 self-center" />
-              )}
-              <span className={`text-sm font-bold tabular-nums leading-none ${heroPriceClass}`}>
-                {formatPrice(heroPrice)}
-              </span>
-              {hasCheaperPrice && (
-                <span className="text-[10px] text-muted-foreground line-through tabular-nums">
-                  {formatPrice(listing.originalPrice)}
+          {/* Bottom-left pill badges — discount/loyalty first, then data tags */}
+          {hasOverlayBadges && (
+            <div className="absolute bottom-[10px] left-[10px] flex flex-col items-start gap-1">
+              {hasDiscount && (
+                <span
+                  className="inline-flex items-center rounded-full px-[9px] py-[3px] text-[10px] font-bold text-white leading-none whitespace-nowrap"
+                  style={{ backgroundColor: listing.discountColorHex ?? "#D11A2A" }}
+                >
+                  −{listing.discountPercentage}%
                 </span>
               )}
+              {!hasDiscount && hasLoyalty && listing.loyaltyPercentage != null && (
+                <span className="inline-flex items-center gap-[5px] rounded-full px-[9px] py-[3px] text-[10px] font-bold text-white leading-none whitespace-nowrap bg-gold">
+                  <Crown className="h-[10px] w-[10px]" />
+                  −{listing.loyaltyPercentage}%
+                </span>
+              )}
+              {listing.tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center rounded-full px-[9px] py-[3px] text-[10px] font-bold text-white leading-none whitespace-nowrap"
+                  style={{ backgroundColor: `#${tag.colorHex}` }}
+                >
+                  {tag.name}
+                </span>
+              ))}
             </div>
+          )}
+        </div>
 
-            {/* Seller / name */}
-            <p className="text-[11px] leading-tight truncate">
-              <span className="text-muted-foreground font-medium">{sellerName}</span>
-              <span className="text-muted-foreground"> / </span>
-              <span className="text-foreground font-semibold">{listing.colorDisplayName ?? "—"}</span>
-            </p>
-
-            {/* Rating */}
-            {hasRating && (
-              <span className="text-[10px] text-muted-foreground">
-                ★ {listing.ratingAverage?.toFixed(1)} · {listing.reviewCount}
-              </span>
-            )}
-
-            {isLowStock && (
-              <span className="text-[10px] font-medium text-orange-600">
-                {tc("lowStock", { count: stock })}
+        {/* Info */}
+        <div className="pt-[11px] px-[13px] pb-[10px] flex flex-col">
+          {/* Price row */}
+          <div className="flex items-baseline gap-[7px] mb-[5px]">
+            <span className={`text-[17px] font-extrabold tabular-nums leading-none ${homeHeroPriceClass}`}>
+              {formatPrice(heroPrice)}
+            </span>
+            {hasCheaperPrice && (
+              <span className="text-[12px] font-normal text-gray-400 line-through tabular-nums leading-none">
+                {formatPrice(listing.originalPrice)}
               </span>
             )}
           </div>
-        </Link>
 
-        {/* Add to Cart */}
-        <div className="px-2 pb-2">
-          <Link href={`/products/${listing.slug}`} className="block w-full">
-            <Button
-              size="sm"
-              className="w-full gap-1.5 text-[11px] h-7"
-              disabled={isOutOfStock}
-            >
-              <ShoppingCart className="h-3 w-3" />
-              {isOutOfStock ? tc("outOfStock") : tc("addToCart")}
-            </Button>
-          </Link>
+          {/* Seller / product name */}
+          <p className="text-[12px] font-normal text-gray-700 leading-[1.4] mb-[5px] truncate">
+            <strong className="uppercase font-bold text-ink">{sellerName}</strong>
+            {" / "}
+            {listing.colorDisplayName ?? "—"}
+          </p>
+
+          {/* Rating */}
+          {hasRating && (
+            <div className="flex items-center gap-1 text-[11px] text-gray-500">
+              <span className="text-amber-500 text-[12px] leading-none">★</span>
+              <span className="font-bold text-ink text-[11px]">
+                {listing.ratingAverage?.toFixed(1)}
+              </span>
+              <span>· {listing.reviewCount} reviews</span>
+            </div>
+          )}
+
+          {isLowStock && (
+            <span className="text-[10px] font-medium text-orange-600 mt-1">
+              {tc("lowStock", { count: stock })}
+            </span>
+          )}
         </div>
-      </div>
+      </Link>
     );
   }
 
