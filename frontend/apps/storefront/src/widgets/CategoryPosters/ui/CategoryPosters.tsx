@@ -18,8 +18,6 @@ interface CategoryTile {
   slug: string;
   name: string;
   subtitle: string | null;
-  productCount: number;
-  minPrice: number | null;
   imageUrl: string | null;
 }
 
@@ -51,8 +49,6 @@ export function CategoryPosters() {
           slug: f.categorySlug,
           name: f.title ?? f.categoryName,
           subtitle: f.subtitle,
-          productCount: f.productCount,
-          minPrice: f.minPrice,
           imageUrl: f.imageUrl,
         }))
       : (categories ?? []).slice(0, 5).map((c) => ({
@@ -60,8 +56,6 @@ export function CategoryPosters() {
           slug: c.slug,
           name: c.name,
           subtitle: null,
-          productCount: c.productCount,
-          minPrice: c.minPrice,
           imageUrl: null,
         }));
 
@@ -123,17 +117,9 @@ export function CategoryPosters() {
                   </>
                 )}
                 <div className="relative">
-                  <div className="text-[10px] tracking-[0.2em] uppercase opacity-80">
-                    {t("itemCount", { count: tile.productCount })}
-                  </div>
                   <div className="font-black text-2xl mt-1">{tile.name}</div>
                   {tile.subtitle && (
                     <div className="text-[12px] mt-1 opacity-90">{tile.subtitle}</div>
-                  )}
-                  {tile.minPrice != null && (
-                    <div className="text-[11px] mt-2 opacity-90">
-                      {t("fromPrice", { price: tile.minPrice })}
-                    </div>
                   )}
                 </div>
               </Link>

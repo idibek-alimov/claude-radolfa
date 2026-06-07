@@ -11,11 +11,7 @@ import tj.radolfa.infrastructure.persistence.entity.ReviewTraitEntity;
 import tj.radolfa.infrastructure.persistence.repository.CategoryRepository;
 import tj.radolfa.infrastructure.persistence.repository.ReviewTraitRepository;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -58,27 +54,7 @@ public class CategoryAdapter implements LoadCategoryPort, SaveCategoryPort, Dele
 
     @Override
     public List<CategoryView> findAll() {
-        List<CategoryEntity> entities = categoryRepo.findAll();
-
-        Map<Long, Long> directCount = new HashMap<>();
-        Map<Long, BigDecimal> directMinPrice = new HashMap<>();
-        for (Object[] row : categoryRepo.aggregateActiveProductsByCategory()) {
-            Long catId = ((Number) row[0]).longValue();
-            directCount.put(catId, ((Number) row[1]).longValue());
-            BigDecimal minPrice = (BigDecimal) row[2];
-            if (minPrice != null) directMinPrice.put(catId, minPrice);
-        }
-
-        Map<Long, CategoryAggregateRollup.Aggregate> rolled =
-                CategoryAggregateRollup.rollUp(entities, directCount, directMinPrice);
-
-        return entities.stream().map(e -> {
-            CategoryAggregateRollup.Aggregate agg =
-                    rolled.getOrDefault(e.getId(), new CategoryAggregateRollup.Aggregate(0L, null));
-            return new CategoryView(e.getId(), e.getName(), e.getSlug(),
-                    e.getParent() != null ? e.getParent().getId() : null,
-                    traitIds(e), agg.count(), agg.minPrice());
-        }).toList();
+        return categoryRepo.findAll().stream().map(this::toView).toList();
     }
 
     @Override

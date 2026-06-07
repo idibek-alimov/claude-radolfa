@@ -9,7 +9,6 @@ import tj.radolfa.application.readmodel.CategoryView;
 import tj.radolfa.domain.model.FeaturedCategory;
 import tj.radolfa.domain.model.PageResult;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +30,8 @@ class GetActiveFeaturedCategoriesServiceTest {
 
     @Test
     void resolvesEachEntryWithLiveCategoryDataInDisplayOrder() {
-        fakeCategories.put(category(1L, "Phones", "phones", 42L, new BigDecimal("99.00")));
-        fakeCategories.put(category(2L, "Laptops", "laptops", 17L, new BigDecimal("499.00")));
+        fakeCategories.put(category(1L, "Phones", "phones"));
+        fakeCategories.put(category(2L, "Laptops", "laptops"));
 
         // returned already sorted by displayOrder, mirroring findActiveOrdered()
         fakeLoad.entries.add(entry(10L, 2L, 0, "Laptops Spotlight"));
@@ -47,21 +46,17 @@ class GetActiveFeaturedCategoriesServiceTest {
         assertThat(first.categoryId()).isEqualTo(2L);
         assertThat(first.categorySlug()).isEqualTo("laptops");
         assertThat(first.categoryName()).isEqualTo("Laptops");
-        assertThat(first.productCount()).isEqualTo(17L);
-        assertThat(first.minPrice()).isEqualByComparingTo("499.00");
         assertThat(first.title()).isEqualTo("Laptops Spotlight");
 
         FeaturedCategoryView second = result.get(1);
         assertThat(second.id()).isEqualTo(11L);
         assertThat(second.categoryId()).isEqualTo(1L);
         assertThat(second.categorySlug()).isEqualTo("phones");
-        assertThat(second.productCount()).isEqualTo(42L);
-        assertThat(second.minPrice()).isEqualByComparingTo("99.00");
     }
 
     @Test
     void skipsEntryWhoseCategoryIsMissing() {
-        fakeCategories.put(category(1L, "Phones", "phones", 5L, BigDecimal.TEN));
+        fakeCategories.put(category(1L, "Phones", "phones"));
         fakeLoad.entries.add(entry(10L, 1L, 0, null));
         fakeLoad.entries.add(entry(11L, 999L, 1, null)); // category 999 does not exist
 
@@ -84,8 +79,8 @@ class GetActiveFeaturedCategoriesServiceTest {
         return new FeaturedCategory(id, categoryId, null, title, null, displayOrder, true);
     }
 
-    private CategoryView category(Long id, String name, String slug, Long productCount, BigDecimal minPrice) {
-        return new CategoryView(id, name, slug, null, List.of(), productCount, minPrice);
+    private CategoryView category(Long id, String name, String slug) {
+        return new CategoryView(id, name, slug, null, List.of());
     }
 
     // ----------------------------------------------------------------

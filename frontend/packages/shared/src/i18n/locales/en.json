@@ -1456,8 +1456,6 @@
     "loyaltyStripSubtext": "Stacks with sale prices. Unlocks after your 2nd order.",
     "shopByCategory": "Shop by category",
     "categories": "Categories",
-    "itemCount": "{count} items",
-    "fromPrice": "From {price} TJS",
     "seeAll": "See all →",
     "seeAllShort": "All →"
   }

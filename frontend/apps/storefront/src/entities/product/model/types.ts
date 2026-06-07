@@ -134,7 +134,6 @@ export interface CollectionPage {
 
 /**
  * Category tree node returned by GET /api/v1/categories.
- * productCount and minPrice include descendants (rollup).
  */
 export interface CategoryTree {
   id: number;
@@ -142,8 +141,6 @@ export interface CategoryTree {
   slug: string;
   parentId: number | null;
   children: CategoryTree[];
-  productCount: number;
-  minPrice: number | null;
 }
 
 /**
@@ -166,16 +163,14 @@ export interface HomeBanner {
 /**
  * Curated featured-category entry for the homepage "Shop by Category" section.
  * Mirrors FeaturedCategoryPublicDto — admin-curated entry enriched with live
- * category data (name/slug/productCount/minPrice). Returned active-only,
- * pre-sorted by displayOrder, by GET /api/v1/home/featured-categories.
+ * category data (name/slug). Returned active-only, pre-sorted by displayOrder,
+ * by GET /api/v1/home/featured-categories.
  */
 export interface FeaturedCategory {
   id: number;
   categoryId: number;
   categorySlug: string;
   categoryName: string;
-  productCount: number;
-  minPrice: number | null;
   imageUrl: string | null;
   title: string | null;
   subtitle: string | null;

@@ -1456,8 +1456,6 @@
     "loyaltyStripSubtext": "Суммируется с акционными ценами. Активируется со 2-го заказа.",
     "shopByCategory": "Выбрать категорию",
     "categories": "Категории",
-    "itemCount": "{count} товаров",
-    "fromPrice": "От {price} TJS",
     "seeAll": "Смотреть все →",
     "seeAllShort": "Все →"
   }
