@@ -164,6 +164,25 @@ export interface HomeBanner {
 }
 
 /**
+ * Curated featured-category entry for the homepage "Shop by Category" section.
+ * Mirrors FeaturedCategoryPublicDto — admin-curated entry enriched with live
+ * category data (name/slug/productCount/minPrice). Returned active-only,
+ * pre-sorted by displayOrder, by GET /api/v1/home/featured-categories.
+ */
+export interface FeaturedCategory {
+  id: number;
+  categoryId: number;
+  categorySlug: string;
+  categoryName: string;
+  productCount: number;
+  minPrice: number | null;
+  imageUrl: string | null;
+  title: string | null;
+  subtitle: string | null;
+  displayOrder: number;
+}
+
+/**
  * Color entry returned by GET /api/v1/colors.
  */
 export interface Color {

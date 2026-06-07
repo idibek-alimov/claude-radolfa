@@ -1,22 +1,69 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Skeleton } from "@radolfa/shared/ui/skeleton";
-import { fetchCategoryTree } from "@/entities/product";
+import { fetchCategoryTree, fetchFeaturedCategories } from "@/entities/product";
 import { getCategoryTheme } from "@/entities/category";
+
+/**
+ * Normalized tile shape consumed by both the desktop grid and mobile strip —
+ * lets the render stay identical whether the data came from the curated
+ * featured-categories source or the auto-fallback (category tree roots).
+ */
+interface CategoryTile {
+  key: number;
+  slug: string;
+  name: string;
+  subtitle: string | null;
+  productCount: number;
+  minPrice: number | null;
+  imageUrl: string | null;
+}
 
 export function CategoryPosters() {
   const t = useTranslations("home");
 
-  const { data: categories, isLoading } = useQuery({
+  const { data: featured, isLoading: isFeaturedLoading } = useQuery({
+    queryKey: ["featured-categories"],
+    queryFn: fetchFeaturedCategories,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const { data: categories, isLoading: isTreeLoading } = useQuery({
     queryKey: ["categories", "tree"],
     queryFn: fetchCategoryTree,
     staleTime: 30 * 60 * 1000,
   });
 
-  const rootCategories = categories?.filter((c) => c.parentId === null).slice(0, 5) ?? [];
+  const isLoading = isFeaturedLoading || isTreeLoading;
+
+  // Curated entries (already active-only, ordered by displayOrder) win when present;
+  // otherwise fall back to the first 5 root categories with gradient tiles.
+  // NOTE: `categories` is the top-level tree array — it already contains only
+  // roots (children are nested), so no `parentId` filter is needed here.
+  const tiles: CategoryTile[] =
+    featured && featured.length > 0
+      ? featured.map((f) => ({
+          key: f.id,
+          slug: f.categorySlug,
+          name: f.title ?? f.categoryName,
+          subtitle: f.subtitle,
+          productCount: f.productCount,
+          minPrice: f.minPrice,
+          imageUrl: f.imageUrl,
+        }))
+      : (categories ?? []).slice(0, 5).map((c) => ({
+          key: c.id,
+          slug: c.slug,
+          name: c.name,
+          subtitle: null,
+          productCount: c.productCount,
+          minPrice: c.minPrice,
+          imageUrl: null,
+        }));
 
   if (isLoading) {
     return (
@@ -51,22 +98,41 @@ export function CategoryPosters() {
           <h2 className="font-black text-3xl">{t("shopByCategory")}</h2>
         </div>
         <div className="grid grid-cols-5 gap-4">
-          {rootCategories.map((cat) => {
-            const theme = getCategoryTheme(cat.slug);
+          {tiles.map((tile) => {
+            const theme = getCategoryTheme(tile.slug);
             return (
               <Link
-                key={cat.id}
-                href={`/categories/${cat.slug}/products`}
-                className={`block rounded-2xl overflow-hidden relative aspect-[4/5] bg-gradient-to-br ${theme.gradient} ${theme.text === "ink" ? "text-ink" : "text-white"} p-5 group`}
+                key={tile.key}
+                href={`/categories/${tile.slug}/products`}
+                className={`block rounded-2xl overflow-hidden relative aspect-[4/5] p-5 group ${
+                  tile.imageUrl
+                    ? "text-white"
+                    : `bg-gradient-to-br ${theme.gradient} ${theme.text === "ink" ? "text-ink" : "text-white"}`
+                }`}
               >
+                {tile.imageUrl && (
+                  <>
+                    <Image
+                      src={tile.imageUrl}
+                      alt={tile.name}
+                      fill
+                      unoptimized
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  </>
+                )}
                 <div className="relative">
                   <div className="text-[10px] tracking-[0.2em] uppercase opacity-80">
-                    {t("itemCount", { count: cat.productCount })}
+                    {t("itemCount", { count: tile.productCount })}
                   </div>
-                  <div className="font-black text-2xl mt-1">{cat.name}</div>
-                  {cat.minPrice != null && (
+                  <div className="font-black text-2xl mt-1">{tile.name}</div>
+                  {tile.subtitle && (
+                    <div className="text-[12px] mt-1 opacity-90">{tile.subtitle}</div>
+                  )}
+                  {tile.minPrice != null && (
                     <div className="text-[11px] mt-2 opacity-90">
-                      {t("fromPrice", { price: cat.minPrice })}
+                      {t("fromPrice", { price: tile.minPrice })}
                     </div>
                   )}
                 </div>
@@ -80,19 +146,31 @@ export function CategoryPosters() {
       <section className="pt-5 pl-4 md:hidden">
         <h2 className="font-extrabold text-base mb-3">{t("categories")}</h2>
         <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 pr-4">
-          {rootCategories.map((cat) => {
-            const theme = getCategoryTheme(cat.slug);
+          {tiles.map((tile) => {
+            const theme = getCategoryTheme(tile.slug);
             return (
               <Link
-                key={cat.id}
-                href={`/categories/${cat.slug}/products`}
+                key={tile.key}
+                href={`/categories/${tile.slug}/products`}
                 className="shrink-0 w-20 flex flex-col items-center gap-1.5"
               >
-                <div
-                  className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center`}
-                />
+                {tile.imageUrl ? (
+                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden">
+                    <Image
+                      src={tile.imageUrl}
+                      alt={tile.name}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center`}
+                  />
+                )}
                 <span className="text-[11px] font-semibold text-center leading-tight">
-                  {cat.name}
+                  {tile.name}
                 </span>
               </Link>
             );

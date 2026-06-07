@@ -8,6 +8,7 @@ import type {
   CollectionPage,
   CategoryTree,
   HomeBanner,
+  FeaturedCategory,
 } from "@/entities/product/model/types";
 
 export interface UpdateListingRequest {
@@ -148,6 +149,14 @@ export async function fetchCategoryTree(): Promise<CategoryTree[]> {
 /** Active hero/welcome banners for the homepage. */
 export async function fetchHomeBanners(): Promise<HomeBanner[]> {
   const { data } = await apiClient.get<HomeBanner[]>("/api/v1/home/banner");
+  return data ?? [];
+}
+
+/** Active curated featured categories for the homepage "Shop by Category" section. */
+export async function fetchFeaturedCategories(): Promise<FeaturedCategory[]> {
+  const { data } = await apiClient.get<FeaturedCategory[]>(
+    "/api/v1/home/featured-categories"
+  );
   return data ?? [];
 }
 
