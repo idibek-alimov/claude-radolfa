@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import tj.radolfa.application.ports.in.GetHomeCollectionsUseCase;
+import tj.radolfa.application.ports.in.home.GetActiveFeaturedCategoriesUseCase;
 import tj.radolfa.application.ports.in.home.GetActiveHomeBannersUseCase;
 import tj.radolfa.application.readmodel.CollectionPageDto;
 import tj.radolfa.application.readmodel.HomeSectionDto;
+import tj.radolfa.infrastructure.web.dto.FeaturedCategoryPublicDto;
 import tj.radolfa.infrastructure.web.dto.HomeBannerDto;
 
 import java.util.List;
@@ -28,13 +30,16 @@ public class HomeController {
 
     private final GetHomeCollectionsUseCase getHomeCollectionsUseCase;
     private final GetActiveHomeBannersUseCase getActiveHomeBannersUseCase;
+    private final GetActiveFeaturedCategoriesUseCase getActiveFeaturedCategoriesUseCase;
     private final TierPricingEnricher tierPricing;
 
     public HomeController(GetHomeCollectionsUseCase getHomeCollectionsUseCase,
                           GetActiveHomeBannersUseCase getActiveHomeBannersUseCase,
+                          GetActiveFeaturedCategoriesUseCase getActiveFeaturedCategoriesUseCase,
                           TierPricingEnricher tierPricing) {
         this.getHomeCollectionsUseCase = getHomeCollectionsUseCase;
         this.getActiveHomeBannersUseCase = getActiveHomeBannersUseCase;
+        this.getActiveFeaturedCategoriesUseCase = getActiveFeaturedCategoriesUseCase;
         this.tierPricing = tierPricing;
     }
 
@@ -51,6 +56,15 @@ public class HomeController {
     public ResponseEntity<List<HomeBannerDto>> activeBanners() {
         List<HomeBannerDto> dtos = getActiveHomeBannersUseCase.execute()
                 .stream().map(HomeBannerDto::from).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/featured-categories")
+    @Operation(summary = "Active featured categories",
+               description = "Returns admin-curated featured-category entries, ordered by displayOrder, enriched with live category data.")
+    public ResponseEntity<List<FeaturedCategoryPublicDto>> activeFeaturedCategories() {
+        List<FeaturedCategoryPublicDto> dtos = getActiveFeaturedCategoriesUseCase.execute()
+                .stream().map(FeaturedCategoryPublicDto::from).toList();
         return ResponseEntity.ok(dtos);
     }
 
