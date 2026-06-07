@@ -10,6 +10,10 @@ import java.math.BigDecimal;
  * {@code originalPrice} is always set; {@code discountPrice} is null when no
  * active sale applies to this SKU; {@code loyaltyPrice} is null for guests
  * and users without a loyalty tier.
+ *
+ * <p>{@code winningSource} tells the frontend which mechanism produced the
+ * price actually being shown — {@code "CAMPAIGN"}, {@code "LOYALTY"}, or
+ * {@code null} when there is no active discount at all. On a tie, loyalty wins.
  */
 public record SkuDto(
         Long skuId,
@@ -21,5 +25,6 @@ public record SkuDto(
         Integer discountPercentage,
         String discountName,
         String discountColorHex,
-        BigDecimal loyaltyPrice
+        BigDecimal loyaltyPrice,
+        String winningSource
 ) {}

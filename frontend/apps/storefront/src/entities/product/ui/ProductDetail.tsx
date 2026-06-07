@@ -413,7 +413,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                   {hasDiscount && (
                     <span
                       className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: activeDiscountHex ?? "#ef4444" }}
+                      style={{ backgroundColor: `#${activeDiscountHex ?? "ef4444"}` }}
                     >
                       {activeDiscountName} · -{activeDiscountPct}%
                     </span>
@@ -426,7 +426,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                   </span>
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: activeDiscountHex ?? "#ef4444" }}
+                    style={{ backgroundColor: `#${activeDiscountHex ?? "ef4444"}` }}
                   >
                     {activeDiscountName} · -{activeDiscountPct}%
                   </span>
@@ -447,7 +447,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                 {hasDiscount && !hasLoyalty && (
                   <span
                     className="text-xs font-semibold px-1.5 py-0.5 rounded text-white"
-                    style={{ backgroundColor: activeDiscountHex ?? "#ef4444" }}
+                    style={{ backgroundColor: `#${activeDiscountHex ?? "ef4444"}` }}
                   >
                     -{activeDiscountPct}%
                   </span>
@@ -526,7 +526,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
                       {skuItem.discountPrice != null && (
                         <span
                           className="absolute -top-1 -right-1 w-2 h-2 rounded-full border border-background"
-                          style={{ backgroundColor: skuItem.discountColorHex ?? "#ef4444" }}
+                          style={{ backgroundColor: `#${skuItem.discountColorHex ?? "ef4444"}` }}
                         />
                       )}
                       {isOutOfStock && (

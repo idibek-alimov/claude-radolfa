@@ -517,7 +517,7 @@ WITH ins AS (
         NOW() + INTERVAL '365 days',
         FALSE,
         'Winter Collection',
-        '#3B82F6'
+        '3B82F6'
     )
     RETURNING id
 )
@@ -543,7 +543,7 @@ WITH ins AS (
         NOW() + INTERVAL '14 days',
         FALSE,
         'Flash Sale',
-        '#EF4444'
+        'EF4444'
     )
     RETURNING id
 )
@@ -569,7 +569,7 @@ WITH ins AS (
         NOW() - INTERVAL '3 days',
         FALSE,
         'End of Season',
-        '#6B7280'
+        '6B7280'
     )
     RETURNING id
 )
@@ -594,7 +594,7 @@ WITH ins AS (
         NOW() + INTERVAL '365 days',
         FALSE,
         'New Members',
-        '#8B5CF6'
+        '8B5CF6'
     )
     RETURNING id
 )
@@ -619,7 +619,7 @@ WITH ins AS (
         NOW() + INTERVAL '60 days',
         FALSE,
         'New Season',
-        '#F97316'
+        'F97316'
     )
     RETURNING id
 )
@@ -642,7 +642,7 @@ WITH ins AS (
         NOW() + INTERVAL '30 days',
         FALSE,
         'Summer Bundle',
-        '#10B981'
+        '10B981'
     )
     RETURNING id
 )

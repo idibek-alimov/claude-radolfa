@@ -192,6 +192,10 @@ public class ListingReadAdapter implements LoadListingPort {
                                         .intValue();
                 }
 
+                // Loyalty isn't known yet (stamped later by TierPricingEnricher); the only
+                // active mechanism visible here is the campaign, if any.
+                String winningSource = discountPrice != null ? "CAMPAIGN" : null;
+
                 long discountedCount = skuEntities.stream()
                                 .filter(s -> discountsBySkuCode.containsKey(s.getSkuCode()))
                                 .count();
@@ -263,6 +267,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 discountColorHex,
                                 null,              // loyaltyPrice — stamped by TierPricingEnricher
                                 null,              // loyaltyPercentage — stamped by TierPricingEnricher
+                                winningSource,
                                 isPartialDiscount,
                                 tags,
                                 skus,
@@ -330,6 +335,7 @@ public class ListingReadAdapter implements LoadListingPort {
                                 discountPercentage,
                                 discountName,
                                 discountColorHex,
-                                null); // loyaltyPrice — stamped by TierPricingEnricher via withLoyalty cascade
+                                null,  // loyaltyPrice — stamped by TierPricingEnricher via withLoyalty cascade
+                                discountPrice != null ? "CAMPAIGN" : null); // winningSource — refined by withLoyalty if a tier applies
         }
 }

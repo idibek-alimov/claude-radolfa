@@ -30,6 +30,8 @@ export interface Sku {
   discountName: string | null;
   discountColorHex: string | null;
   loyaltyPrice: number | null;       // null for guests / users without a tier
+  /** Which mechanism produced the price actually shown — drives badge selection. */
+  winningSource: "CAMPAIGN" | "LOYALTY" | null;
 }
 
 /**
@@ -60,6 +62,8 @@ export interface ListingVariant {
   discountColorHex: string | null;    // badge background color, null if no sale
   loyaltyPrice: number | null;        // null for guests / no-tier users
   loyaltyPercentage: number | null;   // user's own tier %, null for guests / no-tier
+  // "CAMPAIGN" | "LOYALTY" | null — which mechanism produced the displayed price; drives badge selection
+  winningSource: "CAMPAIGN" | "LOYALTY" | null;
   isPartialDiscount: boolean;         // true = only some sizes are on sale
   // Rating — from product_rating_summaries (null/0 when no reviews yet)
   ratingAverage: number | null;

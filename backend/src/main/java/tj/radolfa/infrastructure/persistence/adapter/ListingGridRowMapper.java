@@ -52,6 +52,9 @@ final class ListingGridRowMapper {
         String discountName = discount != null ? discount.saleTitle() : null;
         String discountColorHex = discount != null ? discount.saleColorHex() : null;
         boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
+        // Loyalty isn't known yet (stamped later by TierPricingEnricher); the only
+        // active mechanism visible here is the campaign, if any.
+        String winningSource = discountPrice != null ? "CAMPAIGN" : null;
 
         return new ListingVariantDto(
                 productBaseId,
@@ -70,6 +73,7 @@ final class ListingGridRowMapper {
                 discountColorHex,
                 null,              // loyaltyPrice — stamped by TierPricingEnricher
                 null,              // loyaltyPercentage — stamped by TierPricingEnricher
+                winningSource,
                 isPartialDiscount,
                 tagMap.getOrDefault(variantId, List.of()),
                 (String) row[9],   // productCode
@@ -142,7 +146,8 @@ final class ListingGridRowMapper {
                                 null,  // discountPercentage
                                 null,  // discountName
                                 null,  // discountColorHex
-                                null   // loyaltyPrice — stamped by TierPricingEnricher
+                                null,  // loyaltyPrice — stamped by TierPricingEnricher
+                                null   // winningSource — stamped by TierPricingEnricher
                         ), Collectors.toList())));
     }
 

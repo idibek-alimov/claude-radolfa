@@ -30,6 +30,7 @@ public record ListingVariantDetailDto(
         String discountColorHex,
         BigDecimal loyaltyPrice,
         Integer loyaltyPercentage,
+        String winningSource,
         boolean isPartialDiscount,
         List<ListingVariantDto.TagView> tags,
         List<SkuDto> skus,
@@ -93,16 +94,26 @@ public record ListingVariantDetailDto(
                     return new SkuDto(sku.skuId(), sku.skuCode(), sku.sizeLabel(),
                             sku.stockQuantity(), sku.originalPrice(), sku.discountPrice(),
                             sku.discountPercentage(), sku.discountName(), sku.discountColorHex(),
-                            skuLoyalty);
+                            skuLoyalty, resolveWinningSource(loyaltyPct, sku.discountPercentage()));
                 })
                 .toList();
 
         return new ListingVariantDetailDto(productBaseId, variantId, slug, colorDisplayName, categoryName,
                 colorKey, colorHex, webDescription, images, attributes,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
-                loyalty, loyaltyPct.intValue(), isPartialDiscount,
+                loyalty, loyaltyPct.intValue(), resolveWinningSource(loyaltyPct, discountPercentage), isPartialDiscount,
                 tags, loyaltySkus, siblingVariants, productCode,
                 weightKg, widthCm, heightCm, depthCm, reviewTraits,
                 sellerId, sellerShopName);
+    }
+
+    /**
+     * Decides which mechanism wins the "best price" comparison once a loyalty
+     * percentage is in play. Loyalty wins ties — it is framed as the user's own
+     * earned benefit, so a campaign that merely matches it isn't worth advertising.
+     */
+    private static String resolveWinningSource(BigDecimal loyaltyPct, Integer campaignPct) {
+        if (campaignPct == null) return "LOYALTY";
+        return loyaltyPct.compareTo(BigDecimal.valueOf(campaignPct)) >= 0 ? "LOYALTY" : "CAMPAIGN";
     }
 }

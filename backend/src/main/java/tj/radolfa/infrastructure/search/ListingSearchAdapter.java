@@ -193,6 +193,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                         String discountName = discount != null ? discount.saleTitle() : null;
                                         String discountColorHex = discount != null ? discount.saleColorHex() : null;
                                         boolean isPartialDiscount = discount != null && discount.isPartialDiscount();
+                                        // Loyalty isn't known yet (enriched by TierPricingEnricher post-query); the
+                                        // only active mechanism visible here is the campaign, if any.
+                                        String winningSource = discountPrice != null ? "CAMPAIGN" : null;
                                         List<SkuDto> skus = skuMap.getOrDefault(dto.variantId(), List.of());
                                         List<TagView> tags = tagMap.getOrDefault(dto.variantId(), List.of());
                                         ProductRatingSummaryEntity rating = ratingMap.get(dto.variantId());
@@ -203,6 +206,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                         originalPrice, discountPrice, discountPercentage,
                                                         discountName, discountColorHex,
                                                         null, null, // loyaltyPrice, loyaltyPercentage — enriched by controller
+                                                        winningSource,
                                                         isPartialDiscount,
                                                         tags, dto.productCode(),
                                                         skus,
@@ -258,6 +262,7 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 null,    // discountColorHex
                                 null,    // loyaltyPrice — enriched by controller
                                 null,    // loyaltyPercentage
+                                null,    // winningSource — recomputed in the enrichment step above
                                 false,   // isPartialDiscount — enriched post-query
                                 List.of(), // tags — batch-loaded post-query
                                 doc.getProductCode(),
@@ -316,7 +321,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                                         null,    // discountPercentage
                                                                         null,    // discountName
                                                                         null,    // discountColorHex
-                                                                        null);   // loyaltyPrice
+                                                                        null,    // loyaltyPrice
+                                                                        null);   // winningSource — not resolved for grid-path SKUs
                                                 }, Collectors.toList())));
         }
 }

@@ -21,6 +21,11 @@ import java.util.List;
  *       {@code null} for guests and users without a tier.
  *   <li>{@code loyaltyPercentage} — the user's own tier discount %, not the effective %.
  *       {@code null} for guests and users without a tier.
+ *   <li>{@code winningSource} — which mechanism produced the price actually shown:
+ *       {@code "CAMPAIGN"}, {@code "LOYALTY"}, or {@code null} when neither is active.
+ *       On a tie between the campaign % and the tier %, loyalty wins. The frontend
+ *       uses this to render exactly one correctly-labelled badge instead of guessing
+ *       from price deltas.
  *   <li>{@code isPartialDiscount} — {@code true} when not all SKUs of this variant
  *       share the same active discount campaign (some sizes may be at full price).
  * </ul>
@@ -42,6 +47,7 @@ public record ListingVariantDto(
         String discountColorHex,
         BigDecimal loyaltyPrice,
         Integer loyaltyPercentage,
+        String winningSource,
         boolean isPartialDiscount,
         List<TagView> tags,
         String productCode,
@@ -86,15 +92,25 @@ public record ListingVariantDto(
                     return new SkuDto(sku.skuId(), sku.skuCode(), sku.sizeLabel(),
                             sku.stockQuantity(), sku.originalPrice(), sku.discountPrice(),
                             sku.discountPercentage(), sku.discountName(), sku.discountColorHex(),
-                            skuLoyalty);
+                            skuLoyalty, resolveWinningSource(loyaltyPct, sku.discountPercentage()));
                 })
                 .toList();
 
         return new ListingVariantDto(productBaseId, variantId, slug, colorDisplayName, categoryName,
                 colorKey, colorHex, webDescription, images,
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
-                loyalty, loyaltyPct.intValue(), isPartialDiscount,
+                loyalty, loyaltyPct.intValue(), resolveWinningSource(loyaltyPct, discountPercentage), isPartialDiscount,
                 tags, productCode, loyaltySkus,
                 ratingAverage, reviewCount, sellerShopName);
+    }
+
+    /**
+     * Decides which mechanism wins the "best price" comparison once a loyalty
+     * percentage is in play. Loyalty wins ties — it is framed as the user's own
+     * earned benefit, so a campaign that merely matches it isn't worth advertising.
+     */
+    private static String resolveWinningSource(BigDecimal loyaltyPct, Integer campaignPct) {
+        if (campaignPct == null) return "LOYALTY";
+        return loyaltyPct.compareTo(BigDecimal.valueOf(campaignPct)) >= 0 ? "LOYALTY" : "CAMPAIGN";
     }
 }

@@ -87,7 +87,7 @@ class ListingGridRowMapperTest {
                 Map.of(variantId, List.of("https://cdn/img1.jpg")),
                 Map.of(),
                 Map.of(variantId, List.of(new SkuDto(1L, "RD-001-S", "S", 5,
-                        new BigDecimal("199.00"), null, null, null, null, null))),
+                        new BigDecimal("199.00"), null, null, null, null, null, null))),
                 Map.of(),
                 Map.of(),
                 Map.of());

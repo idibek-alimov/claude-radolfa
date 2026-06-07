@@ -45,19 +45,23 @@ export default function ProductCard({
   const sellerName = listing.sellerShopName ?? "Radolfa";
 
   // ── Shared: image overlay badges ─────────────────────────────────────────
-  const DiscountBadge = hasDiscount ? (
-    <span
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-white text-[10px] font-bold leading-none"
-      style={{ backgroundColor: listing.discountColorHex ?? "#ef4444" }}
-    >
-      -{listing.discountPercentage}%
-    </span>
-  ) : hasLoyalty && listing.loyaltyPercentage != null ? (
-    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[10px] font-bold leading-none">
-      <Crown className="h-2.5 w-2.5" />
-      -{listing.loyaltyPercentage}%
-    </span>
-  ) : null;
+  // Badge choice follows `winningSource` — the backend's single source of truth
+  // for which mechanism (campaign vs. loyalty tier) produced `heroPrice`. This
+  // guarantees the badge's name/percentage always matches the price shown.
+  const DiscountBadge =
+    listing.winningSource === "CAMPAIGN" ? (
+      <span
+        className="inline-flex items-center px-1.5 py-0.5 rounded text-white text-[10px] font-bold leading-none"
+        style={{ backgroundColor: `#${listing.discountColorHex ?? "ef4444"}` }}
+      >
+        {listing.discountName ? `${listing.discountName} · ` : ""}-{listing.discountPercentage}%
+      </span>
+    ) : listing.winningSource === "LOYALTY" && listing.loyaltyPercentage != null ? (
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[10px] font-bold leading-none">
+        <Crown className="h-2.5 w-2.5" />
+        -{listing.loyaltyPercentage}%
+      </span>
+    ) : null;
 
   const TagBadges =
     listing.tags.length > 0 ? (
@@ -79,10 +83,10 @@ export default function ProductCard({
     const homeHeroPriceClass = hasLoyalty
       ? "text-gold"
       : hasDiscount
-      ? "text-mag"
+      ? "text-rose-600"
       : "text-ink";
 
-    const hasOverlayBadges = hasDiscount || (hasLoyalty && listing.loyaltyPercentage != null) || listing.tags.length > 0;
+    const hasOverlayBadges = listing.winningSource != null || listing.tags.length > 0;
 
     return (
       <Link
@@ -116,15 +120,15 @@ export default function ProductCard({
           {/* Bottom-left pill badges — discount/loyalty first, then data tags */}
           {hasOverlayBadges && (
             <div className="absolute bottom-[10px] left-[10px] flex flex-col items-start gap-1">
-              {hasDiscount && (
+              {listing.winningSource === "CAMPAIGN" && (
                 <span
                   className="inline-flex items-center rounded-full px-[9px] py-[3px] text-[10px] font-bold text-white leading-none whitespace-nowrap"
-                  style={{ backgroundColor: listing.discountColorHex ?? "#D11A2A" }}
+                  style={{ backgroundColor: `#${listing.discountColorHex ?? "D11A2A"}` }}
                 >
-                  −{listing.discountPercentage}%
+                  {listing.discountName ? `${listing.discountName} · ` : ""}−{listing.discountPercentage}%
                 </span>
               )}
-              {!hasDiscount && hasLoyalty && listing.loyaltyPercentage != null && (
+              {listing.winningSource === "LOYALTY" && listing.loyaltyPercentage != null && (
                 <span className="inline-flex items-center gap-[5px] rounded-full px-[9px] py-[3px] text-[10px] font-bold text-white leading-none whitespace-nowrap bg-gold">
                   <Crown className="h-[10px] w-[10px]" />
                   −{listing.loyaltyPercentage}%
