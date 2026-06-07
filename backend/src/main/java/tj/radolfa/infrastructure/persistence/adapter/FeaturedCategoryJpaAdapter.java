@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadFeaturedCategoryPort;
 import tj.radolfa.application.ports.out.SaveFeaturedCategoryPort;
+import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.FeaturedCategory;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.infrastructure.persistence.entity.FeaturedCategoryEntity;
@@ -50,6 +51,17 @@ public class FeaturedCategoryJpaAdapter implements LoadFeaturedCategoryPort, Sav
 
     @Override
     public FeaturedCategory save(FeaturedCategory featuredCategory) {
+        if (featuredCategory.id() != null) {
+            FeaturedCategoryEntity entity = repository.findById(featuredCategory.id())
+                    .orElseThrow(() -> new ResourceNotFoundException("FeaturedCategory not found: id=" + featuredCategory.id()));
+            entity.setCategoryId(featuredCategory.categoryId());
+            entity.setImageUrl(featuredCategory.imageUrl());
+            entity.setTitle(featuredCategory.title());
+            entity.setSubtitle(featuredCategory.subtitle());
+            entity.setDisplayOrder(featuredCategory.displayOrder());
+            entity.setActive(featuredCategory.active());
+            return mapper.toDomain(repository.save(entity));
+        }
         return mapper.toDomain(repository.save(mapper.toEntity(featuredCategory)));
     }
 
