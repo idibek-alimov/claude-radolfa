@@ -31,6 +31,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/manage/products", label: "Products", icon: Package, badge: "products" as const },
       { href: "/manage/categories", label: "Categories", icon: Folder },
+      { href: "/manage/featured-categories", label: "Featured Categories", icon: Sparkles },
       { href: "/manage/colors", label: "Colors", icon: Palette },
       { href: "/manage/tags", label: "Tags", icon: Tag, adminOnly: true },
     ],
