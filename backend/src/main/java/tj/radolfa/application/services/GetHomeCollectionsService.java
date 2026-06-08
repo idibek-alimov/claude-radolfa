@@ -25,7 +25,10 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
 
-    private static final int SECTION_LIMIT = 10;
+    private static final int FEATURED_LIMIT     = 10;
+    private static final int TOP_SELLERS_LIMIT  = 10;
+    private static final int NEW_ARRIVALS_LIMIT = 20;
+    private static final int ON_SALE_LIMIT      = 10;
 
     private static final Map<String, String> KEY_TO_TITLE = Map.of(
             "featured", "Featured",
@@ -45,16 +48,16 @@ public class GetHomeCollectionsService implements GetHomeCollectionsUseCase {
         List<HomeSectionDto> sections = new ArrayList<>();
 
         addIfNotEmpty(sections, "featured", "Featured",
-                loadHomeCollectionsPort.loadFeatured(SECTION_LIMIT));
+                loadHomeCollectionsPort.loadFeatured(FEATURED_LIMIT));
 
         addIfNotEmpty(sections, "top_sellers", "Top Sellers",
-                loadHomeCollectionsPort.loadTopSellers(SECTION_LIMIT));
+                loadHomeCollectionsPort.loadTopSellers(TOP_SELLERS_LIMIT));
 
         addIfNotEmpty(sections, "new_arrivals", "New Arrivals",
-                loadHomeCollectionsPort.loadNewArrivals(SECTION_LIMIT));
+                loadHomeCollectionsPort.loadNewArrivals(NEW_ARRIVALS_LIMIT));
 
         addIfNotEmpty(sections, "on_sale", "Deals",
-                loadHomeCollectionsPort.loadOnSale(SECTION_LIMIT));
+                loadHomeCollectionsPort.loadOnSale(ON_SALE_LIMIT));
 
         return sections;
     }
