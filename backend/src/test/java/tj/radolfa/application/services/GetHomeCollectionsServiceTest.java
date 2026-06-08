@@ -130,9 +130,7 @@ class GetHomeCollectionsServiceTest {
 
     static class FakeLoadHomeCollectionsPort implements LoadHomeCollectionsPort {
 
-        List<ListingVariantDto> featured = List.of();
         List<ListingVariantDto> newArrivals = List.of();
-        List<ListingVariantDto> onSale = List.of();
         List<ListingVariantDto> topSellers = List.of();
 
         PageResult<ListingVariantDto> featuredPage = emptyPage(1, 20);
@@ -140,9 +138,7 @@ class GetHomeCollectionsServiceTest {
         PageResult<ListingVariantDto> onSalePage = emptyPage(1, 20);
         PageResult<ListingVariantDto> topSellersPage = emptyPage(1, 20);
 
-        @Override public List<ListingVariantDto> loadFeatured(int limit) { return featured; }
         @Override public List<ListingVariantDto> loadNewArrivals(int limit) { return newArrivals; }
-        @Override public List<ListingVariantDto> loadOnSale(int limit) { return onSale; }
         @Override public List<ListingVariantDto> loadTopSellers(int limit) { return topSellers; }
 
         @Override public PageResult<ListingVariantDto> loadFeaturedPage(int page, int limit) { return featuredPage; }

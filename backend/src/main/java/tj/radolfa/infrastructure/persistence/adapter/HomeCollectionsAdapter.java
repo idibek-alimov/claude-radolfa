@@ -62,22 +62,8 @@ public class HomeCollectionsAdapter implements LoadHomeCollectionsPort {
     // ---- Homepage preview (limited, no pagination metadata) ----
 
     @Override
-    public List<ListingVariantDto> loadFeatured(int limit) {
-        return toGridDtos(variantRepo.findGridByTagName(FEATURED_TAG_NAME, PageRequest.of(0, limit)).getContent());
-    }
-
-    @Override
     public List<ListingVariantDto> loadNewArrivals(int limit) {
         return toGridDtos(variantRepo.findNewArrivalsGrid(PageRequest.of(0, limit)).getContent());
-    }
-
-    @Override
-    public List<ListingVariantDto> loadOnSale(int limit) {
-        List<Long> variantIds = discountEnrichment.findVariantIdsWithActiveDiscounts();
-        if (variantIds.isEmpty()) return List.of();
-
-        List<Object[]> rows = variantRepo.findGridByVariantIds(variantIds, PageRequest.of(0, limit)).getContent();
-        return toGridDtos(rows);
     }
 
     @Override
