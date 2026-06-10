@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Crown, ShoppingCart } from "lucide-react";
+import { Crown, ImageOff, ShoppingCart } from "lucide-react";
 import type { ListingVariant } from "@/entities/product";
 import { TagBadge } from "@/entities/tag";
 import { Badge } from "@radolfa/shared/ui/badge";
@@ -26,7 +27,10 @@ export default function ProductCard({
 }: ProductCardProps) {
   const tc = useTranslations("common");
 
+  const [imageError, setImageError] = useState(false);
+
   const coverImage = listing.images[0] ?? null;
+  const showImage = coverImage != null && !imageError;
 
   const hasDiscount = listing.discountPrice != null;
   const hasLoyalty  = listing.loyaltyPrice != null;
@@ -95,17 +99,18 @@ export default function ProductCard({
       >
         {/* Image */}
         <div className="relative w-full aspect-[3/4] overflow-hidden rounded-[14px_14px_10px_10px] bg-[#F2EBDB] flex-shrink-0">
-          {coverImage ? (
+          {showImage ? (
             <Image
               src={coverImage}
               alt={listing.colorDisplayName ?? "Product image"}
               fill
               className="object-cover group-hover:scale-[1.04] transition-transform duration-300"
               unoptimized
+              onError={() => setImageError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-[#8B7355] text-[11px] opacity-60">No image</span>
+              <ImageOff className="h-8 w-8 text-[#8B7355] opacity-40" />
             </div>
           )}
 
@@ -199,17 +204,18 @@ export default function ProductCard({
       <Link href={`/products/${listing.slug}`} className="block flex-1 flex flex-col">
         {/* Image */}
         <div className="relative w-full aspect-[3/4] bg-muted rounded-t-xl overflow-hidden">
-          {coverImage ? (
+          {showImage ? (
             <Image
               src={coverImage}
               alt={listing.colorDisplayName ?? "Product image"}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               unoptimized
+              onError={() => setImageError(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">No image</span>
+              <ImageOff className="h-8 w-8 text-muted-foreground/40" />
             </div>
           )}
 
