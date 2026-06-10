@@ -25,7 +25,9 @@ public class ListingIndexEventListener {
                     event.variantId(), event.productBaseId(), event.slug(),
                     event.name(), event.category(), event.colorKey(), event.colorHexCode(),
                     event.description(), event.images(), event.price(), event.totalStock(),
-                    event.lastSyncAt(), event.productCode(), event.skuCodes(), event.status());
+                    event.lastSyncAt(), event.productCode(), event.skuCodes(), event.status(),
+                    event.categoryId(), event.brandId(), event.brandName(),
+                    event.discountPercentage(), event.ratingAverage(), event.createdAt());
         } catch (Exception ex) {
             log.error("[ES] Indexing failed for variant slug={}: {}", event.slug(), ex.getMessage());
         }

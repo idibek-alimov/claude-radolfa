@@ -68,7 +68,11 @@ class AddVariantToProductServiceTest {
                     @Override public List<tj.radolfa.application.ports.out.LoadColorPort.ColorView> findAll() { return List.of(); }
                     @Override public Optional<tj.radolfa.application.ports.out.LoadColorPort.ColorView> findById(Long id) { return Optional.empty(); }
                 };
-        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus, noColors);
+        tj.radolfa.application.ports.out.LoadBrandPort noBrands =
+                new tj.radolfa.application.ports.out.LoadBrandPort() {
+                    @Override public Optional<tj.radolfa.application.ports.out.LoadBrandPort.BrandView> findById(Long id) { return Optional.empty(); }
+                };
+        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus, noColors, noBrands);
         service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher,
                 new ProductEditGuard(fakeBase, fakeSave, id -> java.util.Optional.empty(), fakeVariant),
                 payload);

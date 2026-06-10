@@ -10,16 +10,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tj.radolfa.application.ports.out.ListingIndexPort;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter;
+import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
+import tj.radolfa.infrastructure.persistence.entity.ProductRatingSummaryEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -34,11 +39,17 @@ public class SearchController {
 
     private final ListingVariantRepository variantRepo;
     private final ListingIndexPort indexPort;
+    private final DiscountEnrichmentAdapter discountEnrichment;
+    private final ProductRatingSummaryRepository ratingRepo;
 
     public SearchController(ListingVariantRepository variantRepo,
-                            ListingIndexPort indexPort) {
+                            ListingIndexPort indexPort,
+                            DiscountEnrichmentAdapter discountEnrichment,
+                            ProductRatingSummaryRepository ratingRepo) {
         this.variantRepo = variantRepo;
         this.indexPort   = indexPort;
+        this.discountEnrichment = discountEnrichment;
+        this.ratingRepo = ratingRepo;
     }
 
     /**
@@ -59,6 +70,13 @@ public class SearchController {
 
         do {
             page = variantRepo.findAll(PageRequest.of(pageNum++, pageSize));
+
+        List<Long> pageVariantIds = page.getContent().stream()
+                .map(ListingVariantEntity::getId)
+                .toList();
+        Map<Long, DiscountInfo> discountMap = discountEnrichment.resolveForVariants(pageVariantIds);
+        Map<Long, ProductRatingSummaryEntity> ratingMap = ratingRepo.findAllById(pageVariantIds).stream()
+                .collect(java.util.stream.Collectors.toMap(ProductRatingSummaryEntity::getListingVariantId, r -> r));
 
         for (ListingVariantEntity variant : page.getContent()) {
             try {
@@ -92,6 +110,21 @@ public class SearchController {
                         .filter(Objects::nonNull)
                         .toList();
 
+                Long categoryId = variant.getProductBase().getCategory() != null
+                        ? variant.getProductBase().getCategory().getId() : null;
+                Long brandId = variant.getProductBase().getBrand() != null
+                        ? variant.getProductBase().getBrand().getId() : null;
+                String brandName = variant.getProductBase().getBrand() != null
+                        ? variant.getProductBase().getBrand().getName() : null;
+
+                DiscountInfo discount = discountMap.get(variant.getId());
+                Integer discountPercentage = discount != null
+                        ? discount.discountPercentage().intValue() : null;
+
+                ProductRatingSummaryEntity rating = ratingMap.get(variant.getId());
+                Double ratingAverage = rating != null && rating.getAverageRating() != null
+                        ? rating.getAverageRating().doubleValue() : null;
+
                 indexPort.index(
                         variant.getId(),
                         variant.getProductBase().getId(),
@@ -108,7 +141,13 @@ public class SearchController {
                         variant.getProductCode(),
                         skuCodes,
                         variant.getProductBase().getStatus() != null
-                                ? variant.getProductBase().getStatus().name() : null
+                                ? variant.getProductBase().getStatus().name() : null,
+                        categoryId,
+                        brandId,
+                        brandName,
+                        discountPercentage,
+                        ratingAverage,
+                        variant.getCreatedAt()
                 );
                 indexed++;
             } catch (Exception e) {

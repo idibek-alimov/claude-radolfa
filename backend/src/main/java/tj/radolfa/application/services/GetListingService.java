@@ -8,6 +8,8 @@ import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.out.LoadListingPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.CatalogFacets;
+import tj.radolfa.application.readmodel.CatalogResult;
 import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
@@ -80,10 +82,12 @@ public class GetListingService implements GetListingUseCase {
     }
 
     @Override
-    public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+    public CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
         // Exact product-code lookup: bypass Elasticsearch entirely for RD-XXXXX queries.
         if (criteria.hasQuery() && PRODUCT_CODE.matcher(criteria.query().trim()).matches()) {
-            return loadListingPort.findByProductCode(criteria.query().trim().toUpperCase(), page, limit);
+            PageResult<ListingVariantDto> codeResult =
+                    loadListingPort.findByProductCode(criteria.query().trim().toUpperCase(), page, limit);
+            return new CatalogResult(codeResult, CatalogFacets.empty());
         }
         int safeLimit = Math.min(limit, MAX_PAGE_SIZE);
         try {

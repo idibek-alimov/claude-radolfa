@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.CatalogFacets;
+import tj.radolfa.application.readmodel.CatalogResult;
 import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -32,7 +34,10 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
                       Double price, Integer totalStock,
                       Instant lastSyncAt,
                       String productCode, List<String> skuCodes,
-                      String status) {
+                      String status,
+                      Long categoryId, Long brandId, String brandName,
+                      Integer discountPercentage, Double ratingAverage,
+                      Instant createdAt) {
         LOG.info("[LISTING-ES-STUB] Would index variant id={}, slug={}", variantId, slug);
     }
 
@@ -54,8 +59,8 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     }
 
     @Override
-    public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+    public CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
         LOG.info("[LISTING-ES-STUB] Would search catalog for criteria={}", criteria);
-        return new PageResult<>(List.of(), 0, page, limit, true);
+        return new CatalogResult(new PageResult<>(List.of(), 0, page, limit, true), CatalogFacets.empty());
     }
 }

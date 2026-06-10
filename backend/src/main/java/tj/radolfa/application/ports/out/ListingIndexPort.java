@@ -24,6 +24,12 @@ public interface ListingIndexPort {
      * @param totalStock    sum of all SKU stock
      * @param productCode   human-friendly product code, e.g. "RD-10047" (may be null)
      * @param skuCodes      all SKU codes belonging to this variant
+     * @param categoryId    ProductBase.categoryId, used to filter by category + descendants (may be null)
+     * @param brandId       ProductBase.brandId (may be null)
+     * @param brandName     ProductBase.brand.name, denormalized for the brand facet (may be null)
+     * @param discountPercentage snapshot of the active campaign discount percentage at index time (may be null)
+     * @param ratingAverage average rating from {@code product_rating_summaries} (may be null)
+     * @param createdAt     ListingVariant.createdAt, used by the NEWEST sort (may be null)
      */
     void index(Long variantId, Long productBaseId, String slug, String name, String category,
                String colorKey, String colorHexCode,
@@ -31,7 +37,10 @@ public interface ListingIndexPort {
                Double price, Integer totalStock,
                java.time.Instant lastSyncAt,
                String productCode, java.util.List<String> skuCodes,
-               String status);
+               String status,
+               Long categoryId, Long brandId, String brandName,
+               Integer discountPercentage, Double ratingAverage,
+               java.time.Instant createdAt);
 
     /**
      * Remove a listing variant from the search index.

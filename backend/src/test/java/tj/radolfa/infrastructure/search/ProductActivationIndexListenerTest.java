@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.event.ProductActivatedEvent;
 import tj.radolfa.application.ports.out.ListingIndexPort;
+import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
@@ -42,7 +43,10 @@ class ProductActivationIndexListenerTest {
                           Double price, Integer totalStock,
                           Instant lastSyncAt,
                           String productCode, List<String> skuCodes,
-                          String status) {
+                          String status,
+                          Long categoryId, Long brandId, String brandName,
+                          Integer discountPercentage, Double ratingAverage,
+                          Instant createdAt) {
             calls.add(new IndexCall(variantId, status));
         }
         @Override public void delete(String slug) {}
@@ -85,6 +89,12 @@ class ProductActivationIndexListenerTest {
         };
     }
 
+    static LoadBrandPort noBrands() {
+        return new LoadBrandPort() {
+            @Override public Optional<LoadBrandPort.BrandView> findById(Long id) { return Optional.empty(); }
+        };
+    }
+
     static ListingVariant variant(Long id, Long baseId) {
         return new ListingVariant(id, baseId, "red", "slug-" + id, null,
                 List.of(), List.of(), List.of(), null, "RD-001", true, true,
@@ -99,7 +109,7 @@ class ProductActivationIndexListenerTest {
     ProductActivationIndexListener listener(LoadListingVariantPort variants,
                                             RecordingListingIndexPort recorder) {
         ListingVariantIndexPayload payload =
-                new ListingVariantIndexPayload(noSkus(), noColors());
+                new ListingVariantIndexPayload(noSkus(), noColors(), noBrands());
         return new ProductActivationIndexListener(
                 basePort(activeBase()), variants, payload, recorder);
     }
@@ -138,7 +148,7 @@ class ProductActivationIndexListenerTest {
     void onProductActivated_unknownBase_noOp() {
         var recorder = new RecordingListingIndexPort();
         // Override the base port to return empty for any id
-        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus(), noColors());
+        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus(), noColors(), noBrands());
         LoadProductBasePort missingBase = new LoadProductBasePort() {
             @Override public Optional<ProductBase> findById(Long id) { return Optional.empty(); }
             @Override public Optional<ProductBase> findByExternalRef(String r) { return Optional.empty(); }

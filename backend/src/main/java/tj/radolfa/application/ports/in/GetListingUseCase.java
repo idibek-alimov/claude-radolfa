@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.in;
 
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.CatalogResult;
 import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
@@ -41,7 +42,7 @@ public interface GetListingUseCase {
 
     /**
      * Unified catalog read path: full-text query + structured filters + whitelisted
-     * sort (ES with SQL fallback, same resilience pattern as {@link #search}).
+     * sort + facet counts (ES with SQL fallback, same resilience pattern as {@link #search}).
      */
-    PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit);
+    CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit);
 }

@@ -60,7 +60,9 @@ public class ProductActivationIndexListener {
                         ev.variantId(), ev.productBaseId(), ev.slug(),
                         ev.name(), ev.category(), ev.colorKey(), ev.colorHexCode(),
                         ev.description(), ev.images(), ev.price(), ev.totalStock(),
-                        ev.lastSyncAt(), ev.productCode(), ev.skuCodes(), ev.status());
+                        ev.lastSyncAt(), ev.productCode(), ev.skuCodes(), ev.status(),
+                        ev.categoryId(), ev.brandId(), ev.brandName(),
+                        ev.discountPercentage(), ev.ratingAverage(), ev.createdAt());
             }
 
             log.info("[ES] Re-indexed {} variant(s) for activated productBaseId={}",

@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
+import tj.radolfa.application.readmodel.CatalogFacets;
+import tj.radolfa.application.readmodel.CatalogResult;
 import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ReviewTraitView;
 import tj.radolfa.domain.model.PageResult;
@@ -105,18 +107,20 @@ public class ListingReadAdapter implements LoadListingPort {
         }
 
         @Override
-        public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+        public CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
                 // TODO(Phase 3): replace with a JpaSpecificationExecutor query composing
                 // predicates from `criteria` (price/colour/brand/discount/in-stock filters,
                 // ListingSort -> Sort mapping) plus SQL facet counts. For now, delegate to the
                 // closest existing query so the unified read path is wired end-to-end.
+                PageResult<ListingVariantDto> pageResult;
                 if (criteria.hasQuery()) {
-                        return search(criteria.query(), page, limit);
+                        pageResult = search(criteria.query(), page, limit);
+                } else if (criteria.hasCategoryFilter()) {
+                        pageResult = loadByCategoryIds(criteria.categoryIds(), page, limit);
+                } else {
+                        pageResult = loadPage(page, limit);
                 }
-                if (criteria.hasCategoryFilter()) {
-                        return loadByCategoryIds(criteria.categoryIds(), page, limit);
-                }
-                return loadPage(page, limit);
+                return new CatalogResult(pageResult, CatalogFacets.empty());
         }
 
         // ---- Grid helpers ----

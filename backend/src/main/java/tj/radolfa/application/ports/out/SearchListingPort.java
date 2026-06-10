@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.CatalogResult;
 import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -22,7 +23,7 @@ public interface SearchListingPort {
     List<String> autocomplete(String prefix, int limit);
 
     /**
-     * Unified catalog query: full-text + structured filters + whitelisted sort.
+     * Unified catalog query: full-text + structured filters + whitelisted sort + facets.
      */
-    PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit);
+    CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit);
 }

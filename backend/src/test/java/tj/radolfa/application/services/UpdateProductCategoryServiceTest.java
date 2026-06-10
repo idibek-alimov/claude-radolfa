@@ -2,6 +2,7 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.out.LoadBrandPort;
 import tj.radolfa.application.ports.out.LoadCategoryPort;
 import tj.radolfa.application.ports.out.LoadColorPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -93,10 +94,16 @@ class UpdateProductCategoryServiceTest {
         };
     }
 
+    static LoadBrandPort noBrands() {
+        return new LoadBrandPort() {
+            @Override public Optional<LoadBrandPort.BrandView> findById(Long id) { return Optional.empty(); }
+        };
+    }
+
     UpdateProductCategoryService service(FakeBaseStore store) {
         ProductEditGuard guard = new ProductEditGuard(
                 store, store, skuId -> Optional.empty(), noVariants());
-        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus(), noColors());
+        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus(), noColors(), noBrands());
         return new UpdateProductCategoryService(
                 store, categoryPort(), noVariants(),
                 store, event -> { /* no-op event publisher */ }, guard, payload);

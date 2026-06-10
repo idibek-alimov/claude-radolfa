@@ -74,10 +74,12 @@ public class CreateProductService implements CreateProductUseCase {
 
         // 2. Resolve brand (optional — throws if an ID was supplied but not found)
         Long brandId = null;
+        String brandName = null;
         if (command.brandId() != null) {
-            loadBrandPort.findById(command.brandId())
+            brandName = loadBrandPort.findById(command.brandId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Brand not found: id=" + command.brandId()));
+                            "Brand not found: id=" + command.brandId()))
+                    .name();
             brandId = command.brandId();
         }
 
@@ -189,7 +191,8 @@ public class CreateProductService implements CreateProductUseCase {
 
             eventPublisher.publishEvent(buildIndexEvent(
                     savedVariant, command.name(), category.name(), color.hexCode(), savedSkus,
-                    savedBase.getStatus() != null ? savedBase.getStatus().name() : null));
+                    savedBase.getStatus() != null ? savedBase.getStatus().name() : null,
+                    category.id(), brandId, brandName));
         }
 
         return savedBase.getId();
@@ -242,7 +245,8 @@ public class CreateProductService implements CreateProductUseCase {
 
     private ListingVariantIndexedEvent buildIndexEvent(ListingVariant variant, String productName,
                                                        String category, String colorHex,
-                                                       List<Sku> skus, String status) {
+                                                       List<Sku> skus, String status,
+                                                       Long categoryId, Long brandId, String brandName) {
         Double price = skus.stream()
                 .map(Sku::getPrice)
                 .filter(java.util.Objects::nonNull)
@@ -265,6 +269,7 @@ public class CreateProductService implements CreateProductUseCase {
                 productName, category, variant.getColorKey(), colorHex,
                 variant.getWebDescription(), new java.util.ArrayList<>(variant.getImages()),
                 price, totalStock, variant.getLastSyncAt(), variant.getProductCode(), skuCodes,
-                status);
+                status, categoryId, brandId, brandName,
+                null, null, null); // discountPercentage/ratingAverage/createdAt — populated by the boot reindex
     }
 }

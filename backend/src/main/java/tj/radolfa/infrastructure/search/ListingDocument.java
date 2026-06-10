@@ -76,6 +76,33 @@ public class ListingDocument {
     @Field(type = FieldType.Keyword)
     private String status;
 
+    /** ProductBase.categoryId — used to filter by category + descendant IDs. */
+    @Field(type = FieldType.Long)
+    private Long categoryId;
+
+    /** ProductBase.brandId (may be null). */
+    @Field(type = FieldType.Long)
+    private Long brandId;
+
+    /** ProductBase.brand.name, denormalized for the brand facet (may be null). */
+    @Field(type = FieldType.Keyword)
+    private String brandName;
+
+    /**
+     * Snapshot of the active campaign discount percentage at index time
+     * (may go stale until the next reindex; see search redesign Phase 2).
+     */
+    @Field(type = FieldType.Integer)
+    private Integer discountPercentage;
+
+    /** Average rating from {@code product_rating_summaries} (may be null). */
+    @Field(type = FieldType.Double)
+    private Double ratingAverage;
+
+    /** ListingVariant.createdAt — used by the NEWEST sort. */
+    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
+    private Instant createdAt;
+
     public ListingDocument() {}
 
     public ListingDocument(Long id, String slug, String name, String category,
@@ -84,7 +111,10 @@ public class ListingDocument {
                            Double price, Integer totalStock,
                            Instant lastSyncAt,
                            String productCode, List<String> skuCodes,
-                           Long productBaseId, String status) {
+                           Long productBaseId, String status,
+                           Long categoryId, Long brandId, String brandName,
+                           Integer discountPercentage, Double ratingAverage,
+                           Instant createdAt) {
         this.id             = id;
         this.slug           = slug;
         this.name           = name;
@@ -100,6 +130,12 @@ public class ListingDocument {
         this.skuCodes       = skuCodes;
         this.productBaseId  = productBaseId;
         this.status         = status;
+        this.categoryId     = categoryId;
+        this.brandId        = brandId;
+        this.brandName      = brandName;
+        this.discountPercentage = discountPercentage;
+        this.ratingAverage  = ratingAverage;
+        this.createdAt      = createdAt;
     }
 
     public Long         getId()             { return id; }
@@ -117,4 +153,10 @@ public class ListingDocument {
     public List<String> getSkuCodes()       { return skuCodes; }
     public Long         getProductBaseId()  { return productBaseId; }
     public String       getStatus()         { return status; }
+    public Long         getCategoryId()         { return categoryId; }
+    public Long         getBrandId()            { return brandId; }
+    public String       getBrandName()          { return brandName; }
+    public Integer      getDiscountPercentage() { return discountPercentage; }
+    public Double       getRatingAverage()      { return ratingAverage; }
+    public Instant      getCreatedAt()          { return createdAt; }
 }

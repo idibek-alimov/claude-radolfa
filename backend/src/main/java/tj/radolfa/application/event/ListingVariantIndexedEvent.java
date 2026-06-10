@@ -18,5 +18,11 @@ public record ListingVariantIndexedEvent(
         Instant lastSyncAt,
         String productCode,
         List<String> skuCodes,
-        String status
+        String status,
+        Long categoryId,
+        Long brandId,
+        String brandName,
+        Integer discountPercentage,
+        Double ratingAverage,
+        Instant createdAt
 ) {}
