@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.ListingIndexPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.time.Instant;
@@ -50,5 +51,11 @@ public class ListingSearchStub implements ListingIndexPort, SearchListingPort {
     public List<String> autocomplete(String prefix, int limit) {
         LOG.info("[LISTING-ES-STUB] Would autocomplete for prefix={}", prefix);
         return List.of();
+    }
+
+    @Override
+    public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+        LOG.info("[LISTING-ES-STUB] Would search catalog for criteria={}", criteria);
+        return new PageResult<>(List.of(), 0, page, limit, true);
     }
 }

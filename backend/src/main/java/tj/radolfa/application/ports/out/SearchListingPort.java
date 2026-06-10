@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
 import java.util.List;
@@ -19,4 +20,9 @@ public interface SearchListingPort {
      * Autocomplete suggestions based on product names.
      */
     List<String> autocomplete(String prefix, int limit);
+
+    /**
+     * Unified catalog query: full-text + structured filters + whitelisted sort.
+     */
+    PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit);
 }

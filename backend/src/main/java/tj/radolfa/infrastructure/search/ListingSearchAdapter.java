@@ -23,6 +23,7 @@ import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 import tj.radolfa.application.readmodel.ListingVariantDto.TagView;
 import tj.radolfa.application.readmodel.SkuDto;
@@ -220,6 +221,15 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                 boolean last = (long) page * limit >= totalHits;
 
                 return new PageResult<>(enriched, totalHits, page, limit, last);
+        }
+
+        @Override
+        public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+                // TODO(Phase 2): build a real bool/filter/sort/aggregation query from `criteria`
+                // (category/price/colour/brand/discount/in-stock filters, ListingSort mapping,
+                // and facet aggregations). For now, delegate to the existing fuzzy `search` so
+                // the unified read path is wired end-to-end while filters/sort/facets land.
+                return search(criteria.query(), page, limit);
         }
 
         @Override

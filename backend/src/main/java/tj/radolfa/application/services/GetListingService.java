@@ -8,6 +8,7 @@ import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.out.LoadListingPort;
 import tj.radolfa.application.ports.out.SearchListingPort;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -76,5 +77,20 @@ public class GetListingService implements GetListingUseCase {
     @Override
     public PageResult<ListingVariantDto> getByCategoryIds(List<Long> categoryIds, int page, int limit) {
         return loadListingPort.loadByCategoryIds(categoryIds, page, Math.min(limit, MAX_PAGE_SIZE));
+    }
+
+    @Override
+    public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+        // Exact product-code lookup: bypass Elasticsearch entirely for RD-XXXXX queries.
+        if (criteria.hasQuery() && PRODUCT_CODE.matcher(criteria.query().trim()).matches()) {
+            return loadListingPort.findByProductCode(criteria.query().trim().toUpperCase(), page, limit);
+        }
+        int safeLimit = Math.min(limit, MAX_PAGE_SIZE);
+        try {
+            return searchListingPort.searchCatalog(criteria, page, safeLimit);
+        } catch (Exception e) {
+            log.warn("Elasticsearch catalog search failed, falling back to SQL: {}", e.getMessage());
+            return loadListingPort.searchCatalog(criteria, page, safeLimit);
+        }
     }
 }

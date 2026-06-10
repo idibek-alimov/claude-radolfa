@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.out;
 
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -46,4 +47,10 @@ public interface LoadListingPort {
      * Returns a single-item page when the code exists, empty page otherwise.
      */
     PageResult<ListingVariantDto> findByProductCode(String code, int page, int limit);
+
+    /**
+     * Unified catalog query: full-text + structured filters + whitelisted sort.
+     * SQL fallback for {@link tj.radolfa.application.ports.out.SearchListingPort#searchCatalog}.
+     */
+    PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit);
 }

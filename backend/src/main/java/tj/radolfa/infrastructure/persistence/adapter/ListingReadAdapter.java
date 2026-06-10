@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ReviewTraitView;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.ReviewTrait;
@@ -101,6 +102,21 @@ public class ListingReadAdapter implements LoadListingPort {
         public PageResult<ListingVariantDto> findByProductCode(String code, int page, int limit) {
                 Page<Object[]> raw = variantRepo.findGridByProductCode(code, PageRequest.of(page - 1, limit));
                 return toGridResult(raw, page, limit);
+        }
+
+        @Override
+        public PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
+                // TODO(Phase 3): replace with a JpaSpecificationExecutor query composing
+                // predicates from `criteria` (price/colour/brand/discount/in-stock filters,
+                // ListingSort -> Sort mapping) plus SQL facet counts. For now, delegate to the
+                // closest existing query so the unified read path is wired end-to-end.
+                if (criteria.hasQuery()) {
+                        return search(criteria.query(), page, limit);
+                }
+                if (criteria.hasCategoryFilter()) {
+                        return loadByCategoryIds(criteria.categoryIds(), page, limit);
+                }
+                return loadPage(page, limit);
         }
 
         // ---- Grid helpers ----

@@ -1,6 +1,7 @@
 package tj.radolfa.application.ports.in;
 
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
 
@@ -37,4 +38,10 @@ public interface GetListingUseCase {
      * Paginated grid filtered by a set of category IDs (category + descendants).
      */
     PageResult<ListingVariantDto> getByCategoryIds(List<Long> categoryIds, int page, int limit);
+
+    /**
+     * Unified catalog read path: full-text query + structured filters + whitelisted
+     * sort (ES with SQL fallback, same resilience pattern as {@link #search}).
+     */
+    PageResult<ListingVariantDto> searchCatalog(ListingQueryCriteria criteria, int page, int limit);
 }
