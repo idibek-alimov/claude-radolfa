@@ -51,9 +51,15 @@ public interface LoadListingPort {
 
     /**
      * Unified catalog query: full-text + structured filters + whitelisted sort.
-     * SQL fallback for {@link tj.radolfa.application.ports.out.SearchListingPort#searchCatalog}.
-     * Facets are not computed by this fallback ({@link CatalogResult#facets()} is
-     * {@link tj.radolfa.application.readmodel.CatalogFacets#empty()}); see Phase 3.
+     * SQL fallback for {@link tj.radolfa.application.ports.out.SearchListingPort#searchCatalog},
+     * used when Elasticsearch is unavailable.
+     *
+     * <p>Filters/sort are applied via a JPA {@code Specification}
+     * ({@code tj.radolfa.infrastructure.persistence.spec.ListingSpecifications}); facets
+     * (brand/colour/price) are computed by SQL group-by queries over the same filtered set.
+     * Discount-threshold filtering and {@code BIGGEST_DISCOUNT} sort run at reduced
+     * fidelity (see {@code ListingSpecifications} Javadoc) — discount-bucket facet counts
+     * are {@code 0} on this path.
      */
     CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit);
 }

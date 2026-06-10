@@ -1,7 +1,16 @@
 package tj.radolfa.infrastructure.persistence.adapter;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import tj.radolfa.application.ports.out.LoadListingPort;
@@ -11,7 +20,10 @@ import tj.radolfa.application.readmodel.ListingQueryCriteria;
 import tj.radolfa.application.readmodel.ReviewTraitView;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.ReviewTrait;
+import tj.radolfa.infrastructure.persistence.entity.BrandEntity;
 import tj.radolfa.infrastructure.persistence.entity.CategoryEntity;
+import tj.radolfa.infrastructure.persistence.entity.ColorEntity;
+import tj.radolfa.infrastructure.persistence.entity.ProductBaseEntity;
 import tj.radolfa.infrastructure.persistence.entity.ReviewTraitEntity;
 import tj.radolfa.infrastructure.persistence.adapter.DiscountEnrichmentAdapter.DiscountInfo;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
@@ -23,6 +35,7 @@ import tj.radolfa.infrastructure.persistence.repository.ProductBaseRepository;
 import tj.radolfa.infrastructure.persistence.repository.ProductRatingSummaryRepository;
 import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
+import tj.radolfa.infrastructure.persistence.spec.ListingSpecifications;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto.AttributeDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
@@ -38,7 +51,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Hexagonal adapter implementing the SQL-backed read queries for listings.
@@ -57,19 +72,22 @@ public class ListingReadAdapter implements LoadListingPort {
         private final SellerRepository sellerRepo;
         private final ProductBaseRepository productBaseRepo;
         private final ProductRatingSummaryRepository ratingRepo;
+        private final EntityManager em;
 
         public ListingReadAdapter(ListingVariantRepository variantRepo,
                         SkuRepository skuRepo,
                         DiscountEnrichmentAdapter discountEnrichment,
                         SellerRepository sellerRepo,
                         ProductBaseRepository productBaseRepo,
-                        ProductRatingSummaryRepository ratingRepo) {
+                        ProductRatingSummaryRepository ratingRepo,
+                        EntityManager em) {
                 this.variantRepo = variantRepo;
                 this.skuRepo = skuRepo;
                 this.discountEnrichment = discountEnrichment;
                 this.sellerRepo = sellerRepo;
                 this.productBaseRepo = productBaseRepo;
                 this.ratingRepo = ratingRepo;
+                this.em = em;
         }
 
         @Override
@@ -108,28 +126,42 @@ public class ListingReadAdapter implements LoadListingPort {
 
         @Override
         public CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
-                // TODO(Phase 3): replace with a JpaSpecificationExecutor query composing
-                // predicates from `criteria` (price/colour/brand/discount/in-stock filters,
-                // ListingSort -> Sort mapping) plus SQL facet counts. For now, delegate to the
-                // closest existing query so the unified read path is wired end-to-end.
-                PageResult<ListingVariantDto> pageResult;
-                if (criteria.hasQuery()) {
-                        pageResult = search(criteria.query(), page, limit);
-                } else if (criteria.hasCategoryFilter()) {
-                        pageResult = loadByCategoryIds(criteria.categoryIds(), page, limit);
-                } else {
-                        pageResult = loadPage(page, limit);
-                }
-                return new CatalogResult(pageResult, CatalogFacets.empty());
+                // Reduced fidelity for discount filtering — see ListingSpecifications Javadoc.
+                List<Long> discountedVariantIds = (criteria.minDiscountPercent() != null && criteria.minDiscountPercent() > 0)
+                                ? discountEnrichment.findVariantIdsWithActiveDiscounts()
+                                : List.of();
+
+                Specification<ListingVariantEntity> spec = ListingSpecifications.catalogFilter(criteria, discountedVariantIds);
+
+                // Sort.unsorted(): ordering is set inside the Specification (query.orderBy),
+                // which Spring Data preserves when the Pageable carries no Sort of its own.
+                Page<ListingVariantEntity> idPage = variantRepo.findAll(spec, PageRequest.of(page - 1, limit, Sort.unsorted()));
+
+                List<Long> orderedIds = idPage.getContent().stream().map(ListingVariantEntity::getId).toList();
+                List<ListingVariantDto> content = buildContent(loadGridRowsInOrder(orderedIds));
+
+                PageResult<ListingVariantDto> pageResult = new PageResult<>(content, idPage.getTotalElements(), page, limit,
+                                (long) page * limit >= idPage.getTotalElements());
+
+                CatalogFacets facets = buildFacets(criteria, discountedVariantIds);
+
+                return new CatalogResult(pageResult, facets);
         }
 
         // ---- Grid helpers ----
 
         private PageResult<ListingVariantDto> toGridResult(Page<Object[]> raw, int page, int limit) {
-                List<Long> variantIds = raw.getContent().stream()
+                List<ListingVariantDto> content = buildContent(raw.getContent());
+                return new PageResult<>(content, raw.getTotalElements(), page, limit,
+                                (long) page * limit >= raw.getTotalElements());
+        }
+
+        /** Shared row-to-DTO mapping (batch enrichment) for every grid query, including {@link #searchCatalog}. */
+        private List<ListingVariantDto> buildContent(List<Object[]> rows) {
+                List<Long> variantIds = rows.stream()
                                 .map(row -> (Long) row[0])
                                 .toList();
-                List<Long> productBaseIds = raw.getContent().stream()
+                List<Long> productBaseIds = rows.stream()
                                 .map(row -> (Long) row[11])
                                 .distinct()
                                 .toList();
@@ -141,12 +173,89 @@ public class ListingReadAdapter implements LoadListingPort {
                 Map<Long, ProductRatingSummaryEntity> ratingMap = ListingGridRowMapper.loadRatingMap(variantIds, ratingRepo);
                 Map<Long, String> sellerMap = ListingGridRowMapper.loadSellerNameMap(productBaseIds, productBaseRepo, sellerRepo);
 
-                List<ListingVariantDto> content = raw.getContent().stream()
+                return rows.stream()
                                 .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap, sellerMap))
                                 .toList();
+        }
 
-                return new PageResult<>(content, raw.getTotalElements(), page, limit,
-                                (long) page * limit >= raw.getTotalElements());
+        /**
+         * Loads the 12-column grid projection for exactly the given variant IDs and
+         * reorders the rows to match {@code orderedIds} — the filter/sort/pagination
+         * already happened in {@link #searchCatalog}'s Specification query; this is
+         * page assembly, not client-side trimming.
+         */
+        private List<Object[]> loadGridRowsInOrder(List<Long> orderedIds) {
+                if (orderedIds.isEmpty()) return List.of();
+                Page<Object[]> raw = variantRepo.findGridByVariantIds(orderedIds, PageRequest.of(0, orderedIds.size()));
+                Map<Long, Object[]> byId = raw.getContent().stream()
+                                .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+                return orderedIds.stream()
+                                .map(byId::get)
+                                .filter(Objects::nonNull)
+                                .toList();
+        }
+
+        // ---- Catalog facets (brand/colour/price — discount buckets are Java-only, see ListingSpecifications) ----
+
+        private CatalogFacets buildFacets(ListingQueryCriteria criteria, List<Long> discountedVariantIds) {
+                List<CatalogFacets.BrandFacet> brands = brandFacets(criteria, discountedVariantIds);
+                List<CatalogFacets.ColorFacet> colors = colorFacets(criteria, discountedVariantIds);
+                CatalogFacets.PriceFacet price = priceFacet(criteria, discountedVariantIds);
+                return new CatalogFacets(brands, colors, price, new CatalogFacets.DiscountFacets(0, 0, 0));
+        }
+
+        private List<CatalogFacets.BrandFacet> brandFacets(ListingQueryCriteria criteria, List<Long> discountedVariantIds) {
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+                Root<ListingVariantEntity> root = cq.from(ListingVariantEntity.class);
+                Join<ListingVariantEntity, ProductBaseEntity> productBase = root.join("productBase", JoinType.INNER);
+                Join<ProductBaseEntity, BrandEntity> brand = productBase.join("brand", JoinType.INNER);
+
+                List<Predicate> predicates = ListingSpecifications.filterPredicates(root, cq, cb, criteria, discountedVariantIds);
+
+                cq.multiselect(brand.get("id"), brand.get("name"), cb.countDistinct(root.get("id")))
+                                .where(predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(Predicate[]::new)))
+                                .groupBy(brand.get("id"), brand.get("name"));
+
+                return em.createQuery(cq).getResultList().stream()
+                                .map(row -> new CatalogFacets.BrandFacet((Long) row[0], (String) row[1], (Long) row[2]))
+                                .toList();
+        }
+
+        private List<CatalogFacets.ColorFacet> colorFacets(ListingQueryCriteria criteria, List<Long> discountedVariantIds) {
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+                Root<ListingVariantEntity> root = cq.from(ListingVariantEntity.class);
+                Join<ListingVariantEntity, ColorEntity> color = root.join("color", JoinType.INNER);
+
+                List<Predicate> predicates = ListingSpecifications.filterPredicates(root, cq, cb, criteria, discountedVariantIds);
+
+                cq.multiselect(color.get("colorKey"), color.get("displayName"), color.get("hexCode"), cb.countDistinct(root.get("id")))
+                                .where(predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(Predicate[]::new)))
+                                .groupBy(color.get("colorKey"), color.get("displayName"), color.get("hexCode"));
+
+                return em.createQuery(cq).getResultList().stream()
+                                .map(row -> new CatalogFacets.ColorFacet((String) row[0], (String) row[1], (String) row[2], (Long) row[3]))
+                                .toList();
+        }
+
+        private CatalogFacets.PriceFacet priceFacet(ListingQueryCriteria criteria, List<Long> discountedVariantIds) {
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+                Root<ListingVariantEntity> root = cq.from(ListingVariantEntity.class);
+                Join<ListingVariantEntity, SkuEntity> sku = root.join("skus", JoinType.INNER);
+
+                List<Predicate> predicates = ListingSpecifications.filterPredicates(root, cq, cb, criteria, discountedVariantIds);
+
+                cq.multiselect(cb.min(sku.get("originalPrice")), cb.max(sku.get("originalPrice")))
+                                .where(predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(Predicate[]::new)));
+
+                Object[] result = em.createQuery(cq).getSingleResult();
+                BigDecimal min = (BigDecimal) result[0];
+                BigDecimal max = (BigDecimal) result[1];
+                return new CatalogFacets.PriceFacet(
+                                min != null ? min.setScale(2, RoundingMode.HALF_UP) : null,
+                                max != null ? max.setScale(2, RoundingMode.HALF_UP) : null);
         }
 
         // ---- Detail helpers ----
