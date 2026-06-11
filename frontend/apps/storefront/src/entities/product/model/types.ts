@@ -70,6 +70,9 @@ export interface ListingVariant {
   reviewCount: number;
   /** null = Radolfa-owned; non-null = third-party seller's shop name. */
   sellerShopName: string | null;
+  /** Brand of the product base. Both null when the product has no assigned brand. */
+  brandId: number | null;
+  brandName: string | null;
 }
 
 /**

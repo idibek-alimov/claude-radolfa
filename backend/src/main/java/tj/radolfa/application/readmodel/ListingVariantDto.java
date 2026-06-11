@@ -55,7 +55,10 @@ public record ListingVariantDto(
         BigDecimal ratingAverage,
         Integer reviewCount,
         /** null = Radolfa-owned; non-null = third-party seller's shop name. */
-        String sellerShopName) {
+        String sellerShopName,
+        /** Brand of the product base. Both null when the product has no assigned brand. */
+        Long brandId,
+        String brandName) {
 
     /** Lightweight tag projection returned in listing responses. */
     public record TagView(Long id, String name, String colorHex) {}
@@ -101,7 +104,7 @@ public record ListingVariantDto(
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), resolveWinningSource(loyaltyPct, discountPercentage), isPartialDiscount,
                 tags, productCode, loyaltySkus,
-                ratingAverage, reviewCount, sellerShopName);
+                ratingAverage, reviewCount, sellerShopName, brandId, brandName);
     }
 
     /**

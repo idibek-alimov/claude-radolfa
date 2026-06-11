@@ -129,7 +129,8 @@ class ListingCatalogControllerTest {
                 new BigDecimal("199.00"), null, null, null, null,
                 null, null, null, false,
                 List.of(), "RD-10047", List.of(),
-                null, 0, null);
+                null, 0, null,
+                1L, "Acme");
     }
 
     private static CatalogResult sampleResult() {

@@ -35,16 +35,21 @@ final class ListingGridRowMapper {
 
     private ListingGridRowMapper() {}
 
+    /** Brand reference for a product base, batch-loaded by {@link #loadBrandMap}. */
+    record BrandRef(Long id, String name) {}
+
     static ListingVariantDto toGridDto(Object[] row, Map<Long, List<String>> imageMap,
                                        Map<Long, DiscountInfo> discountMap,
                                        Map<Long, List<SkuDto>> skuMap,
                                        Map<Long, List<TagView>> tagMap,
                                        Map<Long, ProductRatingSummaryEntity> ratingMap,
-                                       Map<Long, String> sellerMap) {
+                                       Map<Long, String> sellerMap,
+                                       Map<Long, BrandRef> brandMap) {
         Long variantId = (Long) row[0];
         Long productBaseId = (Long) row[11];
         DiscountInfo discount = discountMap.get(variantId);
         ProductRatingSummaryEntity rating = ratingMap.get(variantId);
+        BrandRef brand = brandMap.get(productBaseId);
 
         BigDecimal originalPrice = discount != null ? discount.originalPrice() : toBigDecimal(row[6]);
         BigDecimal discountPrice = discount != null ? discount.discountedPrice() : null;
@@ -80,7 +85,9 @@ final class ListingGridRowMapper {
                 skuMap.getOrDefault(variantId, List.of()),
                 rating != null ? rating.getAverageRating() : null,
                 rating != null ? rating.getReviewCount() : 0,
-                sellerMap.get(productBaseId)); // null = Radolfa-owned
+                sellerMap.get(productBaseId), // null = Radolfa-owned
+                brand != null ? brand.id() : null,
+                brand != null ? brand.name() : null);
     }
 
     /** Batch-loads a productBaseId → shopName map for the given product base IDs. */
@@ -101,6 +108,15 @@ final class ListingGridRowMapper {
         return baseToSeller.entrySet().stream()
                 .filter(e -> sellerNameById.containsKey(e.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> sellerNameById.get(e.getValue())));
+    }
+
+    /** Batch-loads a productBaseId → BrandRef map for the given product base IDs. */
+    static Map<Long, BrandRef> loadBrandMap(List<Long> productBaseIds,
+                                             ProductBaseRepository productBaseRepo) {
+        if (productBaseIds.isEmpty()) return Map.of();
+        return productBaseRepo.findBrandsByIds(productBaseIds).stream()
+                .collect(Collectors.toMap(r -> (Long) r[0],
+                        r -> new BrandRef((Long) r[1], (String) r[2])));
     }
 
     static Map<Long, ProductRatingSummaryEntity> loadRatingMap(List<Long> variantIds,

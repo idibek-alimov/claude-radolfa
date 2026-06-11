@@ -478,7 +478,8 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                         skus,
                                                         rating != null ? rating.getAverageRating() : null,
                                                         rating != null ? rating.getReviewCount() : 0,
-                                                        sellerMap.get(dto.productBaseId()));
+                                                        sellerMap.get(dto.productBaseId()),
+                                                        dto.brandId(), dto.brandName());
                                 })
                                 .toList();
         }
@@ -530,7 +531,9 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                 List.of(), // skus — batch-loaded post-query
                                 null,    // ratingAverage — batch-loaded post-query
                                 0,       // reviewCount — batch-loaded post-query
-                                null     // sellerShopName — batch-loaded post-query
+                                null,    // sellerShopName — batch-loaded post-query
+                                doc.getBrandId(),
+                                doc.getBrandName()
                 );
         }
 

@@ -45,7 +45,8 @@ class GetListingServiceTest {
                 null, null, null, null, null,
                 null, null, null, false,
                 List.of(), "RD-10047", List.of(),
-                null, 0, null);
+                null, 0, null,
+                null, null);
     }
 
     // =========================================================

@@ -172,9 +172,10 @@ public class ListingReadAdapter implements LoadListingPort {
                 Map<Long, List<TagView>> tagMap = ListingGridRowMapper.loadTagMap(variantIds, variantRepo);
                 Map<Long, ProductRatingSummaryEntity> ratingMap = ListingGridRowMapper.loadRatingMap(variantIds, ratingRepo);
                 Map<Long, String> sellerMap = ListingGridRowMapper.loadSellerNameMap(productBaseIds, productBaseRepo, sellerRepo);
+                Map<Long, ListingGridRowMapper.BrandRef> brandMap = ListingGridRowMapper.loadBrandMap(productBaseIds, productBaseRepo);
 
                 return rows.stream()
-                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap, sellerMap))
+                                .map(row -> ListingGridRowMapper.toGridDto(row, imageMap, discountMap, skuMap, tagMap, ratingMap, sellerMap, brandMap))
                                 .toList();
         }
 

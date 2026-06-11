@@ -52,6 +52,7 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(),
                 Map.of(variantId, summary),
+                Map.of(),
                 Map.of());
 
         assertNotNull(dto.ratingAverage());
@@ -71,6 +72,7 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(),
                 Map.of(), // empty ratingMap
+                Map.of(),
                 Map.of());
 
         assertNull(dto.ratingAverage());
@@ -88,6 +90,7 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(variantId, List.of(new SkuDto(1L, "RD-001-S", "S", 5,
                         new BigDecimal("199.00"), null, null, null, null, null, null))),
+                Map.of(),
                 Map.of(),
                 Map.of(),
                 Map.of());
@@ -125,11 +128,51 @@ class ListingGridRowMapperTest {
                 Map.of(),
                 Map.of(),
                 Map.of(),
+                Map.of(),
                 Map.of());
 
         assertEquals(new BigDecimal("200.00"), dto.originalPrice());
         assertEquals(new BigDecimal("150.00"), dto.discountPrice());
         assertEquals(25, dto.discountPercentage());
         assertEquals("Summer Sale", dto.discountName());
+    }
+
+    @Test
+    @DisplayName("brandId/brandName populated when productBaseId is in brandMap")
+    void brandPresentInMap() {
+        Long variantId = 21L;
+        Long productBaseId = 100L; // matches row(...) [11]
+
+        ListingVariantDto dto = ListingGridRowMapper.toGridDto(
+                row(variantId),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(productBaseId, new ListingGridRowMapper.BrandRef(7L, "Acme")));
+
+        assertEquals(7L, dto.brandId());
+        assertEquals("Acme", dto.brandName());
+    }
+
+    @Test
+    @DisplayName("brandId/brandName are null when productBaseId absent from brandMap")
+    void brandAbsentFromMap() {
+        Long variantId = 22L;
+
+        ListingVariantDto dto = ListingGridRowMapper.toGridDto(
+                row(variantId),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of()); // empty brandMap
+
+        assertNull(dto.brandId());
+        assertNull(dto.brandName());
     }
 }
