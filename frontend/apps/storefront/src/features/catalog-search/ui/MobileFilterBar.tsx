@@ -1,5 +1,7 @@
 "use client";
 
+import { useHideOnScroll } from "@radolfa/shared/lib/useHideOnScroll";
+
 interface MobileFilterBarProps {
   filterCount: number;
   onOpenFilters: () => void;
@@ -11,8 +13,14 @@ export function MobileFilterBar({
   onOpenFilters,
   onOpenSort,
 }: MobileFilterBarProps) {
+  // Same hook/options as BottomNav so both bars derive identical state and
+  // slide in lockstep without sharing state directly.
+  const navHidden = useHideOnScroll();
+
   return (
-    <div className="fixed left-0 right-0 bottom-0 z-30 bg-white border-t border-ink/10 p-3 flex gap-3">
+    <div
+      className={`fixed left-0 right-0 bottom-0 z-30 bg-white border-t border-ink/10 p-3 flex gap-3 transition-transform duration-300 ${navHidden ? "translate-y-0" : "-translate-y-14"}`}
+    >
       <button
         onClick={onOpenFilters}
         className="flex-1 h-11 rounded-full bg-mag text-white font-bold text-[13px] inline-flex items-center justify-center gap-2"

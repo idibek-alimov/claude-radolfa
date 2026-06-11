@@ -66,22 +66,6 @@ export function FilterPanel({
   };
 
   const priceBounds = facets?.price;
-  const trackLeftPct = (() => {
-    if (!priceBounds || priceBounds.max <= priceBounds.min) return 0;
-    const min = value.priceMin ?? priceBounds.min;
-    return Math.min(
-      100,
-      Math.max(0, ((min - priceBounds.min) / (priceBounds.max - priceBounds.min)) * 100)
-    );
-  })();
-  const trackRightPct = (() => {
-    if (!priceBounds || priceBounds.max <= priceBounds.min) return 0;
-    const max = value.priceMax ?? priceBounds.max;
-    return Math.min(
-      100,
-      Math.max(0, ((priceBounds.max - max) / (priceBounds.max - priceBounds.min)) * 100)
-    );
-  })();
 
   const discountOptions: { label: string; min: number }[] = [
     { label: "Any discount", min: 1 },
@@ -149,20 +133,6 @@ export function FilterPanel({
             onChange={(e) => setPriceMaxInput(e.target.value)}
             onBlur={commitPriceMax}
             onKeyDown={(e) => handlePriceKeyDown(e, commitPriceMax)}
-          />
-        </div>
-        <div className="mt-3 relative h-1.5 rounded-full bg-plum">
-          <div
-            className="absolute h-1.5 rounded-full bg-mag"
-            style={{ left: `${trackLeftPct}%`, right: `${trackRightPct}%` }}
-          />
-          <div
-            className="absolute w-4 h-4 rounded-full bg-white border-2 border-mag -top-1.5"
-            style={{ left: `${trackLeftPct}%` }}
-          />
-          <div
-            className="absolute w-4 h-4 rounded-full bg-white border-2 border-mag -top-1.5"
-            style={{ right: `${trackRightPct}%` }}
           />
         </div>
       </div>

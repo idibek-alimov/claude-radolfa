@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@radolfa/shared/auth";
+import { useHideOnScroll } from "@radolfa/shared/lib/useHideOnScroll";
 
-/** 4-item mobile bottom navigation bar. Hidden on md+. */
+/** 4-item mobile bottom navigation bar. Hidden on md+. Slides away on scroll-down. */
 export default function BottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
+  const hidden = useHideOnScroll();
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -16,7 +18,9 @@ export default function BottomNav() {
   const inactiveClass = "text-ink/55";
 
   return (
-    <nav className="sticky bottom-0 z-30 bg-white border-t border-ink/8 grid grid-cols-4 text-[10px] font-medium md:hidden">
+    <nav
+      className={`fixed bottom-0 left-0 right-0 z-30 h-14 bg-white border-t border-ink/8 grid grid-cols-4 text-[10px] font-medium md:hidden transition-transform duration-300 ${hidden ? "translate-y-full" : "translate-y-0"}`}
+    >
       {/* Home */}
       <Link
         href="/"

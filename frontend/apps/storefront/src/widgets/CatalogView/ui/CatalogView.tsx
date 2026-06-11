@@ -129,13 +129,9 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
             <SortPills value={criteria.sort ?? "POPULAR"} onChange={setSort} variant="desktop" />
           </div>
         </div>
-
-        <div className="md:hidden py-2.5">
-          <SortPills value={criteria.sort ?? "POPULAR"} onChange={setSort} variant="mobile" />
-        </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 md:px-6 mt-4 grid grid-cols-1 md:grid-cols-12 gap-6 pb-24 md:pb-10">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 mt-4 grid grid-cols-1 md:grid-cols-12 gap-6 pb-32 md:pb-10">
         <aside className="hidden md:block md:col-span-3 xl:col-span-2 text-[13px]">
           <div className="rounded-2xl border border-ink/8 p-4 space-y-5 bg-soft">
             <FilterPanel
