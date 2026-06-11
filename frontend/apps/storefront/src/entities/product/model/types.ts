@@ -117,6 +117,80 @@ export interface ListingVariantDetail extends ListingVariant {
 /** Paginated response for listings — alias of the shared generic. */
 export type PaginatedListings = PaginatedResponse<ListingVariant>;
 
+/** Whitelisted sort orders accepted by GET /api/v1/listings/catalog. */
+export type ListingSort =
+  | "POPULAR"
+  | "CHEAPEST"
+  | "DEAREST"
+  | "RATING"
+  | "NEWEST"
+  | "BIGGEST_DISCOUNT";
+
+/** Category facet entry — name/slug only, no per-category counts. */
+export interface CategoryFacet {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+/** Brand facet entry with result count. */
+export interface BrandFacet {
+  id: number;
+  name: string;
+  count: number;
+}
+
+/** Colour facet entry with result count. */
+export interface ColorFacet {
+  key: string;
+  name: string;
+  hex: string;
+  count: number;
+}
+
+/** Price bounds across the current result set. */
+export interface PriceFacet {
+  min: number;
+  max: number;
+}
+
+/** Counts for the discount filter buckets (any sale, 30%+, 50%+). */
+export interface DiscountBuckets {
+  any: number;
+  p30: number;
+  p50: number;
+}
+
+/** Facet counts returned alongside a catalog page, for the filter sidebar. */
+export interface CatalogFacets {
+  categories: CategoryFacet[];
+  brands: BrandFacet[];
+  colors: ColorFacet[];
+  price: PriceFacet;
+  discountBuckets: DiscountBuckets;
+}
+
+/** Response shape of GET /api/v1/listings/catalog — page + facets. */
+export interface CatalogResponse {
+  page: PaginatedResponse<ListingVariant>;
+  facets: CatalogFacets;
+}
+
+/** Filter/sort/page state mapped to /api/v1/listings/catalog query params. */
+export interface CatalogCriteria {
+  q?: string;
+  categorySlug?: string;
+  brandIds?: number[];
+  colorKeys?: string[];
+  priceMin?: number;
+  priceMax?: number;
+  minDiscount?: number;
+  inStock?: boolean;
+  sort?: ListingSort;
+  page?: number;
+  size?: number;
+}
+
 /**
  * A single homepage collection row (e.g. "Featured", "New Arrivals").
  */

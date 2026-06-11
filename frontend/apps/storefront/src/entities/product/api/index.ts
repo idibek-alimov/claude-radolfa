@@ -9,6 +9,8 @@ import type {
   CategoryTree,
   HomeBanner,
   FeaturedCategory,
+  CatalogCriteria,
+  CatalogResponse,
 } from "@/entities/product/model/types";
 
 export interface UpdateListingRequest {
@@ -136,6 +138,36 @@ export async function fetchCategoryProducts(
   const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
     `/api/v1/categories/${slug}/products`,
     { params: { page, size } },
+  );
+  return data;
+}
+
+/**
+ * Unified catalog search — results + facets, backing /search and
+ * /categories/[slug]/products. Repeatable filters (`color`, `brand`) are
+ * sent as repeated query params (no `[]` suffix) to match Spring's
+ * `@RequestParam List<...>` binding.
+ */
+export async function fetchCatalog(
+  criteria: CatalogCriteria
+): Promise<CatalogResponse> {
+  const params: Record<string, unknown> = {
+    page: criteria.page ?? 1,
+    size: criteria.size ?? 24,
+  };
+  if (criteria.q) params.q = criteria.q;
+  if (criteria.categorySlug) params.categorySlug = criteria.categorySlug;
+  if (criteria.priceMin != null) params.priceMin = criteria.priceMin;
+  if (criteria.priceMax != null) params.priceMax = criteria.priceMax;
+  if (criteria.minDiscount != null) params.minDiscount = criteria.minDiscount;
+  if (criteria.colorKeys?.length) params.color = criteria.colorKeys;
+  if (criteria.brandIds?.length) params.brand = criteria.brandIds;
+  if (criteria.inStock) params.inStock = true;
+  if (criteria.sort) params.sort = criteria.sort;
+
+  const { data } = await apiClient.get<CatalogResponse>(
+    "/api/v1/listings/catalog",
+    { params, paramsSerializer: { indexes: null } }
   );
   return data;
 }

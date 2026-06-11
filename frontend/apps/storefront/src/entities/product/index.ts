@@ -14,6 +14,15 @@ export type {
     FeaturedCategory,
     Color,
     AdminProductRow,
+    ListingSort,
+    CategoryFacet,
+    BrandFacet,
+    ColorFacet,
+    PriceFacet,
+    DiscountBuckets,
+    CatalogFacets,
+    CatalogResponse,
+    CatalogCriteria,
 } from "./model/types";
 export { ProductStatus } from "./model/types";
 export { ProductStatusBadge } from "./ui/ProductStatusBadge";
@@ -37,4 +46,5 @@ export {
     fetchCategoryTree,
     fetchHomeBanners,
     fetchFeaturedCategories,
+    fetchCatalog,
 } from "./api";
