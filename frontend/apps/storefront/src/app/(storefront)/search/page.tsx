@@ -1,21 +1,15 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
-import { searchListings } from "@/entities/product";
-import { ProductGrid } from "@/widgets/ProductList";
+import { CatalogView } from "@/widgets/CatalogView";
 import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { useTranslations } from "next-intl";
 
-const PRODUCT_CODE_RE = /^RD-\d{5,}$/i;
-
-const PAGE_LIMIT = 12;
-
 function SearchFallback() {
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-10">
       <Skeleton className="h-9 w-64 mb-2" />
       <Skeleton className="h-4 w-40 mb-8" />
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
@@ -38,48 +32,7 @@ export default function SearchPage() {
 function SearchContent() {
   const t = useTranslations("search");
   const searchParams = useSearchParams();
-  const router = useRouter();
   const query = searchParams.get("q")?.trim() || "";
-  const isProductCode = PRODUCT_CODE_RE.test(query);
-
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isLoading,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["search", query],
-    queryFn: async ({ pageParam = 1 }) =>
-      searchListings(query, pageParam, PAGE_LIMIT),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.last) return undefined;
-      return allPages.length + 1;
-    },
-    enabled: query.length > 0,
-  });
-
-  const listings = data?.pages.flatMap((p) => p.content) ?? [];
-  const totalCount = data?.pages[0]?.totalElements ?? 0;
-
-  // When a product code query returns exactly one result, navigate directly to its detail page.
-  useEffect(() => {
-    if (isProductCode && !isLoading && listings.length === 1 && listings[0].slug) {
-      router.replace(`/products/${listings[0].slug}`);
-    }
-  }, [isProductCode, isLoading, listings, router]);
-
-  if (isProductCode && (isLoading || listings.length === 1)) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mt-24 flex flex-col items-center text-center gap-4">
-          <Skeleton className="h-72 w-full max-w-xs rounded-lg" />
-          <Skeleton className="h-5 w-40" />
-        </div>
-      </div>
-    );
-  }
 
   if (!query) {
     return (
@@ -99,26 +52,5 @@ function SearchContent() {
     );
   }
 
-  return (
-    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-          {t("resultsFor")}{" "}
-          <span className="text-primary">&ldquo;{query}&rdquo;</span>
-        </h1>
-        {!isLoading && totalCount > 0 && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t("productsFound", { count: totalCount })}
-          </p>
-        )}
-      </div>
-
-      <ProductGrid
-        listings={listings}
-        loading={isLoading || isFetchingNextPage}
-        hasMore={hasNextPage}
-        onLoadMore={fetchNextPage}
-      />
-    </section>
-  );
+  return <CatalogView mode="search" query={query} />;
 }

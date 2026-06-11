@@ -1,21 +1,22 @@
 "use client";
 
-import { use } from "react";
-import Link from "next/link";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { ProductGrid } from "@/widgets/ProductList";
-import { fetchCategoryProducts } from "@/entities/product";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@radolfa/shared/ui/breadcrumb";
-import { useTranslations } from "next-intl";
+import { Suspense, use } from "react";
+import { CatalogView } from "@/widgets/CatalogView";
+import { Skeleton } from "@radolfa/shared/ui/skeleton";
 
-const PAGE_LIMIT = 12;
+function CategoryFallback() {
+  return (
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-10">
+      <Skeleton className="h-9 w-64 mb-2" />
+      <Skeleton className="h-4 w-40 mb-8" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-72 w-full rounded-lg" />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function CategoryProductsPage({
   params,
@@ -23,62 +24,11 @@ export default function CategoryProductsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const t = useTranslations("common");
-
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isLoading,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["category-products", slug],
-    queryFn: async ({ pageParam = 1 }) =>
-      fetchCategoryProducts(slug, pageParam, PAGE_LIMIT),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.last) return undefined;
-      return allPages.length + 1;
-    },
-  });
-
-  const listings = data?.pages.flatMap((p) => p.content) ?? [];
-  const totalCount = data?.pages[0]?.totalElements ?? 0;
   const title = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/">{t("home")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{title}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          {title}
-        </h1>
-        {!isLoading && totalCount > 0 && (
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("productsCount", { count: totalCount })}
-          </p>
-        )}
-      </div>
-
-      <ProductGrid
-        listings={listings}
-        loading={isLoading || isFetchingNextPage}
-        hasMore={hasNextPage}
-        onLoadMore={fetchNextPage}
-      />
-    </section>
+    <Suspense fallback={<CategoryFallback />}>
+      <CatalogView mode="category" categorySlug={slug} categoryName={title} />
+    </Suspense>
   );
 }
