@@ -30,8 +30,8 @@ export default function BottomNav() {
 
       {/* Browse */}
       <Link
-        href="/products"
-        className={`py-2 flex flex-col items-center gap-0.5 ${isActive("/products") ? activeClass : inactiveClass}`}
+        href="/search"
+        className={`py-2 flex flex-col items-center gap-0.5 ${isActive("/search") ? activeClass : inactiveClass}`}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <circle cx="11" cy="11" r="7" />

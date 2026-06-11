@@ -89,8 +89,6 @@
   },
   "search": {
     "placeholder": "Search products...",
-    "startTitle": "Start your search",
-    "startDescription": "Use the search bar above to find products across the Radolfa catalog.",
     "resultsFor": "Results for",
     "productsFound": "{count} products found",
     "submit": "Search"

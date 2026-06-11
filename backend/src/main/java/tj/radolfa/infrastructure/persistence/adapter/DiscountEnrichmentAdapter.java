@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.persistence.adapter;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
+import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
 import tj.radolfa.application.ports.out.ExpandCategoryTargetPort;
 import tj.radolfa.domain.model.AppliedDiscount;
 import tj.radolfa.domain.model.Discount;

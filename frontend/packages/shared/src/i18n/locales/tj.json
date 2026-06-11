@@ -89,8 +89,6 @@
   },
   "search": {
     "placeholder": "Ҷустуҷӯи молҳо...",
-    "startTitle": "Ҷустуҷӯро оғоз кунед",
-    "startDescription": "Сатри ҷустуҷӯро истифода баред, то молҳоро дар каталоги Radolfa ёбед.",
     "resultsFor": "Натиҷаҳо барои",
     "productsFound": "{count} мол ёфт шуд",
     "submit": "Ёфтан"

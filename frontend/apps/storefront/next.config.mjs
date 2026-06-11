@@ -34,6 +34,18 @@ const nextConfig = {
       },
     ];
   },
+
+  // /products (legacy browse-all listing) was retired in favor of /search,
+  // which now provides an equivalent browse experience when no `q` is set.
+  async redirects() {
+    return [
+      {
+        source: "/products",
+        destination: "/search",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     // S3 bucket domain — allow next/image to load product images from here.
     remotePatterns: [

@@ -37,7 +37,7 @@ export function MegaMenu() {
       <div className="max-w-[1440px] mx-auto px-6 h-11 flex items-center gap-6 text-[13px] font-medium text-ink/80 overflow-x-auto scrollbar-hide">
         {/* All categories */}
         <Link
-          href="/products"
+          href="/search"
           className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-mag shrink-0"
         >
           <svg

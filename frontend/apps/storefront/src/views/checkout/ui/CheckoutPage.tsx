@@ -146,7 +146,7 @@ export function CheckoutPage() {
 
   /* ── Empty cart ──────────────────────────────────────────────── */
   if (!cart || cart.items.length === 0) {
-    router.replace("/products");
+    router.replace("/search");
     return null;
   }
 

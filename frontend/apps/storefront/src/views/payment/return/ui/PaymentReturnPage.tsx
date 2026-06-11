@@ -83,7 +83,7 @@ export function PaymentReturnPage() {
         <XCircle className="h-16 w-16 text-destructive mx-auto mb-6" />
         <h1 className="text-2xl font-bold mb-2">{t("errorTitle")}</h1>
         <p className="text-muted-foreground mb-8">{t("errorDesc")}</p>
-        <Link href="/products">
+        <Link href="/search">
           <Button variant="outline">{t("browsProducts")}</Button>
         </Link>
       </div>

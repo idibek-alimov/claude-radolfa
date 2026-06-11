@@ -17,12 +17,13 @@ import {
   CatalogSheet,
   CatalogPagination,
 } from "@/features/catalog-search";
+import { useTranslations } from "next-intl";
 
 const PRODUCT_CODE_RE = /^RD-\d{5,}$/i;
 const SKELETON_COUNT = 8;
 
 interface CatalogViewProps {
-  mode: "search" | "category";
+  mode: "search" | "category" | "browse";
   query?: string;
   categorySlug?: string;
   categoryName?: string;
@@ -41,6 +42,7 @@ function countActiveFilters(criteria: CatalogCriteria): number {
 
 export function CatalogView({ mode, query, categorySlug, categoryName }: CatalogViewProps) {
   const router = useRouter();
+  const tc = useTranslations("common");
   const {
     criteria,
     listings,
@@ -53,8 +55,9 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
     setSort,
     setFilters,
     setPage,
+    setCategory,
     reset,
-  } = useCatalogQuery({ categorySlug });
+  } = useCatalogQuery({ categorySlug, mode });
 
   const [sheet, setSheet] = useState<"filter" | "sort" | null>(null);
   const [draft, setDraft] = useState<CatalogCriteria>(criteria);
@@ -68,7 +71,13 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
   }, [isProductCode, isLoading, listings, router]);
 
   const onCategorySelect = (slug: string | null) => {
-    if (slug) router.push(`/categories/${slug}/products`);
+    if (mode === "category") {
+      // On a category route, switching category navigates to that category's page.
+      if (slug) router.push(`/categories/${slug}/products`);
+      return;
+    }
+    // On /search and the default browse grid, category is just another in-place filter.
+    setCategory(slug);
   };
 
   const openFilterSheet = () => {
@@ -86,7 +95,8 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
     );
   }
 
-  const title = mode === "search" ? query ?? "" : categoryName ?? "";
+  const title =
+    mode === "search" ? query ?? "" : mode === "category" ? categoryName ?? "" : tc("allProducts");
   const filterCount = countActiveFilters(criteria);
   const showSkeletons = isLoading && listings.length === 0;
   const showEmpty = !isLoading && listings.length === 0;
@@ -102,11 +112,11 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
             <span className="opacity-50">/</span>{" "}
             <span className="text-ink/80 font-semibold">{categoryName}</span>
           </div>
-        ) : (
+        ) : mode === "search" ? (
           <div className="hidden md:block text-[12px] text-ink/55 mb-1.5">
             <span className="text-ink/80 font-semibold">Search results</span>
           </div>
-        )}
+        ) : null}
 
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div>
@@ -133,7 +143,7 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
               value={criteria}
               onChange={setFilters}
               onReset={reset}
-              selectedCategorySlug={categorySlug ?? null}
+              selectedCategorySlug={criteria.categorySlug ?? null}
               onCategorySelect={onCategorySelect}
             />
           </div>

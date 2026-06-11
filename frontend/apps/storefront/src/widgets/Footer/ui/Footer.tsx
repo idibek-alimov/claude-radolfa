@@ -29,7 +29,7 @@ export default async function Footer() {
               </li>
               <li>
                 <Link
-                  href="/products"
+                  href="/search"
                   className="hover:text-white transition-colors"
                 >
                   {t("products")}

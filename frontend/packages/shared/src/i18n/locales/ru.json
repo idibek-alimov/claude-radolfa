@@ -89,8 +89,6 @@
   },
   "search": {
     "placeholder": "Поиск товаров...",
-    "startTitle": "Начните поиск",
-    "startDescription": "Используйте строку поиска выше, чтобы найти товары в каталоге Radolfa.",
     "resultsFor": "Результаты по запросу",
     "productsFound": "{count} товаров найдено",
     "submit": "Поиск"

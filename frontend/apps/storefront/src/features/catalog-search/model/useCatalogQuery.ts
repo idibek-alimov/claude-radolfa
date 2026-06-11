@@ -40,7 +40,7 @@ function parseCriteria(
 
   return {
     q,
-    categorySlug,
+    categorySlug: categorySlug ?? (searchParams.get("category")?.trim() || undefined),
     sort: isListingSort(sortParam) ? sortParam : "POPULAR",
     page: pageParam && pageParam > 0 ? Math.floor(pageParam) : 1,
     priceMin: parseNumber(searchParams.get("priceMin")),
@@ -54,6 +54,7 @@ function parseCriteria(
 
 /** URL params this hook owns — written back via router.replace. */
 type UrlUpdates = Partial<{
+  category: string | undefined;
   sort: ListingSort | undefined;
   page: number | undefined;
   priceMin: number | undefined;
@@ -67,6 +68,8 @@ type UrlUpdates = Partial<{
 export interface UseCatalogQueryOptions {
   /** Category slug from the route (`/categories/[slug]/products`). Undefined on `/search`. */
   categorySlug?: string;
+  /** "browse" runs the catalog query even without a `q` or category (default catalog grid). */
+  mode?: "search" | "category" | "browse";
 }
 
 /**
@@ -74,7 +77,7 @@ export interface UseCatalogQueryOptions {
  * truth, per CLAUDE.md's server-side-everything rule) and drives the
  * paginated `/api/v1/listings/catalog` query.
  */
-export function useCatalogQuery({ categorySlug }: UseCatalogQueryOptions = {}) {
+export function useCatalogQuery({ categorySlug, mode }: UseCatalogQueryOptions = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -87,6 +90,7 @@ export function useCatalogQuery({ categorySlug }: UseCatalogQueryOptions = {}) {
     (updates: UrlUpdates, resetPage: boolean) => {
       const params = new URLSearchParams(searchParams.toString());
 
+      if ("category" in updates) setOrDeleteString(params, "category", updates.category);
       if ("sort" in updates) {
         const sort = updates.sort;
         if (!sort || sort === "POPULAR") params.delete("sort");
@@ -113,6 +117,11 @@ export function useCatalogQuery({ categorySlug }: UseCatalogQueryOptions = {}) {
 
   const setSort = useCallback(
     (sort: ListingSort) => updateUrl({ sort }, true),
+    [updateUrl]
+  );
+
+  const setCategory = useCallback(
+    (slug: string | null) => updateUrl({ category: slug ?? undefined }, true),
     [updateUrl]
   );
 
@@ -149,7 +158,7 @@ export function useCatalogQuery({ categorySlug }: UseCatalogQueryOptions = {}) {
     return rest;
   }, [criteria]);
 
-  const enabled = categorySlug ? true : !!criteria.q;
+  const enabled = categorySlug || mode === "browse" ? true : !!criteria.q;
 
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage } =
     useInfiniteQuery({
@@ -180,8 +189,18 @@ export function useCatalogQuery({ categorySlug }: UseCatalogQueryOptions = {}) {
     setSort,
     setFilters,
     setPage,
+    setCategory,
     reset,
   };
+}
+
+function setOrDeleteString(
+  params: URLSearchParams,
+  key: string,
+  value: string | undefined
+) {
+  if (!value) params.delete(key);
+  else params.set(key, value);
 }
 
 function setOrDelete(

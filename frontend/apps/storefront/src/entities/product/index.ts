@@ -42,7 +42,6 @@ export {
     fetchAutocomplete,
     fetchHomeCollections,
     fetchCollectionPage,
-    fetchCategoryProducts,
     fetchCategoryTree,
     fetchHomeBanners,
     fetchFeaturedCategories,

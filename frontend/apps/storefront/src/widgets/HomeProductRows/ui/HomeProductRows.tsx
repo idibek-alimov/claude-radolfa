@@ -25,7 +25,7 @@ function ProductRow({ section, seeAllHref, isLast }: ProductRowProps) {
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
         {section.listings.map((listing) => (
-          <ProductCard key={listing.variantId} variant="home" listing={listing} />
+          <ProductCard key={listing.variantId} listing={listing} />
         ))}
       </div>
     </section>

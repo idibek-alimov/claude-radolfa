@@ -29,7 +29,7 @@ export function CartPage() {
             <p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
           </div>
           <Button asChild variant="outline">
-            <Link href="/products">{t("browseProducts")}</Link>
+            <Link href="/search">{t("browseProducts")}</Link>
           </Button>
         </div>
       ) : (

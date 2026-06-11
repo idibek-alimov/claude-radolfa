@@ -32,14 +32,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@radolfa/shared/ui/dialog";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@radolfa/shared/ui/breadcrumb";
 import StockBadge from "./StockBadge";
 import ProductCard from "./ProductCard";
 import ProductCardSkeleton from "./ProductCardSkeleton";
@@ -199,41 +191,6 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
       transition={{ duration: 0.3 }}
       className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6"
     >
-      {/* ── Breadcrumb ──────────────────────────────────────────── */}
-      <Breadcrumb className="mb-4 sm:mb-6">
-        <BreadcrumbList className="text-xs sm:text-sm">
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/">{t("home")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/products">{t("products")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          {listing.categoryName && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href={`/products?category=${listing.categoryName}`}>
-                    {listing.categoryName}
-                  </Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            </>
-          )}
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="line-clamp-1">
-              {productName}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
         {/* ══════════════════════════════════════════════════════════
             LEFT — Image gallery
@@ -375,12 +332,9 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         <div className="lg:col-span-5 space-y-5">
           {/* Category / Brand line */}
           {listing.categoryName && (
-            <Link
-              href={`/products?category=${listing.categoryName}`}
-              className="text-sm text-primary hover:underline font-medium"
-            >
+            <span className="text-sm text-primary font-medium">
               {listing.categoryName}
-            </Link>
+            </span>
           )}
 
           {/* Product name + badges */}

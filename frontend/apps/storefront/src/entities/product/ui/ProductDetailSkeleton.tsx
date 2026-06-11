@@ -3,15 +3,6 @@ import { Skeleton } from "@radolfa/shared/ui/skeleton";
 export default function ProductDetailSkeleton() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Breadcrumb skeleton */}
-      <div className="flex items-center gap-2 mb-8">
-        <Skeleton className="h-4 w-12" />
-        <Skeleton className="h-4 w-4" />
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-4 w-4" />
-        <Skeleton className="h-4 w-32" />
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* Left — image gallery */}
         <div className="lg:col-span-3">

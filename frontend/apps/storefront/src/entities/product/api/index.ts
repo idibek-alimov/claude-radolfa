@@ -129,19 +129,6 @@ export async function uploadListingImage(
   return data;
 }
 
-/** Products filtered by category slug (includes descendants). */
-export async function fetchCategoryProducts(
-  slug: string,
-  page: number = 1,
-  size: number = 12,
-): Promise<PaginatedResponse<ListingVariant>> {
-  const { data } = await apiClient.get<PaginatedResponse<ListingVariant>>(
-    `/api/v1/categories/${slug}/products`,
-    { params: { page, size } },
-  );
-  return data;
-}
-
 /**
  * Unified catalog search — results + facets, backing /search and
  * /categories/[slug]/products. Repeatable filters (`color`, `brand`) are
