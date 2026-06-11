@@ -20,21 +20,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import tj.radolfa.application.ports.in.GetCategoryUseCase;
 import tj.radolfa.application.ports.in.GetListingUseCase;
 import tj.radolfa.application.ports.in.UpdateListingUseCase;
 import tj.radolfa.application.ports.in.UploadImageUseCase;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadRatingSummaryPort;
 import tj.radolfa.domain.exception.ImageProcessingException;
+import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.ProductAttribute;
+import tj.radolfa.application.readmodel.CatalogResult;
+import tj.radolfa.application.readmodel.CategoryView;
+import tj.radolfa.application.readmodel.ListingQueryCriteria;
+import tj.radolfa.application.readmodel.ListingSort;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDto;
+import tj.radolfa.infrastructure.web.dto.CatalogFacetsDto;
+import tj.radolfa.infrastructure.web.dto.CatalogResponseDto;
 import tj.radolfa.infrastructure.web.dto.ProductAttributeDto;
 import tj.radolfa.infrastructure.web.dto.RatingSummaryResponseDto;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Public storefront API for the 3-tier product hierarchy.
@@ -48,6 +58,7 @@ import java.util.Map;
 public class ListingController {
 
     private final GetListingUseCase      getListingUseCase;
+    private final GetCategoryUseCase     getCategoryUseCase;
     private final UpdateListingUseCase   updateListingUseCase;
     private final UploadImageUseCase     uploadImageUseCase;
     private final TierPricingEnricher    tierPricing;
@@ -55,12 +66,14 @@ public class ListingController {
     private final LoadRatingSummaryPort  loadRatingSummaryPort;
 
     public ListingController(GetListingUseCase getListingUseCase,
+            GetCategoryUseCase getCategoryUseCase,
             UpdateListingUseCase updateListingUseCase,
             UploadImageUseCase uploadImageUseCase,
             TierPricingEnricher tierPricing,
             LoadListingVariantPort loadListingVariantPort,
             LoadRatingSummaryPort loadRatingSummaryPort) {
         this.getListingUseCase      = getListingUseCase;
+        this.getCategoryUseCase     = getCategoryUseCase;
         this.updateListingUseCase   = updateListingUseCase;
         this.uploadImageUseCase     = uploadImageUseCase;
         this.tierPricing            = tierPricing;
@@ -94,6 +107,50 @@ public class ListingController {
             @Parameter(description = "Items per page") @RequestParam(defaultValue = "12") int limit) {
 
         return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(getListingUseCase.search(q, page, limit))));
+    }
+
+    @GetMapping("/catalog")
+    @Operation(summary = "Catalog search", description = "Unified filter/sort/facet search backing /search and /categories/{slug}/products")
+    public ResponseEntity<CatalogResponseDto> catalog(
+            @Parameter(description = "Search query") @RequestParam(required = false) String q,
+            @Parameter(description = "Category slug — restricts to this category and its descendants") @RequestParam(required = false) String categorySlug,
+            @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "Items per page") @RequestParam(defaultValue = "24") int size,
+            @Parameter(description = "Inclusive minimum price") @RequestParam(required = false) BigDecimal priceMin,
+            @Parameter(description = "Inclusive maximum price") @RequestParam(required = false) BigDecimal priceMax,
+            @Parameter(description = "Minimum discount percentage") @RequestParam(required = false) Integer minDiscount,
+            @Parameter(description = "Colour keys (repeatable)") @RequestParam(required = false) List<String> color,
+            @Parameter(description = "Brand IDs (repeatable)") @RequestParam(required = false) List<Long> brand,
+            @Parameter(description = "Restrict to in-stock variants") @RequestParam(defaultValue = "false") boolean inStock,
+            @Parameter(description = "Sort order") @RequestParam(required = false) String sort) {
+
+        Long categoryParentId = null;
+        List<Long> categoryIds = List.of();
+        if (categorySlug != null && !categorySlug.isBlank()) {
+            CategoryView category = getCategoryUseCase.findBySlug(categorySlug).orElse(null);
+            if (category == null) {
+                return ResponseEntity.notFound().build();
+            }
+            categoryParentId = category.id();
+            categoryIds = getCategoryUseCase.getDescendantIds(category.id());
+        }
+
+        ListingQueryCriteria criteria = new ListingQueryCriteria(
+                q, categoryIds, priceMin, priceMax, minDiscount, color, brand, inStock, ListingSort.fromNullable(sort));
+
+        CatalogResult result = getListingUseCase.searchCatalog(criteria, page, size);
+        PageResult<ListingVariantDto> enriched = tierPricing.enrich(result.page());
+
+        return ResponseEntity.ok(new CatalogResponseDto(
+                PageResponse.from(enriched),
+                CatalogFacetsDto.from(result.facets(), buildCategoryFacet(categoryParentId))));
+    }
+
+    /** Children of {@code parentId} in category mode, or root categories when browsing without a category. */
+    private List<CategoryView> buildCategoryFacet(Long parentId) {
+        return getCategoryUseCase.findAll().stream()
+                .filter(c -> Objects.equals(c.parentId(), parentId))
+                .toList();
     }
 
     @GetMapping("/autocomplete")
