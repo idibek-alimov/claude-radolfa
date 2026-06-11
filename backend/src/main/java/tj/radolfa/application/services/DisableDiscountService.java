@@ -1,7 +1,9 @@
 package tj.radolfa.application.services;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.event.DiscountTargetsChangedEvent;
 import tj.radolfa.application.ports.in.discount.DisableDiscountUseCase;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
@@ -13,10 +15,13 @@ public class DisableDiscountService implements DisableDiscountUseCase {
 
     private final LoadDiscountPort loadDiscountPort;
     private final SaveDiscountPort saveDiscountPort;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public DisableDiscountService(LoadDiscountPort loadDiscountPort, SaveDiscountPort saveDiscountPort) {
+    public DisableDiscountService(LoadDiscountPort loadDiscountPort, SaveDiscountPort saveDiscountPort,
+                                  ApplicationEventPublisher eventPublisher) {
         this.loadDiscountPort = loadDiscountPort;
         this.saveDiscountPort = saveDiscountPort;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -40,6 +45,8 @@ public class DisableDiscountService implements DisableDiscountUseCase {
                 existing.usageCapPerCustomer(),
                 existing.couponCode()
         );
-        return saveDiscountPort.save(updated);
+        Discount saved = saveDiscountPort.save(updated);
+        eventPublisher.publishEvent(new DiscountTargetsChangedEvent(saved.targets()));
+        return saved;
     }
 }

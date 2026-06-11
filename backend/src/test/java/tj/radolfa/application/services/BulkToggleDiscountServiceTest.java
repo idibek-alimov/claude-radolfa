@@ -38,7 +38,7 @@ class BulkToggleDiscountServiceTest {
     void setUp() {
         fakeLoad = new FakeLoadDiscountPort();
         fakeSave = new FakeSaveDiscountPort();
-        service  = new BulkToggleDiscountService(fakeLoad, fakeSave);
+        service  = new BulkToggleDiscountService(fakeLoad, fakeSave, event -> {});
     }
 
     @Test

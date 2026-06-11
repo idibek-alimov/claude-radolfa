@@ -5,7 +5,10 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
 import tj.radolfa.application.ports.out.ExpandCategoryTargetPort;
 import tj.radolfa.domain.model.AppliedDiscount;
+import tj.radolfa.domain.model.CategoryTarget;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountTarget;
+import tj.radolfa.domain.model.SkuTarget;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.DiscountRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
@@ -35,24 +38,61 @@ public class DiscountEnrichmentAdapter {
     private final DiscountRepository discountRepo;
     private final ExpandCategoryTargetPort expandCategoryTargetPort;
     private final ObjectProvider<DiscountResolutionContext> resolutionCtx;
+    private final ResolveDiscountsUseCase resolveDiscountsUseCase;
 
     public DiscountEnrichmentAdapter(SkuRepository skuRepo,
                                      DiscountRepository discountRepo,
                                      ExpandCategoryTargetPort expandCategoryTargetPort,
-                                     ObjectProvider<DiscountResolutionContext> resolutionCtx) {
+                                     ObjectProvider<DiscountResolutionContext> resolutionCtx,
+                                     ResolveDiscountsUseCase resolveDiscountsUseCase) {
         this.skuRepo                  = skuRepo;
         this.discountRepo             = discountRepo;
         this.expandCategoryTargetPort = expandCategoryTargetPort;
         this.resolutionCtx            = resolutionCtx;
+        this.resolveDiscountsUseCase  = resolveDiscountsUseCase;
     }
 
     /**
      * For grid/card views: resolves the best (stacked) discount for each variant.
      * Picks the SKU with the cheapest final price per variant.
      *
+     * <p>Memoized per-request and personalized to the logged-in user via the
+     * request-scoped {@link DiscountResolutionContext}. Only safe to call from a
+     * thread with an active HTTP request — for background reindexing use
+     * {@link #resolveForVariantsBackground(List)} instead.
+     *
      * @return map of variantId → DiscountInfo (only variants with active discounts)
      */
     public Map<Long, DiscountInfo> resolveForVariants(List<Long> variantIds) {
+        return resolveForVariants(variantIds, itemCodes -> resolutionCtx.getObject().resolveForListing(itemCodes));
+    }
+
+    /**
+     * Same as {@link #resolveForVariants(List)} but safe to call from background
+     * threads (scheduler, async listeners) that have no active HTTP request — resolves
+     * discounts anonymously (no logged-in user) instead of via the request-scoped context.
+     */
+    public Map<Long, DiscountInfo> resolveForVariantsBackground(List<Long> variantIds) {
+        return resolveForVariants(variantIds, itemCodes -> {
+            Map<String, BigDecimal> priceByCode = skuRepo.findBySkuCodeIn(itemCodes).stream()
+                    .filter(s -> s.getOriginalPrice() != null)
+                    .collect(Collectors.toMap(SkuEntity::getSkuCode, SkuEntity::getOriginalPrice, (a, b) -> a));
+            Map<String, List<Discount>> ordered = resolveDiscountsUseCase.resolve(
+                    new ResolveDiscountsUseCase.Query(itemCodes, null, null, null, priceByCode));
+            if (ordered.isEmpty()) return Map.of();
+            Map<String, List<AppliedDiscount>> result = new HashMap<>();
+            for (var entry : ordered.entrySet()) {
+                BigDecimal price = priceByCode.get(entry.getKey());
+                if (price == null) continue;
+                result.put(entry.getKey(), AppliedDiscount.fold(entry.getValue(), price));
+            }
+            return result;
+        });
+    }
+
+    private Map<Long, DiscountInfo> resolveForVariants(
+            List<Long> variantIds,
+            java.util.function.Function<List<String>, Map<String, List<AppliedDiscount>>> resolver) {
         if (variantIds.isEmpty()) return Map.of();
 
         List<SkuEntity> allSkus = skuRepo.findByListingVariantIdIn(variantIds);
@@ -63,8 +103,7 @@ public class DiscountEnrichmentAdapter {
                 .distinct()
                 .toList();
 
-        Map<String, List<AppliedDiscount>> resolved =
-                resolutionCtx.getObject().resolveForListing(itemCodes);
+        Map<String, List<AppliedDiscount>> resolved = resolver.apply(itemCodes);
         if (resolved.isEmpty()) return Map.of();
 
         Map<Long, List<SkuEntity>> skusByVariant = allSkus.stream()
@@ -148,6 +187,38 @@ public class DiscountEnrichmentAdapter {
 
         if (allItemCodes.isEmpty()) return List.of();
         return new ArrayList<>(skuRepo.findVariantIdsByItemCodes(allItemCodes));
+    }
+
+    /**
+     * Resolves a single discount's targets to the {@code ListingVariant} ids they
+     * cover, regardless of whether the discount is currently active. Used to refresh
+     * Elasticsearch's {@code discountPercentage} snapshot for exactly the products a
+     * campaign change affects.
+     *
+     * <p>{@link SkuTarget}s contribute their SKU code directly; {@link CategoryTarget}s
+     * are expanded to SKU codes via {@link ExpandCategoryTargetPort}; segment targets
+     * are customer-eligibility gates and contribute no product scope.
+     */
+    public List<Long> resolveVariantIdsForTargets(List<DiscountTarget> targets) {
+        Set<String> itemCodes = new HashSet<>();
+        Map<Long, Boolean> categoryMap = new HashMap<>();
+
+        for (DiscountTarget target : targets) {
+            switch (target) {
+                case SkuTarget sku -> itemCodes.add(sku.itemCode());
+                case CategoryTarget category -> categoryMap.merge(
+                        category.categoryId(), category.includeDescendants(), (a, b) -> a || b);
+                default -> { /* SegmentTarget: no product scope */ }
+            }
+        }
+
+        if (!categoryMap.isEmpty()) {
+            expandCategoryTargetPort.resolveSkuCodes(categoryMap).values()
+                    .forEach(itemCodes::addAll);
+        }
+
+        if (itemCodes.isEmpty()) return List.of();
+        return new ArrayList<>(skuRepo.findVariantIdsByItemCodes(itemCodes));
     }
 
     public record DiscountInfo(

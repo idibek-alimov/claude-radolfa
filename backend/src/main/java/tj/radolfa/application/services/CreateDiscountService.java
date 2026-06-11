@@ -1,8 +1,10 @@
 package tj.radolfa.application.services;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.event.DiscountTargetsChangedEvent;
 import tj.radolfa.application.ports.in.discount.CreateDiscountUseCase;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
@@ -25,13 +27,16 @@ public class CreateDiscountService implements CreateDiscountUseCase {
     private final LoadDiscountTypePort loadDiscountTypePort;
     private final LoadDiscountPort loadDiscountPort;
     private final SaveDiscountPort saveDiscountPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CreateDiscountService(LoadDiscountTypePort loadDiscountTypePort,
                                  LoadDiscountPort loadDiscountPort,
-                                 SaveDiscountPort saveDiscountPort) {
+                                 SaveDiscountPort saveDiscountPort,
+                                 ApplicationEventPublisher eventPublisher) {
         this.loadDiscountTypePort = loadDiscountTypePort;
         this.loadDiscountPort = loadDiscountPort;
         this.saveDiscountPort = saveDiscountPort;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -58,7 +63,9 @@ public class CreateDiscountService implements CreateDiscountUseCase {
                 command.usageCapPerCustomer(),
                 command.couponCode()
         );
-        return saveDiscountPort.save(discount);
+        Discount saved = saveDiscountPort.save(discount);
+        eventPublisher.publishEvent(new DiscountTargetsChangedEvent(saved.targets()));
+        return saved;
     }
 
     static String normalizeColorHex(String hex) {

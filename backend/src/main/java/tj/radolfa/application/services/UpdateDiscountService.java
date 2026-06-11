@@ -1,14 +1,18 @@
 package tj.radolfa.application.services;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tj.radolfa.application.event.DiscountTargetsChangedEvent;
 import tj.radolfa.application.ports.in.discount.UpdateDiscountUseCase;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountTypePort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,15 +23,18 @@ public class UpdateDiscountService implements UpdateDiscountUseCase {
     private final LoadDiscountPort loadDiscountPort;
     private final SaveDiscountPort saveDiscountPort;
     private final CreateDiscountService createDiscountService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public UpdateDiscountService(LoadDiscountTypePort loadDiscountTypePort,
                                  LoadDiscountPort loadDiscountPort,
                                  SaveDiscountPort saveDiscountPort,
-                                 CreateDiscountService createDiscountService) {
+                                 CreateDiscountService createDiscountService,
+                                 ApplicationEventPublisher eventPublisher) {
         this.loadDiscountTypePort = loadDiscountTypePort;
         this.loadDiscountPort = loadDiscountPort;
         this.saveDiscountPort = saveDiscountPort;
         this.createDiscountService = createDiscountService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -58,6 +65,14 @@ public class UpdateDiscountService implements UpdateDiscountUseCase {
                 command.usageCapPerCustomer(),
                 command.couponCode()
         );
-        return saveDiscountPort.save(updated);
+        Discount saved = saveDiscountPort.save(updated);
+
+        // Reindex both the old and new target sets so SKUs/categories removed from the
+        // campaign also get recomputed (and drop out of the "Any discount" filter).
+        List<DiscountTarget> affected = new ArrayList<>(existing.targets());
+        affected.addAll(saved.targets());
+        eventPublisher.publishEvent(new DiscountTargetsChangedEvent(affected));
+
+        return saved;
     }
 }
