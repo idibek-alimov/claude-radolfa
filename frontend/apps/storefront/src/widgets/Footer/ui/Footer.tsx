@@ -7,8 +7,8 @@ export default async function Footer() {
 
   return (
     <footer className="bg-gray-900 text-gray-300">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 text-white mb-4">
@@ -18,8 +18,8 @@ export default async function Footer() {
             <p className="text-sm leading-relaxed">{t("tagline")}</p>
           </div>
 
-          {/* Quick Links */}
-          <div>
+          {/* Quick Links — redundant with BottomNav on mobile */}
+          <div className="hidden md:block">
             <h3 className="text-white font-semibold mb-4">{t("quickLinks")}</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -75,7 +75,7 @@ export default async function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-10 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
+        <div className="mt-6 md:mt-10 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
           &copy; {new Date().getFullYear()} Radolfa. {t("allRightsReserved")}
         </div>
       </div>
