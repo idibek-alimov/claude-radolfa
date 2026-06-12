@@ -21,6 +21,7 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
+  const [dismissed, setDismissed] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -42,15 +43,16 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
 
   // Show dropdown when we have suggestions
   useEffect(() => {
-    setIsOpen(suggestions.length > 0 && debouncedQuery.length >= 2);
+    setIsOpen(!dismissed && suggestions.length > 0 && debouncedQuery.length >= 2);
     setSelectedIdx(-1);
-  }, [suggestions, debouncedQuery]);
+  }, [suggestions, debouncedQuery, dismissed]);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setDismissed(true);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -68,6 +70,7 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
         router.push(`/search?q=${encodeURIComponent(trimmed)}`);
       }
       setIsOpen(false);
+      setDismissed(true);
       inputRef.current?.blur();
     },
     [onSearch, router],
@@ -76,6 +79,7 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
       setIsOpen(false);
+      setDismissed(true);
       inputRef.current?.blur();
       return;
     }
@@ -138,10 +142,13 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setDismissed(false);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (suggestions.length > 0) setIsOpen(true);
+            if (!dismissed && suggestions.length > 0) setIsOpen(true);
           }}
           placeholder={t("placeholder")}
           className="w-full h-12 pl-12 pr-32 rounded-full bg-plum/40 text-[14px] focus:outline-none focus:bg-white focus:ring-2 focus:ring-mag border border-transparent focus:border-mag/40"
@@ -224,10 +231,13 @@ export default function SearchBar({ onSearch, compact = false }: SearchBarProps)
         ref={inputRef}
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setDismissed(false);
+        }}
         onKeyDown={handleKeyDown}
         onFocus={() => {
-          if (suggestions.length > 0) setIsOpen(true);
+          if (!dismissed && suggestions.length > 0) setIsOpen(true);
         }}
         placeholder={t("placeholder")}
         className="w-full h-10 pl-9 pr-3 rounded-full bg-plum/60 text-[13px] focus:outline-none focus:bg-white focus:ring-2 focus:ring-mag"
