@@ -73,7 +73,9 @@ public class ProductCardReadAdapter implements LoadProductCardPort {
                 brandName,
                 categoryId,
                 catName,
-                variantSummaries));
+                variantSummaries,
+                base.getStatus(),
+                base.getRejectionReason()));
     }
 
     private VariantSummary toVariantSummary(ListingVariantEntity v) {

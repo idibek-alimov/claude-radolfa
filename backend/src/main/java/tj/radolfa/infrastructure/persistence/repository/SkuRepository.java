@@ -44,19 +44,14 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
     /**
      * Full-text warehouse SKU search across skuCode, barcode, and product name.
      * Column layout: [0]=id, [1]=skuCode, [2]=barcode, [3]=sizeLabel,
-     *                [4]=stockQuantity, [5]=productName, [6]=binLocation
+     *                [4]=stockQuantity, [5]=productName
+     * Placements are enriched by SearchSkusService after this query.
      */
     @Query(value = """
-            SELECT s.id, s.sku_code, s.barcode, s.size_label, s.stock_quantity, pb.name,
-                   CASE WHEN wb.id IS NOT NULL
-                        THEN wz.code || ' / ' || ws.code || ' / ' || wb.code
-                        ELSE NULL END
+            SELECT s.id, s.sku_code, s.barcode, s.size_label, s.stock_quantity, pb.name
             FROM skus s
             JOIN listing_variants lv ON s.listing_variant_id = lv.id
             JOIN product_bases pb    ON lv.product_base_id = pb.id
-            LEFT JOIN warehouse_bins   wb ON s.bin_id = wb.id
-            LEFT JOIN warehouse_shelves ws ON wb.shelf_id = ws.id
-            LEFT JOIN warehouse_zones   wz ON ws.zone_id = wz.id
             WHERE LOWER(s.sku_code) LIKE LOWER(CONCAT('%', :query, '%'))
                OR LOWER(COALESCE(s.barcode, '')) LIKE LOWER(CONCAT('%', :query, '%'))
                OR LOWER(pb.name) LIKE LOWER(CONCAT('%', :query, '%'))
@@ -75,11 +70,17 @@ public interface SkuRepository extends JpaRepository<SkuEntity, Long> {
     Page<Object[]> searchSkus(@Param("query") String query, Pageable pageable);
 
     @Modifying
-    @Query("UPDATE SkuEntity s SET s.stockQuantity = s.stockQuantity - :qty " +
-           "WHERE s.id = :id AND s.stockQuantity >= :qty")
-    int decrementStockIfAvailable(@Param("id") Long id, @Param("qty") int qty);
+    @Query("UPDATE SkuEntity s SET s.stockQuantity = :qty WHERE s.id = :id")
+    void setStockQuantity(@Param("id") Long id, @Param("qty") int qty);
 
-    @Modifying
-    @Query("UPDATE SkuEntity s SET s.stockQuantity = s.stockQuantity + :qty WHERE s.id = :id")
-    int incrementStock(@Param("id") Long id, @Param("qty") int qty);
+    @Query("SELECT s.listingVariant.productBase.id FROM SkuEntity s WHERE s.id = :skuId")
+    Optional<Long> findProductBaseIdBySkuId(@Param("skuId") Long skuId);
+
+    /**
+     * Returns [skuId, sellerId] for the given SKU so callers can resolve ownership.
+     * sellerId is null when the product is Radolfa-owned (product_bases.seller_id IS NULL).
+     * Returns an empty list when the SKU id does not exist.
+     */
+    @Query("SELECT s.id, s.listingVariant.productBase.sellerId FROM SkuEntity s WHERE s.id = :skuId")
+    List<Object[]> findSkuOwnerRow(@Param("skuId") Long skuId);
 }

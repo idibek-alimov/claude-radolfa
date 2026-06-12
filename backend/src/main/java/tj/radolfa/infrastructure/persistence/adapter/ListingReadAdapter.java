@@ -15,6 +15,7 @@ import tj.radolfa.infrastructure.persistence.entity.ListingVariantEntity;
 import tj.radolfa.infrastructure.persistence.entity.ListingVariantImageEntity;
 import tj.radolfa.infrastructure.persistence.entity.SkuEntity;
 import tj.radolfa.infrastructure.persistence.repository.ListingVariantRepository;
+import tj.radolfa.infrastructure.persistence.repository.SellerRepository;
 import tj.radolfa.infrastructure.persistence.repository.SkuRepository;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto;
 import tj.radolfa.application.readmodel.ListingVariantDetailDto.AttributeDto;
@@ -47,13 +48,16 @@ public class ListingReadAdapter implements LoadListingPort {
         private final ListingVariantRepository variantRepo;
         private final SkuRepository skuRepo;
         private final DiscountEnrichmentAdapter discountEnrichment;
+        private final SellerRepository sellerRepo;
 
         public ListingReadAdapter(ListingVariantRepository variantRepo,
                         SkuRepository skuRepo,
-                        DiscountEnrichmentAdapter discountEnrichment) {
+                        DiscountEnrichmentAdapter discountEnrichment,
+                        SellerRepository sellerRepo) {
                 this.variantRepo = variantRepo;
                 this.skuRepo = skuRepo;
                 this.discountEnrichment = discountEnrichment;
+                this.sellerRepo = sellerRepo;
         }
 
         @Override
@@ -219,6 +223,13 @@ public class ListingReadAdapter implements LoadListingPort {
                                         ? entity.getProductBase().getCategory()
                                         : null);
 
+                // Seller attribution — snapshot for "Sold by" display on the storefront.
+                // NULL sellerId = Radolfa-owned; frontend renders "Sold by Radolfa" in that case.
+                Long sellerId = entity.getProductBase().getSellerId();
+                String sellerShopName = sellerId != null
+                        ? sellerRepo.findById(sellerId).map(s -> s.getShopName()).orElse(null)
+                        : null;
+
                 return new ListingVariantDetailDto(
                                 baseId,
                                 entity.getId(),
@@ -246,7 +257,9 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getWidthCm(),
                                 entity.getHeightCm(),
                                 entity.getDepthCm(),
-                                reviewTraits);
+                                reviewTraits,
+                                sellerId,
+                                sellerShopName);
         }
 
         // ---- Trait helpers (detail-page only) ----

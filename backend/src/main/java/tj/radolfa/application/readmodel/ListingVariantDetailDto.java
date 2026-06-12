@@ -39,7 +39,11 @@ public record ListingVariantDetailDto(
         Integer widthCm,
         Integer heightCm,
         Integer depthCm,
-        List<ReviewTraitView> reviewTraits
+        List<ReviewTraitView> reviewTraits,
+        /** {@code null} = Radolfa-owned. */
+        Long sellerId,
+        /** {@code null} = Radolfa-owned; frontend renders "Sold by Radolfa" in that case. */
+        String sellerShopName
 ) {
     /**
      * A single product attribute shown on the detail page.
@@ -98,6 +102,7 @@ public record ListingVariantDetailDto(
                 originalPrice, discountPrice, discountPercentage, discountName, discountColorHex,
                 loyalty, loyaltyPct.intValue(), isPartialDiscount,
                 tags, loyaltySkus, siblingVariants, productCode,
-                weightKg, widthCm, heightCm, depthCm, reviewTraits);
+                weightKg, widthCm, heightCm, depthCm, reviewTraits,
+                sellerId, sellerShopName);
     }
 }

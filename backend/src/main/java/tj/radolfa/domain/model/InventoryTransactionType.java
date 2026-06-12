@@ -8,5 +8,7 @@ public enum InventoryTransactionType {
     WRITE_OFF,        // item deemed defective after review — paper trail only, no stock change
     RECEIPT,          // stock added via a Stock Receipt document (W2)
     MANUAL_ADJUSTMENT, // admin sets absolute value or positive/negative delta
-    PICK_VERIFICATION  // unit physically scanned during pick — paper trail only, no stock change
+    PICK_VERIFICATION, // unit physically scanned during pick — paper trail only, no stock change
+    PUTAWAY,           // units moved inbound pool → bin — paper trail only, no net stock change
+    RELOCATION         // units moved bin → bin — paper trail only, no net stock change
 }

@@ -4,8 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 
@@ -124,4 +126,28 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
 
     @EntityGraph(attributePaths = {"items"})
     List<OrderEntity> findByStatusAndCreatedAtLessThan(OrderStatus status, Instant cutoff);
+
+    // ── Available courier pool (HOME PICKED with no courier assigned) ─────────
+
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    Page<OrderEntity> findByStatusAndCourierIdIsNullAndDeliveryType(
+            OrderStatus status, DeliveryType deliveryType, Pageable pageable);
+
+    // ── Concurrency-safe courier claim ────────────────────────────────────────
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE OrderEntity o
+               SET o.courierId = :courierId,
+                   o.status    = tj.radolfa.domain.model.OrderStatus.CLAIMED,
+                   o.claimedAt = :claimedAt,
+                   o.version   = o.version + 1
+             WHERE o.id           = :orderId
+               AND o.courierId    IS NULL
+               AND o.status       = tj.radolfa.domain.model.OrderStatus.PICKED
+               AND o.deliveryType = tj.radolfa.domain.model.DeliveryType.HOME
+            """)
+    int claimIfAvailable(@Param("orderId")   Long orderId,
+                         @Param("courierId") Long courierId,
+                         @Param("claimedAt") Instant claimedAt);
 }

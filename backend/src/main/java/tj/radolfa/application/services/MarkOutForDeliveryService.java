@@ -33,9 +33,9 @@ public class MarkOutForDeliveryService implements MarkOutForDeliveryUseCase {
         Order order = loadOrderPort.loadById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
 
-        if (order.status() != OrderStatus.SHIPPED) {
+        if (order.status() != OrderStatus.CLAIMED) {
             throw new IllegalStateException(
-                    "Order must be SHIPPED to mark as out for delivery, current status: " + order.status());
+                    "Order must be CLAIMED to mark as out for delivery, current status: " + order.status());
         }
 
         if (order.courierId() == null || !order.courierId().equals(courierId)) {

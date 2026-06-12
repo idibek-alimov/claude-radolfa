@@ -72,6 +72,10 @@ public class ListingDocument {
     @Field(type = FieldType.Long)
     private Long productBaseId;
 
+    /** ProductStatus enum name (e.g. "ACTIVE"). Filtered at read time. */
+    @Field(type = FieldType.Keyword)
+    private String status;
+
     public ListingDocument() {}
 
     public ListingDocument(Long id, String slug, String name, String category,
@@ -80,7 +84,7 @@ public class ListingDocument {
                            Double price, Integer totalStock,
                            Instant lastSyncAt,
                            String productCode, List<String> skuCodes,
-                           Long productBaseId) {
+                           Long productBaseId, String status) {
         this.id             = id;
         this.slug           = slug;
         this.name           = name;
@@ -95,6 +99,7 @@ public class ListingDocument {
         this.productCode    = productCode;
         this.skuCodes       = skuCodes;
         this.productBaseId  = productBaseId;
+        this.status         = status;
     }
 
     public Long         getId()             { return id; }
@@ -111,4 +116,5 @@ public class ListingDocument {
     public String       getProductCode()    { return productCode; }
     public List<String> getSkuCodes()       { return skuCodes; }
     public Long         getProductBaseId()  { return productBaseId; }
+    public String       getStatus()         { return status; }
 }

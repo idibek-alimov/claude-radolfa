@@ -41,7 +41,16 @@ class AddSkuToVariantServiceTest {
     void setUp() {
         fakeLoad = new FakeLoadListingVariantPort();
         fakeSave = new FakeSaveHierarchyPort();
-        service  = new AddSkuToVariantService(fakeLoad, fakeSave, new tj.radolfa.domain.service.BarcodeGenerator());
+        tj.radolfa.application.ports.out.LoadProductBasePort draftLoader = new tj.radolfa.application.ports.out.LoadProductBasePort() {
+            @Override public java.util.Optional<ProductBase> findById(Long id) {
+                return java.util.Optional.of(new ProductBase(id, "REF", "N", null, null, null,
+                        tj.radolfa.domain.model.ProductStatus.DRAFT, null));
+            }
+            @Override public java.util.Optional<ProductBase> findByExternalRef(String r) { return java.util.Optional.empty(); }
+            @Override public java.util.Map<Long, ProductBase> findProductsByIds(java.util.Collection<Long> ids) { return java.util.Map.of(); }
+        };
+        service  = new AddSkuToVariantService(fakeLoad, fakeSave, new tj.radolfa.domain.service.BarcodeGenerator(),
+                new ProductEditGuard(draftLoader, fakeSave, id -> java.util.Optional.empty(), fakeLoad));
 
         // Store a valid variant for the happy-path tests
         fakeLoad.store(buildVariant(VARIANT_ID, PRODUCT_BASE_ID));

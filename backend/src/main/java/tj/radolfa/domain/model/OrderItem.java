@@ -13,6 +13,8 @@ public class OrderItem {
         private final int quantityPicked;
         private final Instant pickedAt;
         private final Long pickedByUserId;
+        /** Snapshot of the product owner at checkout time. {@code null} = Radolfa-owned. */
+        private final Long sellerId;
 
         public OrderItem(Long id,
                         Long skuId,
@@ -23,7 +25,8 @@ public class OrderItem {
                         Money price,
                         int quantityPicked,
                         Instant pickedAt,
-                        Long pickedByUserId) {
+                        Long pickedByUserId,
+                        Long sellerId) {
                 if (quantity <= 0) {
                         throw new IllegalArgumentException("Quantity must be positive, got: " + quantity);
                 }
@@ -37,6 +40,7 @@ public class OrderItem {
                 this.quantityPicked = quantityPicked;
                 this.pickedAt = pickedAt;
                 this.pickedByUserId = pickedByUserId;
+                this.sellerId = sellerId;
         }
 
         public Long getId() { return id; }
@@ -49,6 +53,7 @@ public class OrderItem {
         public int getQuantityPicked() { return quantityPicked; }
         public Instant getPickedAt() { return pickedAt; }
         public Long getPickedByUserId() { return pickedByUserId; }
+        public Long getSellerId() { return sellerId; }
 
         public boolean isFullyPicked() {
                 return quantityPicked >= quantity;

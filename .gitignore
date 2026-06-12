@@ -118,6 +118,7 @@ frontend/.nyc_output/
 reports/
 prompts/
 updates/
+design_handoff/
 bugs/
 newFeatures/
 issues/

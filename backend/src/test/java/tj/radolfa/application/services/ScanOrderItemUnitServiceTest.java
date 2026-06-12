@@ -2,7 +2,6 @@ package tj.radolfa.application.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
 import tj.radolfa.application.ports.in.warehouse.ScanOrderItemUnitUseCase;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
@@ -19,7 +18,6 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
-import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.Warehouse;
 
@@ -32,7 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,7 +48,7 @@ class ScanOrderItemUnitServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null);
     }
 
     static Sku sku(Long id, String barcode) {
@@ -112,7 +109,7 @@ class ScanOrderItemUnitServiceTest {
                             if (!orderItemId.equals(i.getId())) return i;
                             return new OrderItem(i.getId(), i.getSkuId(), i.getListingVariantId(),
                                     i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(),
-                                    newCount, newCount >= i.getQuantity() ? Instant.now() : null, null);
+                                    newCount, newCount >= i.getQuantity() ? Instant.now() : null, null, i.getSellerId());
                         })
                         .toList();
                 orderPort.update(order.toBuilder().items(updated).build());
@@ -144,35 +141,28 @@ class ScanOrderItemUnitServiceTest {
         @Override public Optional<Warehouse> findById(Long id) { return Optional.of(findDefault()); }
     }
 
-    static class CapturingUpdateOrderStatusUseCase implements UpdateOrderStatusUseCase {
-        final List<Command> commands = new ArrayList<>();
-        @Override public void execute(Command cmd) { commands.add(cmd); }
-    }
-
     ScanOrderItemUnitService service(FakeLoadOrderPort orderPort,
                                      FakeLoadSkuPort skuPort,
                                      CapturingSaveOrderItemPickStatePort savePort,
-                                     CapturingRecordInventoryTransactionPort recordPort,
-                                     CapturingUpdateOrderStatusUseCase statusUseCase) {
+                                     CapturingRecordInventoryTransactionPort recordPort) {
         return new ScanOrderItemUnitService(orderPort, skuPort, savePort, recordPort,
-                new FakeLoadWarehousePort(), statusUseCase);
+                new FakeLoadWarehousePort());
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("1-item qty-1 order: one correct scan → orderFullyPicked=true, status PICKED, 1 ledger row (delta=0)")
-    void singleItemSingleUnit_correctScan_completesOrder() {
+    @DisplayName("1-item qty-1 order: one correct scan → orderFullyPicked=true, status unchanged, 1 ledger row (delta=0)")
+    void singleItemSingleUnit_correctScan_fullyPicked() {
         OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 1, 0);
         Order order = paidHomeOrder(ORDER_ID, List.of(itemA));
 
-        var orderPort = new FakeLoadOrderPort(order);
-        var savePort  = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
+        var orderPort  = new FakeLoadOrderPort(order);
+        var savePort   = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
         var recordPort = new CapturingRecordInventoryTransactionPort();
-        var statusUseCase = new CapturingUpdateOrderStatusUseCase();
-        var skuPort = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
+        var skuPort    = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
 
-        var svc = service(orderPort, skuPort, savePort, recordPort, statusUseCase);
+        var svc = service(orderPort, skuPort, savePort, recordPort);
 
         ScanOrderItemUnitUseCase.Result result =
                 svc.execute(new ScanOrderItemUnitUseCase.Command(ORDER_ID, BARCODE_A, ACTOR_ID));
@@ -182,10 +172,6 @@ class ScanOrderItemUnitServiceTest {
         assertEquals(1, result.quantityPicked());
         assertEquals(1, result.quantityOrdered());
 
-        assertEquals(1, statusUseCase.commands.size());
-        assertEquals(OrderStatus.PICKED, statusUseCase.commands.get(0).newStatus());
-        assertEquals(ORDER_ID, statusUseCase.commands.get(0).orderId());
-
         assertEquals(1, recordPort.records.size());
         assertEquals(InventoryTransactionType.PICK_VERIFICATION, recordPort.records.get(0).type());
         assertEquals(0, recordPort.records.get(0).delta());
@@ -194,8 +180,8 @@ class ScanOrderItemUnitServiceTest {
     }
 
     @Test
-    @DisplayName("2-item qty-2 order: status update fires only on the 4th scan")
-    void twoItemsTwoUnits_statusUpdateOnlyOnFinalScan() {
+    @DisplayName("2-item qty-2 order: orderFullyPicked reported only on the 4th scan, status never changed")
+    void twoItemsTwoUnits_fullyPickedOnFinalScan_noAutoComplete() {
         OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 2, 0);
         OrderItem itemB = item(ITEM_B_ID, SKU_B_ID, 2, 0);
         Order order = paidHomeOrder(ORDER_ID, List.of(itemA, itemB));
@@ -204,12 +190,11 @@ class ScanOrderItemUnitServiceTest {
         var savePort  = new CapturingSaveOrderItemPickStatePort(orderPort,
                 Map.of(ITEM_A_ID, 2, ITEM_B_ID, 2));
         var recordPort = new CapturingRecordInventoryTransactionPort();
-        var statusUseCase = new CapturingUpdateOrderStatusUseCase();
         var skuPort = new FakeLoadSkuPort(Map.of(
                 SKU_A_ID, sku(SKU_A_ID, BARCODE_A),
                 SKU_B_ID, sku(SKU_B_ID, BARCODE_B)));
 
-        var svc = service(orderPort, skuPort, savePort, recordPort, statusUseCase);
+        var svc = service(orderPort, skuPort, savePort, recordPort);
         var cmd = (java.util.function.Function<String, ScanOrderItemUnitUseCase.Result>)
                 barcode -> svc.execute(new ScanOrderItemUnitUseCase.Command(ORDER_ID, barcode, ACTOR_ID));
 
@@ -218,13 +203,8 @@ class ScanOrderItemUnitServiceTest {
         assertFalse(cmd.apply(BARCODE_A).orderFullyPicked()); // itemA: 2/2, itemB: 0/2
         assertFalse(cmd.apply(BARCODE_B).orderFullyPicked()); // itemA: 2/2, itemB: 1/2
 
-        assertTrue(statusUseCase.commands.isEmpty(), "status must not be updated before all items are picked");
-
-        // scan 4: order complete
+        // scan 4: all items picked — result signals fully-picked but order stays PAID
         assertTrue(cmd.apply(BARCODE_B).orderFullyPicked()); // itemA: 2/2, itemB: 2/2
-
-        assertEquals(1, statusUseCase.commands.size());
-        assertEquals(OrderStatus.PICKED, statusUseCase.commands.get(0).newStatus());
         assertEquals(4, recordPort.records.size());
     }
 
@@ -237,17 +217,15 @@ class ScanOrderItemUnitServiceTest {
         var orderPort  = new FakeLoadOrderPort(order);
         var savePort   = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
         var recordPort = new CapturingRecordInventoryTransactionPort();
-        var statusUseCase = new CapturingUpdateOrderStatusUseCase();
-        var skuPort = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
+        var skuPort    = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
 
-        var svc = service(orderPort, skuPort, savePort, recordPort, statusUseCase);
+        var svc = service(orderPort, skuPort, savePort, recordPort);
 
         assertThrows(BarcodeMismatchException.class,
                 () -> svc.execute(new ScanOrderItemUnitUseCase.Command(ORDER_ID, "0000000000000", ACTOR_ID)));
 
         assertTrue(savePort.calls.isEmpty());
         assertTrue(recordPort.records.isEmpty());
-        assertTrue(statusUseCase.commands.isEmpty());
     }
 
     @Test
@@ -259,17 +237,15 @@ class ScanOrderItemUnitServiceTest {
         var orderPort  = new FakeLoadOrderPort(order);
         var savePort   = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
         var recordPort = new CapturingRecordInventoryTransactionPort();
-        var statusUseCase = new CapturingUpdateOrderStatusUseCase();
-        var skuPort = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
+        var skuPort    = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
 
-        var svc = service(orderPort, skuPort, savePort, recordPort, statusUseCase);
+        var svc = service(orderPort, skuPort, savePort, recordPort);
 
         assertThrows(OrderItemAlreadyFullyPickedException.class,
                 () -> svc.execute(new ScanOrderItemUnitUseCase.Command(ORDER_ID, BARCODE_A, ACTOR_ID)));
 
         assertTrue(savePort.calls.isEmpty());
         assertTrue(recordPort.records.isEmpty());
-        assertTrue(statusUseCase.commands.isEmpty());
     }
 
     @Test
@@ -282,12 +258,12 @@ class ScanOrderItemUnitServiceTest {
                 .items(List.of(itemA)).createdAt(Instant.now())
                 .build();
 
-        var orderPort = new FakeLoadOrderPort(shippedOrder);
-        var savePort  = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
+        var orderPort  = new FakeLoadOrderPort(shippedOrder);
+        var savePort   = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
         var recordPort = new CapturingRecordInventoryTransactionPort();
-        var skuPort = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
+        var skuPort    = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
 
-        var svc = service(orderPort, skuPort, savePort, recordPort, new CapturingUpdateOrderStatusUseCase());
+        var svc = service(orderPort, skuPort, savePort, recordPort);
 
         assertThrows(IllegalArgumentException.class,
                 () -> svc.execute(new ScanOrderItemUnitUseCase.Command(ORDER_ID, BARCODE_A, ACTOR_ID)));
@@ -301,7 +277,7 @@ class ScanOrderItemUnitServiceTest {
         var recordPort = new CapturingRecordInventoryTransactionPort();
         var skuPort    = new FakeLoadSkuPort(Map.of());
 
-        var svc = service(orderPort, skuPort, savePort, recordPort, new CapturingUpdateOrderStatusUseCase());
+        var svc = service(orderPort, skuPort, savePort, recordPort);
 
         assertThrows(ResourceNotFoundException.class,
                 () -> svc.execute(new ScanOrderItemUnitUseCase.Command(999L, BARCODE_A, ACTOR_ID)));

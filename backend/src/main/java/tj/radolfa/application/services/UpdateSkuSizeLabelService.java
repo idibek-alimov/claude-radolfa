@@ -20,16 +20,20 @@ public class UpdateSkuSizeLabelService implements UpdateSkuSizeLabelUseCase {
 
     private final LoadSkuPort              loadSkuPort;
     private final SaveProductHierarchyPort savePort;
+    private final ProductEditGuard         editGuard;
 
     public UpdateSkuSizeLabelService(LoadSkuPort loadSkuPort,
-                                     SaveProductHierarchyPort savePort) {
+                                     SaveProductHierarchyPort savePort,
+                                     ProductEditGuard editGuard) {
         this.loadSkuPort = loadSkuPort;
         this.savePort    = savePort;
+        this.editGuard   = editGuard;
     }
 
     @Override
     @Transactional
     public void execute(Long skuId, String newSizeLabel) {
+        editGuard.resetIfNeededBySkuId(skuId);
         Sku sku = loadSkuPort.findSkuById(skuId)
                 .orElseThrow(() -> new IllegalArgumentException("SKU not found: id=" + skuId));
 

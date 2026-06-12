@@ -14,7 +14,8 @@ on:
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/idibek-alimov/claude-radolfa-backend
-  FRONTEND_IMAGE: ghcr.io/idibek-alimov/claude-radolfa-frontend
+  STOREFRONT_IMAGE: ghcr.io/idibek-alimov/claude-radolfa-storefront
+  OPS_IMAGE: ghcr.io/idibek-alimov/claude-radolfa-ops
 
 jobs:
 
@@ -71,13 +72,14 @@ jobs:
             ${{ env.BACKEND_IMAGE }}:${{ steps.tag.outputs.value }}
             ${{ env.BACKEND_IMAGE }}:latest
 
-      # --- Frontend ---
+      # --- Storefront ---
       # NEXT_PUBLIC_* vars must be injected at build time — they are inlined
       # by Next.js at compile time and cannot be overridden at runtime.
-      - name: Build & push frontend
+      - name: Build & push storefront
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          file: ./frontend/apps/storefront/Dockerfile
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -85,8 +87,24 @@ jobs:
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
           tags: |
-            ${{ env.FRONTEND_IMAGE }}:${{ steps.tag.outputs.value }}
-            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.STOREFRONT_IMAGE }}:${{ steps.tag.outputs.value }}
+            ${{ env.STOREFRONT_IMAGE }}:latest
+
+      # --- Ops portal ---
+      - name: Build & push ops
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/apps/ops/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          tags: |
+            ${{ env.OPS_IMAGE }}:${{ steps.tag.outputs.value }}
+            ${{ env.OPS_IMAGE }}:latest
 
   # ---------------------------------------------------------------------------
   # 2. Deploy to VPS

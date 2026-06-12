@@ -4,6 +4,7 @@ public enum OrderStatus {
     PENDING,
     PAID,
     PICKED,
+    CLAIMED,
     SHIPPED,
     OUT_FOR_DELIVERY,
     DELIVERY_ATTEMPTED,

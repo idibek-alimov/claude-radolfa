@@ -30,7 +30,8 @@ public interface ListingIndexPort {
                String description, java.util.List<String> images,
                Double price, Integer totalStock,
                java.time.Instant lastSyncAt,
-               String productCode, java.util.List<String> skuCodes);
+               String productCode, java.util.List<String> skuCodes,
+               String status);
 
     /**
      * Remove a listing variant from the search index.

@@ -51,7 +51,4 @@ public class SkuEntity extends BaseAuditEntity {
     @Column(name = "height_cm")
     private Integer heightCm;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bin_id")
-    private WarehouseBinEntity bin;
 }

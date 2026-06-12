@@ -25,7 +25,7 @@ class GetWarehousePickQueueServiceTest {
 
     static OrderItem item(Long id, int qty, int picked) {
         return new OrderItem(id, null, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null);
     }
 
     static Order paidOrder(Long orderId, DeliveryType deliveryType, List<OrderItem> items) {

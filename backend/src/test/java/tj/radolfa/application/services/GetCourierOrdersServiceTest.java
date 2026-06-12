@@ -40,6 +40,11 @@ class GetCourierOrdersServiceTest {
             this.capturedSize     = sz;
             return result;
         }
+
+        @Override
+        public PageResult<Order> loadAvailablePoolPaged(int p, int sz) {
+            return new PageResult<>(List.of(), 0, p, sz, true);
+        }
     }
 
     static Order order(Long id, OrderStatus status) {

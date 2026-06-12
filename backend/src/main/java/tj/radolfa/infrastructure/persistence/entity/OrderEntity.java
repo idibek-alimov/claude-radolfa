@@ -74,6 +74,10 @@ public class OrderEntity extends BaseAuditEntity {
     @Column(name = "estimated_delivery_date")
     private LocalDate estimatedDeliveryDate;
 
+    @Column(name = "claimed_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Instant claimedAt;
+
     @Column(name = "shipped_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Instant shippedAt;

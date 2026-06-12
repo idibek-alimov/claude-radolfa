@@ -12,4 +12,7 @@ public interface LoadCourierOrdersPort {
     PageResult<Order> loadByCourierIdAndStatusesPaged(Long courierId,
                                                        List<OrderStatus> statuses,
                                                        int page, int size);
+
+    /** Returns HOME-delivery {@code PICKED} orders with no courier assigned, oldest first. */
+    PageResult<Order> loadAvailablePoolPaged(int page, int size);
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
+import tj.radolfa.domain.model.ProductStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,17 @@ public class ProductBaseEntity extends BaseAuditEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id")
     private BrandEntity brand;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 32)
+    private ProductStatus status;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    /** Nullable — null means Radolfa-owned. Marketplace Phase 2+. */
+    @Column(name = "seller_id")
+    private Long sellerId;
 
     @OneToMany(mappedBy = "productBase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingVariantEntity> variants = new ArrayList<>();

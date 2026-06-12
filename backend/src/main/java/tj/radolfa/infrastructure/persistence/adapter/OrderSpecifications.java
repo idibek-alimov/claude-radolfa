@@ -24,7 +24,7 @@ class OrderSpecifications {
      * because {@code user} is {@code @ManyToOne} — no collection fetch involved).
      * For the count query it falls back to a plain join.
      *
-     * @param search   matches phone (LIKE) or order id (exact). Null/blank = all.
+     * @param search   matches phone (LIKE), external order id (LIKE), or internal id (exact). Null/blank = all.
      * @param statuses empty or null = all statuses.
      */
     static Specification<OrderEntity> adminSearch(String search, Collection<OrderStatus> statuses) {
@@ -44,12 +44,13 @@ class OrderSpecifications {
 
             if (search != null && !search.isBlank()) {
                 String pattern = "%" + search.toLowerCase() + "%";
-                Predicate phoneLike = cb.like(cb.lower(userJoin.get("phone")), pattern);
+                Predicate phoneLike    = cb.like(cb.lower(userJoin.get("phone")), pattern);
+                Predicate extOrderLike = cb.like(cb.lower(root.get("externalOrderId")), pattern);
                 try {
                     Long id = Long.parseLong(search.trim());
-                    predicates.add(cb.or(phoneLike, cb.equal(root.get("id"), id)));
+                    predicates.add(cb.or(phoneLike, extOrderLike, cb.equal(root.get("id"), id)));
                 } catch (NumberFormatException ignored) {
-                    predicates.add(phoneLike);
+                    predicates.add(cb.or(phoneLike, extOrderLike));
                 }
             }
 

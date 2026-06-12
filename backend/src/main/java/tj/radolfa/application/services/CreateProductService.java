@@ -118,7 +118,8 @@ public class CreateProductService implements CreateProductUseCase {
         // 4. Create ProductBase with auto-generated externalRef
         // Use 12 hex chars (48 bits of entropy) to avoid birthday collisions at scale.
         String externalRef = "INTERNAL-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
-        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(), category.id(), brandId);
+        ProductBase base = new ProductBase(null, externalRef, command.name(), category.name(),
+                category.id(), brandId, tj.radolfa.domain.model.ProductStatus.DRAFT, null, command.sellerId());
         ProductBase savedBase = savePort.saveBase(base);
 
         log.info("[CREATE-PRODUCT] Created ProductBase id={} name='{}' externalRef={}",
@@ -187,7 +188,8 @@ public class CreateProductService implements CreateProductUseCase {
                     savedVariant.getSlug(), savedSkus.size());
 
             eventPublisher.publishEvent(buildIndexEvent(
-                    savedVariant, command.name(), category.name(), color.hexCode(), savedSkus));
+                    savedVariant, command.name(), category.name(), color.hexCode(), savedSkus,
+                    savedBase.getStatus() != null ? savedBase.getStatus().name() : null));
         }
 
         return savedBase.getId();
@@ -240,7 +242,7 @@ public class CreateProductService implements CreateProductUseCase {
 
     private ListingVariantIndexedEvent buildIndexEvent(ListingVariant variant, String productName,
                                                        String category, String colorHex,
-                                                       List<Sku> skus) {
+                                                       List<Sku> skus, String status) {
         Double price = skus.stream()
                 .map(Sku::getPrice)
                 .filter(java.util.Objects::nonNull)
@@ -262,6 +264,7 @@ public class CreateProductService implements CreateProductUseCase {
                 variant.getId(), variant.getProductBaseId(), variant.getSlug(),
                 productName, category, variant.getColorKey(), colorHex,
                 variant.getWebDescription(), new java.util.ArrayList<>(variant.getImages()),
-                price, totalStock, variant.getLastSyncAt(), variant.getProductCode(), skuCodes);
+                price, totalStock, variant.getLastSyncAt(), variant.getProductCode(), skuCodes,
+                status);
     }
 }

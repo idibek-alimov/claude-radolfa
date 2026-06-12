@@ -55,10 +55,26 @@ class AddVariantToProductServiceTest {
         eventPublisher  = event -> {
             if (event instanceof ListingVariantIndexedEvent e) publishedEvents.add(e);
         };
-        service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher);
+        tj.radolfa.application.ports.out.LoadSkuPort noSkus =
+                new tj.radolfa.application.ports.out.LoadSkuPort() {
+                    @Override public Optional<Sku> findBySkuCode(String c) { return Optional.empty(); }
+                    @Override public Optional<Sku> findSkuById(Long id) { return Optional.empty(); }
+                    @Override public List<Sku> findSkusByVariantId(Long id) { return List.of(); }
+                    @Override public List<Sku> findAllByIds(Collection<Long> ids) { return List.of(); }
+                };
+        tj.radolfa.application.ports.out.LoadColorPort noColors =
+                new tj.radolfa.application.ports.out.LoadColorPort() {
+                    @Override public Optional<tj.radolfa.application.ports.out.LoadColorPort.ColorView> findByColorKey(String k) { return Optional.empty(); }
+                    @Override public List<tj.radolfa.application.ports.out.LoadColorPort.ColorView> findAll() { return List.of(); }
+                    @Override public Optional<tj.radolfa.application.ports.out.LoadColorPort.ColorView> findById(Long id) { return Optional.empty(); }
+                };
+        ListingVariantIndexPayload payload = new ListingVariantIndexPayload(noSkus, noColors);
+        service = new AddVariantToProductService(fakeBase, fakeColor, fakeVariant, fakeSave, eventPublisher,
+                new ProductEditGuard(fakeBase, fakeSave, id -> java.util.Optional.empty(), fakeVariant),
+                payload);
 
         // Default fixtures
-        fakeBase.store(new ProductBase(1L, "INTERNAL-ABC123", "Winter Jacket", "Clothing", 1L, null));
+        fakeBase.store(new ProductBase(1L, "INTERNAL-ABC123", "Winter Jacket", "Clothing", 1L, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null));
         fakeColor.store(new ColorView(10L, "red", "Red", "#FF0000"));
     }
 

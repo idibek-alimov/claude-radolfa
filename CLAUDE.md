@@ -28,20 +28,33 @@ Sub-level instructions live in `backend/CLAUDE.md` and `frontend/CLAUDE.md`. Rea
 ./mvnw test -pl backend -Dtest=CreateProductServiceTest#shouldCreateProductWithVariants
 ```
 
-### Frontend (Next.js 15 + React 19)
+### Frontend (npm workspace — Next.js 15 + React 19)
+
+The frontend is an npm workspace with two Next.js apps and one shared package:
+- `apps/storefront` — customer storefront (served at `/`)
+- `apps/ops` — internal ops portal (served at `/ops`, roles: MANAGER, ADMIN, WAREHOUSE_MANAGER, COURIER, PICKPOINT_STAFF)
+- `packages/shared` — `@radolfa/shared` (Axios client, ProtectedRoute, useAuth, shadcn UI, i18n, user entity)
 
 ```bash
-# Install dependencies
+# Install dependencies (run from frontend/)
 npm install --prefix frontend
 
-# Start dev server (set API base URL)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run dev --prefix frontend
+# Start storefront dev server
+npm run dev:storefront --prefix frontend
 
-# Build for production
+# Start ops portal dev server (port 3001)
+npm run dev:ops --prefix frontend
+
+# Build both apps for production
 npm run build --prefix frontend
 
-# Lint
+# Build individually
+npm run build:storefront --prefix frontend
+npm run build:ops --prefix frontend
+
+# Lint / typecheck across all workspaces
 npm run lint --prefix frontend
+npm run typecheck --prefix frontend
 ```
 
 ### Infrastructure
@@ -160,4 +173,12 @@ Three roles: `USER`, `MANAGER`, `ADMIN`. `ADMIN` is the only role that can edit 
 
 **After implementation:** run `/audit-data` to validate Hexagonal + FSD compliance. Run `/review` for any security-sensitive code.
 
-**CRITICAL — Explicit permission required before any code is written:** Answering a design question (e.g. "Option A", "yes", "agreed") is NOT permission to implement. I must wait for an explicit instruction such as "go ahead", "implement it", or "just do it" before writing or modifying any code.
+**CRITICAL — Explicit permission required before any code is written:** Answering a design question, approving a plan, or any implicit signal is NOT permission to implement. I must wait for the user to type one of these exact phrases:
+
+- **"start coding"**
+- **"implement it"**
+
+If it is time to write code and I have not received one of those phrases, I must stop and ask:
+> "Please type **start coding** or **implement it** to give me the go-ahead."
+
+No other wording counts. This rule overrides ExitPlanMode's "you can now start coding" message.

@@ -1,20 +1,20 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-/.pnp
+# dependencies (all workspace members)
+**/node_modules
+**/.pnp
 .pnp.js
 .yarn/install-state.gz
 
 # testing
-/coverage
+**/coverage
 
-# next.js
-/.next/
-/out/
+# next.js build output (all workspace members)
+**/.next/
+**/out/
 
 # production
-/build
+**/build
 
 # misc
 .DS_Store
@@ -25,12 +25,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# local env files (all workspace members)
+**/.env*.local
 
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# typescript build info (all workspace members)
+**/*.tsbuildinfo
+**/next-env.d.ts

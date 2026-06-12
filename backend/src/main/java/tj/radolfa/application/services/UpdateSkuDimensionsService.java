@@ -16,16 +16,20 @@ public class UpdateSkuDimensionsService implements UpdateSkuDimensionsUseCase {
 
     private final LoadSkuPort              loadSkuPort;
     private final SaveProductHierarchyPort savePort;
+    private final ProductEditGuard         editGuard;
 
     public UpdateSkuDimensionsService(LoadSkuPort loadSkuPort,
-                                      SaveProductHierarchyPort savePort) {
+                                      SaveProductHierarchyPort savePort,
+                                      ProductEditGuard editGuard) {
         this.loadSkuPort = loadSkuPort;
         this.savePort    = savePort;
+        this.editGuard   = editGuard;
     }
 
     @Override
     @Transactional
     public void execute(Command command) {
+        editGuard.resetIfNeededBySkuId(command.skuId());
         Sku sku = loadSkuPort.findSkuById(command.skuId())
                 .orElseThrow(() -> new IllegalArgumentException("SKU not found: id=" + command.skuId()));
 

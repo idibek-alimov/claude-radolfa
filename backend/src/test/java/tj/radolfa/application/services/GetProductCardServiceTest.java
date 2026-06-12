@@ -68,7 +68,8 @@ class GetProductCardServiceTest {
     @DisplayName("Returns card with brand and category populated")
     void execute_returnsBrandAndCategory_whenSet() {
         ProductCardDto card = new ProductCardDto(
-                10L, "Sneakers", "Nike", 3L, "Footwear", List.of());
+                10L, "Sneakers", "Nike", 3L, "Footwear", List.of(),
+                tj.radolfa.domain.model.ProductStatus.ACTIVE, null);
         fakePort.store(card);
 
         ProductCardDto result = service.execute(10L);
@@ -82,7 +83,8 @@ class GetProductCardServiceTest {
     @DisplayName("Returns card with null brand when no brand is assigned")
     void execute_returnsNullBrand_whenBrandAbsent() {
         ProductCardDto card = new ProductCardDto(
-                20L, "Generic Shirt", null, 5L, "Tops", List.of());
+                20L, "Generic Shirt", null, 5L, "Tops", List.of(),
+                tj.radolfa.domain.model.ProductStatus.DRAFT, null);
         fakePort.store(card);
 
         ProductCardDto result = service.execute(20L);
@@ -131,7 +133,8 @@ class GetProductCardServiceTest {
         List<VariantSummary> variants = java.util.stream.IntStream.range(0, variantCount)
                 .mapToObj(i -> buildVariant((long) (i + 1), colorKeys.get(i)))
                 .toList();
-        return new ProductCardDto(baseId, name, "BrandX", 1L, "Clothing", variants);
+        return new ProductCardDto(baseId, name, "BrandX", 1L, "Clothing", variants,
+                tj.radolfa.domain.model.ProductStatus.DRAFT, null);
     }
 
     private VariantSummary buildVariant(Long variantId, String colorKey) {

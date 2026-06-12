@@ -157,13 +157,13 @@ services:
       - radolfa-network
 
   # ===========================================================================
-  # Frontend: Next.js Standalone — pulled from GHCR
+  # Storefront: Next.js customer app — pulled from GHCR
   # NEXT_PUBLIC_* vars are baked in at build time (GitHub Actions build-args)
-  # Internal only — accessed via nginx
+  # Internal only — accessed via nginx at /
   # ===========================================================================
-  frontend:
-    image: ghcr.io/idibek-alimov/claude-radolfa-frontend:${IMAGE_TAG:-latest}
-    container_name: radolfa-frontend
+  storefront:
+    image: ghcr.io/idibek-alimov/claude-radolfa-storefront:${IMAGE_TAG:-latest}
+    container_name: radolfa-storefront
     restart: unless-stopped
     depends_on:
       backend:
@@ -172,6 +172,39 @@ services:
       NODE_ENV: production
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - radolfa-network
+
+  # ===========================================================================
+  # Ops Portal: Next.js internal app — pulled from GHCR
+  # Internal only — accessed via nginx at /ops
+  # ===========================================================================
+  ops:
+    image: ghcr.io/idibek-alimov/claude-radolfa-ops:${IMAGE_TAG:-latest}
+    container_name: radolfa-ops
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/ops"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -201,7 +234,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-      - frontend
+      - storefront
+      - ops
     ports:
       - "80:80"
       - "443:443"

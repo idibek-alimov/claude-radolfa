@@ -1,0 +1,93 @@
+# =============================================================================
+# Radolfa Ops Portal - Multi-stage Dockerfile
+# Build context: frontend/ (the npm workspace root)
+#
+# Stage 1: Dependencies  — install all workspace deps via npm ci
+# Stage 2: Build         — build @radolfa/ops
+# Stage 3: Runtime       — run the standalone server
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: Dependencies
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+# Copy workspace root manifests
+COPY package.json package-lock.json ./
+
+# Copy the app package manifest so npm ci resolves it as a workspace member
+COPY apps/ops/package.json ./apps/ops/package.json
+
+# Install all workspace dependencies (hoisted to /app/node_modules)
+RUN npm ci
+
+# -----------------------------------------------------------------------------
+# Stage 2: Build
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy hoisted node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy the full workspace tree (source + config)
+COPY . .
+
+# Build-time environment
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# NEXT_PUBLIC_* vars are inlined at build time — pass via --build-arg in CI
+ARG NEXT_PUBLIC_API_BASE_URL=https://api.radolfa.site
+ARG NEXT_PUBLIC_API_URL=https://api.radolfa.site
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Internal backend URL for Next.js server-side rewrites (not browser-visible)
+ARG BACKEND_INTERNAL_URL=http://localhost:8080
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
+
+# Build the ops workspace app
+RUN npm run build -w @radolfa/ops
+
+# -----------------------------------------------------------------------------
+# Stage 3: Runtime (standalone)
+# The standalone output mirrors the monorepo tree under .next/standalone,
+# so the entry point is apps/ops/server.js relative to the output root.
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Runtime environment
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy the full standalone tree (includes all workspace dependencies)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/ops/.next/standalone ./
+
+# Copy the static assets next to where the standalone server expects them
+COPY --from=builder --chown=nextjs:nodejs /app/apps/ops/.next/static ./apps/ops/.next/static
+
+# Switch to non-root user
+USER nextjs
+
+# Expose the application port
+EXPOSE 3001
+
+ENV PORT=3001
+ENV HOSTNAME="0.0.0.0"
+
+# Health check — must target /ops because basePath:"/ops" makes GET / → 404
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/ops || exit 1
+
+# Start the standalone server
+CMD ["node", "apps/ops/server.js"]

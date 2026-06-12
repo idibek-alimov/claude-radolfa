@@ -17,17 +17,31 @@ import tj.radolfa.application.ports.in.GenericUploadImageUseCase;
 import tj.radolfa.application.ports.in.discount.FindCampaignsByProductUseCase;
 import tj.radolfa.application.ports.in.product.AddSkuToVariantUseCase;
 import tj.radolfa.application.ports.in.product.AddVariantToProductUseCase;
+import tj.radolfa.application.ports.in.product.ApproveProductUseCase;
+import tj.radolfa.application.ports.in.product.CountPendingProductsUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.GetProductCardUseCase;
+import tj.radolfa.application.ports.in.product.ListAdminProductsUseCase;
+import tj.radolfa.application.ports.in.product.RejectProductUseCase;
 import tj.radolfa.application.ports.in.product.ReorderVariantImagesUseCase;
+import tj.radolfa.application.ports.in.product.SubmitProductForReviewUseCase;
 import tj.radolfa.domain.model.ProductAttribute;
 import tj.radolfa.application.ports.in.product.UpdateProductCategoryUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductNameUseCase;
+import tj.radolfa.application.ports.in.product.ProductActor;
+import tj.radolfa.application.ports.in.product.SkuEditActor;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.in.product.UpdateProductStockUseCase;
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.application.ports.in.product.UpdateSkuDimensionsUseCase;
 import tj.radolfa.application.ports.in.product.UpdateSkuSizeLabelUseCase;
+import tj.radolfa.application.readmodel.AdminProductRow;
 import tj.radolfa.application.readmodel.ProductCardDto;
+import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.ProductStatus;
+import tj.radolfa.infrastructure.web.PageResponse;
+import tj.radolfa.infrastructure.web.dto.AdminProductRowDto;
+import tj.radolfa.infrastructure.web.dto.RejectProductRequestDto;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.AddSkuRequestDto;
@@ -69,6 +83,11 @@ public class ProductManagementController {
     private final UpdateProductCategoryUseCase updateProductCategoryUseCase;
     private final GenericUploadImageUseCase genericUploadImageUseCase;
     private final FindCampaignsByProductUseCase findCampaignsByProductUseCase;
+    private final SubmitProductForReviewUseCase submitProductForReviewUseCase;
+    private final ApproveProductUseCase approveProductUseCase;
+    private final RejectProductUseCase rejectProductUseCase;
+    private final ListAdminProductsUseCase listAdminProductsUseCase;
+    private final CountPendingProductsUseCase countPendingProductsUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
             GetProductCardUseCase getProductCardUseCase,
@@ -82,7 +101,12 @@ public class ProductManagementController {
             UpdateSkuDimensionsUseCase updateSkuDimensionsUseCase,
             UpdateProductCategoryUseCase updateProductCategoryUseCase,
             GenericUploadImageUseCase genericUploadImageUseCase,
-            FindCampaignsByProductUseCase findCampaignsByProductUseCase) {
+            FindCampaignsByProductUseCase findCampaignsByProductUseCase,
+            SubmitProductForReviewUseCase submitProductForReviewUseCase,
+            ApproveProductUseCase approveProductUseCase,
+            RejectProductUseCase rejectProductUseCase,
+            ListAdminProductsUseCase listAdminProductsUseCase,
+            CountPendingProductsUseCase countPendingProductsUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.getProductCardUseCase = getProductCardUseCase;
         this.reorderVariantImagesUseCase = reorderVariantImagesUseCase;
@@ -96,6 +120,11 @@ public class ProductManagementController {
         this.updateProductCategoryUseCase = updateProductCategoryUseCase;
         this.genericUploadImageUseCase = genericUploadImageUseCase;
         this.findCampaignsByProductUseCase = findCampaignsByProductUseCase;
+        this.submitProductForReviewUseCase = submitProductForReviewUseCase;
+        this.approveProductUseCase = approveProductUseCase;
+        this.rejectProductUseCase = rejectProductUseCase;
+        this.listAdminProductsUseCase = listAdminProductsUseCase;
+        this.countPendingProductsUseCase = countPendingProductsUseCase;
     }
 
     /**
@@ -174,7 +203,8 @@ public class ProductManagementController {
                                 v.widthCm(),
                                 v.heightCm(),
                                 v.depthCm()))
-                        .toList());
+                        .toList(),
+                null); // sellerId = null → Radolfa-owned
 
         Long productBaseId = createProductUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -294,9 +324,11 @@ public class ProductManagementController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponseDto> updatePrice(
             @PathVariable Long skuId,
-            @Valid @RequestBody UpdatePriceRequestDto request) {
+            @Valid @RequestBody UpdatePriceRequestDto request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
-        updateProductPriceUseCase.execute(skuId, new Money(request.price()));
+        SkuEditActor actor = new SkuEditActor(UserRole.ADMIN, principal.userId(), null);
+        updateProductPriceUseCase.execute(skuId, new Money(request.price()), actor);
         return ResponseEntity.ok(MessageResponseDto.success("Price updated successfully."));
     }
 
@@ -320,10 +352,11 @@ public class ProductManagementController {
             @RequestBody UpdateStockRequestDto request,
             @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
+        SkuEditActor actor = new SkuEditActor(UserRole.ADMIN, principal.userId(), null);
         if (request.quantity() != null) {
-            updateProductStockUseCase.setAbsolute(skuId, request.quantity(), principal.userId());
+            updateProductStockUseCase.setAbsolute(skuId, request.quantity(), actor);
         } else {
-            updateProductStockUseCase.adjust(skuId, request.delta(), principal.userId());
+            updateProductStockUseCase.adjust(skuId, request.delta(), actor);
         }
         return ResponseEntity.ok(MessageResponseDto.success("Stock updated successfully."));
     }
@@ -422,5 +455,79 @@ public class ProductManagementController {
                         .map(tj.radolfa.infrastructure.web.dto.CampaignSummaryResponse::fromDomain)
                         .toList()
         );
+    }
+
+    /**
+     * GET /api/v1/admin/products?status=&search=&page=1&size=20
+     * List all products with optional status/search filter. MANAGER + ADMIN.
+     */
+    @Operation(summary = "List admin products", description = "Returns a paginated list of products, optionally filtered by status and search term. MANAGER + ADMIN.")
+    @GetMapping("/products")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public PageResponse<AdminProductRowDto> listAdminProducts(
+            @RequestParam(required = false) ProductStatus status,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long sellerId) {
+        PageResult<AdminProductRow> result = listAdminProductsUseCase.execute(status, search, page, size, sellerId);
+        return PageResponse.from(result.map(AdminProductRowDto::from));
+    }
+
+    /**
+     * GET /api/v1/admin/products/pending-count
+     * Count products in PENDING_REVIEW state. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Count pending review products")
+    @GetMapping("/products/pending-count")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Map<String, Long> pendingProductCount() {
+        return Map.of("count", countPendingProductsUseCase.execute());
+    }
+
+    /**
+     * POST /api/v1/admin/products/{productBaseId}/submit-for-review
+     * Submit a DRAFT or REJECTED product for admin review. MANAGER + ADMIN.
+     */
+    @Operation(summary = "Submit product for review")
+    @PostMapping("/products/{productBaseId}/submit-for-review")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public MessageResponseDto submitProductForReview(
+            @PathVariable Long productBaseId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        ProductActor actor = new ProductActor(
+                UserRole.valueOf(principal.role()), principal.userId(), null);
+        submitProductForReviewUseCase.execute(productBaseId, actor);
+        return MessageResponseDto.success("Submitted for review");
+    }
+
+    /**
+     * POST /api/v1/admin/products/{productBaseId}/approve
+     * Approve a PENDING_REVIEW product. ADMIN only.
+     */
+    @Operation(summary = "Approve product")
+    @PostMapping("/products/{productBaseId}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public MessageResponseDto approveProduct(
+            @PathVariable Long productBaseId,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        approveProductUseCase.execute(productBaseId, principal.userId());
+        return MessageResponseDto.success("Approved");
+    }
+
+    /**
+     * POST /api/v1/admin/products/{productBaseId}/reject
+     * Reject a PENDING_REVIEW product with a required note. ADMIN only.
+     */
+    @Operation(summary = "Reject product")
+    @PostMapping("/products/{productBaseId}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public MessageResponseDto rejectProduct(
+            @PathVariable Long productBaseId,
+            @Valid @RequestBody RejectProductRequestDto body,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        rejectProductUseCase.execute(new RejectProductUseCase.Command(
+                productBaseId, body.rejectionReason(), principal.userId()));
+        return MessageResponseDto.success("Rejected");
     }
 }

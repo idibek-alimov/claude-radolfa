@@ -11,7 +11,6 @@ import tj.radolfa.domain.model.Sku;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +30,7 @@ class UpdateSkuDimensionsServiceTest {
                 new Money(new BigDecimal("29.99")));
         loadSkuPort = new FakeLoadSkuPort(sku);
         savePort    = new CapturingSavePort();
-        service = new UpdateSkuDimensionsService(loadSkuPort, savePort);
+        service = new UpdateSkuDimensionsService(loadSkuPort, savePort, ProductEditGuardTestUtil.noOp());
     }
 
     @Test

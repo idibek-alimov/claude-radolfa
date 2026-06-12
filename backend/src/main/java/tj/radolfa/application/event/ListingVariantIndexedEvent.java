@@ -17,5 +17,6 @@ public record ListingVariantIndexedEvent(
         Integer totalStock,
         Instant lastSyncAt,
         String productCode,
-        List<String> skuCodes
+        List<String> skuCodes,
+        String status
 ) {}

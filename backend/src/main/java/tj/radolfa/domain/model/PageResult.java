@@ -1,6 +1,7 @@
 package tj.radolfa.domain.model;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Framework-agnostic pagination wrapper.
@@ -19,4 +20,10 @@ public record PageResult<T>(
         int number,
         int size,
         boolean last
-) {}
+) {
+    public <R> PageResult<R> map(Function<T, R> mapper) {
+        return new PageResult<>(
+                content.stream().map(mapper).toList(),
+                totalElements, number, size, last);
+    }
+}

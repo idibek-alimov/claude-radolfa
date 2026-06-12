@@ -24,9 +24,9 @@ class MarkOutForDeliveryServiceTest {
 
     static final long COURIER_ID = 99L;
 
-    static Order shippedOrder() {
+    static Order claimedOrder() {
         return new Order.Builder()
-                .id(1L).userId(10L).status(OrderStatus.SHIPPED)
+                .id(1L).userId(10L).status(OrderStatus.CLAIMED)
                 .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
                 .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
                 .courierId(COURIER_ID)
@@ -68,10 +68,10 @@ class MarkOutForDeliveryServiceTest {
     }
 
     @Test
-    @DisplayName("SHIPPED order with matching courierId → status OUT_FOR_DELIVERY, outForDeliveryAt set")
-    void shippedWithMatchingCourier_becomesOutForDelivery() {
+    @DisplayName("CLAIMED order with matching courierId → status OUT_FOR_DELIVERY, outForDeliveryAt set")
+    void claimedWithMatchingCourier_becomesOutForDelivery() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
-        MarkOutForDeliveryService svc = service(shippedOrder(), save);
+        MarkOutForDeliveryService svc = service(claimedOrder(), save);
 
         Instant before = Instant.now();
         svc.execute(1L, COURIER_ID);
@@ -102,7 +102,7 @@ class MarkOutForDeliveryServiceTest {
     @Test
     @DisplayName("Mismatched courierId → throws CourierAccessDeniedException")
     void mismatchedCourier_throwsAccessDenied() {
-        MarkOutForDeliveryService svc = service(shippedOrder(), new CapturingSaveOrderPort());
+        MarkOutForDeliveryService svc = service(claimedOrder(), new CapturingSaveOrderPort());
 
         assertThrows(CourierAccessDeniedException.class, () -> svc.execute(1L, 42L));
     }
@@ -111,7 +111,7 @@ class MarkOutForDeliveryServiceTest {
     @DisplayName("Null courierId on order → throws CourierAccessDeniedException")
     void nullCourierOnOrder_throwsAccessDenied() {
         Order noCourierOrder = new Order.Builder()
-                .id(1L).userId(10L).status(OrderStatus.SHIPPED)
+                .id(1L).userId(10L).status(OrderStatus.CLAIMED)
                 .totalAmount(new Money(BigDecimal.valueOf(500))).createdAt(Instant.now())
                 .deliveryType(DeliveryType.HOME).deliveryAddress("Addr")
                 .build();

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuByBarcodePort;
+import tj.radolfa.application.ports.out.LoadSkuOwnerPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.SaveListingVariantPort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
 @Component
 public class ProductHierarchyAdapter
         implements LoadProductBasePort, LoadListingVariantPort, LoadSkuPort,
-        LoadSkuByBarcodePort, SaveProductHierarchyPort, SaveListingVariantPort {
+        LoadSkuByBarcodePort, LoadSkuOwnerPort, SaveProductHierarchyPort, SaveListingVariantPort {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductHierarchyAdapter.class);
 
@@ -249,6 +250,18 @@ public class ProductHierarchyAdapter
                 .toList();
     }
 
+    // ---- LoadSkuOwnerPort ----
+
+    @Override
+    public Optional<SkuOwner> findBySkuId(Long skuId) {
+        List<Object[]> rows = skuRepo.findSkuOwnerRow(skuId);
+        if (rows.isEmpty()) return Optional.empty();
+        Object[] row = rows.get(0);
+        Long resolvedSkuId  = ((Number) row[0]).longValue();
+        Long sellerId       = row[1] != null ? ((Number) row[1]).longValue() : null;
+        return Optional.of(new SkuOwner(resolvedSkuId, sellerId));
+    }
+
     // ---- LoadSkuByBarcodePort ----
 
     @Override
@@ -269,6 +282,8 @@ public class ProductHierarchyAdapter
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "ProductBase not found: id=" + base.getId()));
             entity.setName(base.getName());
+            entity.setStatus(base.getStatus());
+            entity.setRejectionReason(base.getRejectionReason());
         } else {
             // Create new
             entity = mapper.toBaseEntity(base);

@@ -47,4 +47,8 @@ public class OrderItemEntity {
 
     @Column(name = "picked_by_user_id")
     private Long pickedByUserId;
+
+    /** Snapshot of {@code sellers.id} at checkout. {@code null} = Radolfa-owned item. */
+    @Column(name = "seller_id")
+    private Long sellerId;
 }

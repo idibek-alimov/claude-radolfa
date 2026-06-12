@@ -93,7 +93,7 @@ class CheckoutServiceStackingTest {
 
     static final ListingVariant FAKE_VARIANT_OBJ = new ListingVariant(VARIANT_ID, PRODUCT_ID, "RED", "slug", null,
             null, null, null, null, "RD-001", true, true, null, null, null, null);
-    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null);
+    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
 
     static final LoadListingVariantPort FAKE_VARIANT = new LoadListingVariantPort() {
         @Override public Optional<ListingVariant> findVariantById(Long id) { return Optional.of(FAKE_VARIANT_OBJ); }
@@ -116,7 +116,7 @@ class CheckoutServiceStackingTest {
     static final SaveOrderPort SAVE_ORDER = order -> {
         List<OrderItem> itemsWithIds = order.items().stream()
                 .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null))
+                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
                 .toList();
         return new Order.Builder()
                 .id(100L).userId(order.userId()).status(OrderStatus.PENDING)
@@ -230,5 +230,121 @@ class CheckoutServiceStackingTest {
         service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
 
         assertEquals(0, fakeAppPort.stored.size());
+    }
+
+    // ---- Seller attribution tests (Phase 5) ----
+
+    @Test
+    @DisplayName("Radolfa-owned product → order item sellerId is null (backward compatibility)")
+    void radolfa_owned_product_sellerId_is_null() {
+        // FAKE_PRODUCT_OBJ has sellerId = null (Radolfa-owned, set via convenience constructor)
+        FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
+        List<OrderItem> captured = new ArrayList<>();
+        SaveOrderPort capturingPort = order -> {
+            captured.addAll(order.items());
+            List<OrderItem> withIds = order.items().stream()
+                    .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
+                            i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
+                    .toList();
+            return new Order.Builder().id(100L).userId(order.userId()).status(OrderStatus.PENDING)
+                    .totalAmount(order.totalAmount()).items(withIds).createdAt(order.createdAt())
+                    .deliveryType(order.deliveryType()).deliveryAddress(order.deliveryAddress())
+                    .preferredTimeWindow(order.preferredTimeWindow()).pickpointId(order.pickpointId())
+                    .build();
+        };
+        CheckoutService service = buildServiceWithSavePort(Map.of(), fakeAppPort, capturingPort);
+
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+
+        assertEquals(1, captured.size());
+        assertEquals(null, captured.get(0).getSellerId(), "Radolfa-owned item must have null sellerId");
+    }
+
+    @Test
+    @DisplayName("Seller-owned product → order item sellerId equals the product's seller (snapshot)")
+    void seller_owned_product_sellerId_is_snapshotted() {
+        final Long SELLER_ID = 99L;
+        ProductBase sellerProduct = new ProductBase(PRODUCT_ID, "EXT-001", "Seller Product",
+                null, null, null, tj.radolfa.domain.model.ProductStatus.ACTIVE, null, SELLER_ID);
+
+        LoadProductBasePort fakeSellerProduct = new LoadProductBasePort() {
+            @Override public Optional<ProductBase> findById(Long id) { return Optional.of(sellerProduct); }
+            @Override public Optional<ProductBase> findByExternalRef(String ref) { return Optional.empty(); }
+            @Override public Map<Long, ProductBase> findProductsByIds(Collection<Long> ids) {
+                return ids.contains(PRODUCT_ID) ? Map.of(PRODUCT_ID, sellerProduct) : Map.of();
+            }
+        };
+
+        FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
+        List<OrderItem> captured = new ArrayList<>();
+        SaveOrderPort capturingPort = order -> {
+            captured.addAll(order.items());
+            List<OrderItem> withIds = order.items().stream()
+                    .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
+                            i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
+                    .toList();
+            return new Order.Builder().id(100L).userId(order.userId()).status(OrderStatus.PENDING)
+                    .totalAmount(order.totalAmount()).items(withIds).createdAt(order.createdAt())
+                    .deliveryType(order.deliveryType()).deliveryAddress(order.deliveryAddress())
+                    .preferredTimeWindow(order.preferredTimeWindow()).pickpointId(order.pickpointId())
+                    .build();
+        };
+
+        LockDiscountForUsagePort noCapsLock = discountId -> {
+            tj.radolfa.domain.model.DiscountType type = new tj.radolfa.domain.model.DiscountType(discountId, "SALE", 1, StackingPolicy.STACKABLE);
+            return Optional.of(new Discount(discountId, type, List.of(new SkuTarget(SKU_CODE)),
+                    AmountType.PERCENT, BigDecimal.TEN, Instant.EPOCH, Instant.MAX, false, "Lock", "#000", null, null, null, null));
+        };
+        QueryDiscountUsagePort noUsage = new QueryDiscountUsagePort() {
+            @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+            @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long u) { return Map.of(); }
+        };
+        RecordDiscountApplicationService recordService = new RecordDiscountApplicationService(noCapsLock, noUsage, fakeAppPort);
+
+        CheckoutService service = new CheckoutService(
+                FAKE_CART, cart -> cart, FAKE_SKU, FAKE_VARIANT, fakeSellerProduct, FAKE_USER,
+                capturingPort, NO_STOCK, new LoyaltyCalculator(),
+                (userId, pts) -> Money.ZERO, query -> Map.of(), recordService, FAKE_LOAD_PICKPOINT,
+                new tj.radolfa.application.ports.out.LoadOrderPort() {
+                    @Override public java.util.List<Order> loadByUserId(Long id) { return java.util.List.of(); }
+                    @Override public Optional<Order> loadById(Long id) { return Optional.empty(); }
+                    @Override public Optional<Order> loadByExternalOrderId(String s) { return Optional.empty(); }
+                    @Override public java.util.List<Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
+                },
+                (orderId, reason) -> {}
+        );
+
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+
+        assertEquals(1, captured.size());
+        assertEquals(SELLER_ID, captured.get(0).getSellerId(), "Seller-owned item must carry the seller's id as a snapshot");
+    }
+
+    /** Helper variant of buildService that accepts an explicit SaveOrderPort. */
+    CheckoutService buildServiceWithSavePort(Map<String, List<Discount>> resolvedMap,
+                                              FakeSaveDiscountApplicationPort fakeAppPort,
+                                              SaveOrderPort saveOrderPort) {
+        LockDiscountForUsagePort noCapsLock = discountId -> {
+            tj.radolfa.domain.model.DiscountType type = new tj.radolfa.domain.model.DiscountType(discountId, "SALE", 1, StackingPolicy.STACKABLE);
+            return Optional.of(new Discount(discountId, type, List.of(new SkuTarget(SKU_CODE)),
+                    AmountType.PERCENT, BigDecimal.TEN, Instant.EPOCH, Instant.MAX, false, "Lock", "#000", null, null, null, null));
+        };
+        QueryDiscountUsagePort noUsage = new QueryDiscountUsagePort() {
+            @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+            @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long u) { return Map.of(); }
+        };
+        RecordDiscountApplicationService recordService = new RecordDiscountApplicationService(noCapsLock, noUsage, fakeAppPort);
+        return new CheckoutService(
+                FAKE_CART, cart -> cart, FAKE_SKU, FAKE_VARIANT, FAKE_PRODUCT, FAKE_USER,
+                saveOrderPort, NO_STOCK, new LoyaltyCalculator(),
+                (userId, pts) -> Money.ZERO, query -> resolvedMap, recordService, FAKE_LOAD_PICKPOINT,
+                new tj.radolfa.application.ports.out.LoadOrderPort() {
+                    @Override public java.util.List<Order> loadByUserId(Long id) { return java.util.List.of(); }
+                    @Override public Optional<Order> loadById(Long id) { return Optional.empty(); }
+                    @Override public Optional<Order> loadByExternalOrderId(String s) { return Optional.empty(); }
+                    @Override public java.util.List<Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
+                },
+                (orderId, reason) -> {}
+        );
     }
 }

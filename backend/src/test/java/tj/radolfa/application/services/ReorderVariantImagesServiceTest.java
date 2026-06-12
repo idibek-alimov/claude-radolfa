@@ -24,7 +24,7 @@ class ReorderVariantImagesServiceTest {
     @BeforeEach
     void setUp() {
         fakePort = new FakeSaveListingVariantPort();
-        service  = new ReorderVariantImagesService(fakePort);
+        service  = new ReorderVariantImagesService(fakePort, ProductEditGuardTestUtil.noOp());
     }
 
     // =========================================================

@@ -19,14 +19,18 @@ public class ReorderVariantImagesService implements ReorderVariantImagesUseCase 
     private static final Logger LOG = LoggerFactory.getLogger(ReorderVariantImagesService.class);
 
     private final SaveListingVariantPort saveVariantPort;
+    private final ProductEditGuard       editGuard;
 
-    public ReorderVariantImagesService(SaveListingVariantPort saveVariantPort) {
+    public ReorderVariantImagesService(SaveListingVariantPort saveVariantPort,
+                                       ProductEditGuard editGuard) {
         this.saveVariantPort = saveVariantPort;
+        this.editGuard       = editGuard;
     }
 
     @Override
     @Transactional
     public void execute(Long variantId, List<Long> orderedImageIds) {
+        editGuard.resetIfNeededByVariantId(variantId);
         saveVariantPort.reorderImages(variantId, orderedImageIds);
         LOG.info("[REORDER-IMAGES] variantId={} count={}", variantId, orderedImageIds.size());
     }

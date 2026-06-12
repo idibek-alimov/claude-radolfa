@@ -20,12 +20,17 @@ import tj.radolfa.domain.exception.DeliveryCodeExpiredException;
 import tj.radolfa.domain.exception.DeliveryCodeMismatchException;
 import tj.radolfa.domain.exception.DeliveryCodeNotFoundException;
 import tj.radolfa.domain.exception.DiscountConflictException;
+import tj.radolfa.domain.exception.OrderAlreadyClaimedException;
 import tj.radolfa.domain.exception.OrderRecallNotAllowedException;
 import tj.radolfa.domain.exception.DuplicateResourceException;
 import tj.radolfa.domain.exception.DuplicateReviewException;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.exception.DiscountUsageCapExceededException;
+import tj.radolfa.domain.exception.BinNotEmptyException;
+import tj.radolfa.domain.exception.BinWarehouseMismatchException;
+import tj.radolfa.domain.exception.IllegalProductStatusTransitionException;
+import tj.radolfa.domain.exception.InsufficientPlacementStockException;
 import tj.radolfa.domain.exception.InsufficientStockException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.exception.RefundFailedException;
@@ -221,6 +226,35 @@ public class GlobalExceptionHandler {
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 
+    @ExceptionHandler(InsufficientPlacementStockException.class)
+    public ResponseEntity<MessageResponseDto> handleInsufficientPlacementStock(InsufficientPlacementStockException ex) {
+        LOG.warn("[PLACEMENT] Insufficient placement stock: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(BinNotEmptyException.class)
+    public ResponseEntity<MessageResponseDto> handleBinNotEmpty(BinNotEmptyException ex) {
+        LOG.warn("[PLACEMENT] Delete refused — bin not empty: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(BinWarehouseMismatchException.class)
+    public ResponseEntity<MessageResponseDto> handleBinWarehouseMismatch(BinWarehouseMismatchException ex) {
+        LOG.warn("[PLACEMENT] Bin/warehouse mismatch: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalProductStatusTransitionException.class)
+    public ResponseEntity<MessageResponseDto> handleIllegalProductStatusTransition(
+            IllegalProductStatusTransitionException ex) {
+        LOG.warn("[LIFECYCLE] Illegal product status transition: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(DiscountUsageCapExceededException.class)
     public ResponseEntity<MessageResponseDto> handleDiscountUsageCapExceeded(DiscountUsageCapExceededException ex) {
         LOG.warn("[DISCOUNT] Usage cap exceeded: {}", ex.getMessage());
@@ -290,6 +324,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PickpointCodeLockoutException.class)
     public ResponseEntity<MessageResponseDto> handlePickpointCodeLockout(PickpointCodeLockoutException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(MessageResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(OrderAlreadyClaimedException.class)
+    public ResponseEntity<MessageResponseDto> handleOrderAlreadyClaimed(OrderAlreadyClaimedException ex) {
+        LOG.warn("[CONFLICT] Order already claimed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(MessageResponseDto.error(ex.getMessage()));
     }
 

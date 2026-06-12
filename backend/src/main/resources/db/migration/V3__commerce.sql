@@ -29,6 +29,7 @@ CREATE TABLE orders (
     courier_id               BIGINT,
     tracking_number          VARCHAR(255),
     estimated_delivery_date  DATE,
+    claimed_at               TIMESTAMPTZ,
     shipped_at               TIMESTAMPTZ,
     delivered_at             TIMESTAMPTZ,
     cancelled_at             TIMESTAMPTZ,
@@ -58,6 +59,12 @@ CREATE INDEX idx_orders_user_id           ON orders (user_id);
 CREATE INDEX idx_orders_active            ON orders (id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_orders_external_order_id ON orders (external_order_id) WHERE external_order_id IS NOT NULL;
 CREATE INDEX idx_orders_courier_id        ON orders (courier_id);
+CREATE INDEX idx_orders_available_pool    ON orders (status) WHERE courier_id IS NULL;
+
+-- ----------------------------------------------------------------
+-- Sequence for human-readable order codes (ORD-NNNNN)
+-- ----------------------------------------------------------------
+CREATE SEQUENCE order_external_code_seq START WITH 10001 INCREMENT BY 1;
 
 -- ----------------------------------------------------------------
 -- Order items

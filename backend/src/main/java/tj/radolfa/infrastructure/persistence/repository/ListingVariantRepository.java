@@ -30,6 +30,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                     LEFT JOIN FETCH pb.category
                     JOIN FETCH lv.color
                     WHERE lv.slug = :slug
+                      AND pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                     """)
     Optional<ListingVariantEntity> findDetailBySlug(@Param("slug") String slug);
 
@@ -57,6 +58,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
+                        WHERE pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.id ASC
@@ -77,6 +79,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE pb.category.id IN :categoryIds
+                          AND pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.id ASC
@@ -96,12 +99,13 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
-                        WHERE LOWER(pb.name) LIKE LOWER(CONCAT('%', :query, '%'))
+                        WHERE pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
+                          AND (LOWER(pb.name) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.color.colorKey) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.webDescription) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(lv.productCode) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR EXISTS (SELECT 1 FROM SkuEntity sku WHERE sku.listingVariant = lv
-                                      AND LOWER(sku.skuCode) LIKE LOWER(CONCAT('%', :query, '%')))
+                                      AND LOWER(sku.skuCode) LIKE LOWER(CONCAT('%', :query, '%'))))
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.id ASC
@@ -115,7 +119,8 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         SELECT DISTINCT pb.name
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
-                        WHERE LOWER(pb.name) LIKE LOWER(CONCAT('%', :prefix, '%'))
+                        WHERE pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
+                          AND LOWER(pb.name) LIKE LOWER(CONCAT('%', :prefix, '%'))
                         ORDER BY pb.name ASC
                         """)
         List<String> autocompleteNames(@Param("prefix") String prefix, Pageable pageable);
@@ -137,6 +142,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         LEFT JOIN lv.skus s
                         JOIN lv.tags t
                         WHERE t.name = :tagName
+                          AND pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.updatedAt DESC
@@ -156,6 +162,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         FROM ListingVariantEntity lv
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
+                        WHERE pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, lv.createdAt, pb.id
                         ORDER BY lv.createdAt DESC
@@ -176,6 +183,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE lv.id IN :variantIds
+                          AND pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         ORDER BY lv.updatedAt DESC
@@ -197,6 +205,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                         JOIN lv.productBase pb
                         LEFT JOIN lv.skus s
                         WHERE UPPER(lv.productCode) = UPPER(:code)
+                          AND pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         GROUP BY lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,
                                  lv.webDescription, lv.color.hexCode, lv.productCode, pb.id
                         """)
@@ -209,7 +218,9 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
         @Query("""
                         SELECT lv.id, lv.slug, lv.color.colorKey, lv.color.hexCode
                         FROM ListingVariantEntity lv
-                        WHERE lv.productBase.id = :baseId AND lv.id != :excludeId
+                        WHERE lv.productBase.id = :baseId
+                          AND lv.id != :excludeId
+                          AND lv.productBase.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
                         ORDER BY lv.color.colorKey ASC
                         """)
         List<Object[]> findSiblings(@Param("baseId") Long baseId, @Param("excludeId") Long excludeId);

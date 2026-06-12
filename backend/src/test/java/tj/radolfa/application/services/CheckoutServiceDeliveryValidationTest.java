@@ -92,7 +92,7 @@ class CheckoutServiceDeliveryValidationTest {
 
     static final ListingVariant FAKE_VARIANT_OBJ = new ListingVariant(VARIANT_ID, PRODUCT_ID, "RED", "slug", null,
             null, null, null, null, "RD-001", true, true, null, null, null, null);
-    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null);
+    static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
 
     static final LoadListingVariantPort FAKE_VARIANT = new LoadListingVariantPort() {
         @Override public Optional<ListingVariant> findVariantById(Long id) { return Optional.of(FAKE_VARIANT_OBJ); }
@@ -115,7 +115,7 @@ class CheckoutServiceDeliveryValidationTest {
     static final SaveOrderPort SAVE_ORDER = order -> {
         List<OrderItem> itemsWithIds = order.items().stream()
                 .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null))
+                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
                 .toList();
         return new Order.Builder()
                 .id(100L).userId(order.userId()).status(OrderStatus.PENDING)

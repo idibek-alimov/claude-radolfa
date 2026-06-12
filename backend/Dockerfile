@@ -16,13 +16,13 @@ COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 
 # Download dependencies (cached unless pom.xml changes)
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+RUN --mount=type=cache,target=/root/.m2 chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY src/ src/
 
 # Build the application (skip tests for faster builds; tests should run in CI)
-RUN ./mvnw clean package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests -B
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime

@@ -106,7 +106,9 @@ public class SearchController {
                         totalStock,
                         variant.getLastSyncAt(),
                         variant.getProductCode(),
-                        skuCodes
+                        skuCodes,
+                        variant.getProductBase().getStatus() != null
+                                ? variant.getProductBase().getStatus().name() : null
                 );
                 indexed++;
             } catch (Exception e) {
