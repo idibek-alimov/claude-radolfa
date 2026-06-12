@@ -6,12 +6,17 @@ interface OtpInputProps {
   value: string;
   onChange: (value: string) => void;
   length?: number;
+  boxClassName?: string;
 }
+
+const DEFAULT_BOX_CLASS =
+  "w-14 h-14 text-center text-2xl font-bold border-2 border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors";
 
 export default function OtpInput({
   value,
   onChange,
   length = 4,
+  boxClassName,
 }: OtpInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -57,7 +62,7 @@ export default function OtpInput({
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={i === 0 ? handlePaste : undefined}
-          className="w-14 h-14 text-center text-2xl font-bold border-2 border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
+          className={boxClassName ?? DEFAULT_BOX_CLASS}
           autoFocus={i === 0}
         />
       ))}
