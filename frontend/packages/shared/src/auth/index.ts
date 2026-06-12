@@ -1,4 +1,5 @@
 export { default as LoginForm } from "./ui/LoginForm";
+export { default as StorefrontLoginForm } from "./ui/StorefrontLoginForm";
 export { default as OtpInput } from "./ui/OtpInput";
 export * from "./api";
 export * from "./model/types";
