@@ -119,13 +119,9 @@ export default function MobileMenu() {
         <SheetContent side="left" className="w-[88vw] max-w-[320px] p-0 flex flex-col overflow-y-auto">
 
           {/* ── Header row ───────────────────────────────────── */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-ink/8">
+          <div className="flex items-center justify-between pl-5 pr-12 py-4 border-b border-ink/8">
             <span className="text-xl font-extrabold text-ink tracking-tight">Radolfa</span>
-            <SheetClose className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors text-ink/60">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </SheetClose>
+            <LanguageSwitcher align="right" />
           </div>
 
           <div className="flex flex-col flex-1 px-4 py-3 gap-3">
@@ -281,8 +277,7 @@ export default function MobileMenu() {
           </div>
 
           {/* ── Footer ───────────────────────────────────────── */}
-          <div className="border-t border-ink/8 px-5 py-3 flex items-center justify-between">
-            <LanguageSwitcher />
+          <div className="border-t border-ink/8 px-5 py-3 flex items-center justify-center">
             <span className="text-[11px] text-ink/40">Radolfa © 2026</span>
           </div>
         </SheetContent>

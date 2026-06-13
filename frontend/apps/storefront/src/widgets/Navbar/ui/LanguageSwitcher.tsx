@@ -26,7 +26,13 @@ const LANGUAGES: { code: Lang; label: string }[] = [
   { code: "TJ", label: "Тоҷикӣ" },
 ];
 
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({
+  align = "right",
+  side = "bottom",
+}: {
+  align?: "left" | "right";
+  side?: "top" | "bottom";
+}) {
   const locale = useLocale();
   const current = LOCALE_TO_LANG[locale] ?? "RU";
   const [isOpen, setIsOpen] = useState(false);
@@ -63,11 +69,11 @@ export default function LanguageSwitcher() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.96 }}
+            initial={{ opacity: 0, y: side === "top" ? 4 : -4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.96 }}
+            exit={{ opacity: 0, y: side === "top" ? 4 : -4, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-2 w-40 rounded-xl border bg-popover shadow-lg overflow-hidden z-50"
+            className={`absolute ${align === "left" ? "left-0" : "right-0"} ${side === "top" ? "bottom-full mb-2" : "mt-2"} w-40 rounded-xl border bg-popover shadow-lg overflow-hidden z-50`}
           >
             {LANGUAGES.map(({ code, label }) => (
               <button
