@@ -2,6 +2,7 @@ package tj.radolfa.infrastructure.web.dto;
 
 import tj.radolfa.application.services.GetRecentEarningsService.EarningEntry;
 import tj.radolfa.domain.model.LoyaltyProfile;
+import tj.radolfa.domain.model.NotificationPreferences;
 import tj.radolfa.domain.model.User;
 
 import java.math.BigDecimal;
@@ -25,7 +26,8 @@ public record UserDto(
         Integer maxLengthCm,
         Integer maxWidthCm,
         Integer maxHeightCm,
-        String pickpointName
+        String pickpointName,
+        NotificationPrefsDto notificationPrefs
 ) {
     public record RecentEarningDto(Long orderId, int pointsEarned, BigDecimal orderAmount, Instant orderedAt) {
         public static RecentEarningDto from(EarningEntry e) {
@@ -45,14 +47,19 @@ public record UserDto(
     ) {}
 
     public static UserDto fromDomain(User user) {
-        return fromDomain(user, List.of(), null);
+        return fromDomain(user, List.of(), null, null);
     }
 
     public static UserDto fromDomain(User user, List<EarningEntry> recentEarnings) {
-        return fromDomain(user, recentEarnings, null);
+        return fromDomain(user, recentEarnings, null, null);
     }
 
     public static UserDto fromDomain(User user, List<EarningEntry> recentEarnings, String pickpointName) {
+        return fromDomain(user, recentEarnings, pickpointName, null);
+    }
+
+    public static UserDto fromDomain(User user, List<EarningEntry> recentEarnings, String pickpointName,
+            NotificationPreferences notificationPrefs) {
         LoyaltyProfile lp = user.loyalty();
         LoyaltyDto loyalty = lp != null
                 ? new LoyaltyDto(
@@ -80,7 +87,8 @@ public record UserDto(
                 user.maxLengthCm(),
                 user.maxWidthCm(),
                 user.maxHeightCm(),
-                pickpointName
+                pickpointName,
+                notificationPrefs != null ? NotificationPrefsDto.from(notificationPrefs) : null
         );
     }
 }

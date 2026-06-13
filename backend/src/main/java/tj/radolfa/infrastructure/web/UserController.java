@@ -14,6 +14,8 @@ import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
 import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
 import tj.radolfa.application.ports.in.loyalty.ToggleLoyaltyPermanentUseCase;
+import tj.radolfa.application.ports.in.notification.GetNotificationPrefsUseCase;
+import tj.radolfa.application.ports.in.notification.UpdateNotificationPrefsUseCase;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.services.GetRecentEarningsService;
@@ -22,6 +24,8 @@ import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.AssignTierRequestDto;
 import tj.radolfa.infrastructure.web.dto.ChangeUserRoleRequestDto;
+import tj.radolfa.infrastructure.web.dto.NotificationPrefsDto;
+import tj.radolfa.infrastructure.web.dto.NotificationPrefsRequestDto;
 import tj.radolfa.infrastructure.web.dto.ToggleUserStatusRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateUserProfileRequestDto;
 import tj.radolfa.infrastructure.web.dto.UserDto;
@@ -40,6 +44,8 @@ public class UserController {
     private final GetRecentEarningsService    getRecentEarningsService;
     private final AssignUserTierUseCase       assignUserTierUseCase;
     private final ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase;
+    private final GetNotificationPrefsUseCase getNotificationPrefsUseCase;
+    private final UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase;
 
     public UserController(UpdateUserProfileUseCase updateUserProfileUseCase,
                           ListUsersUseCase listUsersUseCase,
@@ -49,7 +55,9 @@ public class UserController {
                           LoadPickpointPort loadPickpointPort,
                           GetRecentEarningsService getRecentEarningsService,
                           AssignUserTierUseCase assignUserTierUseCase,
-                          ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase) {
+                          ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase,
+                          GetNotificationPrefsUseCase getNotificationPrefsUseCase,
+                          UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase) {
         this.updateUserProfileUseCase         = updateUserProfileUseCase;
         this.listUsersUseCase                 = listUsersUseCase;
         this.toggleUserStatusUseCase          = toggleUserStatusUseCase;
@@ -59,6 +67,8 @@ public class UserController {
         this.getRecentEarningsService         = getRecentEarningsService;
         this.assignUserTierUseCase            = assignUserTierUseCase;
         this.toggleLoyaltyPermanentUseCase    = toggleLoyaltyPermanentUseCase;
+        this.getNotificationPrefsUseCase      = getNotificationPrefsUseCase;
+        this.updateNotificationPrefsUseCase   = updateNotificationPrefsUseCase;
     }
 
     @GetMapping("/me")
@@ -71,10 +81,29 @@ public class UserController {
                                     .map(tj.radolfa.domain.model.Pickpoint::name)
                                     .orElse(null)
                             : null;
+                    var notificationPrefs = getNotificationPrefsUseCase.execute(u.id());
                     return ResponseEntity.ok(
-                            UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()), pickpointName));
+                            UserDto.fromDomain(u, getRecentEarningsService.execute(u.id()), pickpointName,
+                                    notificationPrefs));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/notification-prefs")
+    @Operation(summary = "Get my notification preferences")
+    public ResponseEntity<NotificationPrefsDto> getNotificationPrefs(
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        return ResponseEntity.ok(NotificationPrefsDto.from(getNotificationPrefsUseCase.execute(user.userId())));
+    }
+
+    @PutMapping("/notification-prefs")
+    @Operation(summary = "Update my notification preferences")
+    public ResponseEntity<NotificationPrefsDto> updateNotificationPrefs(
+            @AuthenticationPrincipal JwtAuthenticatedUser user,
+            @RequestBody NotificationPrefsRequestDto request) {
+        var updated = updateNotificationPrefsUseCase.execute(new UpdateNotificationPrefsUseCase.Command(
+                user.userId(), request.orderUpdates(), request.promotions(), request.smsMessages()));
+        return ResponseEntity.ok(NotificationPrefsDto.from(updated));
     }
 
     @PutMapping("/profile")
