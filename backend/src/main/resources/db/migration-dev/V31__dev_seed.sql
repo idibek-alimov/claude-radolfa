@@ -1,5 +1,5 @@
 -- ================================================================
--- V29__dev_seed.sql
+-- V31__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -849,5 +849,16 @@ VALUES
      'Limited time', 'Shop the sale', '/collections/on_sale', '#CB11AB', TRUE),
     ('WELCOME', 'New here? Welcome!',           'Get 10% off your first order.',
      'First-order offer', 'Claim offer', '/collections/new_arrivals', '#1A1A2E', TRUE);
+
+
+-- ----------------------------------------------------------------
+-- Address book — saved addresses for the main test user
+-- ----------------------------------------------------------------
+INSERT INTO address_book (user_id, label, recipient_name, phone, line1, city, postal_code, country, is_default)
+VALUES
+    ((SELECT id FROM users WHERE phone = '+992901234567'),
+     'HOME', 'Test User', '+992901234567', '12 Rudaki Avenue', 'Dushanbe', '734000', 'Tajikistan', TRUE),
+    ((SELECT id FROM users WHERE phone = '+992901234567'),
+     'WORK', 'Test User', '+992901234567', '45 Ismoili Somoni Avenue, Office 301', 'Dushanbe', '734001', 'Tajikistan', FALSE);
 
 
