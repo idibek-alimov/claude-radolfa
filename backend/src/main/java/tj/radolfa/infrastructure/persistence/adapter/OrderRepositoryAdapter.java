@@ -72,6 +72,32 @@ public class OrderRepositoryAdapter implements LoadOrderPort, SaveOrderPort, Loa
     }
 
     @Override
+    public PageResult<Order> loadByUserIdAndStatusesPaged(Long userId, Collection<OrderStatus> statuses,
+                                                          int page, int size) {
+        if (statuses == null || statuses.isEmpty()) {
+            return loadByUserIdPaged(userId, page, size);
+        }
+        Pageable pageable = PageRequest.of(page - 1, size);
+        var pg = repository.findByUser_IdAndStatusInOrderByCreatedAtDesc(userId, statuses, pageable);
+        return new PageResult<>(
+                pg.getContent().stream().map(mapper::toOrder).toList(),
+                pg.getTotalElements(),
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pg.isLast());
+    }
+
+    @Override
+    public long countByUserId(Long userId) {
+        return repository.countByUser_Id(userId);
+    }
+
+    @Override
+    public long countByUserIdAndStatuses(Long userId, Collection<OrderStatus> statuses) {
+        return repository.countByUser_IdAndStatusIn(userId, statuses);
+    }
+
+    @Override
     public Optional<Order> loadById(Long id) {
         return repository.findById(id)
                 .map(mapper::toOrder);

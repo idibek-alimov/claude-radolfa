@@ -11,14 +11,18 @@ import tj.radolfa.application.ports.in.order.CancelOrderUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.in.order.GetDeliveryCodeUseCase;
 import tj.radolfa.application.ports.in.order.GetMyOrderByIdUseCase;
+import tj.radolfa.application.ports.in.order.GetMyOrdersSummaryUseCase;
 import tj.radolfa.application.ports.in.order.GetMyReturnsUseCase;
+import tj.radolfa.application.ports.in.order.MyOrderFilter;
 import tj.radolfa.application.ports.in.order.UpdateOrderStatusUseCase;
+import tj.radolfa.application.ports.out.LoadDeliveryCodePort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadReviewPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.domain.model.CustomerReturn;
+import tj.radolfa.domain.model.DeliveryCode;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
@@ -29,15 +33,18 @@ import tj.radolfa.domain.model.Sku;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.CheckoutRequestDto;
 import tj.radolfa.infrastructure.web.dto.CheckoutResponseDto;
+import tj.radolfa.infrastructure.web.dto.MyOrdersSummaryDto;
 import tj.radolfa.infrastructure.web.dto.MyReturnDto;
 import tj.radolfa.infrastructure.web.dto.OrderDto;
 import tj.radolfa.infrastructure.web.dto.OrderItemDto;
 import tj.radolfa.infrastructure.web.dto.UpdateOrderStatusRequest;
 
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -45,20 +52,27 @@ import java.util.stream.Collectors;
 @Tag(name = "Orders", description = "Order endpoints")
 public class OrderController {
 
-    private final GetMyOrdersUseCase       getMyOrdersUseCase;
-    private final GetMyOrderByIdUseCase    getMyOrderByIdUseCase;
-    private final GetMyReturnsUseCase      getMyReturnsUseCase;
-    private final CheckoutUseCase          checkoutUseCase;
-    private final CancelOrderUseCase       cancelOrderUseCase;
-    private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
-    private final GetDeliveryCodeUseCase   getDeliveryCodeUseCase;
-    private final LoadListingVariantPort   loadListingVariantPort;
-    private final LoadSkuPort              loadSkuPort;
-    private final LoadReviewPort           loadReviewPort;
-    private final LoadPickpointPort        loadPickpointPort;
-    private final LoadOrderPort            loadOrderPort;
+    /** In-progress statuses for which an active delivery/pickup code may exist. */
+    private static final Set<OrderStatus> DELIVERY_CODE_STATUSES = EnumSet.of(
+            OrderStatus.SHIPPED, OrderStatus.OUT_FOR_DELIVERY, OrderStatus.READY_FOR_PICKUP);
+
+    private final GetMyOrdersUseCase        getMyOrdersUseCase;
+    private final GetMyOrdersSummaryUseCase getMyOrdersSummaryUseCase;
+    private final GetMyOrderByIdUseCase     getMyOrderByIdUseCase;
+    private final GetMyReturnsUseCase       getMyReturnsUseCase;
+    private final CheckoutUseCase           checkoutUseCase;
+    private final CancelOrderUseCase        cancelOrderUseCase;
+    private final UpdateOrderStatusUseCase  updateOrderStatusUseCase;
+    private final GetDeliveryCodeUseCase    getDeliveryCodeUseCase;
+    private final LoadListingVariantPort    loadListingVariantPort;
+    private final LoadSkuPort               loadSkuPort;
+    private final LoadReviewPort            loadReviewPort;
+    private final LoadPickpointPort         loadPickpointPort;
+    private final LoadOrderPort             loadOrderPort;
+    private final LoadDeliveryCodePort      loadDeliveryCodePort;
 
     public OrderController(GetMyOrdersUseCase getMyOrdersUseCase,
+                           GetMyOrdersSummaryUseCase getMyOrdersSummaryUseCase,
                            GetMyOrderByIdUseCase getMyOrderByIdUseCase,
                            GetMyReturnsUseCase getMyReturnsUseCase,
                            CheckoutUseCase checkoutUseCase,
@@ -69,31 +83,43 @@ public class OrderController {
                            LoadSkuPort loadSkuPort,
                            LoadReviewPort loadReviewPort,
                            LoadPickpointPort loadPickpointPort,
-                           LoadOrderPort loadOrderPort) {
-        this.getMyOrdersUseCase       = getMyOrdersUseCase;
-        this.getMyOrderByIdUseCase    = getMyOrderByIdUseCase;
-        this.getMyReturnsUseCase      = getMyReturnsUseCase;
-        this.checkoutUseCase          = checkoutUseCase;
-        this.cancelOrderUseCase       = cancelOrderUseCase;
-        this.updateOrderStatusUseCase = updateOrderStatusUseCase;
-        this.getDeliveryCodeUseCase   = getDeliveryCodeUseCase;
-        this.loadListingVariantPort   = loadListingVariantPort;
-        this.loadSkuPort              = loadSkuPort;
-        this.loadReviewPort           = loadReviewPort;
-        this.loadPickpointPort        = loadPickpointPort;
-        this.loadOrderPort            = loadOrderPort;
+                           LoadOrderPort loadOrderPort,
+                           LoadDeliveryCodePort loadDeliveryCodePort) {
+        this.getMyOrdersUseCase        = getMyOrdersUseCase;
+        this.getMyOrdersSummaryUseCase = getMyOrdersSummaryUseCase;
+        this.getMyOrderByIdUseCase     = getMyOrderByIdUseCase;
+        this.getMyReturnsUseCase       = getMyReturnsUseCase;
+        this.checkoutUseCase           = checkoutUseCase;
+        this.cancelOrderUseCase        = cancelOrderUseCase;
+        this.updateOrderStatusUseCase  = updateOrderStatusUseCase;
+        this.getDeliveryCodeUseCase    = getDeliveryCodeUseCase;
+        this.loadListingVariantPort    = loadListingVariantPort;
+        this.loadSkuPort               = loadSkuPort;
+        this.loadReviewPort            = loadReviewPort;
+        this.loadPickpointPort         = loadPickpointPort;
+        this.loadOrderPort             = loadOrderPort;
+        this.loadDeliveryCodePort      = loadDeliveryCodePort;
     }
 
     @GetMapping("/my-orders")
-    @Operation(summary = "Get my paginated order history")
+    @Operation(summary = "Get my paginated order history",
+            description = "filter: all (default) | progress | delivered | returns")
     public ResponseEntity<PageResponse<OrderDto>> getMyOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "all") String filter,
             @AuthenticationPrincipal JwtAuthenticatedUser user) {
-        PageResult<Order> result = getMyOrdersUseCase.execute(user.userId(), page, size);
+        PageResult<Order> result = getMyOrdersUseCase.execute(user.userId(), MyOrderFilter.fromParam(filter), page, size);
         List<OrderDto> dtos = result.content().stream().map(this::toDto).toList();
         return ResponseEntity.ok(PageResponse.from(
                 new PageResult<>(dtos, result.totalElements(), result.number(), result.size(), result.last())));
+    }
+
+    @GetMapping("/my-orders/summary")
+    @Operation(summary = "Get my order counts grouped by the my-orders filter pills")
+    public ResponseEntity<MyOrdersSummaryDto> getMyOrdersSummary(
+            @AuthenticationPrincipal JwtAuthenticatedUser user) {
+        return ResponseEntity.ok(MyOrdersSummaryDto.from(getMyOrdersSummaryUseCase.execute(user.userId())));
     }
 
     @GetMapping("/{orderId}")
@@ -256,6 +282,28 @@ public class OrderController {
                 pickpoint != null ? pickpoint.address() : null,
                 null, // courier name — resolved via admin API only (Phase 9)
                 order.trackingNumber(),
-                order.estimatedDeliveryDate());
+                order.estimatedDeliveryDate(),
+                order.claimedAt(),
+                order.shippedAt(),
+                order.outForDeliveryAt(),
+                order.deliveryAttemptedAt(),
+                order.readyForPickupAt(),
+                order.deliveredAt(),
+                order.cancelledAt(),
+                order.refundedAt(),
+                order.returnInitiatedAt(),
+                order.returnedToWarehouseAt(),
+                order.recallRequestedAt(),
+                deliveryCode(order));
+    }
+
+    /** Active delivery/pickup code — only for in-progress states that carry one (no eager join otherwise). */
+    private String deliveryCode(Order order) {
+        if (!DELIVERY_CODE_STATUSES.contains(order.status())) {
+            return null;
+        }
+        return loadDeliveryCodePort.loadActiveByOrderId(order.id())
+                .map(DeliveryCode::getCode)
+                .orElse(null);
     }
 }

@@ -21,5 +21,20 @@ public record OrderDto(
         String pickpointAddress,
         String courierName,
         String trackingNumber,
-        LocalDate estimatedDeliveryDate) {
+        LocalDate estimatedDeliveryDate,
+        // Per-step timestamps for the order stepper (Profile redesign Phase 4)
+        Instant claimedAt,
+        Instant shippedAt,
+        Instant outForDeliveryAt,
+        Instant deliveryAttemptedAt,
+        Instant readyForPickupAt,
+        Instant deliveredAt,
+        // Exception-state timestamps for the status banner
+        Instant cancelledAt,
+        Instant refundedAt,
+        Instant returnInitiatedAt,
+        Instant returnedToWarehouseAt,
+        Instant recallRequestedAt,
+        // Active delivery/pickup code — only populated for in-progress states that carry one
+        String deliveryCode) {
 }

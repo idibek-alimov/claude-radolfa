@@ -3,6 +3,7 @@ package tj.radolfa.application.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.in.GetMyOrdersUseCase;
+import tj.radolfa.application.ports.in.order.MyOrderFilter;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.PageResult;
@@ -18,7 +19,7 @@ public class GetMyOrdersService implements GetMyOrdersUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResult<Order> execute(Long userId, int page, int size) {
-        return loadOrderPort.loadByUserIdPaged(userId, page, size);
+    public PageResult<Order> execute(Long userId, MyOrderFilter filter, int page, int size) {
+        return loadOrderPort.loadByUserIdAndStatusesPaged(userId, filter.statuses(), page, size);
     }
 }

@@ -23,7 +23,15 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>,
     @EntityGraph(attributePaths = {"items", "items.sku"})
     List<OrderEntity> findByUser_IdOrderByCreatedAtDesc(Long userId);
 
+    @EntityGraph(attributePaths = {"items", "items.sku"})
     Page<OrderEntity> findByUser_IdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"items", "items.sku"})
+    Page<OrderEntity> findByUser_IdAndStatusInOrderByCreatedAtDesc(Long userId, Collection<OrderStatus> statuses, Pageable pageable);
+
+    long countByUser_Id(Long userId);
+
+    long countByUser_IdAndStatusIn(Long userId, Collection<OrderStatus> statuses);
 
     Optional<OrderEntity> findByExternalOrderId(String externalOrderId);
 
