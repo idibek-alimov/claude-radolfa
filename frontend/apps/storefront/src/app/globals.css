@@ -58,3 +58,16 @@ body {
     display: none;
   }
 }
+
+/* Profile shell (B-Magenta redesign): on mobile, the profile routes render
+ * their own magenta header (`ProfileMobileHeader`) in place of the inherited
+ * PromoBar + Navbar. The `(storefront)/layout.tsx` chrome stays unchanged —
+ * `ProfileShell` toggles this class on `<body>` for the lifetime of the route. */
+@media (max-width: 1023px) {
+  body.profile-chrome header.sticky.top-0.z-30 {
+    display: none;
+  }
+  body.profile-chrome .bg-gradient-to-r.from-mag.to-maghi {
+    display: none;
+  }
+}

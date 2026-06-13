@@ -113,7 +113,7 @@ export function PaymentReturnPage() {
             {data.amount.toFixed(2)} TJS · {t("via")} {data.provider}
           </p>
         )}
-        <Link href="/profile?tab=orders">
+        <Link href="/profile/orders">
           <Button className="gap-2">
             {t("viewOrders")}
             <ChevronRight className="h-4 w-4" />
@@ -144,7 +144,7 @@ export function PaymentReturnPage() {
             <RefreshCw className="h-4 w-4" />
             {t("retryCheck")}
           </Button>
-          <Link href="/profile?tab=orders">
+          <Link href="/profile/orders">
             <Button className="gap-2 w-full sm:w-auto">
               {t("viewOrders")}
               <ChevronRight className="h-4 w-4" />
@@ -165,7 +165,7 @@ export function PaymentReturnPage() {
       <p className="text-muted-foreground mb-8">
         {pollState === "refunded" ? t("refundedDesc") : t("failureDesc")}
       </p>
-      <Link href="/profile?tab=orders">
+      <Link href="/profile/orders">
         <Button variant="outline">{t("viewOrders")}</Button>
       </Link>
     </div>

@@ -183,7 +183,7 @@ export function CustomerOrderDetailPage() {
     <div className="mx-auto max-w-2xl space-y-6 py-6">
       {/* Breadcrumb */}
       <Link
-        href="/profile?tab=orders"
+        href="/profile/orders"
         className="text-sm text-muted-foreground hover:text-foreground"
       >
         ← {t("backToOrders")}

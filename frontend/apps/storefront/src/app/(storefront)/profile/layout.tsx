@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ProfileShell } from "@/widgets/profile-shell";
 
 export const metadata: Metadata = {
   title: "My Profile — Radolfa",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <ProfileShell>{children}</ProfileShell>;
 }

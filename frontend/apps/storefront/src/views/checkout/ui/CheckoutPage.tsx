@@ -125,7 +125,7 @@ export function CheckoutPage() {
         window.location.href = redirectUrl;
       } catch {
         // Payment initiation failed — order was still placed; send user to orders
-        router.push("/profile?tab=orders");
+        router.push("/profile/orders");
       }
     },
     onError: (err: unknown) => {

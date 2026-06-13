@@ -4,6 +4,7 @@ import apiClient from "@radolfa/shared/api/axios";
 import type { PaginatedResponse } from "@radolfa/shared/api/types";
 import { Order, UpdateProfileRequest, User } from "./types";
 import type { MyReturn } from "./types";
+import type { MyOrdersSummary } from "@/entities/order";
 
 export async function getMyOrders(
   page: number,
@@ -21,6 +22,20 @@ export function useMyOrders(page: number, size: number = 10) {
     queryKey: ["my-orders", page, size],
     queryFn: () => getMyOrders(page, size),
     placeholderData: keepPreviousData,
+  });
+}
+
+export async function getMyOrdersSummary(): Promise<MyOrdersSummary> {
+  const response = await apiClient.get<MyOrdersSummary>(
+    "/api/v1/orders/my-orders/summary"
+  );
+  return response.data;
+}
+
+export function useOrderSummary() {
+  return useQuery({
+    queryKey: ["my-orders-summary"],
+    queryFn: getMyOrdersSummary,
   });
 }
 

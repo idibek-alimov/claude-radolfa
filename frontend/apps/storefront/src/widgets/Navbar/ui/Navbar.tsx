@@ -208,7 +208,7 @@ function DesktopAuth() {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-2.5 cursor-pointer">
                 <Link
-                  href="/profile?tab=orders"
+                  href="/profile/orders"
                   className="flex items-center gap-2"
                 >
                   <svg
@@ -238,7 +238,7 @@ function DesktopAuth() {
           {user.loyalty?.tier && (
             <DropdownMenuItem asChild className="py-2 cursor-pointer">
               <Link
-                href="/profile?tab=loyalty"
+                href="/profile/rewards"
                 className="flex items-center gap-2"
               >
                 <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />
