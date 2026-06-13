@@ -3,8 +3,10 @@ package tj.radolfa.infrastructure.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.time.Duration;
 import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +18,23 @@ import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
 import tj.radolfa.application.ports.in.loyalty.ToggleLoyaltyPermanentUseCase;
 import tj.radolfa.application.ports.in.notification.GetNotificationPrefsUseCase;
 import tj.radolfa.application.ports.in.notification.UpdateNotificationPrefsUseCase;
+import tj.radolfa.application.ports.in.user.ConfirmPhoneChangeUseCase;
+import tj.radolfa.application.ports.in.user.RequestPhoneChangeUseCase;
 import tj.radolfa.application.ports.out.LoadPickpointPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.services.GetRecentEarningsService;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
+import tj.radolfa.infrastructure.security.RateLimitProperties;
+import tj.radolfa.infrastructure.security.RateLimiterService;
 import tj.radolfa.infrastructure.web.dto.AssignTierRequestDto;
 import tj.radolfa.infrastructure.web.dto.ChangeUserRoleRequestDto;
+import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.NotificationPrefsDto;
 import tj.radolfa.infrastructure.web.dto.NotificationPrefsRequestDto;
+import tj.radolfa.infrastructure.web.dto.PhoneChangeRequestDto;
+import tj.radolfa.infrastructure.web.dto.PhoneChangeVerifyDto;
 import tj.radolfa.infrastructure.web.dto.ToggleUserStatusRequestDto;
 import tj.radolfa.infrastructure.web.dto.UpdateUserProfileRequestDto;
 import tj.radolfa.infrastructure.web.dto.UserDto;
@@ -46,6 +55,10 @@ public class UserController {
     private final ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase;
     private final GetNotificationPrefsUseCase getNotificationPrefsUseCase;
     private final UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase;
+    private final RequestPhoneChangeUseCase  requestPhoneChangeUseCase;
+    private final ConfirmPhoneChangeUseCase  confirmPhoneChangeUseCase;
+    private final RateLimiterService         rateLimiter;
+    private final RateLimitProperties        rateLimitProps;
 
     public UserController(UpdateUserProfileUseCase updateUserProfileUseCase,
                           ListUsersUseCase listUsersUseCase,
@@ -57,7 +70,11 @@ public class UserController {
                           AssignUserTierUseCase assignUserTierUseCase,
                           ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase,
                           GetNotificationPrefsUseCase getNotificationPrefsUseCase,
-                          UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase) {
+                          UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase,
+                          RequestPhoneChangeUseCase requestPhoneChangeUseCase,
+                          ConfirmPhoneChangeUseCase confirmPhoneChangeUseCase,
+                          RateLimiterService rateLimiter,
+                          RateLimitProperties rateLimitProps) {
         this.updateUserProfileUseCase         = updateUserProfileUseCase;
         this.listUsersUseCase                 = listUsersUseCase;
         this.toggleUserStatusUseCase          = toggleUserStatusUseCase;
@@ -69,6 +86,10 @@ public class UserController {
         this.toggleLoyaltyPermanentUseCase    = toggleLoyaltyPermanentUseCase;
         this.getNotificationPrefsUseCase      = getNotificationPrefsUseCase;
         this.updateNotificationPrefsUseCase   = updateNotificationPrefsUseCase;
+        this.requestPhoneChangeUseCase        = requestPhoneChangeUseCase;
+        this.confirmPhoneChangeUseCase        = confirmPhoneChangeUseCase;
+        this.rateLimiter                      = rateLimiter;
+        this.rateLimitProps                   = rateLimitProps;
     }
 
     @GetMapping("/me")
@@ -111,6 +132,51 @@ public class UserController {
     public ResponseEntity<UserDto> updateProfile(@AuthenticationPrincipal JwtAuthenticatedUser user,
             @Valid @RequestBody UpdateUserProfileRequestDto request) {
         var updatedUser = updateUserProfileUseCase.execute(user.userId(), request.name(), request.email());
+        return ResponseEntity.ok(UserDto.fromDomain(updatedUser));
+    }
+
+    @PostMapping("/phone/change-request")
+    @Operation(summary = "Request an OTP to change my phone number")
+    public ResponseEntity<MessageResponseDto> requestPhoneChange(
+            @AuthenticationPrincipal JwtAuthenticatedUser user,
+            @Valid @RequestBody PhoneChangeRequestDto request) {
+
+        if (!rateLimiter.tryConsume("change-phone-request:user:" + user.userId(),
+                rateLimitProps.otpRequestMaxPerPhone(),
+                Duration.ofMinutes(rateLimitProps.otpRequestWindowMinutes()))) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many OTP requests. Try again later."));
+        }
+
+        if (!rateLimiter.tryConsume("change-phone-request:phone:" + request.phone(),
+                rateLimitProps.otpRequestMaxPerPhone(),
+                Duration.ofMinutes(rateLimitProps.otpRequestWindowMinutes()))) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many OTP requests. Try again later."));
+        }
+
+        requestPhoneChangeUseCase.execute(
+                new RequestPhoneChangeUseCase.Command(user.userId(), request.phone()));
+
+        return ResponseEntity.ok(MessageResponseDto.success("OTP sent to the new phone number."));
+    }
+
+    @PostMapping("/phone/change-verify")
+    @Operation(summary = "Confirm a phone number change with the OTP sent to the new number")
+    public ResponseEntity<?> confirmPhoneChange(
+            @AuthenticationPrincipal JwtAuthenticatedUser user,
+            @Valid @RequestBody PhoneChangeVerifyDto request) {
+
+        if (!rateLimiter.tryConsume("change-phone-verify:user:" + user.userId(),
+                rateLimitProps.otpVerifyMaxPerPhone(),
+                Duration.ofMinutes(rateLimitProps.otpVerifyWindowMinutes()))) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(MessageResponseDto.error("Too many verification attempts. Try again later."));
+        }
+
+        var updatedUser = confirmPhoneChangeUseCase.execute(
+                new ConfirmPhoneChangeUseCase.Command(user.userId(), request.phone(), request.otp()));
+
         return ResponseEntity.ok(UserDto.fromDomain(updatedUser));
     }
 

@@ -75,4 +75,9 @@ public class NotificationPortStub implements NotificationPort {
     public void sendRefundApprovedNotification(Long userId, Long orderId, Money refundAmount) {
         log.info("[NOTIFICATION STUB] Refund approved → userId={} orderId={} amount={}", userId, orderId, refundAmount);
     }
+
+    @Override
+    public void sendOtpCode(String phone, String code) {
+        log.info("[NOTIFICATION STUB] OTP code → phone={} code={}", phone, code);
+    }
 }

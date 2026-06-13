@@ -103,4 +103,15 @@ public interface NotificationPort {
      * @param refundAmount the amount to be refunded
      */
     default void sendRefundApprovedNotification(Long userId, Long orderId, Money refundAmount) {}
+
+    /**
+     * Sends a one-time verification code to a phone number that is not yet associated
+     * with a user (e.g. confirming a change-phone request). Unlike the other notifications
+     * here, this is addressed by phone string rather than {@code userId} since the
+     * destination number may not belong to any account yet.
+     *
+     * @param phone the destination phone number
+     * @param code  the OTP code to deliver
+     */
+    default void sendOtpCode(String phone, String code) {}
 }

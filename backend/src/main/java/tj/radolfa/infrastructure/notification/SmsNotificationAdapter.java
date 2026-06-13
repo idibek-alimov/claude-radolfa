@@ -94,4 +94,10 @@ public class SmsNotificationAdapter implements NotificationPort {
         log.warn("[SMS PLACEHOLDER] Would send refund-approved notification to userId={} orderId={} amount={}",
                 userId, orderId, refundAmount);
     }
+
+    @Override
+    public void sendOtpCode(String phone, String code) {
+        // TODO: send SMS directly to `phone` (no userId — number may not be registered yet)
+        log.warn("[SMS PLACEHOLDER] Would send OTP code to phone={} code={}", phone, code);
+    }
 }
