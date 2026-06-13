@@ -1,25 +1,13 @@
 import type { User } from "@radolfa/shared/user";
-import type { OrderStatus, OrderItem } from "@/entities/order/model/types";
+import type { OrderStatus, OrderItem, MyOrder, MyOrdersSummary } from "@/entities/order/model/types";
 import type { CustomerReturnStatus } from "@/entities/pickpoint";
 
-export type { User, OrderStatus, OrderItem };
+export type { User, OrderStatus, OrderItem, MyOrdersSummary };
 
-export interface Order {
-    id: number;
-    status: OrderStatus;
-    totalAmount: number;
-    items: OrderItem[];
-    createdAt: string;
-    loyaltyPointsRedeemed: number;
-    loyaltyPointsAwarded: number;
-    deliveryType: 'HOME' | 'PICKPOINT' | null;
-    courierName: string | null;
-    trackingNumber: string | null;
-    estimatedDeliveryDate: string | null;
-    pickpointName: string | null;
-    pickpointAddress: string | null;
-    deliveryAddress: string | null;
-}
+/** Order shape consumed by the profile feature — re-exports the canonical
+ *  `MyOrder` from `entities/order` (single source of truth, incl. stepper
+ *  timestamps and `deliveryCode`). */
+export type Order = MyOrder;
 
 export interface UpdateProfileRequest {
     name: string;

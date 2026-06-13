@@ -53,6 +53,16 @@ export interface LoyaltyProfile {
   floorTierName: string | null;
 }
 
+/**
+ * Customer notification preferences, nested inside the User object.
+ * Returned as part of GET /api/v1/users/me (null until first saved).
+ */
+export interface NotificationPreferences {
+  orderUpdates: boolean;
+  promotions: boolean;
+  smsMessages: boolean;
+}
+
 // ── User entity ───────────────────────────────────────────────────────────────
 
 /**
@@ -85,6 +95,7 @@ export interface User {
   pickpointName?: string | null;
   vehicleType?: "BICYCLE" | "MOTORCYCLE" | "CAR" | "VAN" | null;
   maxPayloadKg?: number | null;
+  notificationPrefs?: NotificationPreferences | null;
 }
 
 export interface CourierSummary {

@@ -111,3 +111,46 @@ export interface AdminOrderSummary {
   revenueThisMonth: number;
   recentOrders: RecentOrder[];
 }
+
+/** Server-side counts for the "my orders" filter pills (Profile redesign). */
+export interface MyOrdersSummary {
+  all: number;
+  progress: number;
+  delivered: number;
+  returns: number;
+}
+
+/** Full order shape returned by GET /api/v1/orders/my-orders (Profile redesign). */
+export interface MyOrder {
+  id: number;
+  status: OrderStatus;
+  totalAmount: number;
+  items: OrderItem[];
+  createdAt: string;
+  loyaltyPointsRedeemed: number;
+  loyaltyPointsAwarded: number;
+  deliveryType: DeliveryType | null;
+  deliveryAddress: string | null;
+  preferredTimeWindow: string | null;
+  pickpointId: number | null;
+  pickpointName: string | null;
+  pickpointAddress: string | null;
+  courierName: string | null;
+  trackingNumber: string | null;
+  estimatedDeliveryDate: string | null;
+  // Per-step timestamps for the order stepper
+  claimedAt: string | null;
+  shippedAt: string | null;
+  outForDeliveryAt: string | null;
+  deliveryAttemptedAt: string | null;
+  readyForPickupAt: string | null;
+  deliveredAt: string | null;
+  // Exception-state timestamps for the status banner
+  cancelledAt: string | null;
+  refundedAt: string | null;
+  returnInitiatedAt: string | null;
+  returnedToWarehouseAt: string | null;
+  recallRequestedAt: string | null;
+  // Active delivery/pickup code — only populated for in-progress states that carry one
+  deliveryCode: string | null;
+}
