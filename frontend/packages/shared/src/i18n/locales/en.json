@@ -701,7 +701,19 @@
     "changePhoneTitle": "Change phone number",
     "changePhonePrompt": "Enter your new phone number — we'll text you a code to confirm.",
     "newPhoneLabel": "New phone number",
-    "sendCode": "Send code"
+    "sendCode": "Send code",
+    "yourVouchers": "Your vouchers",
+    "paymentMethodsTitle": "Payment methods",
+    "crownRewardsLabel": "Crown rewards · {tier}",
+    "pointsUnit": "points",
+    "loyaltyHeroSubtitle": "{percent}% off every order · free delivery",
+    "pointsToNextTier": "{amount} to next tier",
+    "perkFreeDelivery": "Free delivery",
+    "perkFreeDeliveryDesc": "On all orders",
+    "perkEarlySales": "Early sales",
+    "perkEarlySalesDesc": "24h before everyone",
+    "perkBirthdayGift": "Birthday gift",
+    "perkBirthdayGiftDesc": "Every June"
   },
   "orderDetail": {
     "backToOrders": "My Orders",

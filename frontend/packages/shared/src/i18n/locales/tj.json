@@ -687,7 +687,19 @@
     "changePhoneTitle": "Тағйир додани рақами телефон",
     "changePhonePrompt": "Рақами нави телефони худро ворид кунед — мо рамзи тасдиқро мефиристем.",
     "newPhoneLabel": "Рақами нави телефон",
-    "sendCode": "Фиристодани рамз"
+    "sendCode": "Фиристодани рамз",
+    "yourVouchers": "Промокодҳои шумо",
+    "paymentMethodsTitle": "Усулҳои пардохт",
+    "crownRewardsLabel": "Crown rewards · {tier}",
+    "pointsUnit": "балл",
+    "loyaltyHeroSubtitle": "{percent}% тахфиф ба ҳар фармоиш · расонидани ройгон",
+    "pointsToNextTier": "{amount} то дараҷаи навбатӣ",
+    "perkFreeDelivery": "Расонидани ройгон",
+    "perkFreeDeliveryDesc": "Барои ҳамаи фармоишҳо",
+    "perkEarlySales": "Дастрасии пешакӣ ба тахфифҳо",
+    "perkEarlySalesDesc": "24 соат пеш аз ҳама",
+    "perkBirthdayGift": "Туҳфаи зодрӯз",
+    "perkBirthdayGiftDesc": "Ҳар моҳи июн"
   },
   "orderDetail": {
     "backToOrders": "Фармоишҳои ман",

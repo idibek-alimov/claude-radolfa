@@ -701,7 +701,19 @@
     "changePhoneTitle": "Изменить номер телефона",
     "changePhonePrompt": "Введите новый номер телефона — мы отправим код для подтверждения.",
     "newPhoneLabel": "Новый номер телефона",
-    "sendCode": "Отправить код"
+    "sendCode": "Отправить код",
+    "yourVouchers": "Ваши промокоды",
+    "paymentMethodsTitle": "Способы оплаты",
+    "crownRewardsLabel": "Crown rewards · {tier}",
+    "pointsUnit": "баллов",
+    "loyaltyHeroSubtitle": "скидка {percent}% на каждый заказ · бесплатная доставка",
+    "pointsToNextTier": "{amount} до следующего уровня",
+    "perkFreeDelivery": "Бесплатная доставка",
+    "perkFreeDeliveryDesc": "На все заказы",
+    "perkEarlySales": "Ранний доступ к акциям",
+    "perkEarlySalesDesc": "За 24 часа до всех",
+    "perkBirthdayGift": "Подарок на день рождения",
+    "perkBirthdayGiftDesc": "Каждый июнь"
   },
   "orderDetail": {
     "backToOrders": "Мои заказы",
