@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ProductDetail } from "@/entities/product";
+import { ProductDetailView } from "@/widgets/ProductDetail";
 import { fetchListingBySlug } from "@/entities/product/api";
 import { fetchRatingSummary } from "@/entities/review/api";
 import { buildProductJsonLd } from "@/shared/seo";
@@ -49,7 +49,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
             )}
-            <ProductDetail slug={slug} />
+            <ProductDetailView slug={slug} />
         </>
     );
 }
