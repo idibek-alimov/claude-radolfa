@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { ComingSoonPanel } from "@/widgets/profile-shell";
+import { AddressBookPage } from "@/features/address-book";
 
 export const metadata: Metadata = { title: "My Addresses — Radolfa" };
 
-// Scaffolded in Phase 6 so the shell's nav resolves. Real address book
-// (features/address-book on top of entities/address) is built in file 03.
+// Phase 10 — real address book (features/address-book on top of entities/address).
 export default function ProfileAddressesPage() {
-  return <ComingSoonPanel titleKey="sectionAddresses" messageKey="addressEmpty" />;
+  return <AddressBookPage />;
 }
