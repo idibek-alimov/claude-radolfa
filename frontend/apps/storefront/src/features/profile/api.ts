@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
 import apiClient from "@radolfa/shared/api/axios";
 import type { PaginatedResponse } from "@radolfa/shared/api/types";
@@ -6,21 +6,36 @@ import { Order, UpdateProfileRequest, User } from "./types";
 import type { MyReturn } from "./types";
 import type { MyOrdersSummary } from "@/entities/order";
 
+/** Server-side order-list filter — matches the `/orders/my-orders` whitelist (file 01 Phase 4). */
+export type OrderFilter = "all" | "progress" | "delivered" | "returns";
+
 export async function getMyOrders(
   page: number,
-  size: number = 10
+  size: number = 10,
+  filter: OrderFilter = "all"
 ): Promise<PaginatedResponse<Order>> {
   const response = await apiClient.get<PaginatedResponse<Order>>(
     "/api/v1/orders/my-orders",
-    { params: { page, size } }
+    { params: { page, size, filter } }
   );
   return response.data;
 }
 
-export function useMyOrders(page: number, size: number = 10) {
+export function useMyOrders(page: number, size: number = 10, filter: OrderFilter = "all") {
   return useQuery({
-    queryKey: ["my-orders", page, size],
-    queryFn: () => getMyOrders(page, size),
+    queryKey: ["my-orders", page, size, filter],
+    queryFn: () => getMyOrders(page, size, filter),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Infinite "Show more" list for the Orders route — server-side filtered, 1-based pages. */
+export function useMyOrdersInfinite(filter: OrderFilter, size: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ["my-orders", "infinite", filter, size],
+    queryFn: ({ pageParam }) => getMyOrders(pageParam, size, filter),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 2),
     placeholderData: keepPreviousData,
   });
 }
