@@ -961,6 +961,15 @@
       "photosAndVideos": "Акс ва видео",
       "seeAll": "Ҳамаро бинед {n}"
     },
+    "block": {
+      "heading": "Шарҳҳо · {count}",
+      "write": "Шарҳ нависед",
+      "ratings": "{count} баҳо",
+      "byFeature": "Аз рӯи хусусиятҳо",
+      "seeAll": "Ҳамаи {count} шарҳро бинед →",
+      "verifiedBuyer": "Харидори тасдиқшуда",
+      "helpful": "Муфид"
+    },
     "sort": {
       "newest": "Навтарин",
       "mostHelpful": "Аз ҳама фоидаовартарин",

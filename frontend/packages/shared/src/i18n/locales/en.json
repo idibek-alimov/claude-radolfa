@@ -975,6 +975,15 @@
       "photosAndVideos": "Photos & Videos",
       "seeAll": "See all {n}"
     },
+    "block": {
+      "heading": "Reviews · {count}",
+      "write": "Write a review",
+      "ratings": "{count} ratings",
+      "byFeature": "By feature",
+      "seeAll": "See all {count} reviews →",
+      "verifiedBuyer": "Verified buyer",
+      "helpful": "Helpful"
+    },
     "sort": {
       "newest": "Newest",
       "mostHelpful": "Most helpful",

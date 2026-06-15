@@ -13,13 +13,14 @@ import {
   type Sku,
 } from "@/entities/product";
 import { useAuth } from "@radolfa/shared/auth";
-import { ReviewsAndQuestionsSection } from "@/widgets/reviews-questions";
 import { useTranslations } from "next-intl";
 import ProductGallery from "./ProductGallery";
 import BuyBox from "./BuyBox";
 import TrustCard from "./TrustCard";
 import DescriptionBlock from "./DescriptionBlock";
 import SpecsTable from "./SpecsTable";
+import ReviewsSection from "./ReviewsSection";
+import QuestionsSection from "./QuestionsSection";
 
 /* ── Animation variants ────────────────────────────────────────── */
 
@@ -124,16 +125,23 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
         </div>
       </div>
 
-      {/* ── Reviews & Questions ───────────────────────────────────── */}
+      {/* ── Reviews ───────────────────────────────────────────────── */}
       <div id="reviews">
-        <ReviewsAndQuestionsSection
+        <ReviewsSection
           slug={slug}
-          productBaseId={listing.productBaseId}
           listingVariantId={listing.variantId}
           isAuthenticated={isAuthenticated}
           reviewTraits={listing.reviewTraits ?? []}
         />
       </div>
+
+      {/* ── Questions ─────────────────────────────────────────────── */}
+      <QuestionsSection
+        slug={slug}
+        productBaseId={listing.productBaseId}
+        listingVariantId={listing.variantId}
+        isAuthenticated={isAuthenticated}
+      />
 
       {/* ── Related products — "You May Also Like" ────────────────── */}
       <div className="mt-12 pt-8 border-t">
