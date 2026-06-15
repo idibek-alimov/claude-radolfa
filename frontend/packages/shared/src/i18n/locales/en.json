@@ -66,7 +66,16 @@
     "adding": "Adding...",
     "addedToCart": "Added to cart!",
     "outOfStockError": "This item is out of stock",
-    "partialDiscountHint": "Sale price applies to select sizes only"
+    "partialDiscountHint": "Sale price applies to select sizes only",
+    "verifiedSeller": "Verified seller",
+    "reviewsCount": "{count} reviews",
+    "crownPrice": "Crown price {price}",
+    "crownPercentageOff": "additional {pct}% off",
+    "save": "SAVE {amount}",
+    "addToBag": "Add to Bag · {price}",
+    "coloursAvailable": "{count} available",
+    "selectSize": "Select a size",
+    "outOfStock": "Out of stock"
   },
   "auth": {
     "welcomeBack": "Welcome back",

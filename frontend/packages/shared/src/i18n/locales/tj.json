@@ -66,7 +66,16 @@
     "adding": "Илова карда мешавад...",
     "addedToCart": "Ба сабад илова карда шуд!",
     "outOfStockError": "Ин мол дастрас нест",
-    "partialDiscountHint": "Нархи тахфифӣ танҳо барои андозаҳои муайян татбиқ мешавад"
+    "partialDiscountHint": "Нархи тахфифӣ танҳо барои андозаҳои муайян татбиқ мешавад",
+    "verifiedSeller": "Фурушандаи тасдиқшуда",
+    "reviewsCount": "{count} баррасӣ",
+    "crownPrice": "Нархи Crown {price}",
+    "crownPercentageOff": "иловагӣ -{pct}%",
+    "save": "ТАХФИФ {amount}",
+    "addToBag": "Ба сабад · {price}",
+    "coloursAvailable": "{count} мавҷуд",
+    "selectSize": "Андозаро интихоб кунед",
+    "outOfStock": "Мавҷуд нест"
   },
   "auth": {
     "welcomeBack": "Хуш омадед",

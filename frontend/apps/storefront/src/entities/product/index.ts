@@ -6,6 +6,7 @@ export type {
     Attribute,
     ListingVariant,
     ListingVariantDetail,
+    SiblingVariant,
     PaginatedListings,
     HomeSection,
     CollectionPage,

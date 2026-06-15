@@ -11,6 +11,7 @@
     "start:ops": "npm run start -w @radolfa/ops",
     "build": "npm run build:storefront && npm run build:ops",
     "lint": "npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   }
 }
