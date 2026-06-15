@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Copy, Check } from "lucide-react";
 import {
   fetchListingBySlug,
   fetchListings,
@@ -18,6 +17,9 @@ import { ReviewsAndQuestionsSection } from "@/widgets/reviews-questions";
 import { useTranslations } from "next-intl";
 import ProductGallery from "./ProductGallery";
 import BuyBox from "./BuyBox";
+import TrustCard from "./TrustCard";
+import DescriptionBlock from "./DescriptionBlock";
+import SpecsTable from "./SpecsTable";
 
 /* ── Animation variants ────────────────────────────────────────── */
 
@@ -40,8 +42,6 @@ interface ProductDetailViewProps {
 export default function ProductDetailView({ slug }: ProductDetailViewProps) {
   const t = useTranslations("productDetail");
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
-  const [specsExpanded, setSpecsExpanded] = useState(false);
-  const [codeCopied, setCodeCopied] = useState(false);
 
   const { isAuthenticated } = useAuth();
 
@@ -113,83 +113,14 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
             />
           </div>
 
-          {/* ── Product code ─────────────────────────────────────── */}
-          {listing.productCode && (
-            <div className="flex items-center gap-2 py-2 px-2 rounded bg-muted/30 text-sm">
-              <span className="text-muted-foreground min-w-[120px] shrink-0">
-                Код товара
-              </span>
-              <span className="font-medium text-foreground">
-                {listing.productCode}
-              </span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(listing.productCode!);
-                  setCodeCopied(true);
-                  setTimeout(() => setCodeCopied(false), 2000);
-                }}
-                className="ml-1 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Копировать код товара"
-              >
-                {codeCopied ? (
-                  <Check className="w-3.5 h-3.5 text-green-500" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-          )}
+          {/* ── Trust signals (delivery / returns / warranty) ────── */}
+          <TrustCard />
 
           {/* ── Description ──────────────────────────────────────── */}
-          {listing.webDescription && (
-            <div className="pt-4 border-t">
-              <h2 className="text-sm font-semibold text-foreground mb-2">
-                {t("aboutProduct")}
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {listing.webDescription}
-              </p>
-            </div>
-          )}
+          <DescriptionBlock webDescription={listing.webDescription} />
 
-          {/* ── Attributes / Specifications ──────────────────────── */}
-          {listing.attributes && listing.attributes.length > 0 && (
-            <div className="pt-4 border-t">
-              <h2 className="text-sm font-semibold text-foreground mb-3">
-                {t("specifications")}
-              </h2>
-              <div className="space-y-0">
-                {(specsExpanded
-                  ? listing.attributes
-                  : listing.attributes.slice(0, 5)
-                ).map((attr, idx) => (
-                  <div
-                    key={attr.key}
-                    className={`flex items-baseline gap-2 py-2 text-sm ${
-                      idx % 2 === 0 ? "bg-muted/30" : ""
-                    } rounded px-2`}
-                  >
-                    <span className="text-muted-foreground min-w-[120px] shrink-0">
-                      {attr.key}
-                    </span>
-                    <span className="text-foreground font-medium">
-                      {attr.values.join(", ")}
-                    </span>
-                  </div>
-                ))}
-                {listing.attributes.length > 5 && (
-                  <button
-                    onClick={() => setSpecsExpanded(!specsExpanded)}
-                    className="text-sm text-primary hover:underline mt-2 px-2"
-                  >
-                    {specsExpanded
-                      ? "Show less"
-                      : `Show all (${listing.attributes.length})`}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+          {/* ── Specifications ────────────────────────────────────── */}
+          <SpecsTable listing={listing} selectedSku={selectedSku} />
         </div>
       </div>
 
