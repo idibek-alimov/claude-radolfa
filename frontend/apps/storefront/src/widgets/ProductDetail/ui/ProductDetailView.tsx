@@ -4,20 +4,12 @@ import { notFound } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { fetchListingBySlug, ProductDetailSkeleton, type Sku } from "@/entities/product";
 import { useAuth } from "@radolfa/shared/auth";
-import { useTranslations } from "next-intl";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@radolfa/shared/ui/breadcrumb";
 import ProductGallery from "./ProductGallery";
+import ProductBreadcrumb from "./ProductBreadcrumb";
 import BuyBox from "./BuyBox";
+import MobileBuyBar from "./MobileBuyBar";
 import TrustCard from "./TrustCard";
 import DescriptionBlock from "./DescriptionBlock";
 import SpecsTable from "./SpecsTable";
@@ -32,7 +24,6 @@ interface ProductDetailViewProps {
 }
 
 export default function ProductDetailView({ slug }: ProductDetailViewProps) {
-  const t = useTranslations("productDetail");
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
 
   const { isAuthenticated } = useAuth();
@@ -66,36 +57,14 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="py-4 sm:py-6"
+      className="pt-4 sm:pt-6 pb-20 md:pb-6"
     >
-      {/* ── Breadcrumb ────────────────────────────────────────────── */}
-      <Breadcrumb className="max-w-[1440px] mx-auto px-4 sm:px-6 pt-4 text-[12px] text-ink/55">
-        <BreadcrumbList className="gap-1.5 text-[12px] text-ink/55 sm:gap-1.5">
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild className="hover:text-mag">
-              <Link href="/">{t("home")}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          {listing.categoryName && (
-            <>
-              <BreadcrumbSeparator>
-                <span className="opacity-50">/</span>
-              </BreadcrumbSeparator>
-              <BreadcrumbItem>
-                <span>{listing.categoryName}</span>
-              </BreadcrumbItem>
-            </>
-          )}
-          <BreadcrumbSeparator>
-            <span className="opacity-50">/</span>
-          </BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-ink/80 font-semibold">
-              {productName}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      {/* ── Breadcrumb (desktop — above the gallery/buy-box grid) ──── */}
+      <ProductBreadcrumb
+        categoryName={listing.categoryName}
+        productName={productName}
+        className="hidden lg:block max-w-[1440px] mx-auto px-4 sm:px-6 pt-4 text-[12px] text-ink/55"
+      />
 
       {/* ── Main product — gallery + buy box ─────────────────────── */}
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-3 grid grid-cols-12 gap-5">
@@ -110,12 +79,21 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
           />
         </div>
 
+        {/* ── Breadcrumb (mobile — under the gallery, above the title) ── */}
+        <div className="col-span-12 lg:hidden">
+          <ProductBreadcrumb
+            categoryName={listing.categoryName}
+            productName={productName}
+            className="text-[12px] text-ink/55"
+          />
+        </div>
+
         {/* ══════════════════════════════════════════════════════════
             RIGHT — Product info (5 cols)
            ══════════════════════════════════════════════════════════ */}
         <aside className="col-span-12 lg:col-span-5 space-y-4">
           {/* ── Buy box ─────────────────────────────────────────── */}
-          <div className="sticky top-32 space-y-4">
+          <div className="lg:sticky lg:top-32 space-y-4">
             <BuyBox
               listing={listing}
               selectedSku={selectedSku}
@@ -154,6 +132,9 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
 
       {/* ── Related products — "You May Also Like" ────────────────── */}
       <RelatedProducts currentSlug={slug} />
+
+      {/* ── Sticky Add-to-Bag bar (mobile) ───────────────────────────── */}
+      <MobileBuyBar listing={listing} selectedSku={selectedSku} />
     </motion.div>
   );
 }

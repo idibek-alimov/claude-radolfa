@@ -48,7 +48,7 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
   const subtitle = listing.webDescription?.split("\n")[0] ?? listing.brandName ?? null;
 
   return (
-    <div className="rounded-3xl bg-white border-2 border-mag/15 p-7 shadow-[0_8px_30px_-12px_rgba(203,17,171,0.25)]">
+    <div className="lg:rounded-3xl lg:bg-white lg:border-2 lg:border-mag/15 lg:p-7 lg:shadow-[0_8px_30px_-12px_rgba(203,17,171,0.25)]">
       {/* ── Seller line ─────────────────────────────────────────── */}
       <div className="text-[12px] text-ink/55 mb-1.5">
         {listing.sellerShopName ?? "Radolfa"}
@@ -58,7 +58,9 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
       </div>
 
       {/* ── Title + subtitle ────────────────────────────────────── */}
-      <h1 className="text-[28px] font-black leading-tight">{listing.colorDisplayName}</h1>
+      <h1 className="text-[22px] lg:text-[28px] font-black leading-tight">
+        {listing.colorDisplayName}
+      </h1>
       {subtitle && <p className="text-[13px] text-ink/65 mt-1">{subtitle}</p>}
 
       {/* ── Rating row ──────────────────────────────────────────── */}
@@ -77,7 +79,7 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
 
       {/* ── Price block ─────────────────────────────────────────── */}
       <div className="flex items-baseline gap-3 flex-wrap">
-        <span className="text-[44px] font-black text-mag tabular-nums leading-none">
+        <span className="text-[34px] lg:text-[44px] font-black text-mag tabular-nums leading-none">
           {formatHeroPrice(price.effectivePrice)}
         </span>
         <span className="text-[14px] font-bold text-mag">TJS</span>
