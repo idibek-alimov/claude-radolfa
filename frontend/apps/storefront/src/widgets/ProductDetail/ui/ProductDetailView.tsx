@@ -1,15 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  ChevronLeft,
-  ChevronRight,
-  ZoomIn,
   Crown,
   Copy,
   Check,
@@ -34,13 +29,8 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@radolfa/shared/lib";
 import { Badge } from "@radolfa/shared/ui/badge";
 import { Button } from "@radolfa/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@radolfa/shared/ui/dialog";
 import { formatPrice } from "@radolfa/shared/lib/format";
-import { useSwipe } from "../lib/useSwipe";
+import ProductGallery from "./ProductGallery";
 
 /* ── Animation variants ────────────────────────────────────────── */
 
@@ -54,8 +44,6 @@ const staggerItem = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-const slideTransition = { duration: 0.35, ease: [0.32, 0.72, 0, 1] as const };
-
 /* ── Main component ────────────────────────────────────────────── */
 
 interface ProductDetailViewProps {
@@ -67,10 +55,8 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
   const tc = useTranslations("common");
   const tCart = useTranslations("cart");
   const router = useRouter();
-  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [specsExpanded, setSpecsExpanded] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
@@ -94,36 +80,6 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
     queryFn: () => fetchListings(1, 8),
   });
 
-  /* ── Image navigation ───────────────────────────────────────── */
-
-  const imageCount = listing?.images.length ?? 0;
-
-  const goToImage = useCallback(
-    (dir: 1 | -1) => {
-      if (imageCount <= 0) return;
-      setSelectedImageIdx((prev) => (prev + dir + imageCount) % imageCount);
-    },
-    [imageCount],
-  );
-
-  const nextImage = useCallback(() => goToImage(1), [goToImage]);
-  const prevImage = useCallback(() => goToImage(-1), [goToImage]);
-
-  const gallerySwipe = useSwipe(nextImage, prevImage);
-  const lightboxSwipe = useSwipe(nextImage, prevImage);
-
-  /* ── Keyboard navigation for lightbox ────────────────────────── */
-
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") nextImage();
-      if (e.key === "ArrowLeft") prevImage();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [lightboxOpen, nextImage, prevImage]);
-
   /* ── Related products (exclude current) ─────────────────────── */
 
   const relatedProducts = useMemo(() => {
@@ -138,9 +94,6 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
   if (isError || !listing) {
     notFound();
   }
-
-  const mainImage =
-    listing.images[selectedImageIdx] ?? listing.images[0] ?? null;
 
   /* ── Price computation ──────────────────────────────────────── */
 
@@ -175,134 +128,11 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
             LEFT — Image gallery
            ══════════════════════════════════════════════════════════ */}
         <div className="lg:col-span-7">
-          <div className="flex gap-3">
-            {/* Vertical thumbnail strip — desktop only */}
-            {imageCount > 1 && (
-              <div className="hidden lg:flex flex-col gap-2 w-[72px] shrink-0 max-h-[600px] overflow-y-auto scrollbar-thin">
-                {listing.images.map((url, idx) => (
-                  <button
-                    key={url}
-                    onMouseEnter={() => setSelectedImageIdx(idx)}
-                    onClick={() => setSelectedImageIdx(idx)}
-                    className={`relative w-[72px] h-[88px] rounded-lg overflow-hidden border-2 shrink-0 transition-all ${
-                      idx === selectedImageIdx
-                        ? "border-primary ring-1 ring-primary/20"
-                        : "border-transparent hover:border-muted-foreground/30"
-                    }`}
-                  >
-                    <Image
-                      src={url}
-                      alt={`${productName} — thumbnail ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Main image */}
-            <div className="flex-1 min-w-0">
-              <div
-                className="relative w-full aspect-[3/4] sm:aspect-[4/5] rounded-xl bg-muted overflow-hidden cursor-zoom-in group"
-                onClick={() => mainImage && setLightboxOpen(true)}
-                {...gallerySwipe}
-              >
-                {listing.images.length > 0 ? (
-                  listing.images.map((url, idx) => (
-                    <motion.div
-                      key={url}
-                      className="absolute inset-0"
-                      animate={{ x: `${(idx - selectedImageIdx) * 100}%` }}
-                      transition={slideTransition}
-                    >
-                      <Image
-                        src={url}
-                        alt={`${productName} — image ${idx + 1}`}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-muted-foreground">
-                      {t("noImage")}
-                    </span>
-                  </div>
-                )}
-
-                {/* Tier price badge on image */}
-                {hasLoyalty && (
-                  <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-md">
-                      <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                      {tc("yourPrice")}
-                    </span>
-                  </div>
-                )}
-
-                {/* Zoom hint */}
-                {mainImage && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/5 transition-colors pointer-events-none">
-                    <ZoomIn className="w-8 h-8 text-white drop-shadow-lg opacity-0 group-hover:opacity-60 transition-opacity" />
-                  </div>
-                )}
-
-                {/* Image counter pill */}
-                {imageCount > 1 && (
-                  <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full pointer-events-none">
-                    {selectedImageIdx + 1} / {imageCount}
-                  </div>
-                )}
-              </div>
-
-              {/* Dot indicators — mobile only */}
-              {imageCount > 1 && (
-                <div className="flex lg:hidden justify-center gap-2 mt-3">
-                  {listing.images.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedImageIdx(idx)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        idx === selectedImageIdx
-                          ? "bg-primary"
-                          : "bg-muted-foreground/30"
-                      }`}
-                      aria-label={`Go to image ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Horizontal thumbnail strip — tablet (sm-lg) */}
-              {imageCount > 1 && (
-                <div className="hidden sm:flex lg:hidden gap-2 mt-3 overflow-x-auto pb-1">
-                  {listing.images.map((url, idx) => (
-                    <button
-                      key={url}
-                      onClick={() => setSelectedImageIdx(idx)}
-                      className={`relative w-16 h-20 rounded-lg border-2 overflow-hidden shrink-0 transition-colors ${
-                        idx === selectedImageIdx
-                          ? "border-primary ring-1 ring-primary/20"
-                          : "border-transparent hover:border-muted-foreground/30"
-                      }`}
-                    >
-                      <Image
-                        src={url}
-                        alt={`${productName} — thumbnail ${idx + 1}`}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <ProductGallery
+            images={listing.images}
+            productName={productName}
+            discountPercentage={listing.discountPercentage}
+          />
         </div>
 
         {/* ══════════════════════════════════════════════════════════
@@ -683,108 +513,6 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
           </>
         ) : null}
       </div>
-
-      {/* ── Image lightbox (fullscreen modal) ─────────────────────── */}
-      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent
-          className="max-w-none w-screen h-screen p-0 border-0 bg-black/95 rounded-none
-            left-0 top-0 translate-x-0 translate-y-0
-            data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0
-            data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0
-            [&>button]:text-white [&>button]:opacity-100 [&>button>svg]:h-6 [&>button>svg]:w-6"
-        >
-          <DialogTitle className="sr-only">
-            {productName} — Image {selectedImageIdx + 1} of {imageCount}
-          </DialogTitle>
-
-          <div
-            className="relative w-full h-full"
-            {...lightboxSwipe}
-          >
-            {/* Navigation arrows */}
-            {imageCount > 1 && (
-              <button
-                onClick={prevImage}
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10
-                  w-10 h-10 rounded-full bg-white/10 hover:bg-white/20
-                  flex items-center justify-center text-white transition-colors"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-
-            {imageCount > 1 && (
-              <button
-                onClick={nextImage}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10
-                  w-10 h-10 rounded-full bg-white/10 hover:bg-white/20
-                  flex items-center justify-center text-white transition-colors"
-                aria-label="Next image"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            )}
-
-            {/* Main image area */}
-            <div className="absolute inset-0 flex items-center justify-center px-14 pt-12 pb-28 overflow-hidden">
-              <div className="relative w-full h-full">
-                {listing.images.map((url, idx) => (
-                  <motion.div
-                    key={url}
-                    className="absolute inset-0"
-                    animate={{ x: `${(idx - selectedImageIdx) * 100}%` }}
-                    transition={slideTransition}
-                  >
-                    <Image
-                      src={url}
-                      alt={`${productName} — image ${idx + 1}`}
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom controls */}
-            <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-3">
-              {/* Thumbnails — sm+ screens */}
-              {imageCount > 1 && (
-                <div className="hidden sm:flex gap-2 overflow-x-auto max-w-[80vw] pb-1">
-                  {listing.images.map((url, idx) => (
-                    <button
-                      key={url}
-                      onClick={() => setSelectedImageIdx(idx)}
-                      className={`relative w-12 h-12 rounded-md overflow-hidden border-2 shrink-0 transition-all ${
-                        idx === selectedImageIdx
-                          ? "border-white opacity-100"
-                          : "border-transparent opacity-50 hover:opacity-80"
-                      }`}
-                    >
-                      <Image
-                        src={url}
-                        alt={`Thumbnail ${idx + 1}`}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Counter */}
-              {imageCount > 1 && (
-                <div className="bg-black/60 text-white text-sm px-4 py-1.5 rounded-full">
-                  {selectedImageIdx + 1} / {imageCount}
-                </div>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </motion.div>
   );
 }
