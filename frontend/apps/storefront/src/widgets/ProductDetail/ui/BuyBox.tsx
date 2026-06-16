@@ -19,6 +19,14 @@ function formatHeroPrice(price: number): string {
   return heroPriceFormatter.format(price).replace(/,/g, " ");
 }
 
+/** "midnight-black" → "Midnight Black" — fallback when colorName is null. */
+function formatColorKey(key: string): string {
+  return key
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 interface BuyBoxProps {
   listing: ListingVariantDetail;
   selectedSku: Sku | null;
@@ -45,12 +53,10 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
     );
   };
 
-  const subtitle = listing.webDescription?.split("\n")[0] ?? listing.brandName ?? null;
-
   return (
     <div className="lg:rounded-3xl lg:bg-white lg:border-2 lg:border-mag/15 lg:p-7 lg:shadow-[0_8px_30px_-12px_rgba(203,17,171,0.25)]">
       {/* ── Seller line ─────────────────────────────────────────── */}
-      <div className="text-[12px] text-ink/55 mb-1.5">
+      <div className="text-[12px] text-ink font-medium mb-1.5">
         {listing.sellerShopName ?? "Radolfa"}
         {listing.sellerShopName && (
           <span className="ml-1.5 text-emerald font-bold">· {t("verifiedSeller")}</span>
@@ -61,7 +67,6 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
       <h1 className="text-[22px] lg:text-[28px] font-black leading-tight">
         {listing.colorDisplayName}
       </h1>
-      {subtitle && <p className="text-[13px] text-ink/65 mt-1">{subtitle}</p>}
 
       {/* ── Rating row ──────────────────────────────────────────── */}
       {listing.reviewCount > 0 && (
@@ -84,7 +89,7 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
         </span>
         <span className="text-[14px] font-bold text-mag">TJS</span>
         {price.hasCheaperPrice && (
-          <span className="text-[14px] text-ink/45 line-through tabular-nums">
+          <span className="text-[18px] text-ink/45 line-through tabular-nums">
             {formatPrice(price.originalPrice)}
           </span>
         )}
@@ -115,43 +120,76 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
       )}
 
       {/* ── Colour picker ───────────────────────────────────────── */}
-      <div className="mt-5">
-        <div className="text-[12px] mb-2">
-          <span className="text-ink/55">{t("color")}:</span>{" "}
-          <span className="font-bold">{listing.colorDisplayName}</span>
-          {listing.siblingVariants.length > 0 &&
-            ` · ${t("coloursAvailable", { count: listing.siblingVariants.length + 1 })}`}
-        </div>
-        <div className="flex gap-2.5 flex-wrap">
-          {/* Current colour — non-interactive, marked selected */}
-          <span
-            role="button"
-            aria-pressed="true"
-            aria-label={listing.colorDisplayName}
-            className="w-14 h-14 rounded-2xl border-2 border-mag p-0.5 overflow-hidden ring-2 ring-mag/20 block shrink-0"
-            style={{ backgroundColor: listing.colorHex ?? undefined }}
-          />
-          {listing.siblingVariants.map((sv) => (
-            <Link
-              key={sv.slug}
-              href={`/products/${sv.slug}`}
-              aria-label={sv.colorKey}
-              className="w-14 h-14 rounded-2xl border border-ink/15 overflow-hidden hover:border-mag relative block shrink-0"
-              style={{ backgroundColor: sv.colorHex ?? undefined }}
-            >
-              {sv.thumbnail && (
-                <Image
-                  src={sv.thumbnail}
-                  alt={sv.colorKey}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              )}
-            </Link>
-          ))}
-        </div>
-      </div>
+      {(() => {
+        const swatches = [
+          {
+            slug: listing.slug,
+            colorKey: listing.colorKey,
+            colorHex: listing.colorHex,
+            thumbnail: listing.images[0] ?? null,
+          },
+          ...listing.siblingVariants,
+        ].sort(
+          (a, b) =>
+            a.colorKey.localeCompare(b.colorKey) || a.slug.localeCompare(b.slug),
+        );
+
+        return (
+          <div className="mt-5">
+            <div className="text-[12px] mb-2">
+              <span className="text-ink/55">{t("color")}:</span>{" "}
+              <span className="font-bold">
+                {listing.colorName ?? formatColorKey(listing.colorKey)}
+              </span>
+              {listing.siblingVariants.length > 0 &&
+                ` · ${t("coloursAvailable", { count: swatches.length })}`}
+            </div>
+            <div className="flex gap-2.5 flex-wrap">
+              {swatches.map((sv) => {
+                const isActive = sv.slug === listing.slug;
+                return isActive ? (
+                  <span
+                    key={sv.slug}
+                    role="button"
+                    aria-pressed="true"
+                    aria-label={listing.colorName ?? sv.colorKey}
+                    className="w-14 h-14 rounded-2xl border-2 border-mag p-0.5 overflow-hidden ring-2 ring-mag/20 relative block shrink-0"
+                    style={{ backgroundColor: sv.colorHex ?? undefined }}
+                  >
+                    {sv.thumbnail && (
+                      <Image
+                        src={sv.thumbnail}
+                        alt={sv.colorKey}
+                        fill
+                        className="object-cover rounded-xl"
+                        unoptimized
+                      />
+                    )}
+                  </span>
+                ) : (
+                  <Link
+                    key={sv.slug}
+                    href={`/products/${sv.slug}`}
+                    aria-label={sv.colorKey}
+                    className="w-14 h-14 rounded-2xl border border-ink/15 overflow-hidden hover:border-mag relative block shrink-0"
+                    style={{ backgroundColor: sv.colorHex ?? undefined }}
+                  >
+                    {sv.thumbnail && (
+                      <Image
+                        src={sv.thumbnail}
+                        alt={sv.colorKey}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Size picker ─────────────────────────────────────────── */}
       {listing.skus.length > 0 && (
