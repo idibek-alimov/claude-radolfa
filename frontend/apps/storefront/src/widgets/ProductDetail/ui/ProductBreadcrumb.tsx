@@ -11,15 +11,18 @@ import {
 
 interface ProductBreadcrumbProps {
   categoryName: string | null;
+  categorySlug?: string | null;
   productName: string;
   className?: string;
 }
 
 /** Single-level breadcrumb: Home / {categoryName?} / {productName}. Rendered once for
  * desktop (above the gallery/buy-box grid) and once for mobile (under the gallery,
- * above the title) — see `ProductDetailView`. */
+ * above the title) — see `ProductDetailView`. When `categorySlug` is provided the
+ * category segment becomes a real link to `/categories/{slug}/products`. */
 export default function ProductBreadcrumb({
   categoryName,
+  categorySlug,
   productName,
   className,
 }: ProductBreadcrumbProps) {
@@ -39,7 +42,13 @@ export default function ProductBreadcrumb({
               <span className="opacity-50">/</span>
             </BreadcrumbSeparator>
             <BreadcrumbItem>
-              <span>{categoryName}</span>
+              {categorySlug ? (
+                <BreadcrumbLink asChild className="hover:text-mag">
+                  <Link href={`/categories/${categorySlug}/products`}>{categoryName}</Link>
+                </BreadcrumbLink>
+              ) : (
+                <span>{categoryName}</span>
+              )}
             </BreadcrumbItem>
           </>
         )}

@@ -62,6 +62,7 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
       {/* ── Breadcrumb (desktop — above the gallery/buy-box grid) ──── */}
       <ProductBreadcrumb
         categoryName={listing.categoryName}
+        categorySlug={listing.categorySlug}
         productName={productName}
         className="hidden lg:block max-w-[1440px] mx-auto px-4 sm:px-6 pt-4 text-[12px] text-ink/55"
       />
@@ -91,6 +92,7 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
         <div className="col-span-12 lg:hidden order-2">
           <ProductBreadcrumb
             categoryName={listing.categoryName}
+            categorySlug={listing.categorySlug}
             productName={productName}
             className="text-[12px] text-ink/55"
           />
@@ -118,7 +120,7 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
             LEFT / ROW 2 — Specifications  (mobile: 4th)
            ══════════════════════════════════════════════════════════ */}
         <div className="col-span-12 lg:col-span-7 order-4 lg:order-none lg:col-start-1 lg:row-start-2">
-          <SpecsTable listing={listing} selectedSku={selectedSku} />
+          <SpecsTable listing={listing} />
         </div>
 
         {/* ══════════════════════════════════════════════════════════

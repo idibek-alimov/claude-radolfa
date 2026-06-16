@@ -1,26 +1,38 @@
+"use client";
+
+import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import type { ListingVariantDetail, Sku } from "@/entities/product";
+import type { ListingVariantDetail } from "@/entities/product";
 
 interface SpecsTableProps {
   listing: ListingVariantDetail;
-  selectedSku: Sku | null;
 }
 
 interface SpecRow {
   label: string;
   value: string;
   mono?: boolean;
+  copyable?: boolean;
 }
 
 /**
- * `bg-soft` specs grid — brand, attributes, dimensions, weight, and SKU.
- * Only rows with real values render; the monolith's first-5 "Show all"
- * expander is dropped per Phase 4 (the detail object is fully loaded).
+ * `bg-soft` specs grid — article code (copy-on-click), brand, attributes,
+ * dimensions, and weight. The warehouse SKU row is intentionally omitted.
+ * Only rows with real values render.
  */
-export default function SpecsTable({ listing, selectedSku }: SpecsTableProps) {
+export default function SpecsTable({ listing }: SpecsTableProps) {
   const t = useTranslations("productDetail");
 
   const rows: SpecRow[] = [];
+
+  if (listing.productCode) {
+    rows.push({
+      label: t("specArticle"),
+      value: listing.productCode,
+      mono: true,
+      copyable: true,
+    });
+  }
 
   if (listing.brandName) {
     rows.push({ label: t("specBrand"), value: listing.brandName });
@@ -41,12 +53,13 @@ export default function SpecsTable({ listing, selectedSku }: SpecsTableProps) {
     rows.push({ label: t("specWeight"), value: `${listing.weightKg} kg` });
   }
 
-  const skuCode = selectedSku?.skuCode ?? listing.productCode;
-  if (skuCode) {
-    rows.push({ label: t("specSku"), value: skuCode, mono: true });
-  }
-
   if (rows.length === 0) return null;
+
+  function handleCopy(value: string) {
+    navigator.clipboard.writeText(value).then(() => {
+      toast.success(t("articleCopied"));
+    });
+  }
 
   return (
     <div className="bg-soft rounded-2xl md:rounded-3xl p-5 md:p-6">
@@ -55,9 +68,21 @@ export default function SpecsTable({ listing, selectedSku }: SpecsTableProps) {
         {rows.map((row) => (
           <div key={row.label} className="flex justify-between border-b border-ink/8 pb-1.5">
             <span className="text-ink/55">{row.label}</span>
-            <span className={row.mono ? "font-mono text-[11px]" : "font-semibold"}>
-              {row.value}
-            </span>
+            {row.copyable ? (
+              <button
+                type="button"
+                onClick={() => handleCopy(row.value)}
+                className="font-mono text-[11px] cursor-pointer hover:text-mag transition-colors"
+                title={t("clickToCopy")}
+                aria-label={t("copyArticle")}
+              >
+                {row.value}
+              </button>
+            ) : (
+              <span className={row.mono ? "font-mono text-[11px]" : "font-semibold"}>
+                {row.value}
+              </span>
+            )}
           </div>
         ))}
       </div>
