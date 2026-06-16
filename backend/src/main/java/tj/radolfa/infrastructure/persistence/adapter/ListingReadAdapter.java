@@ -353,14 +353,17 @@ public class ListingReadAdapter implements LoadListingPort {
                                 })
                                 .toList();
 
-                String categoryName = entity.getProductBase().getCategory() != null
-                                ? entity.getProductBase().getCategory().getName()
-                                : null;
+                CategoryEntity category = entity.getProductBase().getCategory();
+                String categoryName = category != null ? category.getName() : null;
+                String categorySlug = category != null ? category.getSlug() : null;
                 String colorKey = entity.getColor() != null
                                 ? entity.getColor().getColorKey()
                                 : null;
                 String colorHex = entity.getColor() != null
                                 ? entity.getColor().getHexCode()
+                                : null;
+                String colorName = entity.getColor() != null
+                                ? entity.getColor().getDisplayName()
                                 : null;
 
                 List<TagView> tags = entity.getTags().stream()
@@ -371,6 +374,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getProductBase() != null
                                         ? entity.getProductBase().getCategory()
                                         : null);
+
+                // Rating — same source as the grid path (product_rating_summaries)
+                Optional<ProductRatingSummaryEntity> ratingSummary = ratingRepo.findById(entity.getId());
+                BigDecimal ratingAverage = ratingSummary.map(ProductRatingSummaryEntity::getAverageRating).orElse(null);
+                int reviewCount = ratingSummary.map(ProductRatingSummaryEntity::getReviewCount).orElse(0);
 
                 // Seller attribution — snapshot for "Sold by" display on the storefront.
                 // NULL sellerId = Radolfa-owned; frontend renders "Sold by Radolfa" in that case.
@@ -409,7 +417,11 @@ public class ListingReadAdapter implements LoadListingPort {
                                 entity.getDepthCm(),
                                 reviewTraits,
                                 sellerId,
-                                sellerShopName);
+                                sellerShopName,
+                                ratingAverage,
+                                reviewCount,
+                                colorName,
+                                categorySlug);
         }
 
         // ---- Trait helpers (detail-page only) ----

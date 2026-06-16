@@ -112,6 +112,10 @@ export interface ListingVariantDetail extends ListingVariant {
   sellerId: number | null;
   /** null = Radolfa-owned; render "Sold by Radolfa" in that case. */
   sellerShopName: string | null;
+  /** Real colors.display_name; null when no colour is assigned. */
+  colorName: string | null;
+  /** Category slug for the breadcrumb link; null when uncategorised. */
+  categorySlug: string | null;
 }
 
 /** Paginated response for listings — alias of the shared generic. */

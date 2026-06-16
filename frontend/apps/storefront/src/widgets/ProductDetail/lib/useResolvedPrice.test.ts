@@ -40,6 +40,8 @@ function makeListing(overrides: Partial<ListingVariantDetail> = {}): ListingVari
     siblingVariants: [],
     reviewTraits: [],
     sellerId: null,
+    colorName: null,
+    categorySlug: null,
     ...overrides,
   };
 }

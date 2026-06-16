@@ -44,7 +44,14 @@ public record ListingVariantDetailDto(
         /** {@code null} = Radolfa-owned. */
         Long sellerId,
         /** {@code null} = Radolfa-owned; frontend renders "Sold by Radolfa" in that case. */
-        String sellerShopName
+        String sellerShopName,
+        /** {@code null} when no reviews exist yet. */
+        BigDecimal ratingAverage,
+        Integer reviewCount,
+        /** Real {@code colors.display_name}; {@code null} when no colour is assigned. */
+        String colorName,
+        /** Category slug for breadcrumb link; {@code null} when uncategorised. */
+        String categorySlug
 ) {
     /**
      * A single product attribute shown on the detail page.
@@ -104,7 +111,8 @@ public record ListingVariantDetailDto(
                 loyalty, loyaltyPct.intValue(), resolveWinningSource(loyaltyPct, discountPercentage), isPartialDiscount,
                 tags, loyaltySkus, siblingVariants, productCode,
                 weightKg, widthCm, heightCm, depthCm, reviewTraits,
-                sellerId, sellerShopName);
+                sellerId, sellerShopName,
+                ratingAverage, reviewCount, colorName, categorySlug);
     }
 
     /**
