@@ -22,7 +22,7 @@ public interface ListingIndexPort {
      * @param images        image URLs
      * @param price         lowest effective price among SKUs (for search/sort)
      * @param totalStock    sum of all SKU stock
-     * @param productCode   human-friendly product code, e.g. "RD-10047" (may be null)
+     * @param productCode   human-friendly product code, e.g. "10047" (may be null)
      * @param skuCodes      all SKU codes belonging to this variant
      * @param categoryId    ProductBase.categoryId, used to filter by category + descendants (may be null)
      * @param brandId       ProductBase.brandId (may be null)

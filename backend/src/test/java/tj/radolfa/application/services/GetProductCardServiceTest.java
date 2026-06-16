@@ -148,7 +148,7 @@ class GetProductCardServiceTest {
         return new VariantSummary(
                 variantId,
                 "winter-jacket-" + colorKey,
-                "RD-0000" + variantId,
+                String.format("%05d", variantId),
                 variantId,
                 colorKey,
                 colorKey.substring(0, 1).toUpperCase() + colorKey.substring(1),

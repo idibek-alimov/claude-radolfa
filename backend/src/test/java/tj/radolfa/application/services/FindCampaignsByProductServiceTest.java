@@ -111,7 +111,7 @@ class FindCampaignsByProductServiceTest {
 
     private static ListingVariant variant(Long id) {
         return new ListingVariant(id, 1L, "red", "slug-" + id, null,
-                List.of(), List.of(), List.of(), null, "RD-" + id, true, true,
+                List.of(), List.of(), List.of(), null, String.format("%05d", id), true, true,
                 null, null, null, null);
     }
 

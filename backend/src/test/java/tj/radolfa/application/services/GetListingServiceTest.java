@@ -44,7 +44,7 @@ class GetListingServiceTest {
                 "red", "#FF0000", "desc", List.of(),
                 null, null, null, null, null,
                 null, null, null, false,
-                List.of(), "RD-10047", List.of(),
+                List.of(), "10047", List.of(),
                 null, 0, null,
                 null, null);
     }
@@ -88,13 +88,13 @@ class GetListingServiceTest {
     @DisplayName("searchCatalog() with a product-code query bypasses Elasticsearch entirely")
     void searchCatalog_productCodeQuery_bypassesElasticsearch() {
         ListingQueryCriteria criteria = new ListingQueryCriteria(
-                "rd-10047", List.of(), null, null, null, List.of(), List.of(), null, ListingSort.POPULAR);
+                "10047", List.of(), null, null, null, List.of(), List.of(), null, ListingSort.POPULAR);
         fakeLoad.findByProductCodeResult = new PageResult<>(List.of(sampleDto(3L)), 1, 1, 12, true);
 
         CatalogResult result = service.searchCatalog(criteria, 1, 12);
 
         assertSame(fakeLoad.findByProductCodeResult, result.page());
-        assertEquals("RD-10047", fakeLoad.lastProductCode);
+        assertEquals("10047", fakeLoad.lastProductCode);
         assertNull(fakeSearch.lastCriteria, "Elasticsearch must not be queried for an exact product code");
         assertNull(fakeLoad.lastCriteria, "SQL searchCatalog must not be invoked for an exact product code");
     }

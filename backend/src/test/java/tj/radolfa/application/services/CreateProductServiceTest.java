@@ -679,7 +679,7 @@ class CreateProductServiceTest {
                     variant.getSlug(), variant.getWebDescription(),
                     variant.getImages(), variant.getAttributes(),
                     variant.getTagIds(),
-                    variant.getLastSyncAt(), "RD-" + idGen.get(),
+                    variant.getLastSyncAt(), String.format("%05d", idGen.get()),
                     variant.isEnabled(), variant.isActive(),
                     variant.getWeightKg(), variant.getWidthCm(),
                     variant.getHeightCm(), variant.getDepthCm());

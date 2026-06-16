@@ -30,7 +30,7 @@ class ListingGridRowMapperTest {
                 new BigDecimal("199.00"),// [6] MIN(originalPrice)
                 10L,                     // [7] totalStock
                 "#FF0000",               // [8] colorHex
-                "RD-001",                // [9] productCode
+                "00001",                 // [9] productCode
                 new BigDecimal("299.00"),// [10] MAX(originalPrice)
                 100L                     // [11] productBaseId
         };
@@ -88,7 +88,7 @@ class ListingGridRowMapperTest {
                 row(variantId),
                 Map.of(variantId, List.of("https://cdn/img1.jpg")),
                 Map.of(),
-                Map.of(variantId, List.of(new SkuDto(1L, "RD-001-S", "S", 5,
+                Map.of(variantId, List.of(new SkuDto(1L, "SKU-001-S", "S", 5,
                         new BigDecimal("199.00"), null, null, null, null, null, null))),
                 Map.of(),
                 Map.of(),

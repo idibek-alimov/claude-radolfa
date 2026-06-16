@@ -38,7 +38,7 @@ class ListDiscountedProductsServiceTest {
         DiscountedProductRow row = new DiscountedProductRow(
                 1L, "SKU-001", "M", 50,
                 new BigDecimal("100.00"), new BigDecimal("80.00"), new BigDecimal("20.00"),
-                winner, List.of(), 1L, "Product A", 1L, "RD-001", null
+                winner, List.of(), 1L, "Product A", 1L, "00001", null
         );
         fakePort.page = new PageImpl<>(List.of(row), PageRequest.of(0, 20), 1);
 

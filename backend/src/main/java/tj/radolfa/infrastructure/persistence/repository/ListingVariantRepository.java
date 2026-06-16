@@ -194,7 +194,7 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
 
         /**
          * Exact product code lookup — returns a single-row grid projection.
-         * Used when the search query matches the RD-XXXXX pattern.
+         * Used when the search query matches the 5-digit article code pattern.
          */
         @Query("""
                         SELECT lv.id, lv.slug, pb.name, pb.category.name, lv.color.colorKey,

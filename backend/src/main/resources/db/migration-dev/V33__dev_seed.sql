@@ -320,7 +320,7 @@ BEGIN
             )
             VALUES (
                 v_base_id, v_color_id, v_slug, v_description,
-                'RD-' || LPAD(NEXTVAL('listing_variant_code_seq')::TEXT, 5, '0')
+                LPAD(NEXTVAL('listing_variant_code_seq')::TEXT, 5, '0')
             )
             RETURNING id INTO v_variant_id;
 

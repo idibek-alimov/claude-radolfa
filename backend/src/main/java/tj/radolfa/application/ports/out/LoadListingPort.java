@@ -44,7 +44,7 @@ public interface LoadListingPort {
     PageResult<ListingVariantDto> loadByCategoryIds(List<Long> categoryIds, int page, int limit);
 
     /**
-     * Exact product-code lookup (e.g. "RD-10047").
+     * Exact product-code lookup (e.g. "10047").
      * Returns a single-item page when the code exists, empty page otherwise.
      */
     PageResult<ListingVariantDto> findByProductCode(String code, int page, int limit);

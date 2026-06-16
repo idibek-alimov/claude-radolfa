@@ -92,7 +92,7 @@ class CheckoutServiceStackingTest {
     };
 
     static final ListingVariant FAKE_VARIANT_OBJ = new ListingVariant(VARIANT_ID, PRODUCT_ID, "RED", "slug", null,
-            null, null, null, null, "RD-001", true, true, null, null, null, null);
+            null, null, null, null, "00001", true, true, null, null, null, null);
     static final ProductBase FAKE_PRODUCT_OBJ = new ProductBase(PRODUCT_ID, "EXT-001", "Test Product", null, null, null, tj.radolfa.domain.model.ProductStatus.DRAFT, null);
 
     static final LoadListingVariantPort FAKE_VARIANT = new LoadListingVariantPort() {

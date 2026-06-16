@@ -97,7 +97,7 @@ class ProductActivationIndexListenerTest {
 
     static ListingVariant variant(Long id, Long baseId) {
         return new ListingVariant(id, baseId, "red", "slug-" + id, null,
-                List.of(), List.of(), List.of(), null, "RD-001", true, true,
+                List.of(), List.of(), List.of(), null, "00001", true, true,
                 null, null, null, null);
     }
 

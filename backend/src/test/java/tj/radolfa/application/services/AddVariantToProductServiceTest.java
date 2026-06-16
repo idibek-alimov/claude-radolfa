@@ -149,7 +149,7 @@ class AddVariantToProductServiceTest {
         fakeVariant.storeForBaseAndColor(1L, "red",
                 new ListingVariant(50L, 1L, "red", "internal-abc123-red", null,
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                        null, "RD-00050", false, true, null, null, null, null));
+                        null, "00050", false, true, null, null, null, null));
 
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> service.execute(new Command(1L, 10L)));
@@ -236,7 +236,7 @@ class AddVariantToProductServiceTest {
                     idGen.getAndIncrement(), productBaseId, variant.getColorKey(),
                     variant.getSlug(), null,
                     Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                    null, "RD-" + idGen.get(),
+                    null, String.format("%05d", idGen.get()),
                     variant.isEnabled(), variant.isActive(),
                     null, null, null, null);
         }

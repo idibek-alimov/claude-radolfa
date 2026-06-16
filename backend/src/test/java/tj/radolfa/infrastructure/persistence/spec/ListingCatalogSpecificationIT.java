@@ -89,20 +89,20 @@ class ListingCatalogSpecificationIT {
 
         Instant base = Instant.now().minus(10, ChronoUnit.DAYS);
 
-        ListingVariantEntity alphaRed = persistVariant(alpha, red, "alpha-red", "RD-00001", base);
-        persistSku(alphaRed, "RD-00001-A", new BigDecimal("100.00"), 5);
+        ListingVariantEntity alphaRed = persistVariant(alpha, red, "alpha-red", "00001", base);
+        persistSku(alphaRed, "SKU-00001-A", new BigDecimal("100.00"), 5);
         alphaRedId = alphaRed.getId();
 
-        ListingVariantEntity alphaBlue = persistVariant(alpha, blue, "alpha-blue", "RD-00002", base.plus(2, ChronoUnit.DAYS));
-        persistSku(alphaBlue, "RD-00002-A", new BigDecimal("150.00"), 0);
+        ListingVariantEntity alphaBlue = persistVariant(alpha, blue, "alpha-blue", "00002", base.plus(2, ChronoUnit.DAYS));
+        persistSku(alphaBlue, "SKU-00002-A", new BigDecimal("150.00"), 0);
         alphaBlueId = alphaBlue.getId();
 
-        ListingVariantEntity betaRed = persistVariant(beta, red, "beta-red", "RD-00003", base.plus(1, ChronoUnit.DAYS));
-        persistSku(betaRed, "RD-00003-A", new BigDecimal("50.00"), 10);
+        ListingVariantEntity betaRed = persistVariant(beta, red, "beta-red", "00003", base.plus(1, ChronoUnit.DAYS));
+        persistSku(betaRed, "SKU-00003-A", new BigDecimal("50.00"), 10);
         betaRedId = betaRed.getId();
 
-        ListingVariantEntity gammaRed = persistVariant(gamma, red, "gamma-red", "RD-00004", base.plus(3, ChronoUnit.DAYS));
-        persistSku(gammaRed, "RD-00004-A", new BigDecimal("10.00"), 10);
+        ListingVariantEntity gammaRed = persistVariant(gamma, red, "gamma-red", "00004", base.plus(3, ChronoUnit.DAYS));
+        persistSku(gammaRed, "SKU-00004-A", new BigDecimal("10.00"), 10);
         gammaRedId = gammaRed.getId();
 
         persistRatingSummary(alphaRedId, new BigDecimal("4.50"), 10);

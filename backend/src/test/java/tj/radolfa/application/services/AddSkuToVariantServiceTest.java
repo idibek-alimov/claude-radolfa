@@ -136,7 +136,7 @@ class AddSkuToVariantServiceTest {
         return new ListingVariant(
                 id, productBaseId, "red", "test-slug", null,
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                null, "RD-00001", true, true, null, null, null, null);
+                null, "00001", true, true, null, null, null, null);
     }
 
     static class FakeLoadListingVariantPort implements LoadListingVariantPort {

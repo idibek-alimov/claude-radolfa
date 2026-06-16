@@ -128,7 +128,7 @@ class ListingCatalogControllerTest {
                 "red", "#FF0000", "desc", List.of(),
                 new BigDecimal("199.00"), null, null, null, null,
                 null, null, null, false,
-                List.of(), "RD-10047", List.of(),
+                List.of(), "10047", List.of(),
                 null, 0, null,
                 1L, "Acme");
     }

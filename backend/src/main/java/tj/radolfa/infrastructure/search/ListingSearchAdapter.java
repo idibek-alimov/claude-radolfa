@@ -218,13 +218,13 @@ public class ListingSearchAdapter implements ListingIndexPort, SearchListingPort
                                                                 .field("colorKey")
                                                                 .query(query)
                                                                 .boost(2.0f))),
-                                                // Product code prefix search (e.g. "RD-100")
+                                                // Product code prefix search (e.g. "100")
                                                 Query.of(q -> q.wildcard(w -> w
                                                                 .field("productCode")
                                                                 .wildcard("*" + upperQuery + "*")
                                                                 .caseInsensitive(true)
                                                                 .boost(4.0f))),
-                                                // SKU code prefix search (e.g. "RD-10047-S")
+                                                // SKU code prefix search (e.g. "SKU-ABC123")
                                                 Query.of(q -> q.wildcard(w -> w
                                                                 .field("skuCodes")
                                                                 .wildcard("*" + upperQuery + "*")

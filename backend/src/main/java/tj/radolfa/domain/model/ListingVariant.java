@@ -43,7 +43,7 @@ public class ListingVariant {
     // Audit
     private Instant lastSyncAt;
 
-    // Human-friendly storefront identifier (e.g. "RD-10047").
+    // Human-friendly storefront identifier (e.g. "10047").
     // Null for unsaved variants — assigned by the persistence layer on first save.
     // Never changes after initial assignment.
     private String productCode;

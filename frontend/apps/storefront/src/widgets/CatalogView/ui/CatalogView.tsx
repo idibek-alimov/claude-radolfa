@@ -19,7 +19,7 @@ import {
 } from "@/features/catalog-search";
 import { useTranslations } from "next-intl";
 
-const PRODUCT_CODE_RE = /^RD-\d{5,}$/i;
+const PRODUCT_CODE_RE = /^\d{5,}$/;
 const SKELETON_COUNT = 8;
 
 interface CatalogViewProps {

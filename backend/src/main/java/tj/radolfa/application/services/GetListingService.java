@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 @Transactional(readOnly = true)
 public class GetListingService implements GetListingUseCase {
 
-    private static final Pattern PRODUCT_CODE  = Pattern.compile("^RD-\\d{5,}$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PRODUCT_CODE  = Pattern.compile("^\\d{5,}$");
     private static final int     MAX_PAGE_SIZE = 100;
 
     private final LoadListingPort   loadListingPort;
@@ -53,9 +53,9 @@ public class GetListingService implements GetListingUseCase {
 
     @Override
     public PageResult<ListingVariantDto> search(String query, int page, int limit) {
-        // Exact product-code lookup: bypass Elasticsearch entirely for RD-XXXXX queries.
+        // Exact product-code lookup: bypass Elasticsearch entirely for digit-only article codes.
         if (query != null && PRODUCT_CODE.matcher(query.trim()).matches()) {
-            return loadListingPort.findByProductCode(query.trim().toUpperCase(), page, limit);
+            return loadListingPort.findByProductCode(query.trim(), page, limit);
         }
         int safeLimit = Math.min(limit, MAX_PAGE_SIZE);
         try {
@@ -83,10 +83,10 @@ public class GetListingService implements GetListingUseCase {
 
     @Override
     public CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
-        // Exact product-code lookup: bypass Elasticsearch entirely for RD-XXXXX queries.
+        // Exact product-code lookup: bypass Elasticsearch entirely for digit-only article codes.
         if (criteria.hasQuery() && PRODUCT_CODE.matcher(criteria.query().trim()).matches()) {
             PageResult<ListingVariantDto> codeResult =
-                    loadListingPort.findByProductCode(criteria.query().trim().toUpperCase(), page, limit);
+                    loadListingPort.findByProductCode(criteria.query().trim(), page, limit);
             return new CatalogResult(codeResult, CatalogFacets.empty());
         }
         int safeLimit = Math.min(limit, MAX_PAGE_SIZE);

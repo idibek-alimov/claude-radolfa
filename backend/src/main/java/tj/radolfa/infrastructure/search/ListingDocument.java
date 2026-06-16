@@ -60,11 +60,11 @@ public class ListingDocument {
     @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
     private Instant lastSyncAt;
 
-    /** Human-friendly product code, e.g. "RD-10047". Used for admin SKU-picker search. */
+    /** Human-friendly product code, e.g. "10047". Used for admin SKU-picker search. */
     @Field(type = FieldType.Keyword)
     private String productCode;
 
-    /** All SKU codes belonging to this variant, e.g. ["RD-10047-S", "RD-10047-M"]. */
+    /** All SKU codes belonging to this variant, e.g. ["SKU-ABC123EF456", "SKU-DEF456GH789"]. */
     @Field(type = FieldType.Keyword)
     private List<String> skuCodes;
 
