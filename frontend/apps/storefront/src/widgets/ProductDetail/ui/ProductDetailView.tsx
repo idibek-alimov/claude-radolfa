@@ -67,11 +67,19 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
       />
 
       {/* ── Main product — gallery + buy box ─────────────────────── */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-3 grid grid-cols-12 gap-5">
+      {/*
+          One 12-col grid. Desktop uses explicit row/col placement;
+          mobile uses order-* to keep: gallery → breadcrumb → buybox → specs → description.
+          The aside spans 3 rows on desktop so its sticky child travels the full left height.
+      */}
+      <section
+        className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-3 grid grid-cols-12 gap-5
+                   lg:grid-rows-[auto_auto_auto]"
+      >
         {/* ══════════════════════════════════════════════════════════
-            LEFT — Image gallery
+            LEFT / ROW 1 — Image gallery  (mobile: 1st)
            ══════════════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-7">
+        <div className="col-span-12 lg:col-span-7 order-1 lg:order-none lg:col-start-1 lg:row-start-1">
           <ProductGallery
             images={listing.images}
             productName={productName}
@@ -79,8 +87,8 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
           />
         </div>
 
-        {/* ── Breadcrumb (mobile — under the gallery, above the title) ── */}
-        <div className="col-span-12 lg:hidden">
+        {/* ── Breadcrumb (mobile only — between gallery and buy box) ── */}
+        <div className="col-span-12 lg:hidden order-2">
           <ProductBreadcrumb
             categoryName={listing.categoryName}
             productName={productName}
@@ -89,27 +97,36 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            RIGHT — Product info (5 cols)
+            RIGHT — Buy box + Trust, spans rows 1-3, sticky  (mobile: 3rd)
            ══════════════════════════════════════════════════════════ */}
-        <aside className="col-span-12 lg:col-span-5 space-y-4">
-          {/* ── Buy box ─────────────────────────────────────────── */}
+        <aside
+          className="col-span-12 lg:col-span-5 order-3 lg:order-none
+                     lg:col-start-8 lg:row-start-1 lg:row-span-3"
+        >
           <div className="lg:sticky lg:top-32 space-y-4">
             <BuyBox
               listing={listing}
               selectedSku={selectedSku}
               onSelectSku={setSelectedSku}
             />
+            {/* ── Trust signals (delivery / returns / warranty) ────── */}
+            <TrustCard />
           </div>
-
-          {/* ── Trust signals (delivery / returns / warranty) ────── */}
-          <TrustCard />
-
-          {/* ── Description ──────────────────────────────────────── */}
-          <DescriptionBlock webDescription={listing.webDescription} />
-
-          {/* ── Specifications ────────────────────────────────────── */}
-          <SpecsTable listing={listing} selectedSku={selectedSku} />
         </aside>
+
+        {/* ══════════════════════════════════════════════════════════
+            LEFT / ROW 2 — Specifications  (mobile: 4th)
+           ══════════════════════════════════════════════════════════ */}
+        <div className="col-span-12 lg:col-span-7 order-4 lg:order-none lg:col-start-1 lg:row-start-2">
+          <SpecsTable listing={listing} selectedSku={selectedSku} />
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════
+            LEFT / ROW 3 — Description  (mobile: 5th)
+           ══════════════════════════════════════════════════════════ */}
+        <div className="col-span-12 lg:col-span-7 order-5 lg:order-none lg:col-start-1 lg:row-start-3">
+          <DescriptionBlock webDescription={listing.webDescription} />
+        </div>
       </section>
 
       {/* ── Reviews ───────────────────────────────────────────────── */}
