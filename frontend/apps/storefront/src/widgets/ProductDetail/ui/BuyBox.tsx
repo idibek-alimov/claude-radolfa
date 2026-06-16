@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Crown, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { getErrorMessage } from "@radolfa/shared/lib";
 import { formatPrice } from "@radolfa/shared/lib/format";
 import type { ListingVariantDetail, Sku } from "@/entities/product";
-import { StockBadge } from "@/entities/product";
+import { StockBadge, fetchListingBySlug } from "@/entities/product";
 import { useAddToCart } from "@/features/cart";
 import { useResolvedPrice } from "../lib/useResolvedPrice";
 
@@ -29,14 +29,27 @@ function formatColorKey(key: string): string {
 
 interface BuyBoxProps {
   listing: ListingVariantDetail;
+  /** The currently active color slug — drives the active-swatch highlight. */
+  activeSlug: string;
   selectedSku: Sku | null;
   onSelectSku: (sku: Sku | null) => void;
+  /** Called when the user clicks a color swatch; triggers an in-place data swap. */
+  onSelectColor: (slug: string) => void;
 }
 
-export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProps) {
+export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, onSelectColor }: BuyBoxProps) {
   const t = useTranslations("productDetail");
   const addToCart = useAddToCart();
   const price = useResolvedPrice(listing, selectedSku);
+  const queryClient = useQueryClient();
+
+  /** Warm the cache for a sibling color on hover/focus so the click is instant. */
+  const prefetchSibling = (slug: string) => {
+    void queryClient.prefetchQuery({
+      queryKey: ["listing", slug],
+      queryFn: () => fetchListingBySlug(slug),
+    });
+  };
 
   const totalStock = listing.skus.reduce((acc, s) => acc + s.stockQuantity, 0);
   const allOutOfStock = totalStock === 0;
@@ -146,7 +159,9 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
             </div>
             <div className="flex gap-2.5 flex-wrap">
               {swatches.map((sv) => {
-                const isActive = sv.slug === listing.slug;
+                // Compare against activeSlug (not listing.slug) for immediate
+                // visual feedback on click before the new listing data arrives.
+                const isActive = sv.slug === activeSlug;
                 return isActive ? (
                   <span
                     key={sv.slug}
@@ -167,12 +182,23 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
                     )}
                   </span>
                 ) : (
-                  <Link
+                  // Plain <a> keeps the href for crawlers, middle-click, and
+                  // "open in new tab". A normal left-click is intercepted and
+                  // swaps the data in place without a router navigation.
+                  <a
                     key={sv.slug}
                     href={`/products/${sv.slug}`}
                     aria-label={sv.colorKey}
                     className="w-14 h-14 rounded-2xl border border-ink/15 overflow-hidden hover:border-mag relative block shrink-0"
                     style={{ backgroundColor: sv.colorHex ?? undefined }}
+                    onMouseEnter={() => prefetchSibling(sv.slug)}
+                    onFocus={() => prefetchSibling(sv.slug)}
+                    onClick={(e) => {
+                      // Let modified clicks (new tab, new window) go through normally.
+                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                      e.preventDefault();
+                      onSelectColor(sv.slug);
+                    }}
                   >
                     {sv.thumbnail && (
                       <Image
@@ -183,7 +209,7 @@ export default function BuyBox({ listing, selectedSku, onSelectSku }: BuyBoxProp
                         unoptimized
                       />
                     )}
-                  </Link>
+                  </a>
                 );
               })}
             </div>
