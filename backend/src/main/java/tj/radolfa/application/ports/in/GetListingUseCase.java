@@ -26,6 +26,11 @@ public interface GetListingUseCase {
     Optional<ListingVariantDetailDto> getBySlug(String slug);
 
     /**
+     * Detail page resolved by product code (article number, e.g. "10052").
+     */
+    Optional<ListingVariantDetailDto> getByProductCode(String code);
+
+    /**
      * Full-text search (ES with SQL fallback).
      */
     PageResult<ListingVariantDto> search(String query, int page, int limit);

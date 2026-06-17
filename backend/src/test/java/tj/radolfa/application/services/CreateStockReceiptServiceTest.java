@@ -113,6 +113,7 @@ class CreateStockReceiptServiceTest {
         @Override public Optional<ListingVariant>   findVariantById(Long id)                               { return Optional.ofNullable(store.get(id)); }
         @Override public Optional<ListingVariant>   findByProductBaseIdAndColorKey(Long pid, String ck)    { return Optional.empty(); }
         @Override public Optional<ListingVariant>   findBySlug(String slug)                                { return Optional.empty(); }
+        @Override public Optional<ListingVariant>   findByProductCode(String code)                         { return Optional.empty(); }
         @Override public List<ListingVariant>       findAllByProductBaseId(Long productBaseId)             { return List.of(); }
         @Override public Map<Long, ListingVariant>  findVariantsByIds(Collection<Long> ids) {
             return ids.stream().filter(store::containsKey).collect(Collectors.toMap(id -> id, store::get));

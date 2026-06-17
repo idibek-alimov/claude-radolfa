@@ -26,6 +26,7 @@ interface AnswerDialogProps {
   // Product context
   productName?: string;
   productSlug?: string;
+  productCode?: string | null;
   thumbnailUrl?: string | null;
   colorName?: string | null;
   colorHex?: string | null;
@@ -40,6 +41,7 @@ export function AnswerDialog({
   authorName,
   productName,
   productSlug,
+  productCode,
   thumbnailUrl,
   colorName,
   colorHex,
@@ -123,9 +125,9 @@ export function AnswerDialog({
                 </div>
               )}
               {/* /products (plural) — singular /product was a path bug */}
-              {productSlug && (
+              {(productCode ?? productSlug) && (
                 <a
-                  href={storefrontUrl(`/products/${productSlug}`)}
+                  href={storefrontUrl(`/products/${productCode ?? productSlug}`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"

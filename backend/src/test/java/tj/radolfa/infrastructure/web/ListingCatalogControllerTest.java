@@ -171,6 +171,11 @@ class ListingCatalogControllerTest {
         }
 
         @Override
+        public Optional<ListingVariantDetailDto> getByProductCode(String code) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public CatalogResult searchCatalog(ListingQueryCriteria criteria, int page, int limit) {
             lastCriteria = criteria;
             return sampleResult();
@@ -255,6 +260,11 @@ class ListingCatalogControllerTest {
 
         @Override
         public Optional<ListingVariant> findBySlug(String slug) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<ListingVariant> findByProductCode(String code) {
             return Optional.empty();
         }
 

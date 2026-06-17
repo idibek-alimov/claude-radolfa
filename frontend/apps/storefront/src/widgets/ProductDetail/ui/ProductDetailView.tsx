@@ -24,17 +24,17 @@ interface ProductDetailViewProps {
 }
 
 export default function ProductDetailView({ slug }: ProductDetailViewProps) {
-  // activeSlug is the color currently displayed. It starts from the route slug
-  // and changes in place when the user clicks a color swatch — without a router
-  // navigation. The URL is kept in sync via window.history.pushState so the
-  // address bar and shareable links stay correct.
-  const [activeSlug, setActiveSlug] = useState(slug);
+  // activeCode is the productCode (article number) of the colour currently displayed.
+  // It starts from the route param and changes in place when the user clicks a color
+  // swatch — without a router navigation. The URL is kept in sync via
+  // window.history.pushState so the address bar and shareable links stay correct.
+  const [activeCode, setActiveCode] = useState(slug);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
 
   /* ── Reset size when color changes ──────────────────────────── */
   useEffect(() => {
     setSelectedSku(null);
-  }, [activeSlug]);
+  }, [activeCode]);
 
   const { isAuthenticated } = useAuth();
 
@@ -45,9 +45,9 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["listing", activeSlug],
-    queryFn: () => fetchListingBySlug(activeSlug),
-    enabled: activeSlug.length > 0,
+    queryKey: ["listing", activeCode],
+    queryFn: () => fetchListingBySlug(activeCode),
+    enabled: activeCode.length > 0,
     // While fetching the new color keep the previous color's content on screen —
     // no skeleton flash, no opacity replay. Works because the component stays
     // mounted (we never navigate the router on color switch).
@@ -55,13 +55,13 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
   });
 
   /* ── Color switch — in-place data swap, shallow URL update ───── */
-  const handleSelectColor = (nextSlug: string) => {
-    if (nextSlug === activeSlug) return;
-    setActiveSlug(nextSlug);
+  const handleSelectColor = (nextCode: string) => {
+    if (nextCode === activeCode) return;
+    setActiveCode(nextCode);
     // Update the address bar without a server navigation or remount.
     // window.history.pushState is the App Router–supported way to do this on
     // Next 15. Browser back/forward still works via a normal popstate.
-    window.history.pushState(null, "", `/products/${nextSlug}`);
+    window.history.pushState(null, "", `/products/${nextCode}`);
   };
 
   /* ── Loading / Error ─────────────────────────────────────────── */
@@ -105,11 +105,11 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
             LEFT / ROW 1 — Image gallery  (mobile: 1st)
            ══════════════════════════════════════════════════════════ */}
         <div className="col-span-12 lg:col-span-7 order-1 lg:order-none lg:col-start-1 lg:row-start-1">
-          {/* key={activeSlug} remounts only the gallery when the color changes so
+          {/* key={activeCode} remounts only the gallery when the color changes so
               selectedImageIdx resets to 0 (the new color's first image). The
               gallery's per-image motion.div has no mount fade, so this is safe. */}
           <ProductGallery
-            key={activeSlug}
+            key={activeCode}
             images={listing.images}
             productName={productName}
             discountPercentage={listing.discountPercentage}
@@ -136,7 +136,7 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
           <div className="lg:sticky lg:top-32 space-y-4">
             <BuyBox
               listing={listing}
-              activeSlug={activeSlug}
+              activeSlug={activeCode}
               selectedSku={selectedSku}
               onSelectSku={setSelectedSku}
               onSelectColor={handleSelectColor}
@@ -164,7 +164,7 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
       {/* ── Reviews ───────────────────────────────────────────────── */}
       <div id="reviews">
         <ReviewsSection
-          slug={activeSlug}
+          slug={activeCode}
           listingVariantId={listing.variantId}
           isAuthenticated={isAuthenticated}
           reviewTraits={listing.reviewTraits ?? []}
@@ -173,14 +173,14 @@ export default function ProductDetailView({ slug }: ProductDetailViewProps) {
 
       {/* ── Questions ─────────────────────────────────────────────── */}
       <QuestionsSection
-        slug={activeSlug}
+        slug={activeCode}
         productBaseId={listing.productBaseId}
         listingVariantId={listing.variantId}
         isAuthenticated={isAuthenticated}
       />
 
       {/* ── Related products — "You May Also Like" ────────────────── */}
-      <RelatedProducts currentSlug={activeSlug} />
+      <RelatedProducts currentCode={activeCode} />
 
       {/* ── Sticky Add-to-Bag bar (mobile) ───────────────────────────── */}
       <MobileBuyBar listing={listing} selectedSku={selectedSku} />

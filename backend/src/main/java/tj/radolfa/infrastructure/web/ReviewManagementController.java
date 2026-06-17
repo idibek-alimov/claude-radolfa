@@ -119,8 +119,9 @@ public class ReviewManagementController {
         Page<ReviewAdminView> result = reviewPage.map(r -> {
             ListingVariant variant = variantMap.get(r.getListingVariantId());
             String slug = variant != null ? variant.getSlug() : "unknown";
+            String productCode = variant != null ? variant.getProductCode() : null;
             return new ReviewAdminView(
-                    r.getId(), r.getListingVariantId(), slug,
+                    r.getId(), r.getListingVariantId(), slug, productCode,
                     r.getAuthorName(), r.getRating(), r.getTitle(), r.getBody(),
                     r.getPros(), r.getCons(), r.getMatchingSize(), r.getPhotos(),
                     r.getStatus(), r.getSellerReply(), r.getCreatedAt());

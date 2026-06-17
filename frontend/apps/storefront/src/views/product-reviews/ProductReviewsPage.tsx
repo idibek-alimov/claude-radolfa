@@ -30,13 +30,13 @@ export function ProductReviewsPage({ slug }: ProductReviewsPageProps) {
   const variants: VariantPill[] = listing
     ? [
         {
-          slug: listing.slug,
+          slug: listing.productCode,
           label: listing.colorDisplayName,
           thumbnail: listing.images[0] ?? null,
           isActive: true,
         },
         ...listing.siblingVariants.map((s) => ({
-          slug: s.slug,
+          slug: s.productCode,
           label: formatColorKey(s.colorKey),
           thumbnail: s.thumbnail,
           isActive: false,

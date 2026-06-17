@@ -74,7 +74,7 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
             )}
             {/* /products (plural) — singular /product was a path bug */}
             <a
-              href={storefrontUrl(`/products/${question.productSlug}`)}
+              href={storefrontUrl(`/products/${question.productCode ?? question.productSlug}`)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
@@ -133,6 +133,7 @@ export function QuestionModerationCard({ question }: QuestionModerationCardProps
               authorName={question.authorName}
               productName={question.productName}
               productSlug={question.productSlug}
+              productCode={question.productCode}
               thumbnailUrl={question.thumbnailUrl}
               colorName={question.colorName}
               colorHex={question.colorHex}

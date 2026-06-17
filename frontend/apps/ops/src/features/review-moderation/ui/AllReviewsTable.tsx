@@ -85,12 +85,12 @@ export function AllReviewsTable() {
                       </div>
                     </div>
                     <a
-                      href={storefrontUrl(`/products/${review.variantSlug}`)}
+                      href={storefrontUrl(`/products/${review.variantProductCode ?? review.variantSlug}`)}
                       className="text-xs text-primary hover:underline truncate block"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {review.variantSlug}
+                      {review.variantProductCode ?? review.variantSlug}
                     </a>
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0">

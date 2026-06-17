@@ -43,11 +43,13 @@ public class GetPendingReviewsService implements GetPendingReviewsUseCase {
     private ReviewAdminView toAdminView(Review review, Map<Long, ListingVariant> variantMap) {
         ListingVariant variant = variantMap.get(review.getListingVariantId());
         String slug = variant != null ? variant.getSlug() : "unknown";
+        String productCode = variant != null ? variant.getProductCode() : null;
 
         return new ReviewAdminView(
                 review.getId(),
                 review.getListingVariantId(),
                 slug,
+                productCode,
                 review.getAuthorName(),
                 review.getRating(),
                 review.getTitle(),

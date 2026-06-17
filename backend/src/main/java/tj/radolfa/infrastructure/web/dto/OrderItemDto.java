@@ -12,5 +12,6 @@ public record OrderItemDto(
         String skuCode,
         String sizeLabel,
         String slug,
+        String productCode,
         boolean hasReviewed) {
 }

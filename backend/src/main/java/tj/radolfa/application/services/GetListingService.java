@@ -52,6 +52,11 @@ public class GetListingService implements GetListingUseCase {
     }
 
     @Override
+    public Optional<ListingVariantDetailDto> getByProductCode(String code) {
+        return loadListingPort.loadByProductCode(code);
+    }
+
+    @Override
     public PageResult<ListingVariantDto> search(String query, int page, int limit) {
         // Exact product-code lookup: bypass Elasticsearch entirely for digit-only article codes.
         if (query != null && PRODUCT_CODE.matcher(query.trim()).matches()) {

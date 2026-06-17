@@ -51,7 +51,7 @@ export function OverviewOrderRow({ order }: { order: Order }) {
         </div>
         {canBuyAgain ? (
           <Link
-            href={`/products/${firstItem!.slug}`}
+            href={`/products/${firstItem!.productCode}`}
             className="mt-1 inline-flex h-7 lg:h-8 px-2.5 lg:px-3 rounded-full bg-mag text-white text-[10px] lg:text-[11px] font-bold items-center"
           >
             {t("buyAgain")}

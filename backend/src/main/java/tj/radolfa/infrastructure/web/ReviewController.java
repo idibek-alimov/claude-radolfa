@@ -138,7 +138,7 @@ public class ReviewController {
         return ResponseEntity.ok(Map.of("urls", urls));
     }
 
-    @GetMapping("/listings/{slug}/reviews")
+    @GetMapping("/listings/{code}/reviews")
     @Operation(summary = "List approved reviews",
                description = "Paginated approved reviews for a listing variant. Supports sort=newest|highest|lowest|helpful, hasPhotos, rating (1-5), and search filters.")
     @ApiResponses({
@@ -146,7 +146,7 @@ public class ReviewController {
         @ApiResponse(responseCode = "404", description = "Listing not found")
     })
     public ResponseEntity<Page<ReviewStorefrontView>> getReviews(
-            @Parameter(description = "Listing variant slug") @PathVariable String slug,
+            @Parameter(description = "Listing variant product code (article number)") @PathVariable String code,
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Items per page (max 50)") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort order: newest | highest | lowest") @RequestParam(defaultValue = "newest") String sort,
@@ -154,7 +154,7 @@ public class ReviewController {
             @Parameter(description = "Filter by star rating (1–5)") @RequestParam(required = false) @Min(1) @Max(5) Integer rating,
             @Parameter(description = "Case-insensitive search in review body and title") @RequestParam(required = false) String search) {
 
-        return loadListingVariantPort.findBySlug(slug)
+        return loadListingVariantPort.findByProductCode(code)
                 .map(variant -> {
                     int effectiveSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
                     Sort sortOrder = toSort(sort);

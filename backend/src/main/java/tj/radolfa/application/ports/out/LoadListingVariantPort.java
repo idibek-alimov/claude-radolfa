@@ -15,6 +15,8 @@ public interface LoadListingVariantPort {
 
     Optional<ListingVariant> findBySlug(String slug);
 
+    Optional<ListingVariant> findByProductCode(String code);
+
     List<ListingVariant> findAllByProductBaseId(Long productBaseId);
 
     Map<Long, ListingVariant> findVariantsByIds(Collection<Long> ids);

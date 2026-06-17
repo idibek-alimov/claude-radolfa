@@ -36,7 +36,22 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
                     """)
     Optional<ListingVariantEntity> findDetailBySlug(@Param("slug") String slug);
 
+    /**
+     * Detail page query resolved by product code (article number).
+     */
+    @Query("""
+                    SELECT lv FROM ListingVariantEntity lv
+                    JOIN FETCH lv.productBase pb
+                    LEFT JOIN FETCH pb.category
+                    JOIN FETCH lv.color
+                    WHERE lv.productCode = :code
+                      AND pb.status = tj.radolfa.domain.model.ProductStatus.ACTIVE
+                    """)
+    Optional<ListingVariantEntity> findDetailByProductCode(@Param("code") String code);
+
     Optional<ListingVariantEntity> findBySlug(String slug);
+
+    Optional<ListingVariantEntity> findByProductCode(String code);
 
         List<ListingVariantEntity> findByProductBaseId(Long productBaseId);
 
@@ -215,10 +230,10 @@ public interface ListingVariantRepository extends JpaRepository<ListingVariantEn
 
         /**
          * Sibling variants of the same ProductBase (excluding the current one).
-         * Column layout: [0]=id, [1]=slug, [2]=colorKey, [3]=colorHexCode
+         * Column layout: [0]=id, [1]=slug, [2]=colorKey, [3]=colorHexCode, [4]=productCode
          */
         @Query("""
-                        SELECT lv.id, lv.slug, lv.color.colorKey, lv.color.hexCode
+                        SELECT lv.id, lv.slug, lv.color.colorKey, lv.color.hexCode, lv.productCode
                         FROM ListingVariantEntity lv
                         WHERE lv.productBase.id = :baseId
                           AND lv.id != :excludeId

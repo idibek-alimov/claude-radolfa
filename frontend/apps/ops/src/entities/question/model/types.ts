@@ -22,6 +22,7 @@ export interface QuestionAdminView {
   productBaseId: number;
   productName: string;
   productSlug: string;
+  productCode: string | null;
   thumbnailUrl: string | null;
 
   // Variant context (nullable — from asked variant or first variant fallback)

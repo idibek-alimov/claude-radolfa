@@ -172,9 +172,9 @@ export function ProfileOrderCard({ order }: { order: MyOrder }) {
                 >
                   {formatPrice(item.price)}
                 </div>
-                {kind === "delivered" && !item.hasReviewed && item.slug && (
+                {kind === "delivered" && !item.hasReviewed && item.productCode && (
                   <Link
-                    href={`/products/${item.slug}`}
+                    href={`/products/${item.productCode}`}
                     className="mt-1 inline-flex h-6 lg:h-7 px-2 lg:px-3 rounded-full border-2 border-ink/15 text-[10px] lg:text-[11px] font-bold items-center"
                   >
                     {t("writeReview")}
@@ -296,7 +296,7 @@ export function ProfileOrderCard({ order }: { order: MyOrder }) {
             <>
               {canBuyAgain && (
                 <Link
-                  href={`/products/${firstItem!.slug}`}
+                  href={`/products/${firstItem!.productCode}`}
                   className="h-9 px-4 rounded-full bg-mag text-white text-[12px] font-bold hover:bg-maglo inline-flex items-center"
                 >
                   {t("buyAgain")}
@@ -326,7 +326,7 @@ export function ProfileOrderCard({ order }: { order: MyOrder }) {
               </Link>
               {canBuyAgain && (
                 <Link
-                  href={`/products/${firstItem!.slug}`}
+                  href={`/products/${firstItem!.productCode}`}
                   className="h-9 px-4 rounded-full bg-mag text-white text-[12px] font-bold hover:bg-maglo inline-flex items-center"
                 >
                   {t("buyAgain")}

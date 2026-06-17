@@ -11,6 +11,7 @@ export interface OrderItem {
   skuCode?: string | null;
   sizeLabel?: string | null;
   slug?: string | null;
+  productCode?: string | null;
   hasReviewed: boolean;
 }
 export type DeliveryType = "HOME" | "PICKPOINT";
@@ -26,6 +27,7 @@ export interface DeliveredOrderItem {
   skuCode: string | null;
   sizeLabel: string | null;
   slug: string | null;
+  productCode: string | null;
   hasReviewed: boolean;
 }
 

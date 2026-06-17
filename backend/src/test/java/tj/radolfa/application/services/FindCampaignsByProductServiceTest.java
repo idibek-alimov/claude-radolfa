@@ -139,6 +139,7 @@ class FindCampaignsByProductServiceTest {
         @Override public Optional<ListingVariant> findVariantById(Long id) { return Optional.empty(); }
         @Override public Optional<ListingVariant> findByProductBaseIdAndColorKey(Long p, String c) { return Optional.empty(); }
         @Override public Optional<ListingVariant> findBySlug(String slug) { return Optional.empty(); }
+        @Override public Optional<ListingVariant> findByProductCode(String code) { return Optional.empty(); }
         @Override public Map<Long, ListingVariant> findVariantsByIds(Collection<Long> ids) { return Map.of(); }
 
         @Override

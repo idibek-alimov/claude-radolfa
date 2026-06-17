@@ -92,6 +92,7 @@ export interface SiblingVariant {
   colorKey: string;
   colorHex: string | null;
   thumbnail: string | null;
+  productCode: string;
 }
 
 /**

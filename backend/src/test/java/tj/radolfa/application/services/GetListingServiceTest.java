@@ -157,6 +157,11 @@ class GetListingServiceTest {
         }
 
         @Override
+        public Optional<ListingVariantDetailDto> loadByProductCode(String code) {
+            return Optional.empty();
+        }
+
+        @Override
         public PageResult<ListingVariantDto> search(String query, int page, int limit) {
             return new PageResult<>(List.of(), 0, page, limit, true);
         }

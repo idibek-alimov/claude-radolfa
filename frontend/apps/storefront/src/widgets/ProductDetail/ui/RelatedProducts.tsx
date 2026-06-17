@@ -24,8 +24,8 @@ const staggerItem = {
 /* ── Component ─────────────────────────────────────────────────── */
 
 interface RelatedProductsProps {
-  /** Slug of the product currently being viewed — excluded from the rail. */
-  currentSlug: string;
+  /** Product code of the variant currently being viewed — excluded from the rail. */
+  currentCode: string;
 }
 
 /**
@@ -33,7 +33,7 @@ interface RelatedProductsProps {
  * Reviews/Q&A blocks. No dedicated "related" endpoint exists yet, so this
  * over-fetches the listing grid and excludes the current product client-side.
  */
-export default function RelatedProducts({ currentSlug }: RelatedProductsProps) {
+export default function RelatedProducts({ currentCode }: RelatedProductsProps) {
   const t = useTranslations("productDetail");
 
   const { data, isLoading } = useQuery({
@@ -43,8 +43,8 @@ export default function RelatedProducts({ currentSlug }: RelatedProductsProps) {
 
   const relatedProducts = useMemo(() => {
     if (!data) return [];
-    return data.content.filter((item) => item.slug !== currentSlug).slice(0, RELATED_COUNT);
-  }, [data, currentSlug]);
+    return data.content.filter((item) => item.productCode !== currentCode).slice(0, RELATED_COUNT);
+  }, [data, currentCode]);
 
   if (!isLoading && relatedProducts.length === 0) return null;
 
@@ -72,7 +72,7 @@ export default function RelatedProducts({ currentSlug }: RelatedProductsProps) {
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
         >
           {relatedProducts.map((item) => (
-            <motion.div key={item.slug} variants={staggerItem}>
+            <motion.div key={item.productCode} variants={staggerItem}>
               <ProductCard listing={item} />
             </motion.div>
           ))}

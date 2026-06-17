@@ -125,6 +125,12 @@ public class ProductHierarchyAdapter
     }
 
     @Override
+    public Optional<ListingVariant> findByProductCode(String code) {
+        return variantRepo.findByProductCode(code)
+                .map(mapper::toListingVariant);
+    }
+
+    @Override
     public List<ListingVariant> findAllByProductBaseId(Long productBaseId) {
         return variantRepo.findByProductBaseId(productBaseId).stream()
                 .map(mapper::toListingVariant)

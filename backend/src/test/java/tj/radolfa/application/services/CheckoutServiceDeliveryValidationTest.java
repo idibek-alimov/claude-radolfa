@@ -98,6 +98,7 @@ class CheckoutServiceDeliveryValidationTest {
         @Override public Optional<ListingVariant> findVariantById(Long id) { return Optional.of(FAKE_VARIANT_OBJ); }
         @Override public Optional<ListingVariant> findByProductBaseIdAndColorKey(Long p, String c) { return Optional.empty(); }
         @Override public Optional<ListingVariant> findBySlug(String s) { return Optional.empty(); }
+        @Override public Optional<ListingVariant> findByProductCode(String code) { return Optional.empty(); }
         @Override public List<ListingVariant> findAllByProductBaseId(Long id) { return List.of(); }
         @Override public Map<Long, ListingVariant> findVariantsByIds(Collection<Long> ids) {
             return ids.contains(VARIANT_ID) ? Map.of(VARIANT_ID, FAKE_VARIANT_OBJ) : Map.of();

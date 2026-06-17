@@ -29,6 +29,11 @@ public interface LoadListingPort {
     Optional<ListingVariantDetailDto> loadBySlug(String slug);
 
     /**
+     * Full detail resolved by product code (article number, e.g. "10052").
+     */
+    Optional<ListingVariantDetailDto> loadByProductCode(String code);
+
+    /**
      * SQL LIKE fallback search when Elasticsearch is unavailable.
      */
     PageResult<ListingVariantDto> search(String query, int page, int limit);

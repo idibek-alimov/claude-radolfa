@@ -137,6 +137,7 @@ export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, 
         const swatches = [
           {
             slug: listing.slug,
+            productCode: listing.productCode,
             colorKey: listing.colorKey,
             colorHex: listing.colorHex,
             thumbnail: listing.images[0] ?? null,
@@ -144,7 +145,7 @@ export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, 
           ...listing.siblingVariants,
         ].sort(
           (a, b) =>
-            a.colorKey.localeCompare(b.colorKey) || a.slug.localeCompare(b.slug),
+            a.colorKey.localeCompare(b.colorKey) || a.productCode.localeCompare(b.productCode),
         );
 
         return (
@@ -159,12 +160,12 @@ export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, 
             </div>
             <div className="flex gap-2.5 flex-wrap">
               {swatches.map((sv) => {
-                // Compare against activeSlug (not listing.slug) for immediate
+                // Compare against activeSlug (productCode) for immediate
                 // visual feedback on click before the new listing data arrives.
-                const isActive = sv.slug === activeSlug;
+                const isActive = sv.productCode === activeSlug;
                 return isActive ? (
                   <span
-                    key={sv.slug}
+                    key={sv.productCode}
                     role="button"
                     aria-pressed="true"
                     aria-label={listing.colorName ?? sv.colorKey}
@@ -186,18 +187,18 @@ export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, 
                   // "open in new tab". A normal left-click is intercepted and
                   // swaps the data in place without a router navigation.
                   <a
-                    key={sv.slug}
-                    href={`/products/${sv.slug}`}
+                    key={sv.productCode}
+                    href={`/products/${sv.productCode}`}
                     aria-label={sv.colorKey}
                     className="w-14 h-14 rounded-2xl border border-ink/15 overflow-hidden hover:border-mag relative block shrink-0"
                     style={{ backgroundColor: sv.colorHex ?? undefined }}
-                    onMouseEnter={() => prefetchSibling(sv.slug)}
-                    onFocus={() => prefetchSibling(sv.slug)}
+                    onMouseEnter={() => prefetchSibling(sv.productCode)}
+                    onFocus={() => prefetchSibling(sv.productCode)}
                     onClick={(e) => {
                       // Let modified clicks (new tab, new window) go through normally.
                       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                       e.preventDefault();
-                      onSelectColor(sv.slug);
+                      onSelectColor(sv.productCode);
                     }}
                   >
                     {sv.thumbnail && (

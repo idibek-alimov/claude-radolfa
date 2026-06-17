@@ -49,7 +49,7 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
   return (
     <Link
-      href={`/products/${listing.slug}`}
+      href={`/products/${listing.productCode}`}
       className="group flex flex-col rounded-[14px] overflow-visible border border-[rgba(14,17,22,0.07)] bg-card shadow-[0_1px_3px_rgba(14,17,22,0.06)] hover:-translate-y-1 hover:shadow-md transition-all duration-150 ease-out"
     >
       {/* Image */}

@@ -102,6 +102,11 @@ public class ListingReadAdapter implements LoadListingPort {
         }
 
         @Override
+        public Optional<ListingVariantDetailDto> loadByProductCode(String code) {
+                return variantRepo.findDetailByProductCode(code).map(this::toDetailDto);
+        }
+
+        @Override
         public PageResult<ListingVariantDto> search(String query, int page, int limit) {
                 Page<Object[]> raw = variantRepo.searchGrid(query, PageRequest.of(page - 1, limit));
                 return toGridResult(raw, page, limit);
@@ -349,7 +354,8 @@ public class ListingReadAdapter implements LoadListingPort {
                                                         (String) row[1],   // slug
                                                         (String) row[2],   // colorKey
                                                         (String) row[3],   // colorHex (hexCode)
-                                                        thumbnail);
+                                                        thumbnail,
+                                                        (String) row[4]);  // productCode
                                 })
                                 .toList();
 

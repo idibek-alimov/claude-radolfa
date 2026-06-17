@@ -57,12 +57,12 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
             </span>
           </div>
           <a
-            href={storefrontUrl(`/products/${review.variantSlug}`)}
+            href={storefrontUrl(`/products/${review.variantProductCode ?? review.variantSlug}`)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary underline-offset-2 hover:underline"
           >
-            {review.variantSlug}
+            {review.variantProductCode ?? review.variantSlug}
           </a>
         </div>
         <div className="flex items-center gap-1">

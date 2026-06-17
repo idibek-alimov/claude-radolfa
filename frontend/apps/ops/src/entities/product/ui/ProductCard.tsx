@@ -33,7 +33,7 @@ export default function ProductCard({ listing }: ProductCardProps) {
 
   // Cross-app link: opens storefront product page in a new tab
   return (
-    <a href={storefrontUrl(`/products/${listing.slug}`)} target="_blank" rel="noopener noreferrer" className="group block">
+    <a href={storefrontUrl(`/products/${listing.productCode}`)} target="_blank" rel="noopener noreferrer" className="group block">
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2 }}

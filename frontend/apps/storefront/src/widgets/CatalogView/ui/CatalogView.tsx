@@ -65,8 +65,8 @@ export function CatalogView({ mode, query, categorySlug, categoryName }: Catalog
   const isProductCode = mode === "search" && !!query && PRODUCT_CODE_RE.test(query);
 
   useEffect(() => {
-    if (isProductCode && !isLoading && listings.length === 1 && listings[0].slug) {
-      router.replace(`/products/${listings[0].slug}`);
+    if (isProductCode && !isLoading && listings.length === 1 && listings[0].productCode) {
+      router.replace(`/products/${listings[0].productCode}`);
     }
   }, [isProductCode, isLoading, listings, router]);
 

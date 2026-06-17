@@ -41,11 +41,12 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
                 img.image_url                                         AS thumbnail_url,
                 COALESCE(c_asked.display_name, c_first.display_name) AS color_name,
                 COALESCE(c_asked.hex_code,     c_first.hex_code)     AS color_hex,
-                pq.status
+                pq.status,
+                lv_first.product_code                                 AS product_code
             FROM product_questions pq
             JOIN product_bases pb ON pb.id = pq.product_base_id
             LEFT JOIN LATERAL (
-                SELECT lv2.id, lv2.slug, lv2.color_id
+                SELECT lv2.id, lv2.slug, lv2.color_id, lv2.product_code
                 FROM listing_variants lv2
                 WHERE lv2.product_base_id = pb.id
                 ORDER BY lv2.id ASC
@@ -184,7 +185,7 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
     /** SQL column order: 0=id, 1=author_name, 2=question_text, 3=answer_text,
      *  4=answered_at, 5=created_at, 6=product_base_id, 7=product_name,
      *  8=listing_variant_id, 9=product_slug, 10=thumbnail_url,
-     *  11=color_name, 12=color_hex, 13=status */
+     *  11=color_name, 12=color_hex, 13=status, 14=product_code */
     private QuestionAdminView mapRow(Object[] row) {
         return new QuestionAdminView(
                 ((Number) row[0]).longValue(),
@@ -196,6 +197,7 @@ public class ProductQuestionAdapter implements LoadProductQuestionPort, SaveProd
                 ((Number) row[6]).longValue(),
                 (String)  row[7],
                 (String)  row[9],
+                (String)  row[14],
                 (String)  row[10],
                 row[8] != null ? ((Number) row[8]).longValue() : null,
                 (String)  row[11],

@@ -90,10 +90,10 @@ public class ListingController {
         return ResponseEntity.ok(PageResponse.from(tierPricing.enrich(getListingUseCase.getPage(page, limit))));
     }
 
-    @GetMapping("/{slug}")
-    @Operation(summary = "Listing detail", description = "Full variant detail with SKUs and sibling colour swatches")
-    public ResponseEntity<ListingVariantDetailDto> detail(@PathVariable String slug) {
-        return getListingUseCase.getBySlug(slug)
+    @GetMapping("/{code}")
+    @Operation(summary = "Listing detail", description = "Full variant detail resolved by product code (article number)")
+    public ResponseEntity<ListingVariantDetailDto> detail(@PathVariable String code) {
+        return getListingUseCase.getByProductCode(code)
                 .map(tierPricing::enrich)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -162,13 +162,13 @@ public class ListingController {
         return ResponseEntity.ok(getListingUseCase.autocomplete(q, limit));
     }
 
-    @GetMapping("/{slug}/rating")
+    @GetMapping("/{code}/rating")
     @Tag(name = "Reviews")
     @Operation(summary = "Rating summary", description = "Aggregated star-rating and size-fit summary for a listing variant")
     @ApiResponse(responseCode = "200", description = "Rating summary (zeroed if no approved reviews yet)")
     @ApiResponse(responseCode = "404", description = "Listing not found")
-    public ResponseEntity<RatingSummaryResponseDto> getRating(@PathVariable String slug) {
-        return loadListingVariantPort.findBySlug(slug)
+    public ResponseEntity<RatingSummaryResponseDto> getRating(@PathVariable String code) {
+        return loadListingVariantPort.findByProductCode(code)
                 .map(variant -> loadRatingSummaryPort.findByVariantId(variant.getId())
                         .map(s -> new RatingSummaryResponseDto(
                                 s.averageRating(),

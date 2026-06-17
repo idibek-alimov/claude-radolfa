@@ -18,7 +18,8 @@ public record QuestionAdminView(
 
         Long           productBaseId,
         String         productName,
-        String         productSlug,      // slug of first listing variant — admin link target
+        String         productSlug,      // slug of first listing variant — kept for reference
+        String         productCode,      // article number of first listing variant — storefront link target
         String         thumbnailUrl,     // first image of first variant (150×150)
 
         Long           listingVariantId, // nullable — the variant whose color is shown

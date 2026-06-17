@@ -13,6 +13,7 @@ public record ReviewAdminView(
         Long id,
         Long listingVariantId,
         String variantSlug,
+        String variantProductCode,
         String authorName,
         int rating,
         String title,

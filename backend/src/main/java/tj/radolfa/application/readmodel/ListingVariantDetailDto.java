@@ -67,7 +67,8 @@ public record ListingVariantDetailDto(
             String slug,
             String colorKey,
             String colorHex,
-            String thumbnail
+            String thumbnail,
+            String productCode
     ) {}
 
     /**

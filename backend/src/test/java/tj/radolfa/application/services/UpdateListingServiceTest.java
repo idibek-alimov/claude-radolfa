@@ -232,6 +232,9 @@ class UpdateListingServiceTest {
         }
 
         @Override
+        public Optional<ListingVariant> findByProductCode(String code) { return Optional.empty(); }
+
+        @Override
         public List<ListingVariant> findAllByProductBaseId(Long productBaseId) {
             return List.of();
         }

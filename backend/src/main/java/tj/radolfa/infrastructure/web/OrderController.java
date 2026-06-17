@@ -254,6 +254,7 @@ public class OrderController {
                                     ? variant.getImages().get(0)
                                     : null;
                             String slug = variant != null ? variant.getSlug() : null;
+                            String productCode = variant != null ? variant.getProductCode() : null;
                             Sku sku = item.getSkuId() != null ? skuMap.get(item.getSkuId()) : null;
                             String sizeLabel = sku != null ? sku.getSizeLabel() : null;
                             boolean hasReviewed = item.getListingVariantId() != null
@@ -268,6 +269,7 @@ public class OrderController {
                                     item.getSkuCode(),
                                     sizeLabel,
                                     slug,
+                                    productCode,
                                     hasReviewed);
                         })
                         .toList(),

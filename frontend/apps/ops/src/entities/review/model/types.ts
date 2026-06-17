@@ -56,6 +56,7 @@ export interface ReviewAdminView {
   id: number;
   listingVariantId: number;
   variantSlug: string;
+  variantProductCode: string | null;
   authorName: string;
   rating: number;
   title: string | null;
