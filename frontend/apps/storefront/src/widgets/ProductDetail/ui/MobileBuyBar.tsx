@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@radolfa/shared/lib";
 import { useHideOnScroll } from "@radolfa/shared/lib/useHideOnScroll";
 import { formatPrice } from "@radolfa/shared/lib/format";
+import { currentAppLoginPath } from "@radolfa/shared/lib/appNav";
+import { useAuth } from "@radolfa/shared/auth";
 import type { ListingVariantDetail, Sku } from "@/entities/product";
 import { useAddToCart } from "@/features/cart";
 import { useResolvedPrice } from "../lib/useResolvedPrice";
@@ -19,6 +21,7 @@ interface MobileBuyBarProps {
  * slide away/reveal together on scroll. */
 export default function MobileBuyBar({ listing, selectedSku }: MobileBuyBarProps) {
   const t = useTranslations("productDetail");
+  const { isAuthenticated } = useAuth();
   const addToCart = useAddToCart();
   const price = useResolvedPrice(listing, selectedSku);
   const hidden = useHideOnScroll();
@@ -29,6 +32,16 @@ export default function MobileBuyBar({ listing, selectedSku }: MobileBuyBarProps
 
   const handleAddToCart = () => {
     if (!selectedSku) return;
+    if (!isAuthenticated) {
+      toast.info(t("loginToAddToCart"), {
+        action: {
+          label: t("login"),
+          onClick: () => { window.location.href = currentAppLoginPath(); },
+        },
+        actionButtonStyle: { backgroundColor: "#CB11AB", color: "#fff" },
+      });
+      return;
+    }
     addToCart.mutate(
       { skuId: selectedSku.skuId, quantity: 1 },
       { onError: (err) => toast.error(getErrorMessage(err)) },

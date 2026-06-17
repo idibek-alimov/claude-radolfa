@@ -90,7 +90,8 @@
     "addToBag": "В корзину · {price}",
     "coloursAvailable": "{count} доступно",
     "selectSize": "Выберите размер",
-    "outOfStock": "Нет в наличии"
+    "outOfStock": "Нет в наличии",
+    "loginToAddToCart": "Пожалуйста, войдите, чтобы добавить товары в корзину"
   },
   "auth": {
     "welcomeBack": "С возвращением",

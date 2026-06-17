@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { getErrorMessage } from "@radolfa/shared/lib";
 import { formatPrice } from "@radolfa/shared/lib/format";
+import { currentAppLoginPath } from "@radolfa/shared/lib/appNav";
+import { useAuth } from "@radolfa/shared/auth";
 import type { ListingVariantDetail, Sku } from "@/entities/product";
 import { StockBadge, fetchListingBySlug } from "@/entities/product";
 import { useAddToCart } from "@/features/cart";
@@ -39,6 +41,7 @@ interface BuyBoxProps {
 
 export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, onSelectColor }: BuyBoxProps) {
   const t = useTranslations("productDetail");
+  const { isAuthenticated } = useAuth();
   const addToCart = useAddToCart();
   const price = useResolvedPrice(listing, selectedSku);
   const queryClient = useQueryClient();
@@ -60,6 +63,16 @@ export default function BuyBox({ listing, activeSlug, selectedSku, onSelectSku, 
 
   const handleAddToCart = () => {
     if (!selectedSku) return;
+    if (!isAuthenticated) {
+      toast.info(t("loginToAddToCart"), {
+        action: {
+          label: t("login"),
+          onClick: () => { window.location.href = currentAppLoginPath(); },
+        },
+        actionButtonStyle: { backgroundColor: "#CB11AB", color: "#fff" },
+      });
+      return;
+    }
     addToCart.mutate(
       { skuId: selectedSku.skuId, quantity: 1 },
       { onError: (err) => toast.error(getErrorMessage(err)) },

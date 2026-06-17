@@ -90,7 +90,8 @@
     "addToBag": "Add to Bag · {price}",
     "coloursAvailable": "{count} available",
     "selectSize": "Select a size",
-    "outOfStock": "Out of stock"
+    "outOfStock": "Out of stock",
+    "loginToAddToCart": "Please log in to add items to your cart"
   },
   "auth": {
     "welcomeBack": "Welcome back",

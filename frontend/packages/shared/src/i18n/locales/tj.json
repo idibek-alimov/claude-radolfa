@@ -90,7 +90,8 @@
     "addToBag": "Ба сабад · {price}",
     "coloursAvailable": "{count} мавҷуд",
     "selectSize": "Андозаро интихоб кунед",
-    "outOfStock": "Мавҷуд нест"
+    "outOfStock": "Мавҷуд нест",
+    "loginToAddToCart": "Лутфан ворид шавед, то молҳоро ба сабад илова кунед"
   },
   "auth": {
     "welcomeBack": "Хуш омадед",

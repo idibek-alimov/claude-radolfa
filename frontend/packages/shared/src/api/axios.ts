@@ -88,10 +88,17 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError as AxiosError);
 
+      // Suppress the redirect/toast for guests who never had a session.
+      // "No refresh token" means there was no cookie at all — not an expiry.
+      const isNeverAuthenticated =
+        (refreshError as AxiosError)?.response?.status === 401 &&
+        ((refreshError as AxiosError)?.response?.data as { message?: string })?.message === "No refresh token";
+
       // Refresh failed — redirect to the current app's login (same-app, never cross-port).
       // The guard uses .includes("/login") to match both /login (storefront) and
       // /ops/login (ops) and avoid redirect loops.
       if (
+        !isNeverAuthenticated &&
         typeof window !== "undefined" &&
         !window.location.pathname.includes("/login")
       ) {
