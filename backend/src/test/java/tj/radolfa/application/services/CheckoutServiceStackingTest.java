@@ -37,6 +37,7 @@ import tj.radolfa.domain.model.SkuTarget;
 import tj.radolfa.domain.model.StackingPolicy;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
 import java.math.BigDecimal;
@@ -173,6 +174,7 @@ class CheckoutServiceStackingTest {
                 SAVE_ORDER,
                 NO_STOCK,
                 new LoyaltyCalculator(),
+                new CartLinePricer(),
                 (userId, pts) -> Money.ZERO,
                 query -> resolvedMap,
                 recordService,
@@ -304,7 +306,7 @@ class CheckoutServiceStackingTest {
 
         CheckoutService service = new CheckoutService(
                 FAKE_CART, cart -> cart, FAKE_SKU, FAKE_VARIANT, fakeSellerProduct, FAKE_USER,
-                capturingPort, NO_STOCK, new LoyaltyCalculator(),
+                capturingPort, NO_STOCK, new LoyaltyCalculator(), new CartLinePricer(),
                 (userId, pts) -> Money.ZERO, query -> Map.of(), recordService, FAKE_LOAD_PICKPOINT,
                 new tj.radolfa.application.ports.out.LoadOrderPort() {
                     @Override public java.util.List<Order> loadByUserId(Long id) { return java.util.List.of(); }
@@ -337,7 +339,7 @@ class CheckoutServiceStackingTest {
         RecordDiscountApplicationService recordService = new RecordDiscountApplicationService(noCapsLock, noUsage, fakeAppPort);
         return new CheckoutService(
                 FAKE_CART, cart -> cart, FAKE_SKU, FAKE_VARIANT, FAKE_PRODUCT, FAKE_USER,
-                saveOrderPort, NO_STOCK, new LoyaltyCalculator(),
+                saveOrderPort, NO_STOCK, new LoyaltyCalculator(), new CartLinePricer(),
                 (userId, pts) -> Money.ZERO, query -> resolvedMap, recordService, FAKE_LOAD_PICKPOINT,
                 new tj.radolfa.application.ports.out.LoadOrderPort() {
                     @Override public java.util.List<Order> loadByUserId(Long id) { return java.util.List.of(); }

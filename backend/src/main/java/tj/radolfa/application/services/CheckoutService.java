@@ -32,10 +32,10 @@ import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
+import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -55,6 +55,7 @@ public class CheckoutService implements CheckoutUseCase {
     private final SaveOrderPort                    saveOrderPort;
     private final StockAdjustmentPort              stockAdjustmentPort;
     private final LoyaltyCalculator                loyaltyCalculator;
+    private final CartLinePricer                   cartLinePricer;
     private final RedeemLoyaltyPointsUseCase       redeemLoyaltyPointsUseCase;
     private final ResolveDiscountsUseCase          resolveDiscountsUseCase;
     private final RecordDiscountApplicationUseCase recordDiscountApplicationUseCase;
@@ -74,6 +75,7 @@ public class CheckoutService implements CheckoutUseCase {
                            SaveOrderPort saveOrderPort,
                            StockAdjustmentPort stockAdjustmentPort,
                            LoyaltyCalculator loyaltyCalculator,
+                           CartLinePricer cartLinePricer,
                            RedeemLoyaltyPointsUseCase redeemLoyaltyPointsUseCase,
                            ResolveDiscountsUseCase resolveDiscountsUseCase,
                            RecordDiscountApplicationUseCase recordDiscountApplicationUseCase,
@@ -89,6 +91,7 @@ public class CheckoutService implements CheckoutUseCase {
         this.saveOrderPort                   = saveOrderPort;
         this.stockAdjustmentPort             = stockAdjustmentPort;
         this.loyaltyCalculator               = loyaltyCalculator;
+        this.cartLinePricer                  = cartLinePricer;
         this.redeemLoyaltyPointsUseCase      = redeemLoyaltyPointsUseCase;
         this.resolveDiscountsUseCase         = resolveDiscountsUseCase;
         this.recordDiscountApplicationUseCase = recordDiscountApplicationUseCase;
@@ -299,37 +302,21 @@ public class CheckoutService implements CheckoutUseCase {
 
     /**
      * Returns the effective unit price and winning applied discounts.
-     * Stacked discount wins only when the final stacked price ties or beats loyalty price
-     * and strictly beats the original snapshot — loyalty alone is not recorded as a discount.
+     * Delegates the campaign-vs-loyalty decision to {@link CartLinePricer} — the single
+     * source of truth shared with the cart read path, so displayed and charged prices
+     * can never diverge.
      */
     private LineResolution resolveLineResolution(CartItem item, BigDecimal tierPct,
                                                   Map<Long, Sku> skuById,
                                                   Map<String, List<Discount>> resolvedDiscounts) {
-        BigDecimal original = item.getUnitPriceSnapshot().amount();
-
-        BigDecimal loyaltyPrice = tierPct.compareTo(BigDecimal.ZERO) > 0
-                ? original.multiply(BigDecimal.ONE.subtract(
-                        tierPct.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
-                        .setScale(2, RoundingMode.HALF_UP)
-                : original;
-
         Sku sku = skuById.get(item.getSkuId());
         if (sku == null) throw new IllegalStateException("SKU not found: " + item.getSkuId());
 
         List<Discount> discounts = resolvedDiscounts.getOrDefault(sku.getSkuCode(), List.of());
-        if (!discounts.isEmpty()) {
-            List<AppliedDiscount> applied = AppliedDiscount.fold(discounts, original);
-            BigDecimal stackedPrice = applied.get(applied.size() - 1).reducedUnitPrice();
+        CartLinePricer.LinePrice linePrice =
+                cartLinePricer.price(item.getUnitPriceSnapshot(), tierPct, discounts);
 
-            boolean discountWins = stackedPrice.compareTo(loyaltyPrice) <= 0
-                    && stackedPrice.compareTo(original) < 0;
-
-            if (discountWins) {
-                return new LineResolution(stackedPrice, applied);
-            }
-        }
-
-        return new LineResolution(loyaltyPrice.min(original), List.of());
+        return new LineResolution(linePrice.finalUnitPrice().amount(), linePrice.applied());
     }
 
     private OrderItem enrichToOrderItem(CartItem cartItem,

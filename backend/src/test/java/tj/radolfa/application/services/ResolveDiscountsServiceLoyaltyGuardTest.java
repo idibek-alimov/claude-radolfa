@@ -37,6 +37,7 @@ import tj.radolfa.domain.model.SkuTarget;
 import tj.radolfa.domain.model.StackingPolicy;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
 import java.math.BigDecimal;
@@ -173,7 +174,7 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
         return new CheckoutService(
                 FAKE_CART, cart -> cart, FAKE_SKU, FAKE_VARIANT, FAKE_PRODUCT,
                 fakeUserWithLoyalty(loyaltyPct),
-                SAVE_ORDER, NO_STOCK, new LoyaltyCalculator(),
+                SAVE_ORDER, NO_STOCK, new LoyaltyCalculator(), new CartLinePricer(),
                 (userId, pts) -> Money.ZERO,
                 query -> resolvedMap,
                 recordService,

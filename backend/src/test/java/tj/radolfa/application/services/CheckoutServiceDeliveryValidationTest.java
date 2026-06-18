@@ -33,6 +33,7 @@ import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
 import java.math.BigDecimal;
@@ -158,6 +159,7 @@ class CheckoutServiceDeliveryValidationTest {
                 SAVE_ORDER,
                 NO_STOCK,
                 new LoyaltyCalculator(),
+                new CartLinePricer(),
                 (userId, pts) -> Money.ZERO,
                 query -> Map.of(),
                 recordService,

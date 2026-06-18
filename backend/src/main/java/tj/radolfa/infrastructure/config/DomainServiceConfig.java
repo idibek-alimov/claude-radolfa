@@ -3,6 +3,7 @@ package tj.radolfa.infrastructure.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tj.radolfa.domain.service.BarcodeGenerator;
+import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
 /**
@@ -21,5 +22,10 @@ public class DomainServiceConfig {
     @Bean
     public BarcodeGenerator barcodeGenerator() {
         return new BarcodeGenerator();
+    }
+
+    @Bean
+    public CartLinePricer cartLinePricer() {
+        return new CartLinePricer();
     }
 }
