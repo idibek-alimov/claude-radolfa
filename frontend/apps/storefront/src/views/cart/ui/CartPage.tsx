@@ -66,7 +66,7 @@ export function CartPage() {
                     </Link>
                   </div>
 
-                  <aside className="lg:sticky lg:top-28 flex flex-col gap-4">
+                  <aside className="lg:sticky lg:top-36 lg:self-start flex flex-col gap-4">
                     {crownTierPercent != null && <CrownBanner percent={crownTierPercent} />}
                     <OrderSummary
                       cart={cart}
