@@ -29,3 +29,4 @@ radolfa:
       allowed-origins:
         - https://radolfa.site
         - https://www.radolfa.site
+        - https://manage.radolfa.site

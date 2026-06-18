@@ -131,6 +131,7 @@ services:
       # CORS — allow the storefront to call the API
       RADOLFA_SECURITY_CORS_ALLOWED_ORIGINS_0: https://radolfa.site
       RADOLFA_SECURITY_CORS_ALLOWED_ORIGINS_1: https://www.radolfa.site
+      RADOLFA_SECURITY_CORS_ALLOWED_ORIGINS_2: https://manage.radolfa.site
 
       # Tell Spring the public-facing port is 443 (for CORS origin matching)
       HTTP_PORT: 443
