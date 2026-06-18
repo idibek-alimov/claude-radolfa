@@ -1,23 +1,14 @@
-// Cross-app navigation between the storefront (dev :3000) and ops (dev :3001).
-// Behind nginx (prod) both apps share one origin, so relative paths just work —
-// these helpers are a no-op there. In dev they rewrite the origin to the target
-// app's port. Convention is fixed in frontend/CLAUDE.md.
-const DEV_PORTS = { storefront: "3000", ops: "3001" } as const;
+// Cross-app navigation between the storefront and ops portal, which live on
+// distinct origins in both dev (localhost:3000 / ops.localhost:3001) and prod
+// (radolfa.site / manage.radolfa.site). Origins are build-time env vars so
+// NEXT_PUBLIC_* inlining works in both Server and Client components.
+const STOREFRONT_ORIGIN =
+  process.env.NEXT_PUBLIC_STOREFRONT_ORIGIN ?? "http://localhost:3000";
+const OPS_ORIGIN =
+  process.env.NEXT_PUBLIC_OPS_ORIGIN ?? "http://ops.localhost:3001";
 
-function crossAppUrl(target: "storefront" | "ops", path: string): string {
-  if (typeof window === "undefined") return path; // SSR-safe
-  const { protocol, hostname, port } = window.location;
-  const targetPort = DEV_PORTS[target];
-  const onDevPort = port === DEV_PORTS.storefront || port === DEV_PORTS.ops;
-  // Only rewrite when we're on a known dev port AND crossing to the other app.
-  if (onDevPort && port !== targetPort) {
-    return `${protocol}//${hostname}:${targetPort}${path}`;
-  }
-  return path; // same app in dev, or behind nginx in prod
-}
-
-export const storefrontUrl = (path: string) => crossAppUrl("storefront", path);
-export const opsUrl = (path: string) => crossAppUrl("ops", path);
+export const storefrontUrl = (path: string) => `${STOREFRONT_ORIGIN}${path}`;
+export const opsUrl = (path: string) => `${OPS_ORIGIN}${path}`;
 
 // Login page that belongs to the CURRENT app — keeps auth redirects same-app.
 export function currentAppLoginPath(): string {

@@ -46,6 +46,12 @@ ARG NEXT_PUBLIC_API_URL=https://api.radolfa.site
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+# Cross-app navigation origins (appNav.ts) — pass via --build-arg in CI
+ARG NEXT_PUBLIC_STOREFRONT_ORIGIN=https://radolfa.site
+ARG NEXT_PUBLIC_OPS_ORIGIN=https://manage.radolfa.site
+ENV NEXT_PUBLIC_STOREFRONT_ORIGIN=$NEXT_PUBLIC_STOREFRONT_ORIGIN
+ENV NEXT_PUBLIC_OPS_ORIGIN=$NEXT_PUBLIC_OPS_ORIGIN
+
 # Internal backend URL for Next.js server-side rewrites (not browser-visible)
 ARG BACKEND_INTERNAL_URL=http://localhost:8080
 ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL

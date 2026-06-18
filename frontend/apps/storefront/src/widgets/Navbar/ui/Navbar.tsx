@@ -262,7 +262,7 @@ function DesktopAuth() {
           </DropdownMenuItem>
           {(user.role === "MANAGER" || user.role === "ADMIN") && (
             <DropdownMenuItem asChild className="py-3 cursor-pointer">
-              {/* Cross-app link: opsUrl() swaps port in dev, relative behind nginx */}
+              {/* Cross-app link: opsUrl() resolves to the ops portal's own origin */}
               <a href={opsUrl("/ops/manage")}>
                 <Settings className="mr-2 h-4 w-4" />
                 {t("management")}

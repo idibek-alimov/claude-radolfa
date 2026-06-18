@@ -9,7 +9,7 @@ export default function NotFound() {
       <p className="text-muted-foreground max-w-md">
         The page you are looking for does not exist or has been moved.
       </p>
-      {/* storefrontUrl() resolves to the storefront app (port-swapped in dev, relative behind nginx) */}
+      {/* storefrontUrl() resolves to the storefront app's own origin */}
       <a
         href={storefrontUrl("/")}
         className="rounded-md bg-black px-6 py-2 text-sm font-medium text-white hover:bg-black/80 transition-colors"

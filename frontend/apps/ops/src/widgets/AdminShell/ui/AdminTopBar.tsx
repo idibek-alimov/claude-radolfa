@@ -71,7 +71,7 @@ export function AdminTopBar() {
 
       <div className="ml-auto flex items-center gap-2">
         {/* Back to store */}
-        {/* storefrontUrl() swaps port in dev, no-op behind nginx */}
+        {/* storefrontUrl() resolves to the storefront's own origin */}
         <a
           href={storefrontUrl("/")}
           className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"

@@ -7,7 +7,7 @@ import { sendOtp, verifyOtp } from "../api";
 import OtpInput from "./OtpInput";
 import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { opsUrl, storefrontUrl } from "../../lib/appNav";
+import { storefrontUrl } from "../../lib/appNav";
 
 type Step = "phone" | "otp";
 
@@ -34,18 +34,10 @@ export default function StorefrontLoginForm() {
 
   const verifyOtpMutation = useMutation({
     mutationFn: verifyOtp,
-    onSuccess: (auth) => {
-      const role = auth.user.role;
-      // Cross-app redirect: staff → ops (port-swapped in dev, relative behind nginx),
-      // regular user → storefront home.
-      const target =
-        role === "SELLER"            ? opsUrl("/ops/seller")    :
-        role === "COURIER"           ? opsUrl("/ops/courier")   :
-        role === "PICKPOINT_STAFF"   ? opsUrl("/ops/pickpoint") :
-        role === "WAREHOUSE_MANAGER" ? opsUrl("/ops/warehouse") :
-        role === "ADMIN" || role === "MANAGER" ? opsUrl("/ops/manage") :
-        storefrontUrl("/");
-      window.location.href = target;
+    onSuccess: () => {
+      // Storefront login always stays in the storefront session, regardless of
+      // role — staff use the ops portal's own login for an ops-scoped session.
+      window.location.href = storefrontUrl("/");
     },
     onError: (err: Error) => {
       setError(err.message || t("invalidOtp"));
