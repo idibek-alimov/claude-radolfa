@@ -77,7 +77,8 @@ class ApplyCouponServiceTest {
     }
 
     static CartView stubCartView() {
-        return new CartView(10L, List.of(), new Money(new BigDecimal("1000")), 2, COUPON, null);
+        return new CartView(10L, List.of(), new Money(new BigDecimal("1000")), 2, COUPON, null,
+                CartView.Summary.empty());
     }
 
     static GetCartUseCase fakeGetCart() {

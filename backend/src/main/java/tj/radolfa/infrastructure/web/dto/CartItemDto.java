@@ -14,7 +14,11 @@ public record CartItemDto(
         BigDecimal unitPrice,
         BigDecimal lineTotal,
         int        availableStock,
-        boolean    inStock
+        boolean    inStock,
+        BigDecimal originalUnitPrice,
+        Integer    discountPercent,
+        String     mechanism,
+        String     category
 ) {
     public static CartItemDto fromItemView(CartView.ItemView view) {
         return new CartItemDto(
@@ -27,7 +31,11 @@ public record CartItemDto(
                 view.unitPrice().amount(),
                 view.lineTotal().amount(),
                 view.availableStock(),
-                view.inStock()
+                view.inStock(),
+                view.originalUnitPrice().amount(),
+                view.discountPercent(),
+                view.mechanism().name(),
+                view.category()
         );
     }
 }
