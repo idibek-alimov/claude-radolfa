@@ -84,8 +84,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_API_BASE_URL=
+            NEXT_PUBLIC_API_URL=
+            NEXT_PUBLIC_STOREFRONT_ORIGIN=https://radolfa.site
+            NEXT_PUBLIC_OPS_ORIGIN=https://manage.radolfa.site
           tags: |
             ${{ env.STOREFRONT_IMAGE }}:${{ steps.tag.outputs.value }}
             ${{ env.STOREFRONT_IMAGE }}:latest
@@ -100,8 +102,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_API_BASE_URL=
+            NEXT_PUBLIC_API_URL=
+            NEXT_PUBLIC_STOREFRONT_ORIGIN=https://radolfa.site
+            NEXT_PUBLIC_OPS_ORIGIN=https://manage.radolfa.site
           tags: |
             ${{ env.OPS_IMAGE }}:${{ steps.tag.outputs.value }}
             ${{ env.OPS_IMAGE }}:latest

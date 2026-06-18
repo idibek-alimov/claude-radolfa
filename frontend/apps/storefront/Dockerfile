@@ -41,8 +41,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # NEXT_PUBLIC_* vars are inlined at build time — pass via --build-arg in CI
-ARG NEXT_PUBLIC_API_BASE_URL=https://api.radolfa.site
-ARG NEXT_PUBLIC_API_URL=https://api.radolfa.site
+# Empty default = relative /api, proxied same-origin by nginx (see nginx/conf.d).
+ARG NEXT_PUBLIC_API_BASE_URL=
+ARG NEXT_PUBLIC_API_URL=
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
