@@ -13,9 +13,26 @@ interface DetailPageProps {
 
 export async function generateMetadata({ params }: DetailPageProps): Promise<Metadata> {
     const { slug } = await params;
-    const title = slug
+
+    // Fallback: derive a human-readable label from the slug in case the fetch fails.
+    const fallback = slug
         .replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    let title = fallback;
+    try {
+        // Use BACKEND_INTERNAL_URL for server-side fetches — apiClient uses a relative
+        // baseURL which has no host when running on the server inside Docker.
+        const base = process.env.BACKEND_INTERNAL_URL ?? "";
+        const res = await fetch(`${base}/api/v1/listings/${slug}`, { cache: "no-store" });
+        if (res.ok) {
+            const listing = (await res.json()) as { colorDisplayName?: string };
+            if (listing.colorDisplayName) title = listing.colorDisplayName;
+        }
+    } catch {
+        // Keep the slug-based fallback — never block metadata generation.
+    }
+
     return {
         title: `${title} — Radolfa`,
         description: `View details for ${title} on Radolfa.`,
