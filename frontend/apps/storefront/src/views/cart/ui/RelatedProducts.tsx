@@ -20,25 +20,23 @@ const staggerItem = {
 };
 
 export function RelatedProducts() {
-  const t = useTranslations("productDetail");
+  const t = useTranslations("cart");
   const { data, isLoading } = useQuery({
     queryKey: ["listings", "related"],
     queryFn: () => fetchListings(1, 8),
   });
 
-  const items = data?.content.slice(0, 4) ?? [];
+  const items = data?.content.slice(0, 5) ?? [];
 
   if (!isLoading && items.length === 0) return null;
 
   return (
-    <section className="mt-12 pt-8 border-t">
-      <h2 className="text-xl font-semibold text-foreground mb-6">
-        {t("youMayAlsoLike")}
-      </h2>
+    <section className="mt-10 pt-8 border-t border-ink/8">
+      <h2 className="font-black text-xl sm:text-2xl mb-4">{t("youMightAlsoLike")}</h2>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
         </div>
@@ -48,7 +46,7 @@ export function RelatedProducts() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
         >
           {items.map((item) => (
             <motion.div key={item.slug} variants={staggerItem}>
