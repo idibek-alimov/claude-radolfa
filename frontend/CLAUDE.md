@@ -6,7 +6,7 @@
 frontend/                      # npm workspace root
 ├── apps/
 │   ├── storefront/            # @radolfa/storefront — customer app (serves at /)
-│   └── ops/                   # @radolfa/ops — internal ops portal (serves at /ops)
+│   └── ops/                   # @radolfa/ops — internal ops portal, own origin (prod manage.radolfa.site, dev ops.localhost:3001), basePath /ops
 └── packages/
     └── shared/                # @radolfa/shared — Axios, ProtectedRoute, useAuth, shadcn UI, i18n, user entity
 ```
@@ -16,11 +16,27 @@ frontend/                      # npm workspace root
 **Dev commands:**
 ```bash
 npm run dev:storefront   # storefront on :3000
-npm run dev:ops          # ops portal on :3001 (basePath /ops)
+npm run dev:ops          # ops portal on :3001 — open at http://ops.localhost:3001/ops, not localhost:3001
 npm run build            # build both apps
 npm run lint             # lint all workspaces
 npm run typecheck        # typecheck all workspaces
 ```
+
+**Two-origin model:** storefront and ops are **separate origins** in both dev and
+prod (prod: `radolfa.site` / `manage.radolfa.site`; dev: `localhost:3000` /
+`ops.localhost:3001`). Each app's axios client uses an empty `baseURL` and calls
+the API relative (`/api`), proxied same-origin by that app's own nginx vhost / Next
+dev rewrite — this keeps each app's auth cookie host-scoped and never shared with
+the other. `localhost:3001` and `ops.localhost:3001` are the *same port* but
+different hosts, so always open ops via the `ops.localhost` hostname or the cookie
+isolation doesn't hold. `*.localhost` resolves to `127.0.0.1` automatically in
+Chrome/Firefox; add `127.0.0.1 ops.localhost` to `/etc/hosts` if your setup needs it.
+
+Cross-app navigation (links, login redirects) goes through
+`packages/shared/src/lib/appNav.ts` (`storefrontUrl()` / `opsUrl()`), which resolve
+absolute cross-origin URLs from `NEXT_PUBLIC_STOREFRONT_ORIGIN` /
+`NEXT_PUBLIC_OPS_ORIGIN` (build-time env, set per app/environment). Never hardcode
+the other app's URL — always go through these helpers.
 
 ---
 
@@ -45,7 +61,7 @@ Shared cross-cutting code (Axios client, `ProtectedRoute`, `useAuth`, shadcn pri
 
 ## Backend API Contract
 
-- Base URL: `/api/v1`. Auth: HTTP-only cookie `authToken` — interceptor handles 401 → refresh → retry.
+- Base URL: `/api/v1`. Auth: HTTP-only, host-only cookies `auth_token` (path `/`) and `refresh_token` (path `/api/v1/auth`) — interceptor handles 401 → refresh → retry. Host-only scoping (no `Domain` attribute) is what keeps the storefront and ops sessions isolated per origin.
 - Endpoints reference: `reports/02_endpoints_reference.md`.
 - Error shape: `{ status, error, message, path }` — read `err.response.data.message` via `getErrorMessage()`.
 
