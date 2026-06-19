@@ -168,6 +168,10 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ""
         BACKEND_INTERNAL_URL: http://backend:8080
+        # Local-stack origins (this compose maps container ports straight to
+        # the host) — keep in sync with appNav.ts's dev fallback origins.
+        NEXT_PUBLIC_STOREFRONT_ORIGIN: ${NEXT_PUBLIC_STOREFRONT_ORIGIN:-http://localhost:3000}
+        NEXT_PUBLIC_OPS_ORIGIN: ${NEXT_PUBLIC_OPS_ORIGIN:-http://ops.localhost:3001}
     container_name: radolfa-storefront
     restart: always
     depends_on:
@@ -209,6 +213,10 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ""
         BACKEND_INTERNAL_URL: http://backend:8080
+        # Local-stack origins (this compose maps container ports straight to
+        # the host) — keep in sync with appNav.ts's dev fallback origins.
+        NEXT_PUBLIC_STOREFRONT_ORIGIN: ${NEXT_PUBLIC_STOREFRONT_ORIGIN:-http://localhost:3000}
+        NEXT_PUBLIC_OPS_ORIGIN: ${NEXT_PUBLIC_OPS_ORIGIN:-http://ops.localhost:3001}
     container_name: radolfa-ops
     restart: always
     depends_on:

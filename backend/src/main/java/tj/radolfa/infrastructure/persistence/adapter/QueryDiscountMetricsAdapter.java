@@ -117,7 +117,7 @@ public class QueryDiscountMetricsAdapter implements QueryDiscountMetricsPort {
                   AND da.applied_at::date BETWEEN :from AND :to
                 GROUP BY d.id, d.title, d.color_hex, d.amount_value, d.amount_type,
                          dt.id, dt.name, dt.rank
-                ORDER BY """ + orderExpr + " DESC, d.id ASC LIMIT :limit";
+                ORDER BY """ + " " + orderExpr + " DESC, d.id ASC LIMIT :limit";
 
         Query query = em.createNativeQuery(sql);
         query.setParameter("from", from);
