@@ -9,6 +9,7 @@ import org.hibernate.annotations.SQLRestriction;
 import tj.radolfa.domain.model.DeliveryAttemptReason;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -42,6 +43,13 @@ public class OrderEntity extends BaseAuditEntity {
 
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 50)
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "handling_fee", nullable = false, precision = 12, scale = 2)
+    private BigDecimal handlingFee;
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items = new ArrayList<>();

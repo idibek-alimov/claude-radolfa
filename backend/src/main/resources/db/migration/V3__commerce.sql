@@ -20,6 +20,8 @@ CREATE TABLE orders (
     external_order_id        VARCHAR(64)    UNIQUE,
     status                   VARCHAR(32)    NOT NULL DEFAULT 'PENDING' REFERENCES order_statuses(name),
     total_amount             NUMERIC(12,2)  NOT NULL DEFAULT 0,
+    payment_method           VARCHAR(50),
+    handling_fee             NUMERIC(12,2)  NOT NULL DEFAULT 0,
     loyalty_points_redeemed  INT            NOT NULL DEFAULT 0,
     loyalty_points_awarded   INT            NOT NULL DEFAULT 0,
     delivery_type            VARCHAR(50),

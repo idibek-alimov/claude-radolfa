@@ -3,6 +3,7 @@ package tj.radolfa.domain.model;
 public enum OrderStatus {
     PENDING,
     PAID,
+    AWAITING_COD,
     PICKED,
     CLAIMED,
     SHIPPED,
@@ -14,5 +15,9 @@ public enum OrderStatus {
     RETURNED_TO_WAREHOUSE,
     DELIVERED,
     CANCELLED,
-    REFUNDED
+    REFUNDED;
+
+    public boolean isPickable() {
+        return this == PAID || this == AWAITING_COD;
+    }
 }

@@ -132,5 +132,7 @@ radolfa:
   payment:
     pending-timeout-minutes: 30    # Cancel PENDING orders older than this
     sweep-interval-ms: 900000      # Check every 15 minutes
+  checkout:
+    cod-handling-fee: 15           # Flat fee (TJS) added to COD order totals
 
 # CI/CD test deploy Tue Feb 24 01:46:41 AM +05 2026

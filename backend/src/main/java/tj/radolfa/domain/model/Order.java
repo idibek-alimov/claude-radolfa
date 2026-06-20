@@ -41,7 +41,9 @@ public record Order(
         String recallReason,
         Instant recallConfirmedAt,
         Long recallConfirmedByUserId,
-        Long pickpointConfirmedByUserId) {
+        Long pickpointConfirmedByUserId,
+        PaymentMethod paymentMethod,
+        Money handlingFee) {
 
     public Order {
         items = items == null ? List.of() : Collections.unmodifiableList(items);
@@ -68,7 +70,8 @@ public record Order(
                 .recallReason(recallReason)
                 .recallConfirmedAt(recallConfirmedAt)
                 .recallConfirmedByUserId(recallConfirmedByUserId)
-                .pickpointConfirmedByUserId(pickpointConfirmedByUserId);
+                .pickpointConfirmedByUserId(pickpointConfirmedByUserId)
+                .paymentMethod(paymentMethod).handlingFee(handlingFee);
     }
 
     public static final class Builder {
@@ -108,6 +111,8 @@ public record Order(
         private Instant recallConfirmedAt;
         private Long    recallConfirmedByUserId;
         private Long    pickpointConfirmedByUserId;
+        private PaymentMethod paymentMethod;
+        private Money handlingFee = Money.ZERO;
 
         public Builder id(Long v)                              { this.id = v; return this; }
         public Builder userId(Long v)                          { this.userId = v; return this; }
@@ -145,6 +150,8 @@ public record Order(
         public Builder recallConfirmedAt(Instant v)            { this.recallConfirmedAt = v; return this; }
         public Builder recallConfirmedByUserId(Long v)         { this.recallConfirmedByUserId = v; return this; }
         public Builder pickpointConfirmedByUserId(Long v)      { this.pickpointConfirmedByUserId = v; return this; }
+        public Builder paymentMethod(PaymentMethod v)          { this.paymentMethod = v; return this; }
+        public Builder handlingFee(Money v)                    { this.handlingFee = v; return this; }
 
         public Order build() {
             return new Order(id, userId, externalOrderId, status, totalAmount, items, createdAt,
@@ -157,7 +164,7 @@ public record Order(
                     returnInitiatedAt, returnInitiatedByUserId, returnedToWarehouseAt,
                     recallRequestedAt, recallRequestedByUserId, recallReason,
                     recallConfirmedAt, recallConfirmedByUserId,
-                    pickpointConfirmedByUserId);
+                    pickpointConfirmedByUserId, paymentMethod, handlingFee);
         }
     }
 }
