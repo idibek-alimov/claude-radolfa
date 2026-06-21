@@ -7,3 +7,10 @@ export const TIME_WINDOW_CODES: ReadonlyArray<TimeWindowCode> = [
   "AFTERNOON",
   "EVENING",
 ] as const;
+
+export type PaymentMethod = "CARD" | "COD";
+
+export interface CheckoutOptions {
+  codHandlingFee: number;
+  paymentMethods: PaymentMethod[];
+}

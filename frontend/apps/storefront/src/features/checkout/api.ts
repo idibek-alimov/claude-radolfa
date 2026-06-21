@@ -1,5 +1,5 @@
 import apiClient from "@radolfa/shared/api/axios";
-import type { DeliveryType } from "./model/types";
+import type { DeliveryType, PaymentMethod } from "./model/types";
 
 export interface CheckoutRequest {
   loyaltyPointsToRedeem: number;
@@ -8,6 +8,7 @@ export interface CheckoutRequest {
   address?: string;
   preferredTimeWindow?: string;
   pickpointId?: number;
+  paymentMethod?: PaymentMethod;
 }
 
 export interface CheckoutResponse {
@@ -17,6 +18,8 @@ export interface CheckoutResponse {
   tierDiscount: number;
   pointsDiscount: number;
   total: number;
+  paymentMethod: PaymentMethod;
+  handlingFee: number;
 }
 
 export async function checkout(payload: CheckoutRequest): Promise<CheckoutResponse> {
