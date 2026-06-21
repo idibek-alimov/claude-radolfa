@@ -931,6 +931,14 @@
       "payCta": "Pay {total}",
       "placeOrderCta": "Place order"
     },
+    "summary": {
+      "codHandling": "Cash handling",
+      "couponApplied": "Code {code} applied",
+      "encrypted": "Encrypted",
+      "encryptedSub": "your card details are never stored",
+      "qualityGuarantee": "Quality guarantee",
+      "qualityGuaranteeSub": "free 14-day returns"
+    },
     "coupon": {
       "label": "Coupon Code",
       "placeholder": "e.g. SUMMER25",

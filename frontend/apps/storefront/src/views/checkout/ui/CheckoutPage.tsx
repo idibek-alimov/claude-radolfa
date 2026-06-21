@@ -8,7 +8,14 @@ import { AlertTriangle, Loader2, Clock } from "lucide-react";
 import { Button } from "@radolfa/shared/ui/button";
 import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { useCartQuery } from "@/features/cart";
-import { useCheckout, CheckoutStepper, DeliveryStep, ReviewStep, PaymentStep } from "@/features/checkout";
+import {
+  useCheckout,
+  CheckoutStepper,
+  DeliveryStep,
+  ReviewStep,
+  PaymentStep,
+  CheckoutSummary,
+} from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { useCancelOrder } from "@/entities/order";
 import { getErrorMessage } from "@radolfa/shared/lib";
@@ -114,35 +121,43 @@ export function CheckoutPage() {
   return (
     <>
       <CheckoutStepper step={wizard.step} onStepClick={wizard.goStep} />
-      <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <section className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 md:py-8 grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7 items-start">
+        <div className={wizard.step === "done" ? "lg:col-span-3" : "lg:col-span-2"}>
+          <div className="flex flex-col gap-5">
+            {/* Out-of-stock warning */}
+            {wizard.hasOutOfStockItems && (
+              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm text-destructive">{t("outOfStockWarning")}</p>
+              </div>
+            )}
 
-        {/* Out-of-stock warning */}
-        {wizard.hasOutOfStockItems && (
-          <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-            <p className="text-sm text-destructive">{t("outOfStockWarning")}</p>
-          </div>
-        )}
+            {wizard.step === "delivery" && <DeliveryStep checkout={wizard} />}
 
-        {wizard.step === "delivery" && <DeliveryStep checkout={wizard} />}
+            {wizard.step === "review" && <ReviewStep checkout={wizard} />}
 
-        {wizard.step === "review" && <ReviewStep checkout={wizard} />}
+            {wizard.step === "payment" && <PaymentStep checkout={wizard} />}
 
-        {wizard.step === "payment" && <PaymentStep checkout={wizard} />}
-
-        {/* Done — interim placeholder; real ConfirmationStep ships in Phase 14 */}
-        {wizard.step === "done" && (
-          <div className="rounded-xl border bg-card shadow-sm p-5 space-y-2 text-center">
-            <h2 className="font-semibold">{t("successTitle")}</h2>
-            {wizard.checkoutResult && (
-              <p className="text-sm text-muted-foreground">
-                {t("orderNumber", { id: wizard.checkoutResult.orderId })}
-              </p>
+            {/* Done — interim placeholder; real ConfirmationStep ships in Phase 14 */}
+            {wizard.step === "done" && (
+              <div className="rounded-xl border bg-card shadow-sm p-5 space-y-2 text-center">
+                <h2 className="font-semibold">{t("successTitle")}</h2>
+                {wizard.checkoutResult && (
+                  <p className="text-sm text-muted-foreground">
+                    {t("orderNumber", { id: wizard.checkoutResult.orderId })}
+                  </p>
+                )}
+              </div>
             )}
           </div>
+        </div>
+
+        {wizard.step !== "done" && (
+          <aside className="hidden lg:flex flex-col gap-4 sticky top-28">
+            <CheckoutSummary checkout={wizard} />
+          </aside>
         )}
-      </div>
+      </section>
     </>
   );
 }

@@ -931,6 +931,14 @@
       "payCta": "Оплатить {total}",
       "placeOrderCta": "Оформить заказ"
     },
+    "summary": {
+      "codHandling": "Комиссия за наличные",
+      "couponApplied": "Код {code} применён",
+      "encrypted": "Шифрование",
+      "encryptedSub": "данные вашей карты никогда не сохраняются",
+      "qualityGuarantee": "Гарантия качества",
+      "qualityGuaranteeSub": "бесплатный возврат в течение 14 дней"
+    },
     "coupon": {
       "label": "Купон",
       "placeholder": "напр. SUMMER25",

@@ -8,6 +8,7 @@ import { useAuth } from "@radolfa/shared/auth";
 import { formatPrice } from "@radolfa/shared/lib/format";
 import { useActivePickpoints } from "@/entities/pickpoint";
 import type { useCheckout } from "../hooks/useCheckout";
+import { PointsRedeem } from "./PointsRedeem";
 
 interface ReviewStepProps {
   checkout: ReturnType<typeof useCheckout>;
@@ -19,13 +20,29 @@ export function ReviewStep({ checkout }: ReviewStepProps) {
   const { user } = useAuth();
   const { data: pickpoints } = useActivePickpoints();
 
-  const { cart, deliveryType, address, pickpointId, notes, goStep, next, back } = checkout;
+  const {
+    cart,
+    deliveryType,
+    address,
+    pickpointId,
+    notes,
+    paymentMethod,
+    codHandlingFee,
+    pointsToRedeem,
+    setPointsToRedeem,
+    goStep,
+    next,
+    back,
+  } = checkout;
 
   if (!cart) return null;
 
   const pickpoint = pickpoints?.find((pp) => pp.id === pickpointId);
   const crownTierPercent =
     cart.items.find((i) => i.mechanism === "LOYALTY")?.discountPercent ?? null;
+  const availablePoints = user?.loyalty?.points ?? 0;
+  const pointsValue = pointsToRedeem * 0.01;
+  const codFee = paymentMethod === "COD" ? codHandlingFee : 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -157,10 +174,28 @@ export function ReviewStep({ checkout }: ReviewStepProps) {
             <span className="tabular-nums font-medium">−{formatPrice(cart.crownTier)}</span>
           </div>
         )}
+        {pointsToRedeem > 0 && (
+          <div className="flex items-center justify-between text-emerald">
+            <span>{t("pointsDiscount")}</span>
+            <span className="tabular-nums font-medium">−{formatPrice(pointsValue)}</span>
+          </div>
+        )}
+        {codFee > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="text-ink/65">{t("summary.codHandling")}</span>
+            <span className="tabular-nums font-medium">+{formatPrice(codFee)}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-ink/65">{tc("shipping")}</span>
           <span className="tabular-nums font-semibold text-emerald">{tc("free")}</span>
         </div>
+
+        <PointsRedeem
+          availablePoints={availablePoints}
+          pointsToRedeem={pointsToRedeem}
+          setPointsToRedeem={setPointsToRedeem}
+        />
       </div>
 
       {/* Footer */}

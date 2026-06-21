@@ -917,6 +917,14 @@
       "payCta": "Пардохт {total}",
       "placeOrderCta": "Фармоишро ҷой кунед"
     },
+    "summary": {
+      "codHandling": "Музди хизматрасонии нақдӣ",
+      "couponApplied": "Рамзи {code} татбиқ шуд",
+      "encrypted": "Рамзгузорӣ",
+      "encryptedSub": "маълумоти корти шумо ҳеҷ гоҳ нигоҳ дошта намешавад",
+      "qualityGuarantee": "Кафолати сифат",
+      "qualityGuaranteeSub": "баргардондани ройгон дар давоми 14 рӯз"
+    },
     "coupon": {
       "label": "Рамзи таллабот",
       "placeholder": "масалан SUMMER25",
