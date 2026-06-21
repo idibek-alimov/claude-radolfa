@@ -17,4 +17,5 @@ export { ReviewStep } from "./ui/ReviewStep";
 export { PaymentStep } from "./ui/PaymentStep";
 export { CheckoutSummary } from "./ui/CheckoutSummary";
 export { PointsRedeem } from "./ui/PointsRedeem";
+export { MobileCheckoutBar } from "./ui/MobileCheckoutBar";
 export { FauxMap } from "./ui/FauxMap";

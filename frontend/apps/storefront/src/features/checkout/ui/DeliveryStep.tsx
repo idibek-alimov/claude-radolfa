@@ -287,7 +287,7 @@ export function DeliveryStep({ checkout }: DeliveryStepProps) {
         <button
           onClick={handleContinue}
           disabled={deliveryInvalid}
-          className="h-12 px-8 rounded-full bg-mag text-white font-bold text-[15px] hover:bg-maglo transition inline-flex items-center gap-2 shadow-lg shadow-mag/20 disabled:opacity-50"
+          className="hidden lg:inline-flex h-12 px-8 rounded-full bg-mag text-white font-bold text-[15px] hover:bg-maglo transition items-center gap-2 shadow-lg shadow-mag/20 disabled:opacity-50"
         >
           {t("delivery.continueToReview")}
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">

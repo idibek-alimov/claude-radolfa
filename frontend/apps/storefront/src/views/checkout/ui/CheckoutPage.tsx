@@ -15,6 +15,7 @@ import {
   ReviewStep,
   PaymentStep,
   CheckoutSummary,
+  MobileCheckoutBar,
 } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { useCancelOrder } from "@/entities/order";
@@ -123,7 +124,7 @@ export function CheckoutPage() {
       <CheckoutStepper step={wizard.step} onStepClick={wizard.goStep} />
       <section className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 md:py-8 grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7 items-start">
         <div className={wizard.step === "done" ? "lg:col-span-3" : "lg:col-span-2"}>
-          <div className="flex flex-col gap-5">
+          <div className={`flex flex-col gap-5 ${wizard.step === "done" ? "" : "pb-28 lg:pb-0"}`}>
             {/* Out-of-stock warning */}
             {wizard.hasOutOfStockItems && (
               <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
@@ -158,6 +159,7 @@ export function CheckoutPage() {
           </aside>
         )}
       </section>
+      <MobileCheckoutBar checkout={wizard} />
     </>
   );
 }

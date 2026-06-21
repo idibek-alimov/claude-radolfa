@@ -181,7 +181,7 @@ export function PaymentStep({ checkout }: PaymentStepProps) {
         <button
           onClick={() => placeOrder()}
           disabled={isPlacing || hasOutOfStockItems}
-          className="h-12 px-8 md:px-9 rounded-full bg-mag text-white font-bold text-[15px] hover:bg-maglo transition inline-flex items-center gap-2 shadow-lg shadow-mag/20 disabled:opacity-50"
+          className="hidden lg:inline-flex h-12 px-8 lg:px-9 rounded-full bg-mag text-white font-bold text-[15px] hover:bg-maglo transition items-center gap-2 shadow-lg shadow-mag/20 disabled:opacity-50"
         >
           {isPlacing ? (
             t("placing")
