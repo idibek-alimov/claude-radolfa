@@ -59,6 +59,58 @@ body {
   }
 }
 
+/* Checkout redesign (B-Magenta): shared input styling for the wizard steps
+ * (Delivery/Pickpoint/Payment fields). Desktop sizing is the base rule;
+ * the media query below applies the reference's slightly smaller mobile
+ * dimensions (height/radius/padding). */
+@layer components {
+  .field {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid rgba(26, 10, 24, 0.12);
+    font-size: 14px;
+    outline: none;
+    transition: all 150ms;
+  }
+  .field:focus {
+    border-color: #cb11ab;
+    box-shadow: 0 0 0 3px rgba(203, 17, 171, 0.12);
+  }
+  .field-area {
+    width: 100%;
+    min-height: 88px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid rgba(26, 10, 24, 0.12);
+    font-size: 14px;
+    line-height: 1.45;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    transition: all 150ms;
+  }
+  .field-area:focus {
+    border-color: #cb11ab;
+    box-shadow: 0 0 0 3px rgba(203, 17, 171, 0.12);
+  }
+}
+@media (max-width: 767px) {
+  .field {
+    height: 44px;
+    padding: 0 13px;
+    border-radius: 11px;
+  }
+  .field-area {
+    min-height: 80px;
+    padding: 11px 13px;
+    border-radius: 11px;
+  }
+}
+
 /* Profile shell (B-Magenta redesign): on mobile, the profile routes render
  * their own magenta header (`ProfileMobileHeader`) in place of the inherited
  * PromoBar + Navbar. The `(storefront)/layout.tsx` chrome stays unchanged —

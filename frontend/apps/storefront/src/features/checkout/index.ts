@@ -12,3 +12,4 @@ export { useCheckout } from "./hooks/useCheckout";
 export { useCheckoutOptions } from "./hooks/useCheckoutOptions";
 export { SlimHeader } from "./ui/SlimHeader";
 export { CheckoutStepper } from "./ui/CheckoutStepper";
+export { DeliveryStep } from "./ui/DeliveryStep";
