@@ -873,6 +873,18 @@
     "successTitle": "Фармоиш қабул шуд!",
     "orderNumber": "Фармоиш #{id}",
     "viewOrders": "Фармоишҳои ман",
+    "slim": {
+      "backToBag": "Бозгашт ба сабад",
+      "secureCheckout": "Пардохти бехатар",
+      "secure": "Бехатар",
+      "title": "Ба расмият даровардан"
+    },
+    "steps": {
+      "delivery": "Расонидан",
+      "review": "Дидаравӣ",
+      "payment": "Пардохт",
+      "done": "Тайёр"
+    },
     "coupon": {
       "label": "Рамзи таллабот",
       "placeholder": "масалан SUMMER25",

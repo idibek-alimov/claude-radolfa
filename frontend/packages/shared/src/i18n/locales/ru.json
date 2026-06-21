@@ -887,6 +887,18 @@
     "successTitle": "Заказ оформлен!",
     "orderNumber": "Заказ #{id}",
     "viewOrders": "Мои заказы",
+    "slim": {
+      "backToBag": "Назад в корзину",
+      "secureCheckout": "Безопасная оплата",
+      "secure": "Безопасно",
+      "title": "Оформление"
+    },
+    "steps": {
+      "delivery": "Доставка",
+      "review": "Проверка",
+      "payment": "Оплата",
+      "done": "Готово"
+    },
     "coupon": {
       "label": "Купон",
       "placeholder": "напр. SUMMER25",

@@ -10,3 +10,5 @@ export type {
 export { TIME_WINDOW_CODES, CHECKOUT_STEPS } from "./model/types";
 export { useCheckout } from "./hooks/useCheckout";
 export { useCheckoutOptions } from "./hooks/useCheckoutOptions";
+export { SlimHeader } from "./ui/SlimHeader";
+export { CheckoutStepper } from "./ui/CheckoutStepper";

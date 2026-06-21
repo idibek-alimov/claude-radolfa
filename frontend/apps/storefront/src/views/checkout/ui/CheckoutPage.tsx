@@ -38,7 +38,14 @@ import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { cn } from "@radolfa/shared/lib/utils";
 import { useCartQuery, useApplyCoupon, useRemoveCoupon } from "@/features/cart";
 import { useAuth } from "@radolfa/shared/auth";
-import { checkout, TIME_WINDOW_CODES, type DeliveryType, type TimeWindowCode } from "@/features/checkout";
+import {
+  checkout,
+  useCheckout,
+  CheckoutStepper,
+  TIME_WINDOW_CODES,
+  type DeliveryType,
+  type TimeWindowCode,
+} from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { useCancelOrder } from "@/entities/order";
 import { getErrorMessage, isCouponsEnabled } from "@radolfa/shared/lib";
@@ -60,6 +67,7 @@ export function CheckoutPage() {
 
   const { data: cart, isLoading: loadingCart } = useCartQuery();
   const { data: pickpoints, isLoading: pickpointsLoading } = useActivePickpoints();
+  const { step, goStep } = useCheckout();
 
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [notes, setNotes] = useState("");
@@ -226,8 +234,10 @@ export function CheckoutPage() {
   const estimatedTotal = Math.max(0, cart.totalAmount - pointsValue);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+    <>
+      <CheckoutStepper step={step} onStepClick={goStep} />
+      <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       {/* Out-of-stock warning */}
       {hasOutOfStockItems && (
@@ -602,6 +612,7 @@ export function CheckoutPage() {
       >
         {checkoutMutation.isPending ? t("placing") : t("placeOrder")}
       </Button>
-    </div>
+      </div>
+    </>
   );
 }

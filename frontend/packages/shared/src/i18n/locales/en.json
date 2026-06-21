@@ -887,6 +887,18 @@
     "successTitle": "Order Placed!",
     "orderNumber": "Order #{id}",
     "viewOrders": "View My Orders",
+    "slim": {
+      "backToBag": "Back to bag",
+      "secureCheckout": "Secure checkout",
+      "secure": "Secure",
+      "title": "Checkout"
+    },
+    "steps": {
+      "delivery": "Delivery",
+      "review": "Review",
+      "payment": "Payment",
+      "done": "Done"
+    },
     "coupon": {
       "label": "Coupon Code",
       "placeholder": "e.g. SUMMER25",
