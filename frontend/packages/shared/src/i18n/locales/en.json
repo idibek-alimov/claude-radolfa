@@ -938,8 +938,11 @@
         "selectPlaceholder": "Choose a location",
         "loading": "Loading pickup points…",
         "empty": "No pickup points available right now.",
+        "noMatches": "No pickup points match your search.",
         "required": "Please select a pickup point.",
-        "comingSoon": "Pickup point search is coming in the next step.",
+        "searchPlaceholder": "Search by area, mall or metro",
+        "readyToday": "Ready today",
+        "readyTomorrow": "Ready tomorrow",
         "nearYou": "{count} near you"
       },
       "timeWindow": {

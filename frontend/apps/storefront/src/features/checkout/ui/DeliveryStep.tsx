@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Truck, Store } from "lucide-react";
@@ -25,6 +25,7 @@ export function DeliveryStep({ checkout }: DeliveryStepProps) {
   const t = useTranslations("checkout");
   const { data: pickpoints } = useActivePickpoints();
   const [submitted, setSubmitted] = useState(false);
+  const [pickpointSearch, setPickpointSearch] = useState("");
 
   const {
     deliveryType,
@@ -35,11 +36,22 @@ export function DeliveryStep({ checkout }: DeliveryStepProps) {
     setTimeWindow,
     notes,
     setNotes,
+    pickpointId,
+    setPickpointId,
     addressMissing,
     pickpointMissing,
     deliveryInvalid,
     next,
   } = checkout;
+
+  const filteredPickpoints = useMemo(() => {
+    const query = pickpointSearch.trim().toLowerCase();
+    if (!query) return pickpoints ?? [];
+    return (pickpoints ?? []).filter(
+      (pp) =>
+        pp.name.toLowerCase().includes(query) || pp.address.toLowerCase().includes(query)
+    );
+  }, [pickpoints, pickpointSearch]);
 
   function handleContinue() {
     setSubmitted(true);
@@ -166,16 +178,78 @@ export function DeliveryStep({ checkout }: DeliveryStepProps) {
           </div>
         )}
 
-        {/* Pickpoint panel (placeholder — real list in Phase 9) */}
+        {/* Pickpoint panel */}
         {deliveryType === "PICKPOINT" && (
           <div className="mt-5 pt-5 border-t border-ink/8">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[14px] font-bold">{t("delivery.pickpoint.selectLabel")}</h3>
               <span className="text-[12px] text-ink/45 font-medium">
-                {t("delivery.pickpoint.nearYou", { count: pickpoints?.length ?? 0 })}
+                {t("delivery.pickpoint.nearYou", { count: filteredPickpoints.length })}
               </span>
             </div>
-            <p className="text-[13px] text-ink/50">{t("delivery.pickpoint.comingSoon")}</p>
+
+            <div className="relative mb-3">
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/35 pointer-events-none"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                className="field pl-10"
+                value={pickpointSearch}
+                onChange={(e) => setPickpointSearch(e.target.value)}
+                placeholder={t("delivery.pickpoint.searchPlaceholder")}
+              />
+            </div>
+
+            {pickpoints && pickpoints.length === 0 ? (
+              <p className="text-[13px] text-ink/50">{t("delivery.pickpoint.empty")}</p>
+            ) : filteredPickpoints.length === 0 ? (
+              <p className="text-[13px] text-ink/50">{t("delivery.pickpoint.noMatches")}</p>
+            ) : (
+              <div className="flex flex-col gap-2.5 max-h-[300px] overflow-y-auto scrollbar-hide pr-1">
+                {filteredPickpoints.map((pp) => (
+                  <label
+                    key={pp.id}
+                    className={cn(
+                      "seg flex items-start gap-3 rounded-xl border-2 p-3 md:p-4 cursor-pointer",
+                      pickpointId === pp.id
+                        ? "border-mag bg-mag/5"
+                        : "border-ink/10 hover:border-ink/25"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="pickpoint"
+                      className="mt-0.5 w-4 h-4 accent-mag shrink-0"
+                      checked={pickpointId === pp.id}
+                      onChange={() => setPickpointId(pp.id)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] md:text-[14px] font-bold">{pp.name}</div>
+                      <div className="text-[11px] md:text-[12px] text-ink/55 mt-0.5">
+                        {pp.address}
+                      </div>
+                      <div className="text-[11px] md:text-[12px] mt-1 md:mt-1.5 flex items-center gap-3">
+                        <span className="text-emerald font-semibold">
+                          {pp.isOpenNow
+                            ? t("delivery.pickpoint.readyToday")
+                            : t("delivery.pickpoint.readyTomorrow")}
+                        </span>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+
             {submitted && pickpointMissing && (
               <p className="text-xs text-destructive mt-2">{t("delivery.pickpoint.required")}</p>
             )}
