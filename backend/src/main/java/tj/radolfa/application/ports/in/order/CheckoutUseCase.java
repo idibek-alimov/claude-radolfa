@@ -2,6 +2,8 @@ package tj.radolfa.application.ports.in.order;
 
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
+import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PaymentMethod;
 
 /**
  * In-Port: convert the user's active cart into a PENDING order.
@@ -24,20 +26,24 @@ public interface CheckoutUseCase {
     Result execute(Command command);
 
     record Command(
-            Long         userId,
-            int          loyaltyPointsToRedeem,
-            String       notes,
-            DeliveryType deliveryType,
-            String       address,
-            String       preferredTimeWindow,
-            Long         pickpointId
+            Long          userId,
+            int           loyaltyPointsToRedeem,
+            String        notes,
+            DeliveryType  deliveryType,
+            String        address,
+            String        preferredTimeWindow,
+            Long          pickpointId,
+            PaymentMethod paymentMethod
     ) {}
 
     record Result(
-            Long  orderId,
-            Money subtotal,
-            Money tierDiscount,
-            Money pointsDiscount,
-            Money total
+            Long          orderId,
+            Money         subtotal,
+            Money         tierDiscount,
+            Money         pointsDiscount,
+            Money         total,
+            OrderStatus   status,
+            PaymentMethod paymentMethod,
+            Money         handlingFee
     ) {}
 }

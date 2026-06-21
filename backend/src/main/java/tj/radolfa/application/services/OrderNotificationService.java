@@ -8,8 +8,8 @@ import tj.radolfa.domain.model.Order;
 
 /**
  * Dispatches customer-facing notifications when an order changes to a
- * customer-relevant state (PAID, SHIPPED, OUT_FOR_DELIVERY, DELIVERY_ATTEMPTED,
- * READY_FOR_PICKUP, DELIVERED, CANCELLED, REFUNDED).
+ * customer-relevant state (PAID, AWAITING_COD, SHIPPED, OUT_FOR_DELIVERY,
+ * DELIVERY_ATTEMPTED, READY_FOR_PICKUP, DELIVERED, CANCELLED, REFUNDED).
  *
  * <p>Best-effort: a notification failure is logged at WARN and swallowed so that a
  * transient provider error never rolls back an order's status transition.
@@ -28,7 +28,7 @@ public class OrderNotificationService {
     public void notify(Order order) {
         try {
             switch (order.status()) {
-                case PAID ->
+                case PAID, AWAITING_COD ->
                         notificationPort.sendOrderConfirmation(order.userId(), order.id());
                 case SHIPPED, OUT_FOR_DELIVERY, DELIVERY_ATTEMPTED, READY_FOR_PICKUP,
                      DELIVERED, CANCELLED, REFUNDED ->

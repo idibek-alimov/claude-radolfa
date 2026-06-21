@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import tj.radolfa.application.ports.in.discount.RecordDiscountApplicationUseCase;
 import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
+import tj.radolfa.application.ports.in.loyalty.AwardLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.loyalty.RedeemLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.in.order.ExpireOrderUseCase;
@@ -28,6 +29,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PaymentMethod;
 import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
@@ -62,6 +64,9 @@ public class CheckoutService implements CheckoutUseCase {
     private final LoadPickpointPort                loadPickpointPort;
     private final LoadOrderPort                    loadOrderPort;
     private final ExpireOrderUseCase               expireOrderUseCase;
+    private final AwardLoyaltyPointsUseCase        awardLoyaltyPointsUseCase;
+    private final OrderNotificationService         orderNotificationService;
+    private final BigDecimal                       codHandlingFee;
 
     @Value("${radolfa.payment.pending-timeout-minutes:30}")
     private int pendingTimeoutMinutes;
@@ -81,7 +86,10 @@ public class CheckoutService implements CheckoutUseCase {
                            RecordDiscountApplicationUseCase recordDiscountApplicationUseCase,
                            LoadPickpointPort loadPickpointPort,
                            LoadOrderPort loadOrderPort,
-                           ExpireOrderUseCase expireOrderUseCase) {
+                           ExpireOrderUseCase expireOrderUseCase,
+                           AwardLoyaltyPointsUseCase awardLoyaltyPointsUseCase,
+                           OrderNotificationService orderNotificationService,
+                           @Value("${radolfa.checkout.cod-handling-fee:0}") BigDecimal codHandlingFee) {
         this.loadCartPort                    = loadCartPort;
         this.saveCartPort                    = saveCartPort;
         this.loadSkuPort                     = loadSkuPort;
@@ -98,6 +106,9 @@ public class CheckoutService implements CheckoutUseCase {
         this.loadPickpointPort               = loadPickpointPort;
         this.loadOrderPort                   = loadOrderPort;
         this.expireOrderUseCase              = expireOrderUseCase;
+        this.awardLoyaltyPointsUseCase       = awardLoyaltyPointsUseCase;
+        this.orderNotificationService        = orderNotificationService;
+        this.codHandlingFee                  = codHandlingFee;
     }
 
     @Override
@@ -222,11 +233,18 @@ public class CheckoutService implements CheckoutUseCase {
                 .map(item -> enrichToOrderItem(item, skuById, variantById, productById))
                 .toList();
 
-        // 9. Persist order
+        // 8b. Resolve payment method (defaults to CARD) and the COD handling fee
+        PaymentMethod method = command.paymentMethod() != null ? command.paymentMethod() : PaymentMethod.CARD;
+        Money handlingFee = method == PaymentMethod.COD ? new Money(codHandlingFee) : Money.ZERO;
+        Money orderTotal = method == PaymentMethod.COD
+                ? new Money(total.amount().add(handlingFee.amount()))
+                : total;
+
+        // 9. Persist order — COD is placed directly into AWAITING_COD (no payment record, no saga)
         Order newOrder = new Order.Builder()
                 .userId(command.userId())
-                .status(OrderStatus.PENDING)
-                .totalAmount(total)
+                .status(method == PaymentMethod.COD ? OrderStatus.AWAITING_COD : OrderStatus.PENDING)
+                .totalAmount(orderTotal)
                 .items(orderItems)
                 .createdAt(Instant.now())
                 .loyaltyPointsRedeemed(pointsToRedeem)
@@ -234,6 +252,8 @@ public class CheckoutService implements CheckoutUseCase {
                 .deliveryAddress(command.address())
                 .preferredTimeWindow(command.preferredTimeWindow())
                 .pickpointId(command.pickpointId())
+                .paymentMethod(method)
+                .handlingFee(handlingFee)
                 .build();
         Order saved = saveOrderPort.save(newOrder);
 
@@ -266,11 +286,20 @@ public class CheckoutService implements CheckoutUseCase {
                     saved.id(), command.userId());
         }
 
-        // 12. Link cart to the pending order — cart stays ACTIVE until payment confirmed
-        cart.linkOrder(saved.id());
-        saveCartPort.save(cart);
+        // 12. Finalize: CARD stays linked pending payment; COD finalizes immediately
+        if (method == PaymentMethod.COD) {
+            cart.checkout();
+            saveCartPort.save(cart);
+            awardLoyaltyPointsUseCase.execute(command.userId(), saved.id());
+            orderNotificationService.notify(saved);
+        } else {
+            // Link cart to the pending order — cart stays ACTIVE until payment confirmed
+            cart.linkOrder(saved.id());
+            saveCartPort.save(cart);
+        }
 
-        return new Result(saved.id(), subtotal, tierDiscount, pointsDiscount, total);
+        return new Result(saved.id(), subtotal, tierDiscount, pointsDiscount, orderTotal,
+                saved.status(), method, handlingFee);
     }
 
     private void validateDelivery(Command command) {

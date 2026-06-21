@@ -166,7 +166,8 @@ public class OrderController {
                 request.deliveryType(),
                 request.address(),
                 request.preferredTimeWindow(),
-                request.pickpointId());
+                request.pickpointId(),
+                request.paymentMethod());
 
         CheckoutUseCase.Result result = checkoutUseCase.execute(command);
         return ResponseEntity.ok(CheckoutResponseDto.from(result));

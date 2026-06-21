@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.discount.RecordDiscountApplicationUseCase;
 import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
+import tj.radolfa.application.ports.in.loyalty.AwardLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -12,6 +13,7 @@ import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
+import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.QueryDiscountUsagePort;
 import tj.radolfa.application.ports.out.SaveCartPort;
 import tj.radolfa.application.ports.out.SaveDiscountApplicationPort;
@@ -27,6 +29,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PaymentMethod;
 import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
@@ -139,6 +142,19 @@ class CheckoutServiceDeliveryValidationTest {
         @Override public DiscountApplication save(DiscountApplication app) { return app; }
     };
 
+    static final AwardLoyaltyPointsUseCase NO_OP_AWARD_LOYALTY = (userId, orderId) -> {};
+
+    static final OrderNotificationService NO_OP_NOTIFICATION =
+            new OrderNotificationService(new NotificationPort() {
+                @Override public void sendOrderConfirmation(Long userId, Long orderId) {}
+                @Override public void sendOrderStatusUpdate(Long userId, Long orderId, OrderStatus newStatus) {}
+                @Override public void sendReviewApprovedNotification(Long userId, Long reviewId) {}
+                @Override public void sendReviewReplyNotification(Long userId, Long reviewId) {}
+                @Override public void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt) {}
+                @Override public void sendPickpointExpiryWarning(Long userId, Long orderId, int daysRemaining) {}
+                @Override public void sendPickpointOrderExpiredCancellation(Long userId, Long orderId) {}
+            });
+
     // ---- Builder ----
 
     static CheckoutService buildService(LoadPickpointPort loadPickpointPort) {
@@ -170,7 +186,10 @@ class CheckoutServiceDeliveryValidationTest {
                     @Override public java.util.Optional<tj.radolfa.domain.model.Order> loadByExternalOrderId(String s) { return java.util.Optional.empty(); }
                     @Override public java.util.List<tj.radolfa.domain.model.Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
                 },
-                (orderId, reason) -> {}            // ExpireOrderUseCase
+                (orderId, reason) -> {},            // ExpireOrderUseCase
+                NO_OP_AWARD_LOYALTY,
+                NO_OP_NOTIFICATION,
+                BigDecimal.ZERO
         );
     }
 
@@ -190,7 +209,7 @@ class CheckoutServiceDeliveryValidationTest {
         CheckoutService service = buildService(pickpointPort(Optional.empty()));
         var ex = assertThrows(IllegalArgumentException.class, () ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.HOME, null, null, null)));
+                        DeliveryType.HOME, null, null, null, PaymentMethod.CARD)));
         assertEquals("address is required for HOME delivery", ex.getMessage());
     }
 
@@ -200,7 +219,7 @@ class CheckoutServiceDeliveryValidationTest {
         CheckoutService service = buildService(pickpointPort(Optional.empty()));
         var ex = assertThrows(IllegalArgumentException.class, () ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.HOME, "   ", null, null)));
+                        DeliveryType.HOME, "   ", null, null, PaymentMethod.CARD)));
         assertEquals("address is required for HOME delivery", ex.getMessage());
     }
 
@@ -210,7 +229,7 @@ class CheckoutServiceDeliveryValidationTest {
         CheckoutService service = buildService(pickpointPort(Optional.empty()));
         CheckoutUseCase.Result result = assertDoesNotThrow(() ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.HOME, "123 Main St", "09:00-12:00", null)));
+                        DeliveryType.HOME, "123 Main St", "09:00-12:00", null, PaymentMethod.CARD)));
         assertEquals(100L, result.orderId());
     }
 
@@ -222,7 +241,7 @@ class CheckoutServiceDeliveryValidationTest {
         CheckoutService service = buildService(pickpointPort(Optional.empty()));
         var ex = assertThrows(IllegalArgumentException.class, () ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.PICKPOINT, null, null, null)));
+                        DeliveryType.PICKPOINT, null, null, null, PaymentMethod.CARD)));
         assertEquals("pickpointId is required for PICKPOINT delivery", ex.getMessage());
     }
 
@@ -232,7 +251,7 @@ class CheckoutServiceDeliveryValidationTest {
         CheckoutService service = buildService(pickpointPort(Optional.empty()));
         var ex = assertThrows(IllegalArgumentException.class, () ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.PICKPOINT, null, null, PP_ID)));
+                        DeliveryType.PICKPOINT, null, null, PP_ID, PaymentMethod.CARD)));
         assertEquals("pickpoint not found: " + PP_ID, ex.getMessage());
     }
 
@@ -243,7 +262,7 @@ class CheckoutServiceDeliveryValidationTest {
         CheckoutService service = buildService(pickpointPort(Optional.of(inactive)));
         var ex = assertThrows(IllegalArgumentException.class, () ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.PICKPOINT, null, null, PP_ID)));
+                        DeliveryType.PICKPOINT, null, null, PP_ID, PaymentMethod.CARD)));
         assertEquals("pickpoint is not active: " + PP_ID, ex.getMessage());
     }
 
@@ -257,7 +276,7 @@ class CheckoutServiceDeliveryValidationTest {
         // and trust SAVE_ORDER echoes fields back; the real assertion is no exception thrown
         CheckoutUseCase.Result result = assertDoesNotThrow(() ->
                 service.execute(new CheckoutUseCase.Command(USER_ID, 0, null,
-                        DeliveryType.PICKPOINT, null, null, PP_ID)));
+                        DeliveryType.PICKPOINT, null, null, PP_ID, PaymentMethod.CARD)));
         assertEquals(100L, result.orderId());
     }
 }

@@ -10,16 +10,20 @@ public record CheckoutResponseDto(
         BigDecimal subtotal,
         BigDecimal tierDiscount,
         BigDecimal pointsDiscount,
-        BigDecimal total
+        BigDecimal total,
+        String     paymentMethod,
+        BigDecimal handlingFee
 ) {
     public static CheckoutResponseDto from(CheckoutUseCase.Result result) {
         return new CheckoutResponseDto(
                 result.orderId(),
-                "PENDING",
+                result.status().name(),
                 result.subtotal().amount(),
                 result.tierDiscount().amount(),
                 result.pointsDiscount().amount(),
-                result.total().amount()
+                result.total().amount(),
+                result.paymentMethod().name(),
+                result.handlingFee().amount()
         );
     }
 }

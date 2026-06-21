@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.in.discount.RecordDiscountApplicationUseCase;
 import tj.radolfa.application.ports.in.discount.ResolveDiscountsUseCase;
+import tj.radolfa.application.ports.in.loyalty.AwardLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.order.CheckoutUseCase;
 import tj.radolfa.application.ports.out.LoadCartPort;
 import tj.radolfa.application.ports.out.LoadListingVariantPort;
@@ -12,6 +13,7 @@ import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.LockDiscountForUsagePort;
+import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.QueryDiscountUsagePort;
 import tj.radolfa.application.ports.out.SaveDiscountApplicationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
@@ -29,6 +31,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.PaymentMethod;
 import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
@@ -140,6 +143,19 @@ class CheckoutServiceStackingTest {
         @Override public Optional<Pickpoint> findById(Long id) { return Optional.empty(); }
     };
 
+    static final AwardLoyaltyPointsUseCase NO_OP_AWARD_LOYALTY = (userId, orderId) -> {};
+
+    static final OrderNotificationService NO_OP_NOTIFICATION =
+            new OrderNotificationService(new NotificationPort() {
+                @Override public void sendOrderConfirmation(Long userId, Long orderId) {}
+                @Override public void sendOrderStatusUpdate(Long userId, Long orderId, OrderStatus newStatus) {}
+                @Override public void sendReviewApprovedNotification(Long userId, Long reviewId) {}
+                @Override public void sendReviewReplyNotification(Long userId, Long reviewId) {}
+                @Override public void sendDeliveryCode(Long userId, Long orderId, String code, Instant expiresAt) {}
+                @Override public void sendPickpointExpiryWarning(Long userId, Long orderId, int daysRemaining) {}
+                @Override public void sendPickpointOrderExpiredCancellation(Long userId, Long orderId) {}
+            });
+
     // ---- Fixture helpers ----
 
     static Discount stackableDiscount(Long id, int rank, BigDecimal pct) {
@@ -185,7 +201,10 @@ class CheckoutServiceStackingTest {
                     @Override public java.util.Optional<tj.radolfa.domain.model.Order> loadByExternalOrderId(String s) { return java.util.Optional.empty(); }
                     @Override public java.util.List<tj.radolfa.domain.model.Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
                 },
-                (orderId, reason) -> {}            // ExpireOrderUseCase
+                (orderId, reason) -> {},            // ExpireOrderUseCase
+                NO_OP_AWARD_LOYALTY,
+                NO_OP_NOTIFICATION,
+                BigDecimal.ZERO
         );
     }
 
@@ -208,7 +227,7 @@ class CheckoutServiceStackingTest {
         FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
         CheckoutService service = buildService(Map.of(SKU_CODE, List.of(s1, s2)), fakeAppPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(2, fakeAppPort.stored.size(), "One row per stacked discount layer");
 
@@ -230,7 +249,7 @@ class CheckoutServiceStackingTest {
         FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
         CheckoutService service = buildService(Map.of(), fakeAppPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(0, fakeAppPort.stored.size());
     }
@@ -257,7 +276,7 @@ class CheckoutServiceStackingTest {
         };
         CheckoutService service = buildServiceWithSavePort(Map.of(), fakeAppPort, capturingPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(1, captured.size());
         assertEquals(null, captured.get(0).getSellerId(), "Radolfa-owned item must have null sellerId");
@@ -314,10 +333,13 @@ class CheckoutServiceStackingTest {
                     @Override public Optional<Order> loadByExternalOrderId(String s) { return Optional.empty(); }
                     @Override public java.util.List<Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
                 },
-                (orderId, reason) -> {}
+                (orderId, reason) -> {},
+                NO_OP_AWARD_LOYALTY,
+                NO_OP_NOTIFICATION,
+                BigDecimal.ZERO
         );
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(1, captured.size());
         assertEquals(SELLER_ID, captured.get(0).getSellerId(), "Seller-owned item must carry the seller's id as a snapshot");
@@ -347,7 +369,10 @@ class CheckoutServiceStackingTest {
                     @Override public Optional<Order> loadByExternalOrderId(String s) { return Optional.empty(); }
                     @Override public java.util.List<Order> loadRecentPaidByUserId(Long id, int limit) { return java.util.List.of(); }
                 },
-                (orderId, reason) -> {}
+                (orderId, reason) -> {},
+                NO_OP_AWARD_LOYALTY,
+                NO_OP_NOTIFICATION,
+                BigDecimal.ZERO
         );
     }
 }
