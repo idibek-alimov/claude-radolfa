@@ -1,5 +1,5 @@
 import apiClient from "@radolfa/shared/api/axios";
-import type { DeliveryType, PaymentMethod } from "./model/types";
+import type { CheckoutOptions, DeliveryType, PaymentMethod } from "./model/types";
 
 export interface CheckoutRequest {
   loyaltyPointsToRedeem: number;
@@ -24,5 +24,10 @@ export interface CheckoutResponse {
 
 export async function checkout(payload: CheckoutRequest): Promise<CheckoutResponse> {
   const response = await apiClient.post<CheckoutResponse>("/api/v1/orders/checkout", payload);
+  return response.data;
+}
+
+export async function fetchCheckoutOptions(): Promise<CheckoutOptions> {
+  const response = await apiClient.get<CheckoutOptions>("/api/v1/checkout/options");
   return response.data;
 }

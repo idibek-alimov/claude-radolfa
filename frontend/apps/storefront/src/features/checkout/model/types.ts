@@ -14,3 +14,12 @@ export interface CheckoutOptions {
   codHandlingFee: number;
   paymentMethods: PaymentMethod[];
 }
+
+export type CheckoutStep = "delivery" | "review" | "payment" | "done";
+
+export const CHECKOUT_STEPS: ReadonlyArray<CheckoutStep> = [
+  "delivery",
+  "review",
+  "payment",
+  "done",
+] as const;
