@@ -925,7 +925,10 @@
         "addressLabel": "Delivery address",
         "addressPlaceholder": "Street, building, apartment…",
         "addressRequired": "Address is required for home delivery.",
-        "timeWindowLabel": "Preferred time window"
+        "timeWindowLabel": "Preferred time window",
+        "useMyLocation": "Use my location",
+        "locateMe": "Locate me",
+        "dragPinHint": "Drag the pin to adjust"
       },
       "pickpoint": {
         "title": "Pickpoint",

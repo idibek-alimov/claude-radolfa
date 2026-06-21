@@ -911,7 +911,10 @@
         "addressLabel": "Суроғаи расонидан",
         "addressPlaceholder": "Кӯча, бино, хона…",
         "addressRequired": "Барои расонидан ба хона суроғаро нависед.",
-        "timeWindowLabel": "Вақти мувофиқ"
+        "timeWindowLabel": "Вақти мувофиқ",
+        "useMyLocation": "Маҳалли ҷойгиршавии ман",
+        "locateMe": "Маро ёбед",
+        "dragPinHint": "Нишонаро барои дақиқ кардан кашед"
       },
       "pickpoint": {
         "title": "Нуқтаи худхуруҷ",

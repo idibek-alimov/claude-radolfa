@@ -15,6 +15,7 @@ import {
 import { useActivePickpoints } from "@/entities/pickpoint";
 import { TIME_WINDOW_CODES, type TimeWindowCode } from "../model/types";
 import type { useCheckout } from "../hooks/useCheckout";
+import { FauxMap } from "./FauxMap";
 
 interface DeliveryStepProps {
   checkout: ReturnType<typeof useCheckout>;
@@ -139,6 +140,8 @@ export function DeliveryStep({ checkout }: DeliveryStepProps) {
             {submitted && addressMissing && (
               <p className="text-xs text-destructive mb-3">{t("delivery.home.addressRequired")}</p>
             )}
+
+            <FauxMap />
 
             <div className="mb-3">
               <label className="text-[12px] font-semibold text-ink/60 mb-1.5 block">

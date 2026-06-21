@@ -111,6 +111,27 @@ body {
   }
 }
 
+/* Checkout redesign (B-Magenta): decorative faux-map background for the
+ * Delivery step's Courier panel. Mobile-first base rule uses the reference's
+ * smaller mobile grid spacing; the min-width override switches to the
+ * reference's wider desktop spacing. */
+.map-bg {
+  background:
+    radial-gradient(circle at 62% 38%, rgba(203, 17, 171, 0.06), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(26, 10, 24, 0.05) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(26, 10, 24, 0.05) 0 1px, transparent 1px 26px),
+    #eaede7;
+}
+@media (min-width: 768px) {
+  .map-bg {
+    background:
+      radial-gradient(circle at 62% 38%, rgba(203, 17, 171, 0.06), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(26, 10, 24, 0.05) 0 1px, transparent 1px 30px),
+      repeating-linear-gradient(90deg, rgba(26, 10, 24, 0.05) 0 1px, transparent 1px 30px),
+      #eaede7;
+  }
+}
+
 /* Profile shell (B-Magenta redesign): on mobile, the profile routes render
  * their own magenta header (`ProfileMobileHeader`) in place of the inherited
  * PromoBar + Navbar. The `(storefront)/layout.tsx` chrome stays unchanged —
