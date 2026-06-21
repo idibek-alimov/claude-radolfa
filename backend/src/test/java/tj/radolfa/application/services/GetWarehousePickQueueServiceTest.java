@@ -55,7 +55,7 @@ class GetWarehousePickQueueServiceTest {
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("Passes PAID status and createdAt ASC sort to the port")
+    @DisplayName("Passes PAID and AWAITING_COD statuses and createdAt ASC sort to the port")
     void delegatesCorrectParamsToPort() {
         var port = new CapturingLoadAdminOrdersPort();
         var svc  = new GetWarehousePickQueueService(port);
@@ -66,7 +66,8 @@ class GetWarehousePickQueueServiceTest {
         var call = port.calls.get(0);
         assertEquals("ORD-", call.search());
         assertTrue(call.statuses().contains(OrderStatus.PAID));
-        assertEquals(1, call.statuses().size(), "should filter by PAID only");
+        assertTrue(call.statuses().contains(OrderStatus.AWAITING_COD));
+        assertEquals(2, call.statuses().size(), "should filter by PAID and AWAITING_COD only");
         assertEquals("createdAt", call.sortBy());
         assertEquals("ASC", call.sortDir());
         assertEquals(2, call.page());

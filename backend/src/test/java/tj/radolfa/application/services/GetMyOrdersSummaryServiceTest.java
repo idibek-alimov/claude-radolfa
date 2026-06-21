@@ -72,7 +72,7 @@ class GetMyOrdersSummaryServiceTest {
         MyOrdersSummary summary = svc.execute(USER_ID);
 
         assertEquals(OrderStatus.values().length, summary.all());
-        assertEquals(9, summary.progress());  // PENDING, PAID, PICKED, CLAIMED, SHIPPED, OUT_FOR_DELIVERY, DELIVERY_ATTEMPTED, READY_FOR_PICKUP, RECALL_REQUESTED
+        assertEquals(10, summary.progress()); // PENDING, PAID, AWAITING_COD, PICKED, CLAIMED, SHIPPED, OUT_FOR_DELIVERY, DELIVERY_ATTEMPTED, READY_FOR_PICKUP, RECALL_REQUESTED
         assertEquals(1, summary.delivered()); // DELIVERED
         assertEquals(3, summary.returns());   // RETURN_INITIATED, RETURNED_TO_WAREHOUSE, REFUNDED
     }

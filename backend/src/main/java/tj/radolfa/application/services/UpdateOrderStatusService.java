@@ -22,7 +22,8 @@ import java.time.LocalDate;
  * PENDING → PAID → PICKED → READY_FOR_PICKUP → DELIVERED (pickpoint, direct admin path).
  * Admin reschedule: DELIVERY_ATTEMPTED → SHIPPED (re-issues a fresh delivery code automatically).
  * HOME orders transitioning to SHIPPED require {@code courierId}.
- * PICKED is set automatically by {@link ScanOrderItemUnitService} on the last unit scan.
+ * PICKED is set automatically by {@code CompletePickSessionService} once all units are scanned.
+ * AWAITING_COD orders (cash-on-delivery) follow the same PICKED transition as PAID.
  * Cancellation is handled separately by {@link CancelOrderService}.
  * Courier-driven transitions (SHIPPED → OUT_FOR_DELIVERY, OUT_FOR_DELIVERY → DELIVERY_ATTEMPTED)
  * are handled by {@code MarkOutForDeliveryService} and {@code MarkDeliveryAttemptedService}.
@@ -114,7 +115,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
         boolean pickpoint = order.deliveryType() == DeliveryType.PICKPOINT;
         boolean valid = switch (order.status()) {
             case PENDING            -> to == OrderStatus.PAID;
-            case PAID               -> to == OrderStatus.PICKED;
+            case PAID, AWAITING_COD -> to == OrderStatus.PICKED;
             case PICKED             -> pickpoint && (to == OrderStatus.SHIPPED || to == OrderStatus.READY_FOR_PICKUP);
             case CLAIMED            -> !pickpoint && to == OrderStatus.PICKED; // admin unclaim
             case SHIPPED            -> (!pickpoint && to == OrderStatus.DELIVERED)

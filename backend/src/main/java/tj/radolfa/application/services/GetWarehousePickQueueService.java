@@ -25,7 +25,7 @@ public class GetWarehousePickQueueService implements GetWarehousePickQueueUseCas
     @Override
     public PageResult<PickQueueItem> execute(int page, int size, String search) {
         PageResult<LoadAdminOrdersPort.OrderRow> rows = loadAdminOrdersPort.search(
-                search, List.of(OrderStatus.PAID), "createdAt", "ASC", page, size);
+                search, List.of(OrderStatus.PAID, OrderStatus.AWAITING_COD), "createdAt", "ASC", page, size);
 
         List<PickQueueItem> items = rows.content().stream()
                 .map(row -> {

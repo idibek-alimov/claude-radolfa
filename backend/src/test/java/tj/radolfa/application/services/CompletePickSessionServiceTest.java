@@ -90,6 +90,23 @@ class CompletePickSessionServiceTest {
     }
 
     @Test
+    @DisplayName("AWAITING_COD + all items fully picked → exactly one PICKED command captured, same as PAID")
+    void allItemsPicked_awaitingCod_completesOrder() {
+        OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 1, 1); // qty=1, picked=1
+        Order order = orderWithStatus(OrderStatus.AWAITING_COD, List.of(itemA));
+
+        var orderPort     = new FakeLoadOrderPort(order);
+        var statusUseCase = new CapturingUpdateOrderStatusUseCase();
+        var svc           = service(orderPort, statusUseCase);
+
+        svc.execute(new CompletePickSessionUseCase.Command(ORDER_ID, ACTOR_ID));
+
+        assertEquals(1, statusUseCase.commands.size());
+        assertEquals(OrderStatus.PICKED, statusUseCase.commands.get(0).newStatus());
+        assertEquals(ORDER_ID, statusUseCase.commands.get(0).orderId());
+    }
+
+    @Test
     @DisplayName("PAID + multi-item all fully picked → exactly one PICKED command")
     void multipleItemsAllPicked_paid_completesOrder() {
         OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 2, 2);
@@ -123,7 +140,7 @@ class CompletePickSessionServiceTest {
     }
 
     @Test
-    @DisplayName("Status not PAID (e.g. SHIPPED) → IllegalArgumentException, no command captured")
+    @DisplayName("Status not pickable (e.g. SHIPPED) → IllegalArgumentException, no command captured")
     void orderNotPaid_throwsIllegalArgument_noCommand() {
         OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 1, 1);
         Order order = orderWithStatus(OrderStatus.SHIPPED, List.of(itemA));

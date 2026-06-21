@@ -74,6 +74,18 @@ class OrderNotificationServiceTest {
     }
 
     @Test
+    @DisplayName("AWAITING_COD triggers sendOrderConfirmation, same as PAID")
+    void awaitingCod_sendsConfirmation() {
+        RecordingNotificationPort port = new RecordingNotificationPort();
+        new OrderNotificationService(port).notify(orderWithStatus(OrderStatus.AWAITING_COD));
+
+        assertEquals(1, port.calls.size());
+        assertEquals("confirm", port.calls.get(0).method());
+        assertEquals(7L,  port.calls.get(0).userId());
+        assertEquals(42L, port.calls.get(0).orderId());
+    }
+
+    @Test
     @DisplayName("SHIPPED triggers sendOrderStatusUpdate(SHIPPED)")
     void shipped_sendsStatusUpdate() {
         RecordingNotificationPort port = new RecordingNotificationPort();

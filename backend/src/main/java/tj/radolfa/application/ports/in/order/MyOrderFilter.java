@@ -15,6 +15,7 @@ public enum MyOrderFilter {
     PROGRESS(Set.of(
             OrderStatus.PENDING,
             OrderStatus.PAID,
+            OrderStatus.AWAITING_COD,
             OrderStatus.PICKED,
             OrderStatus.CLAIMED,
             OrderStatus.SHIPPED,

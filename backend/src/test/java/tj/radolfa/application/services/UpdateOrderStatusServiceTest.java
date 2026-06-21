@@ -370,7 +370,7 @@ class UpdateOrderStatusServiceTest {
     }
 
     @Test
-    @DisplayName("PAID→PICKED succeeds (auto-triggered by ScanOrderItemUnitService on last scan)")
+    @DisplayName("PAID→PICKED succeeds (auto-triggered by CompletePickSessionService once all units are scanned)")
     void paidToPicked_succeeds() {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
@@ -378,6 +378,26 @@ class UpdateOrderStatusServiceTest {
         svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
 
         assertEquals(OrderStatus.PICKED, save.last().status());
+    }
+
+    @Test
+    @DisplayName("AWAITING_COD→PICKED succeeds, same as PAID")
+    void awaitingCodToPicked_succeeds() {
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.AWAITING_COD), save);
+
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+
+        assertEquals(OrderStatus.PICKED, save.last().status());
+    }
+
+    @Test
+    @DisplayName("AWAITING_COD→SHIPPED (skipping PICKED) still rejected")
+    void awaitingCodToShipped_throws() {
+        UpdateOrderStatusService svc = service(homeOrder(OrderStatus.AWAITING_COD), new CapturingSaveOrderPort());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null)));
     }
 
     @Test

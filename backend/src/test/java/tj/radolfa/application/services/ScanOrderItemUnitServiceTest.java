@@ -180,6 +180,31 @@ class ScanOrderItemUnitServiceTest {
     }
 
     @Test
+    @DisplayName("AWAITING_COD order: one correct scan → orderFullyPicked=true, same as PAID")
+    void singleItemSingleUnit_awaitingCod_correctScan_fullyPicked() {
+        OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 1, 0);
+        Order order = new Order.Builder()
+                .id(ORDER_ID).userId(1L).externalOrderId("ORD-" + ORDER_ID)
+                .status(OrderStatus.AWAITING_COD).deliveryType(DeliveryType.HOME)
+                .items(List.of(itemA)).createdAt(Instant.now())
+                .build();
+
+        var orderPort  = new FakeLoadOrderPort(order);
+        var savePort   = new CapturingSaveOrderItemPickStatePort(orderPort, Map.of(ITEM_A_ID, 1));
+        var recordPort = new CapturingRecordInventoryTransactionPort();
+        var skuPort    = new FakeLoadSkuPort(Map.of(SKU_A_ID, sku(SKU_A_ID, BARCODE_A)));
+
+        var svc = service(orderPort, skuPort, savePort, recordPort);
+
+        ScanOrderItemUnitUseCase.Result result =
+                svc.execute(new ScanOrderItemUnitUseCase.Command(ORDER_ID, BARCODE_A, ACTOR_ID));
+
+        assertTrue(result.orderFullyPicked());
+        assertEquals(ITEM_A_ID, result.orderItemId());
+        assertEquals(1, recordPort.records.size());
+    }
+
+    @Test
     @DisplayName("2-item qty-2 order: orderFullyPicked reported only on the 4th scan, status never changed")
     void twoItemsTwoUnits_fullyPickedOnFinalScan_noAutoComplete() {
         OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 2, 0);
@@ -249,7 +274,7 @@ class ScanOrderItemUnitServiceTest {
     }
 
     @Test
-    @DisplayName("Order not in PAID status → IllegalArgumentException")
+    @DisplayName("Order not in a pickable status (e.g. SHIPPED) → IllegalArgumentException")
     void orderNotPaid_throwsIllegalArgument() {
         OrderItem itemA = item(ITEM_A_ID, SKU_A_ID, 1, 0);
         Order shippedOrder = new Order.Builder()

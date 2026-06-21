@@ -28,9 +28,9 @@ public class CompletePickSessionService implements CompletePickSessionUseCase {
         Order order = loadOrderPort.loadById(cmd.orderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + cmd.orderId()));
 
-        if (order.status() != OrderStatus.PAID) {
+        if (!order.status().isPickable()) {
             throw new IllegalArgumentException(
-                    "Order " + cmd.orderId() + " is not in PAID status (current: " + order.status() + ")");
+                    "Order " + cmd.orderId() + " is not ready for picking (current: " + order.status() + ")");
         }
 
         boolean allPicked = order.items().stream().allMatch(OrderItem::isFullyPicked);
