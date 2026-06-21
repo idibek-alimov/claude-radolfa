@@ -939,6 +939,22 @@
       "qualityGuarantee": "Quality guarantee",
       "qualityGuaranteeSub": "free 14-day returns"
     },
+    "confirmation": {
+      "title": "Order placed",
+      "thankYou": "Thank you, {name}.",
+      "thankYouEmail": "We've emailed your receipt to {email}.",
+      "orderNumber": "Order number",
+      "arrivesLabel": "Arrives",
+      "arrivesCourier": "1–2 business days",
+      "arrivesPickpoint": "Ready for pickup soon",
+      "deliveryLabel": "Delivery",
+      "deliveryCourier": "Courier",
+      "deliveryPickpoint": "Pickpoint",
+      "paidLabel": "Paid",
+      "codDueLabel": "Cash due",
+      "trackOrder": "Track order",
+      "continueShopping": "Continue shopping"
+    },
     "coupon": {
       "label": "Coupon Code",
       "placeholder": "e.g. SUMMER25",

@@ -939,6 +939,22 @@
       "qualityGuarantee": "Гарантия качества",
       "qualityGuaranteeSub": "бесплатный возврат в течение 14 дней"
     },
+    "confirmation": {
+      "title": "Заказ оформлен",
+      "thankYou": "Спасибо, {name}.",
+      "thankYouEmail": "Мы отправили квитанцию на {email}.",
+      "orderNumber": "Номер заказа",
+      "arrivesLabel": "Прибытие",
+      "arrivesCourier": "1–2 рабочих дня",
+      "arrivesPickpoint": "Скоро будет готов к выдаче",
+      "deliveryLabel": "Доставка",
+      "deliveryCourier": "Курьер",
+      "deliveryPickpoint": "Пункт выдачи",
+      "paidLabel": "Оплачено",
+      "codDueLabel": "К оплате наличными",
+      "trackOrder": "Отследить заказ",
+      "continueShopping": "Продолжить покупки"
+    },
     "coupon": {
       "label": "Купон",
       "placeholder": "напр. SUMMER25",

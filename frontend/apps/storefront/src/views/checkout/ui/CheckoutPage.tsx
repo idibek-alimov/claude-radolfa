@@ -14,6 +14,7 @@ import {
   DeliveryStep,
   ReviewStep,
   PaymentStep,
+  ConfirmationStep,
   CheckoutSummary,
   MobileCheckoutBar,
 } from "@/features/checkout";
@@ -43,7 +44,9 @@ export function CheckoutPage() {
   }
 
   /* ── Empty cart ──────────────────────────────────────────────── */
-  if (!cart || cart.items.length === 0) {
+  /* Skipped on "done": a successful checkout finalizes (empties) the cart,
+   * and the confirmation step must still render, not bounce to /search. */
+  if ((!cart || cart.items.length === 0) && wizard.step !== "done") {
     router.replace("/search");
     return null;
   }
@@ -139,16 +142,13 @@ export function CheckoutPage() {
 
             {wizard.step === "payment" && <PaymentStep checkout={wizard} />}
 
-            {/* Done — interim placeholder; real ConfirmationStep ships in Phase 14 */}
-            {wizard.step === "done" && (
-              <div className="rounded-xl border bg-card shadow-sm p-5 space-y-2 text-center">
-                <h2 className="font-semibold">{t("successTitle")}</h2>
-                {wizard.checkoutResult && (
-                  <p className="text-sm text-muted-foreground">
-                    {t("orderNumber", { id: wizard.checkoutResult.orderId })}
-                  </p>
-                )}
-              </div>
+            {wizard.step === "done" && wizard.checkoutResult && (
+              <ConfirmationStep
+                orderId={wizard.checkoutResult.orderId}
+                total={wizard.checkoutResult.total}
+                paymentMethod={wizard.checkoutResult.paymentMethod}
+                deliveryType={wizard.deliveryType}
+              />
             )}
           </div>
         </div>

@@ -15,6 +15,7 @@ export { CheckoutStepper } from "./ui/CheckoutStepper";
 export { DeliveryStep } from "./ui/DeliveryStep";
 export { ReviewStep } from "./ui/ReviewStep";
 export { PaymentStep } from "./ui/PaymentStep";
+export { ConfirmationStep } from "./ui/ConfirmationStep";
 export { CheckoutSummary } from "./ui/CheckoutSummary";
 export { PointsRedeem } from "./ui/PointsRedeem";
 export { MobileCheckoutBar } from "./ui/MobileCheckoutBar";

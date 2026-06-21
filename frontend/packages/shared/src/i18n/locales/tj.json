@@ -925,6 +925,22 @@
       "qualityGuarantee": "Кафолати сифат",
       "qualityGuaranteeSub": "баргардондани ройгон дар давоми 14 рӯз"
     },
+    "confirmation": {
+      "title": "Фармоиш ҷой шуд",
+      "thankYou": "Ташаккур, {name}.",
+      "thankYouEmail": "Мо квитансияро ба {email} фиристодем.",
+      "orderNumber": "Рақами фармоиш",
+      "arrivesLabel": "Расидан",
+      "arrivesCourier": "1–2 рӯзи корӣ",
+      "arrivesPickpoint": "Ба зудӣ барои гирифтан тайёр мешавад",
+      "deliveryLabel": "Расонидан",
+      "deliveryCourier": "Курьер",
+      "deliveryPickpoint": "Нуқтаи худхуруҷ",
+      "paidLabel": "Пардохт шуд",
+      "codDueLabel": "Пардохти нақдӣ",
+      "trackOrder": "Пайгирии фармоиш",
+      "continueShopping": "Идомаи харид"
+    },
     "coupon": {
       "label": "Рамзи таллабот",
       "placeholder": "масалан SUMMER25",

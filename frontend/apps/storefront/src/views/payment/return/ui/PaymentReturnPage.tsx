@@ -6,7 +6,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
-  CheckCircle2,
   Clock,
   XCircle,
   RefreshCw,
@@ -16,6 +15,8 @@ import {
 import { Button } from "@radolfa/shared/ui/button";
 import { getPaymentStatus } from "@/features/payment";
 import { useAuth } from "@radolfa/shared/auth";
+import { useMyOrderDetail } from "@/features/order-detail";
+import { ConfirmationStep } from "@/features/checkout";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 30000;
@@ -54,6 +55,10 @@ export function PaymentReturnPage() {
     },
   });
 
+  const { data: orderDetail } = useMyOrderDetail(
+    pollState === "completed" && orderId ? String(orderId) : ""
+  );
+
   /* ── React to status changes ─────────────────────────────────── */
   useEffect(() => {
     if (!data) return;
@@ -79,13 +84,15 @@ export function PaymentReturnPage() {
   /* ── Missing orderId ─────────────────────────────────────────── */
   if (!orderId) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <XCircle className="h-16 w-16 text-destructive mx-auto mb-6" />
-        <h1 className="text-2xl font-bold mb-2">{t("errorTitle")}</h1>
-        <p className="text-muted-foreground mb-8">{t("errorDesc")}</p>
-        <Link href="/search">
-          <Button variant="outline">{t("browsProducts")}</Button>
-        </Link>
+      <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-10 md:py-16">
+        <div className="bg-white rounded-2xl border border-ink/8 p-8 md:p-10 text-center max-w-lg mx-auto">
+          <XCircle className="h-16 w-16 text-destructive mx-auto mb-6" />
+          <h1 className="text-2xl font-bold mb-2">{t("errorTitle")}</h1>
+          <p className="text-muted-foreground mb-8">{t("errorDesc")}</p>
+          <Link href="/search">
+            <Button variant="outline">{t("browsProducts")}</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -93,10 +100,12 @@ export function PaymentReturnPage() {
   /* ── Polling ─────────────────────────────────────────────────── */
   if (pollState === "polling") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <Loader2 className="h-16 w-16 text-primary mx-auto mb-6 animate-spin" />
-        <h1 className="text-xl font-semibold mb-2">{t("pollingTitle")}</h1>
-        <p className="text-sm text-muted-foreground">{t("pollingDesc")}</p>
+      <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-10 md:py-16">
+        <div className="bg-white rounded-2xl border border-ink/8 p-8 md:p-10 text-center max-w-lg mx-auto">
+          <Loader2 className="h-16 w-16 text-mag mx-auto mb-6 animate-spin" />
+          <h1 className="text-xl font-semibold mb-2">{t("pollingTitle")}</h1>
+          <p className="text-sm text-muted-foreground">{t("pollingDesc")}</p>
+        </div>
       </div>
     );
   }
@@ -104,21 +113,13 @@ export function PaymentReturnPage() {
   /* ── Completed ───────────────────────────────────────────────── */
   if (pollState === "completed") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-6" />
-        <h1 className="text-2xl font-bold mb-2">{t("successTitle")}</h1>
-        <p className="text-muted-foreground mb-2">{t("successDesc")}</p>
-        {data && (
-          <p className="text-sm text-muted-foreground mb-8">
-            {data.amount.toFixed(2)} TJS · {t("via")} {data.provider}
-          </p>
-        )}
-        <Link href="/profile/orders">
-          <Button className="gap-2">
-            {t("viewOrders")}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </Link>
+      <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-10 md:py-16">
+        <ConfirmationStep
+          orderId={orderId}
+          total={data?.amount ?? 0}
+          paymentMethod="CARD"
+          deliveryType={orderDetail?.deliveryType ?? null}
+        />
       </div>
     );
   }
@@ -126,30 +127,32 @@ export function PaymentReturnPage() {
   /* ── Pending timeout ─────────────────────────────────────────── */
   if (pollState === "pending_timeout") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center">
-        <Clock className="h-16 w-16 text-amber-500 mx-auto mb-6" />
-        <h1 className="text-2xl font-bold mb-2">{t("processingTitle")}</h1>
-        <p className="text-muted-foreground mb-8">{t("processingDesc")}</p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => {
-              setPollState("polling");
-              setTimedOut(false);
-              setManualRefresh((n) => n + 1);
-              setTimeout(() => setTimedOut(true), POLL_TIMEOUT_MS);
-            }}
-          >
-            <RefreshCw className="h-4 w-4" />
-            {t("retryCheck")}
-          </Button>
-          <Link href="/profile/orders">
-            <Button className="gap-2 w-full sm:w-auto">
-              {t("viewOrders")}
-              <ChevronRight className="h-4 w-4" />
+      <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-10 md:py-16">
+        <div className="bg-white rounded-2xl border border-ink/8 p-8 md:p-10 text-center max-w-lg mx-auto">
+          <Clock className="h-16 w-16 text-gold mx-auto mb-6" />
+          <h1 className="text-2xl font-bold mb-2">{t("processingTitle")}</h1>
+          <p className="text-muted-foreground mb-8">{t("processingDesc")}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => {
+                setPollState("polling");
+                setTimedOut(false);
+                setManualRefresh((n) => n + 1);
+                setTimeout(() => setTimedOut(true), POLL_TIMEOUT_MS);
+              }}
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t("retryCheck")}
             </Button>
-          </Link>
+            <Link href="/profile/orders">
+              <Button className="gap-2 w-full sm:w-auto">
+                {t("viewOrders")}
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -157,17 +160,19 @@ export function PaymentReturnPage() {
 
   /* ── Refunded or error ───────────────────────────────────────── */
   return (
-    <div className="max-w-lg mx-auto px-4 py-16 text-center">
-      <XCircle className="h-16 w-16 text-destructive mx-auto mb-6" />
-      <h1 className="text-2xl font-bold mb-2">
-        {pollState === "refunded" ? t("refundedTitle") : t("failureTitle")}
-      </h1>
-      <p className="text-muted-foreground mb-8">
-        {pollState === "refunded" ? t("refundedDesc") : t("failureDesc")}
-      </p>
-      <Link href="/profile/orders">
-        <Button variant="outline">{t("viewOrders")}</Button>
-      </Link>
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-10 md:py-16">
+      <div className="bg-white rounded-2xl border border-ink/8 p-8 md:p-10 text-center max-w-lg mx-auto">
+        <XCircle className="h-16 w-16 text-destructive mx-auto mb-6" />
+        <h1 className="text-2xl font-bold mb-2">
+          {pollState === "refunded" ? t("refundedTitle") : t("failureTitle")}
+        </h1>
+        <p className="text-muted-foreground mb-8">
+          {pollState === "refunded" ? t("refundedDesc") : t("failureDesc")}
+        </p>
+        <Link href="/profile/orders">
+          <Button variant="outline">{t("viewOrders")}</Button>
+        </Link>
+      </div>
     </div>
   );
 }
