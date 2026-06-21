@@ -901,6 +901,17 @@
       "payment": "Payment",
       "done": "Done"
     },
+    "review": {
+      "deliveryTo": "Delivery to",
+      "edit": "Edit",
+      "editBag": "Edit bag",
+      "items": "Items · {count}",
+      "methodCourier": "Courier · 1–2 days · Free",
+      "methodPickpoint": "Pickpoint · Free",
+      "qty": "Qty {count}",
+      "backToDelivery": "Back to delivery",
+      "continueToPayment": "Continue to payment"
+    },
     "coupon": {
       "label": "Coupon Code",
       "placeholder": "e.g. SUMMER25",

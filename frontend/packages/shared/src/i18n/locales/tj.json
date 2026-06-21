@@ -887,6 +887,17 @@
       "payment": "Пардохт",
       "done": "Тайёр"
     },
+    "review": {
+      "deliveryTo": "Расонидан ба",
+      "edit": "Тағйир",
+      "editBag": "Тағйири сабад",
+      "items": "Молҳо · {count}",
+      "methodCourier": "Курьер · 1–2 рӯз · Ройгон",
+      "methodPickpoint": "Нуқтаи худхуруҷ · Ройгон",
+      "qty": "Шумора {count}",
+      "backToDelivery": "Бозгашт ба расонидан",
+      "continueToPayment": "Идома ба пардохт"
+    },
     "coupon": {
       "label": "Рамзи таллабот",
       "placeholder": "масалан SUMMER25",

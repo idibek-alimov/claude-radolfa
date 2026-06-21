@@ -901,6 +901,17 @@
       "payment": "Оплата",
       "done": "Готово"
     },
+    "review": {
+      "deliveryTo": "Доставка для",
+      "edit": "Изменить",
+      "editBag": "Изменить корзину",
+      "items": "Товары · {count}",
+      "methodCourier": "Курьер · 1–2 дня · Бесплатно",
+      "methodPickpoint": "Пункт выдачи · Бесплатно",
+      "qty": "Кол-во {count}",
+      "backToDelivery": "Назад к доставке",
+      "continueToPayment": "Перейти к оплате"
+    },
     "coupon": {
       "label": "Купон",
       "placeholder": "напр. SUMMER25",

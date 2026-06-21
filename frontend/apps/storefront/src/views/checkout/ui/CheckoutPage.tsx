@@ -8,7 +8,7 @@ import { AlertTriangle, Loader2, Clock } from "lucide-react";
 import { Button } from "@radolfa/shared/ui/button";
 import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { useCartQuery } from "@/features/cart";
-import { useCheckout, CheckoutStepper, DeliveryStep } from "@/features/checkout";
+import { useCheckout, CheckoutStepper, DeliveryStep, ReviewStep } from "@/features/checkout";
 import { initiatePayment } from "@/features/payment";
 import { useCancelOrder } from "@/entities/order";
 import { getErrorMessage } from "@radolfa/shared/lib";
@@ -127,22 +127,7 @@ export function CheckoutPage() {
 
         {wizard.step === "delivery" && <DeliveryStep checkout={wizard} />}
 
-        {/* Review — interim placeholder; real ReviewStep ships in Phase 10 */}
-        {wizard.step === "review" && (
-          <div className="rounded-xl border bg-card shadow-sm p-5 space-y-4">
-            <h2 className="font-semibold">{t("steps.review")}</h2>
-            <div className="flex justify-between font-semibold">
-              <span>{t("total")}</span>
-              <span>{(cart.totalAmount ?? 0).toFixed(2)} TJS</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <Button variant="outline" onClick={wizard.back}>
-                {t("steps.delivery")}
-              </Button>
-              <Button onClick={wizard.next}>{t("steps.payment")}</Button>
-            </div>
-          </div>
-        )}
+        {wizard.step === "review" && <ReviewStep checkout={wizard} />}
 
         {/* Payment — interim placeholder; real PaymentStep ships in Phase 11 */}
         {wizard.step === "payment" && (
