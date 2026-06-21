@@ -14,4 +14,5 @@ export { SlimHeader } from "./ui/SlimHeader";
 export { CheckoutStepper } from "./ui/CheckoutStepper";
 export { DeliveryStep } from "./ui/DeliveryStep";
 export { ReviewStep } from "./ui/ReviewStep";
+export { PaymentStep } from "./ui/PaymentStep";
 export { FauxMap } from "./ui/FauxMap";

@@ -912,6 +912,25 @@
       "backToDelivery": "Back to delivery",
       "continueToPayment": "Continue to payment"
     },
+    "payment": {
+      "title": "Payment method",
+      "subtitle": "Choose how you'd like to pay. Card payments are completed on your bank's secure page.",
+      "card": {
+        "title": "Credit / debit card",
+        "subtitle": "Visa · Mastercard · Korti Milli",
+        "redirect": "Redirect"
+      },
+      "cod": {
+        "title": "Cash on delivery",
+        "subtitle": "Pay the courier · +{fee} handling"
+      },
+      "redirectNote": "You'll be securely redirected to complete your payment, then brought back here to your confirmation.",
+      "redirectNoteSub": "Radolfa never sees or stores your card details.",
+      "codNote": "Pay the courier in cash on arrival. A +{fee} handling fee applies and is included in your total.",
+      "backToReview": "Back to review",
+      "payCta": "Pay {total}",
+      "placeOrderCta": "Place order"
+    },
     "coupon": {
       "label": "Coupon Code",
       "placeholder": "e.g. SUMMER25",
