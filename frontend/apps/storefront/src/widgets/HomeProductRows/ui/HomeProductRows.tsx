@@ -23,9 +23,11 @@ function ProductRow({ section, seeAllHref, isLast }: ProductRowProps) {
           {t("seeAll")}
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible">
         {section.listings.map((listing) => (
-          <ProductCard key={listing.variantId} listing={listing} />
+          <div key={listing.variantId} className="shrink-0 w-40 md:w-auto">
+            <ProductCard listing={listing} />
+          </div>
         ))}
       </div>
     </section>
@@ -50,9 +52,11 @@ export function HomeProductRows() {
         {ROW_CONFIG.map((row) => (
           <section key={row.key} className="max-w-[1440px] mx-auto px-6 pt-10">
             <Skeleton className="h-9 w-48 mb-4" />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="rounded-2xl aspect-square" />
+                <div key={i} className="shrink-0 w-40 md:w-auto">
+                  <Skeleton className="rounded-2xl aspect-square w-full" />
+                </div>
               ))}
             </div>
           </section>
