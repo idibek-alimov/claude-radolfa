@@ -24,9 +24,9 @@ export function HomeInfiniteFeed() {
   }
 
   return (
-    <section className="max-w-[1440px] mx-auto px-6 pt-10 pb-12">
+    <section className="max-w-[1440px] mx-auto px-6 pt-6 md:pt-10 pb-8 md:pb-12">
       <div className="flex items-baseline justify-between mb-4">
-        <h2 className="font-black text-3xl">{tc("allProducts")}</h2>
+        <h2 className="font-black text-2xl md:text-3xl">{tc("allProducts")}</h2>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">

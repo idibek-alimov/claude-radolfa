@@ -9,16 +9,15 @@ import { fetchHomeCollections, ProductCard, type HomeSection } from "@/entities/
 interface ProductRowProps {
   section: HomeSection;
   seeAllHref: string;
-  isLast?: boolean;
 }
 
-function ProductRow({ section, seeAllHref, isLast }: ProductRowProps) {
+function ProductRow({ section, seeAllHref }: ProductRowProps) {
   const t = useTranslations("home");
 
   return (
-    <section className={`max-w-[1440px] mx-auto px-6 pt-10${isLast ? " pb-12" : ""}`}>
+    <section className="max-w-[1440px] mx-auto px-6 pt-6 md:pt-10">
       <div className="flex items-baseline justify-between mb-4">
-        <h2 className="font-black text-3xl">{section.title}</h2>
+        <h2 className="font-black text-2xl md:text-3xl">{section.title}</h2>
         <Link href={seeAllHref} className="text-mag text-[14px] font-bold hover:underline">
           {t("seeAll")}
         </Link>
@@ -50,8 +49,8 @@ export function HomeProductRows() {
     return (
       <>
         {ROW_CONFIG.map((row) => (
-          <section key={row.key} className="max-w-[1440px] mx-auto px-6 pt-10">
-            <Skeleton className="h-9 w-48 mb-4" />
+          <section key={row.key} className="max-w-[1440px] mx-auto px-6 pt-6 md:pt-10">
+            <Skeleton className="h-8 w-40 mb-4 md:h-9 md:w-48" />
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="shrink-0 w-40 md:w-auto">
@@ -72,13 +71,8 @@ export function HomeProductRows() {
 
   return (
     <>
-      {renderedRows.map(({ config, section }, idx) => (
-        <ProductRow
-          key={config.key}
-          section={section!}
-          seeAllHref={config.seeAllHref}
-          isLast={idx === renderedRows.length - 1}
-        />
+      {renderedRows.map(({ config, section }) => (
+        <ProductRow key={config.key} section={section!} seeAllHref={config.seeAllHref} />
       ))}
     </>
   );

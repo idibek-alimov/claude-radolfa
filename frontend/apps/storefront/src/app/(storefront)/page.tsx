@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 function HomeInfiniteFeedFallback() {
   return (
-    <section className="max-w-[1440px] mx-auto px-6 pt-10 pb-12">
-      <Skeleton className="h-9 w-48 mb-4" />
+    <section className="max-w-[1440px] mx-auto px-6 pt-6 md:pt-10 pb-8 md:pb-12">
+      <Skeleton className="h-8 w-40 mb-4 md:h-9 md:w-48" />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
         {Array.from({ length: 10 }).map((_, i) => (
           <Skeleton key={i} className="rounded-2xl aspect-square" />
