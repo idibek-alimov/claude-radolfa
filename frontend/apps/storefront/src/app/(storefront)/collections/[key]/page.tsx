@@ -30,9 +30,9 @@ export default function CollectionViewAllPage({
   const listings = data?.listings ?? [];
 
   return (
-    <section className="max-w-[1440px] mx-auto px-6 py-10">
+    <section className="max-w-[1440px] mx-auto px-6 py-5 sm:py-10">
       {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
+      <Breadcrumb className="mb-3 sm:mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -47,7 +47,7 @@ export default function CollectionViewAllPage({
       </Breadcrumb>
 
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           {title}
         </h1>
