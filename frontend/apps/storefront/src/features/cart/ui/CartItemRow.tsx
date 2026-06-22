@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Minus, Plus, X, Crown, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -38,31 +39,48 @@ export function CartItemRow({ item }: CartItemRowProps) {
     <article
       className={`bg-white rounded-2xl border border-ink/8 p-3 sm:p-4 flex gap-3 sm:gap-4 ${!item.inStock ? "opacity-60" : ""}`}
     >
-      <div className="w-24 h-28 sm:w-28 sm:h-32 rounded-xl overflow-hidden bg-plum/30 shrink-0 relative">
-        {item.imageUrl ? (
-          <Image
-            src={item.imageUrl}
-            alt={item.productName}
-            fill
-            className="object-cover"
-            unoptimized
-          />
+      {(() => {
+        const imageContent = (
+          <>
+            {item.imageUrl ? (
+              <Image
+                src={item.imageUrl}
+                alt={item.productName}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-ink/40 text-[10px]">
+                {t("noImage")}
+              </div>
+            )}
+            {item.mechanism === "CAMPAIGN" && (
+              <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-1.5 py-0.5 rounded bg-sale text-white text-[10px] font-bold">
+                −{item.discountPercent}%
+              </span>
+            )}
+            {item.mechanism === "LOYALTY" && (
+              <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-1.5 py-0.5 rounded bg-gold text-ink text-[10px] font-bold inline-flex items-center gap-1">
+                <Crown className="h-2.5 w-2.5" fill="currentColor" />−{item.discountPercent}%
+              </span>
+            )}
+          </>
+        );
+
+        return item.productCode ? (
+          <Link
+            href={`/products/${item.productCode}`}
+            className="block w-24 h-28 sm:w-28 sm:h-32 rounded-xl overflow-hidden bg-plum/30 shrink-0 relative"
+          >
+            {imageContent}
+          </Link>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-ink/40 text-[10px]">
-            {t("noImage")}
+          <div className="w-24 h-28 sm:w-28 sm:h-32 rounded-xl overflow-hidden bg-plum/30 shrink-0 relative">
+            {imageContent}
           </div>
-        )}
-        {item.mechanism === "CAMPAIGN" && (
-          <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-1.5 py-0.5 rounded bg-sale text-white text-[10px] font-bold">
-            −{item.discountPercent}%
-          </span>
-        )}
-        {item.mechanism === "LOYALTY" && (
-          <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-1.5 py-0.5 rounded bg-gold text-ink text-[10px] font-bold inline-flex items-center gap-1">
-            <Crown className="h-2.5 w-2.5" fill="currentColor" />−{item.discountPercent}%
-          </span>
-        )}
-      </div>
+        );
+      })()}
 
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="flex items-start justify-between gap-2 sm:gap-3">
@@ -72,9 +90,18 @@ export function CartItemRow({ item }: CartItemRowProps) {
                 {item.category}
               </div>
             )}
-            <div className="text-[14px] sm:text-[15px] font-semibold leading-tight mt-0.5 sm:mt-1 truncate">
-              {item.productName}
-            </div>
+            {item.productCode ? (
+              <Link
+                href={`/products/${item.productCode}`}
+                className="block text-[14px] sm:text-[15px] font-semibold leading-tight mt-0.5 sm:mt-1 truncate hover:text-mag transition-colors"
+              >
+                {item.productName}
+              </Link>
+            ) : (
+              <div className="text-[14px] sm:text-[15px] font-semibold leading-tight mt-0.5 sm:mt-1 truncate">
+                {item.productName}
+              </div>
+            )}
             <div className="text-[11px] sm:text-[12px] text-ink/55 mt-1 sm:mt-1.5">
               {item.colorName} · {item.sizeLabel}
             </div>

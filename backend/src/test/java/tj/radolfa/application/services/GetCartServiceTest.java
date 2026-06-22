@@ -219,6 +219,7 @@ class GetCartServiceTest {
         assertEquals(20, lineA.discountPercent());
         assertEquals(new BigDecimal("80.00"), lineA.unitPrice().amount());
         assertEquals("Bags", lineA.category());
+        assertEquals("PC-" + VARIANT_A_ID, lineA.productCode());
 
         assertEquals(WinningMechanism.LOYALTY, lineB.mechanism());
         assertEquals(10, lineB.discountPercent());

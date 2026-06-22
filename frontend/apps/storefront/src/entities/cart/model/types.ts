@@ -19,6 +19,8 @@ export interface CartItem {
   /** Which pricing mechanism produced unitPrice. Exactly one ever applies. */
   mechanism: "NONE" | "CAMPAIGN" | "LOYALTY";
   category: string | null;
+  /** Links to /products/{productCode}. Null for unsaved variants. */
+  productCode: string | null;
 }
 
 export interface Cart {

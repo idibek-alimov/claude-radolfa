@@ -35,9 +35,11 @@ export function RelatedProducts() {
       <h2 className="font-black text-xl sm:text-2xl mb-4">{t("youMightAlsoLike")}</h2>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-visible">
           {Array.from({ length: 5 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
+            <div key={i} className="shrink-0 w-40 lg:w-auto">
+              <ProductCardSkeleton />
+            </div>
           ))}
         </div>
       ) : (
@@ -46,10 +48,10 @@ export function RelatedProducts() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-visible"
         >
           {items.map((item) => (
-            <motion.div key={item.slug} variants={staggerItem}>
+            <motion.div key={item.slug} variants={staggerItem} className="shrink-0 w-40 lg:w-auto">
               <ProductCard listing={item} />
             </motion.div>
           ))}

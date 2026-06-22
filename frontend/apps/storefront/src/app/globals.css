@@ -144,3 +144,15 @@ body {
     display: none;
   }
 }
+
+/* Cart page: `(storefront)/layout.tsx`'s `<main>` uses `flex-1` to pin the
+ * footer to the viewport bottom on short pages, plus `pb-16` to keep content
+ * clear of the mobile `BottomNav`. The cart's content is often shorter than
+ * the viewport, and `StickyCheckoutBar`/`BottomNav` already hide themselves
+ * on scroll-down, so both reservations just left a blank gap above the
+ * footer. `CartPage` toggles this class on `<body>` for the lifetime of the
+ * route. */
+body.cart-chrome main {
+  flex: none;
+  padding-bottom: 0;
+}

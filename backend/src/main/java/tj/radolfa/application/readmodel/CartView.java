@@ -45,7 +45,8 @@ public record CartView(
             Money  originalUnitPrice,   // pre-discount snapshot price
             Integer discountPercent,    // null when mechanism == NONE
             WinningMechanism mechanism,
-            String category             // nullable — not every product has one set
+            String category,            // nullable — not every product has one set
+            String productCode          // nullable — links to /products/{productCode}
     ) {}
 
     /**

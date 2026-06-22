@@ -151,7 +151,8 @@ public class GetCartService implements GetCartUseCase {
                 item.getUnitPriceSnapshot(),
                 discountPercent,
                 linePrice.mechanism(),
-                product.getCategory()
+                product.getCategory(),
+                variant.getProductCode()
         );
     }
 
