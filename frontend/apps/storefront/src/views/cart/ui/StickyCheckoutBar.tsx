@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatPrice } from "@radolfa/shared/lib/format";
+import { useHideOnScroll } from "@radolfa/shared/lib/useHideOnScroll";
 import type { Cart } from "@/entities/cart";
 
 interface StickyCheckoutBarProps {
@@ -11,11 +12,18 @@ interface StickyCheckoutBarProps {
   hasOutOfStock: boolean;
 }
 
+/** Sits directly above `BottomNav` (`bottom-14`) and uses the same
+ * `useHideOnScroll` defaults so both bars slide away/reveal together. */
 export function StickyCheckoutBar({ cart, hasOutOfStock }: StickyCheckoutBarProps) {
   const t = useTranslations("cart");
+  const hidden = useHideOnScroll();
 
   return (
-    <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-30 bg-white border-t border-ink/10 px-4 pt-3 pb-4 lg:hidden">
+    <div
+      className={`fixed bottom-14 md:bottom-0 left-0 right-0 z-30 bg-white border-t border-ink/10 px-4 pt-3 pb-4 lg:hidden transition-transform duration-300 ${
+        hidden ? "translate-y-[calc(100%+3.5rem)] md:translate-y-full" : "translate-y-0"
+      }`}
+    >
       <div className="flex items-center justify-between mb-2.5">
         <div>
           <div className="text-[11px] text-ink/55">
