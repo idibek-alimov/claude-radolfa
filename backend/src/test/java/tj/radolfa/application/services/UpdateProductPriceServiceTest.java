@@ -7,6 +7,7 @@ import tj.radolfa.application.ports.out.LoadListingVariantPort;
 import tj.radolfa.application.ports.out.LoadProductBasePort;
 import tj.radolfa.application.ports.out.LoadSkuOwnerPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.SavePriceChangePort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.exception.FieldLockException;
 import tj.radolfa.domain.model.ListingVariant;
@@ -14,6 +15,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.ProductStatus;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.SkuPriceChange;
 import tj.radolfa.domain.model.UserRole;
 
 import java.math.BigDecimal;
@@ -85,6 +87,19 @@ class UpdateProductPriceServiceTest {
         }
     }
 
+    static class FakeSavePriceChangePort implements SavePriceChangePort {
+        final List<SkuPriceChange> saved = new ArrayList<>();
+        long nextId = 1L;
+
+        @Override
+        public SkuPriceChange save(SkuPriceChange change) {
+            SkuPriceChange withId = new SkuPriceChange(nextId++, change.skuId(), change.skuCode(),
+                    change.oldPrice(), change.newPrice(), change.actorUserId(), change.source(), change.occurredAt());
+            saved.add(withId);
+            return withId;
+        }
+    }
+
     static ProductBase withStatus(Long id, ProductStatus status) {
         return new ProductBase(id, "EXT-" + id, "Name", null, null, null, status, null);
     }
@@ -106,12 +121,19 @@ class UpdateProductPriceServiceTest {
 
     UpdateProductPriceService service(FakeBaseStore baseStore,
                                       FakeSkuStore skuStore,
-                                      LoadSkuOwnerPort ownerPort) {
+                                      LoadSkuOwnerPort ownerPort,
+                                      FakeSavePriceChangePort priceChangePort) {
         ProductEditGuard guard = new ProductEditGuard(
                 baseStore, baseStore,
                 skuId -> SKU_ID.equals(skuId) ? Optional.of(BASE_ID) : Optional.empty(),
                 noVariants());
-        return new UpdateProductPriceService(skuStore, ownerPort, baseStore, guard);
+        return new UpdateProductPriceService(skuStore, ownerPort, baseStore, guard, priceChangePort);
+    }
+
+    UpdateProductPriceService service(FakeBaseStore baseStore,
+                                      FakeSkuStore skuStore,
+                                      LoadSkuOwnerPort ownerPort) {
+        return service(baseStore, skuStore, ownerPort, new FakeSavePriceChangePort());
     }
 
     UpdateProductPriceService service(FakeBaseStore baseStore, FakeSkuStore skuStore) {
@@ -241,5 +263,84 @@ class UpdateProductPriceServiceTest {
                         .execute(SKU_ID, new Money(new BigDecimal("55.00")), sellerActor));
 
         assertEquals(new BigDecimal("29.99"), skuStore.get(SKU_ID).getPrice().amount());
+    }
+
+    // ── Price-change ledger tests (Phase 3) ─────────────────────────────────────
+
+    @Test
+    @DisplayName("ADMIN price edit writes one ledger row with old/new price, actor, skuCode, source=ADMIN_PANEL")
+    void adminEdit_recordsLedgerRow() {
+        FakeBaseStore baseStore = new FakeBaseStore();
+        baseStore.put(withStatus(BASE_ID, ProductStatus.ACTIVE));
+        FakeSkuStore skuStore = new FakeSkuStore();
+        skuStore.put(sku(SKU_ID, VARIANT_ID));
+        FakeSavePriceChangePort priceChangePort = new FakeSavePriceChangePort();
+
+        service(baseStore, skuStore, new FakeSkuOwnerPort(null), priceChangePort)
+                .execute(SKU_ID, new Money(new BigDecimal("49.99")), ADMIN_ACTOR);
+
+        assertEquals(1, priceChangePort.saved.size());
+        SkuPriceChange change = priceChangePort.saved.get(0);
+        assertEquals(SKU_ID, change.skuId());
+        assertEquals("SKU-001", change.skuCode());
+        assertEquals(new BigDecimal("29.99"), change.oldPrice());
+        assertEquals(new BigDecimal("49.99"), change.newPrice());
+        assertEquals(1L, change.actorUserId());
+        assertEquals("ADMIN_PANEL", change.source());
+        assertNotNull(change.occurredAt());
+    }
+
+    @Test
+    @DisplayName("SELLER price edit of own SKU writes a ledger row with source=SELLER_PANEL")
+    void sellerEdit_recordsLedgerRow_withSellerSource() {
+        FakeBaseStore baseStore = new FakeBaseStore();
+        baseStore.put(withStatus(BASE_ID, ProductStatus.ACTIVE));
+        FakeSkuStore skuStore = new FakeSkuStore();
+        skuStore.put(sku(SKU_ID, VARIANT_ID));
+        FakeSavePriceChangePort priceChangePort = new FakeSavePriceChangePort();
+
+        SkuEditActor sellerActor = new SkuEditActor(UserRole.SELLER, 99L, SELLER_A);
+        service(baseStore, skuStore, new FakeSkuOwnerPort(SELLER_A), priceChangePort)
+                .execute(SKU_ID, new Money(new BigDecimal("55.00")), sellerActor);
+
+        assertEquals(1, priceChangePort.saved.size());
+        SkuPriceChange change = priceChangePort.saved.get(0);
+        assertEquals(99L, change.actorUserId());
+        assertEquals("SELLER_PANEL", change.source());
+    }
+
+    @Test
+    @DisplayName("First-ever price set (SKU had no price) → ledger row has oldPrice=null")
+    void firstEverPriceSet_oldPriceIsNull() {
+        FakeBaseStore baseStore = new FakeBaseStore();
+        baseStore.put(withStatus(BASE_ID, ProductStatus.ACTIVE));
+        FakeSkuStore skuStore = new FakeSkuStore();
+        skuStore.put(new Sku(SKU_ID, VARIANT_ID, "SKU-001", "M", 5, null));
+        FakeSavePriceChangePort priceChangePort = new FakeSavePriceChangePort();
+
+        service(baseStore, skuStore, new FakeSkuOwnerPort(null), priceChangePort)
+                .execute(SKU_ID, new Money(new BigDecimal("19.99")), ADMIN_ACTOR);
+
+        assertEquals(1, priceChangePort.saved.size());
+        SkuPriceChange change = priceChangePort.saved.get(0);
+        assertNull(change.oldPrice());
+        assertEquals(new BigDecimal("19.99"), change.newPrice());
+    }
+
+    @Test
+    @DisplayName("Guard-denied SELLER edit (foreign SKU) writes no ledger row")
+    void guardDenied_writesNoLedgerRow() {
+        FakeBaseStore baseStore = new FakeBaseStore();
+        baseStore.put(withStatus(BASE_ID, ProductStatus.ACTIVE));
+        FakeSkuStore skuStore = new FakeSkuStore();
+        skuStore.put(sku(SKU_ID, VARIANT_ID));
+        FakeSavePriceChangePort priceChangePort = new FakeSavePriceChangePort();
+
+        SkuEditActor sellerActor = new SkuEditActor(UserRole.SELLER, 99L, SELLER_A);
+        assertThrows(FieldLockException.class, () ->
+                service(baseStore, skuStore, new FakeSkuOwnerPort(SELLER_B), priceChangePort)
+                        .execute(SKU_ID, new Money(new BigDecimal("55.00")), sellerActor));
+
+        assertTrue(priceChangePort.saved.isEmpty());
     }
 }

@@ -8,10 +8,16 @@ import tj.radolfa.application.ports.in.product.SkuEditActor;
 import tj.radolfa.application.ports.in.product.UpdateProductPriceUseCase;
 import tj.radolfa.application.ports.out.LoadSkuOwnerPort;
 import tj.radolfa.application.ports.out.LoadSkuPort;
+import tj.radolfa.application.ports.out.SavePriceChangePort;
 import tj.radolfa.application.ports.out.SaveProductHierarchyPort;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Sku;
+import tj.radolfa.domain.model.SkuPriceChange;
+import tj.radolfa.domain.model.UserRole;
 import tj.radolfa.domain.service.SkuFieldOwnershipGuard;
+
+import java.math.BigDecimal;
+import java.time.Instant;
 
 /**
  * Sets the price on a specific SKU.
@@ -28,15 +34,18 @@ public class UpdateProductPriceService implements UpdateProductPriceUseCase {
     private final LoadSkuOwnerPort         loadSkuOwnerPort;
     private final SaveProductHierarchyPort savePort;
     private final ProductEditGuard         editGuard;
+    private final SavePriceChangePort      savePriceChangePort;
 
     public UpdateProductPriceService(LoadSkuPort loadSkuPort,
                                      LoadSkuOwnerPort loadSkuOwnerPort,
                                      SaveProductHierarchyPort savePort,
-                                     ProductEditGuard editGuard) {
-        this.loadSkuPort      = loadSkuPort;
-        this.loadSkuOwnerPort = loadSkuOwnerPort;
-        this.savePort         = savePort;
-        this.editGuard        = editGuard;
+                                     ProductEditGuard editGuard,
+                                     SavePriceChangePort savePriceChangePort) {
+        this.loadSkuPort          = loadSkuPort;
+        this.loadSkuOwnerPort     = loadSkuOwnerPort;
+        this.savePort             = savePort;
+        this.editGuard            = editGuard;
+        this.savePriceChangePort  = savePriceChangePort;
     }
 
     @Override
@@ -53,9 +62,17 @@ public class UpdateProductPriceService implements UpdateProductPriceUseCase {
         Sku sku = loadSkuPort.findSkuById(skuId)
                 .orElseThrow(() -> new IllegalArgumentException("SKU not found: id=" + skuId));
 
+        BigDecimal oldPrice = sku.getPrice() != null ? sku.getPrice().amount() : null;
         sku.updatePriceAndStock(newPrice, sku.getStockQuantity());
         savePort.saveSku(sku, sku.getListingVariantId());
+        savePriceChangePort.save(new SkuPriceChange(
+                null, skuId, sku.getSkuCode(), oldPrice, newPrice.amount(),
+                actor.userId(), sourceOf(actor), Instant.now()));
 
         LOG.info("[UPDATE-PRICE] SKU id={} price updated to {} by userId={}", skuId, newPrice.amount(), actor.userId());
+    }
+
+    private static String sourceOf(SkuEditActor actor) {
+        return actor.role() == UserRole.SELLER ? "SELLER_PANEL" : "ADMIN_PANEL";
     }
 }
