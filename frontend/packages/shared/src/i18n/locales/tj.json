@@ -467,7 +467,10 @@
         "unitPrice": "Нарх",
         "subtotal": "Маблағ",
         "stock": "Мавҷудӣ",
-        "picked": "Ҷамъоварӣшуда"
+        "picked": "Ҷамъоварӣшуда",
+        "was": "буд",
+        "campaign": "Тахфиф",
+        "loyalty": "Лоялӣ"
       },
       "stock": {
         "inStock": "✓ Дар анбор",
@@ -779,7 +782,8 @@
     "privacyData": "Махфият ва маълумот",
     "languageEnglish": "Англисӣ",
     "currencyValue": "TJS · Сомонӣ",
-    "regionValue": "Тоҷикистон"
+    "regionValue": "Тоҷикистон",
+    "wasPrice": "буд {price}"
   },
   "orderDetail": {
     "backToOrders": "Фармоишҳои ман",

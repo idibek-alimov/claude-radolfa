@@ -19,4 +19,9 @@ public record AdminOrderItemDto(
         String barcode,
         int quantityPicked,
         Instant pickedAt,
-        Long pickedByUserId) {}
+        Long pickedByUserId,
+        BigDecimal originalUnitPrice,
+        String discountMechanism,
+        BigDecimal effectiveDiscountPercent,
+        BigDecimal loyaltyTierPercent,
+        BigDecimal lineSavings) {}

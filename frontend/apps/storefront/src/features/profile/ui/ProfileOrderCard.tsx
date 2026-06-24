@@ -164,6 +164,14 @@ export function ProfileOrderCard({ order }: { order: MyOrder }) {
                 </div>
               </div>
               <div className="text-right shrink-0">
+                {kind !== "exception" &&
+                  item.discountMechanism &&
+                  item.discountMechanism !== "NONE" &&
+                  item.originalUnitPrice != null && (
+                    <div className="text-[10px] lg:text-[11px] text-ink/40 line-through">
+                      {t("wasPrice", { price: formatPrice(item.originalUnitPrice) })}
+                    </div>
+                  )}
                 <div
                   className={cn(
                     "font-black tabular-nums text-[12px] lg:text-[14px]",

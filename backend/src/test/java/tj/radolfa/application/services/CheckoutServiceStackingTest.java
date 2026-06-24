@@ -272,7 +272,7 @@ class CheckoutServiceStackingTest {
         };
         CheckoutService service = buildServiceWithSavePort(Map.of(SKU_CODE, List.of(s1)), fakeAppPort, capturingPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(1, captured.size());
         OrderItem item = captured.get(0);
@@ -321,10 +321,13 @@ class CheckoutServiceStackingTest {
                     @Override public Optional<Order> loadByExternalOrderId(String s) { return Optional.empty(); }
                     @Override public List<Order> loadRecentPaidByUserId(Long id, int limit) { return List.of(); }
                 },
-                (orderId, reason) -> {}
+                (orderId, reason) -> {},
+                NO_OP_AWARD_LOYALTY,
+                NO_OP_NOTIFICATION,
+                BigDecimal.ZERO
         );
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(1, captured.size());
         OrderItem item = captured.get(0);
@@ -347,7 +350,7 @@ class CheckoutServiceStackingTest {
         };
         CheckoutService service = buildServiceWithSavePort(Map.of(), fakeAppPort, capturingPort);
 
-        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null, PaymentMethod.CARD));
 
         assertEquals(1, captured.size());
         OrderItem item = captured.get(0);

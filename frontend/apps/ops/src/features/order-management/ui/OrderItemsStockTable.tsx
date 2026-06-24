@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Package } from "lucide-react";
+import { cn } from "@radolfa/shared/lib/utils";
 import {
   Table,
   TableBody,
@@ -77,7 +78,25 @@ export function OrderItemsStockTable({ items }: Props) {
               </TableCell>
               <TableCell className="text-center text-sm">{item.quantity}</TableCell>
               <TableCell className="text-right text-sm tabular-nums">
-                {item.price.toFixed(2)} TJS
+                {item.discountMechanism && item.discountMechanism !== "NONE" && item.originalUnitPrice != null ? (
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-xs text-muted-foreground line-through">
+                      {item.originalUnitPrice.toFixed(2)} TJS
+                    </span>
+                    <span>{item.price.toFixed(2)} TJS</span>
+                    <span
+                      className={cn(
+                        "text-[11px] font-medium",
+                        item.discountMechanism === "CAMPAIGN" ? "text-rose-600" : "text-amber-500"
+                      )}
+                    >
+                      {item.discountMechanism === "CAMPAIGN" ? t("campaign") : t("loyalty")}
+                      {item.effectiveDiscountPercent != null ? ` −${item.effectiveDiscountPercent}%` : ""}
+                    </span>
+                  </div>
+                ) : (
+                  `${item.price.toFixed(2)} TJS`
+                )}
               </TableCell>
               <TableCell className="text-right text-sm font-semibold tabular-nums">
                 {(item.price * item.quantity).toFixed(2)} TJS

@@ -1,6 +1,8 @@
 // Synced from backend — do not edit manually
 export type OrderStatus = "PENDING" | "PAID" | "AWAITING_COD" | "PICKED" | "CLAIMED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERY_ATTEMPTED" | "READY_FOR_PICKUP" | "RETURN_INITIATED" | "RETURNED_TO_WAREHOUSE" | "DELIVERED" | "CANCELLED" | "REFUNDED" | "RECALL_REQUESTED";
 
+export type DiscountMechanism = "NONE" | "CAMPAIGN" | "LOYALTY";
+
 export interface OrderItem {
   productName: string;
   quantity: number;
@@ -36,6 +38,11 @@ export interface AdminOrderItem extends DeliveredOrderItem {
   quantityPicked: number;
   pickedAt: string | null;
   pickedByUserId: number | null;
+  originalUnitPrice: number | null;
+  discountMechanism: DiscountMechanism | null;
+  effectiveDiscountPercent: number | null;
+  loyaltyTierPercent: number | null;
+  lineSavings: number | null;
 }
 
 /** Minimal order shape — only what the review form needs. */

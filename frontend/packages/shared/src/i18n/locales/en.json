@@ -467,7 +467,10 @@
         "unitPrice": "Unit Price",
         "subtotal": "Subtotal",
         "stock": "Stock",
-        "picked": "Picked"
+        "picked": "Picked",
+        "was": "was",
+        "campaign": "Sale",
+        "loyalty": "Loyalty"
       },
       "stock": {
         "inStock": "✓ In Stock",
@@ -793,7 +796,8 @@
     "privacyData": "Privacy & data",
     "languageEnglish": "English",
     "currencyValue": "TJS · Somoni",
-    "regionValue": "Tajikistan"
+    "regionValue": "Tajikistan",
+    "wasPrice": "was {price}"
   },
   "orderDetail": {
     "backToOrders": "My Orders",

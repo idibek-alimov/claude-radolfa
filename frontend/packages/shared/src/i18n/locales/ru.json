@@ -467,7 +467,10 @@
         "unitPrice": "Цена",
         "subtotal": "Сумма",
         "stock": "Остаток",
-        "picked": "Собрано"
+        "picked": "Собрано",
+        "was": "было",
+        "campaign": "Скидка",
+        "loyalty": "Лояльность"
       },
       "stock": {
         "inStock": "✓ В наличии",
@@ -793,7 +796,8 @@
     "privacyData": "Приватность и данные",
     "languageEnglish": "Английский",
     "currencyValue": "TJS · Сомони",
-    "regionValue": "Таджикистан"
+    "regionValue": "Таджикистан",
+    "wasPrice": "было {price}"
   },
   "orderDetail": {
     "backToOrders": "Мои заказы",

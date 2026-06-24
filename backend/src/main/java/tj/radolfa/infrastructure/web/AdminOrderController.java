@@ -51,6 +51,7 @@ import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticat
 
 import org.springframework.beans.factory.annotation.Value;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -329,6 +330,11 @@ public class AdminOrderController {
             String sizeLabel = sku != null ? sku.getSizeLabel() : null;
             boolean hasReviewed = item.getListingVariantId() != null
                     && loadReviewPort.existsByOrderAndVariant(order.id(), item.getListingVariantId());
+            BigDecimal originalUnitPrice = item.getOriginalUnitPrice() != null
+                    ? item.getOriginalUnitPrice().amount() : null;
+            BigDecimal lineSavings = originalUnitPrice != null
+                    ? originalUnitPrice.subtract(item.getPrice().amount()).multiply(BigDecimal.valueOf(item.getQuantity()))
+                    : null;
             return new AdminOrderItemDto(
                     item.getProductName(), item.getQuantity(), item.getPrice().amount(),
                     item.getSkuId(), item.getListingVariantId(), imageUrl,
@@ -338,7 +344,12 @@ public class AdminOrderController {
                     sku != null ? sku.getBarcode() : null,
                     item.getQuantityPicked(),
                     item.getPickedAt(),
-                    item.getPickedByUserId());
+                    item.getPickedByUserId(),
+                    originalUnitPrice,
+                    item.getMechanism() != null ? item.getMechanism().name() : null,
+                    item.getEffectiveDiscountPercent(),
+                    item.getLoyaltyTierPercent(),
+                    lineSavings);
         }).toList();
     }
 

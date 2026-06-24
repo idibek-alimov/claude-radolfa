@@ -271,7 +271,11 @@ public class OrderController {
                                     sizeLabel,
                                     slug,
                                     productCode,
-                                    hasReviewed);
+                                    hasReviewed,
+                                    item.getOriginalUnitPrice() != null ? item.getOriginalUnitPrice().amount() : null,
+                                    item.getMechanism() != null ? item.getMechanism().name() : null,
+                                    item.getEffectiveDiscountPercent(),
+                                    item.getLoyaltyTierPercent());
                         })
                         .toList(),
                 order.createdAt(),

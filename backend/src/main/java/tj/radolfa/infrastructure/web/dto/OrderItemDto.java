@@ -13,5 +13,9 @@ public record OrderItemDto(
         String sizeLabel,
         String slug,
         String productCode,
-        boolean hasReviewed) {
+        boolean hasReviewed,
+        BigDecimal originalUnitPrice,
+        String discountMechanism,
+        BigDecimal effectiveDiscountPercent,
+        BigDecimal loyaltyTierPercent) {
 }
