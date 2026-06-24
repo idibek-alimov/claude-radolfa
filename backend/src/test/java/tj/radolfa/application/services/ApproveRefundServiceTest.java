@@ -24,6 +24,7 @@ import tj.radolfa.domain.model.Payment;
 import tj.radolfa.domain.model.PaymentStatus;
 import tj.radolfa.domain.model.ReturnReason;
 import tj.radolfa.domain.model.User;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -44,7 +45,7 @@ class ApproveRefundServiceTest {
     // ── Domain object factories ───────────────────────────────────────────────
 
     static OrderItem item(Long id, BigDecimal unitPrice, int qty) {
-        return new OrderItem(id, null, null, null, "Product", qty, Money.of(unitPrice), 0, null, null, null);
+        return new OrderItem(id, null, null, null, "Product", qty, Money.of(unitPrice), 0, null, null, null, null, WinningMechanism.NONE, null, null);
     }
 
     static Order orderWith(List<OrderItem> items) {

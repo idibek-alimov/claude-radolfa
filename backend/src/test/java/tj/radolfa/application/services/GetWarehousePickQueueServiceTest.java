@@ -10,6 +10,7 @@ import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -25,7 +26,7 @@ class GetWarehousePickQueueServiceTest {
 
     static OrderItem item(Long id, int qty, int picked) {
         return new OrderItem(id, null, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null, null, WinningMechanism.NONE, null, null);
     }
 
     static Order paidOrder(Long orderId, DeliveryType deliveryType, List<OrderItem> items) {

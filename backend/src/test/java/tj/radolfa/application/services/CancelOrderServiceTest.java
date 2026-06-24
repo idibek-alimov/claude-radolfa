@@ -18,6 +18,7 @@ import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -53,7 +54,7 @@ class CancelOrderServiceTest {
     }
 
     static OrderItem orderItem(Long skuId) {
-        return new OrderItem(1L, skuId, null, "SKU-1", "Product", 2, new Money(BigDecimal.TEN), 0, null, null, null);
+        return new OrderItem(1L, skuId, null, "SKU-1", "Product", 2, new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
     }
 
     static LoadOrderPort orderPort(Order order) {

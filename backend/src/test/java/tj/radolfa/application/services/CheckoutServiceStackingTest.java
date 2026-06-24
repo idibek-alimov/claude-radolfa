@@ -25,6 +25,7 @@ import tj.radolfa.domain.model.DiscountApplication;
 import tj.radolfa.domain.model.DiscountType;
 import tj.radolfa.domain.model.ListingVariant;
 import tj.radolfa.domain.model.LoyaltyProfile;
+import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
@@ -37,6 +38,7 @@ import tj.radolfa.domain.model.SkuTarget;
 import tj.radolfa.domain.model.StackingPolicy;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.model.WinningMechanism;
 import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
@@ -118,7 +120,8 @@ class CheckoutServiceStackingTest {
     static final SaveOrderPort SAVE_ORDER = order -> {
         List<OrderItem> itemsWithIds = order.items().stream()
                 .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
+                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId(),
+                        i.getOriginalUnitPrice(), i.getMechanism(), i.getEffectiveDiscountPercent(), i.getLoyaltyTierPercent()))
                 .toList();
         return new Order.Builder()
                 .id(100L).userId(order.userId()).status(OrderStatus.PENDING)
@@ -235,6 +238,107 @@ class CheckoutServiceStackingTest {
         assertEquals(0, fakeAppPort.stored.size());
     }
 
+    // ---- Order-line financial snapshot tests (Price Tracking & Audit, Phase 1) ----
+
+    @Test
+    @DisplayName("Campaign discount wins: order item snapshots final charged price, base price, mechanism, and effective discount %")
+    void campaignDiscountWins_orderItemSnapshotsBreakdown() {
+        Discount s1 = stackableDiscount(1L, 1, new BigDecimal("20")); // 100 -> 80
+
+        FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
+        List<OrderItem> captured = new ArrayList<>();
+        SaveOrderPort capturingPort = order -> {
+            captured.addAll(order.items());
+            return SAVE_ORDER.save(order);
+        };
+        CheckoutService service = buildServiceWithSavePort(Map.of(SKU_CODE, List.of(s1)), fakeAppPort, capturingPort);
+
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+
+        assertEquals(1, captured.size());
+        OrderItem item = captured.get(0);
+        assertEquals(new BigDecimal("80.00"), item.getPrice().amount(), "price must be the final charged price, not the base");
+        assertEquals(ORIGINAL, item.getOriginalUnitPrice().amount());
+        assertEquals(WinningMechanism.CAMPAIGN, item.getMechanism());
+        assertEquals(new BigDecimal("20.00"), item.getEffectiveDiscountPercent());
+        assertEquals(1, fakeAppPort.stored.size(), "Campaign layer must still be recorded in discount_application");
+    }
+
+    @Test
+    @DisplayName("Loyalty tier wins (no campaign): order item snapshots final charged price, base price, mechanism, and tier %")
+    void loyaltyDiscountWins_orderItemSnapshotsBreakdown() {
+        LoyaltyTier tier = new LoyaltyTier(1L, "Gold", new BigDecimal("15"), BigDecimal.ZERO, BigDecimal.ZERO, 1, "#FFD700");
+        LoyaltyProfile loyaltyProfile = new LoyaltyProfile(tier, 0, null, null, null, false, null);
+        LoadUserPort loyaltyUserPort = new LoadUserPort() {
+            @Override public Optional<User> loadById(Long id) {
+                return Optional.of(new User(id, new PhoneNumber("992000000000"),
+                        UserRole.USER, "Test", null, loyaltyProfile, true, 1L));
+            }
+            @Override public Optional<User> loadByPhone(String p) { return Optional.empty(); }
+            @Override public List<User> findAllNonPermanent() { return List.of(); }
+            @Override public List<User> findByRoleAndEnabledTrue(UserRole r) { return List.of(); }
+        };
+
+        FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
+        List<OrderItem> captured = new ArrayList<>();
+        SaveOrderPort capturingPort = order -> {
+            captured.addAll(order.items());
+            return SAVE_ORDER.save(order);
+        };
+        LockDiscountForUsagePort noCapsLock = discountId -> Optional.empty();
+        QueryDiscountUsagePort noUsage = new QueryDiscountUsagePort() {
+            @Override public Map<Long, Long> countByDiscountIds(Collection<Long> ids) { return Map.of(); }
+            @Override public Map<Long, Long> countByDiscountIdsForUser(Collection<Long> ids, Long u) { return Map.of(); }
+        };
+        RecordDiscountApplicationService recordService = new RecordDiscountApplicationService(noCapsLock, noUsage, fakeAppPort);
+
+        CheckoutService service = new CheckoutService(
+                FAKE_CART, cart -> cart, FAKE_SKU, FAKE_VARIANT, FAKE_PRODUCT, loyaltyUserPort,
+                capturingPort, NO_STOCK, new LoyaltyCalculator(), new CartLinePricer(),
+                (userId, pts) -> Money.ZERO, query -> Map.of(), recordService, FAKE_LOAD_PICKPOINT,
+                new tj.radolfa.application.ports.out.LoadOrderPort() {
+                    @Override public List<Order> loadByUserId(Long id) { return List.of(); }
+                    @Override public Optional<Order> loadById(Long id) { return Optional.empty(); }
+                    @Override public Optional<Order> loadByExternalOrderId(String s) { return Optional.empty(); }
+                    @Override public List<Order> loadRecentPaidByUserId(Long id, int limit) { return List.of(); }
+                },
+                (orderId, reason) -> {}
+        );
+
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+
+        assertEquals(1, captured.size());
+        OrderItem item = captured.get(0);
+        assertEquals(new BigDecimal("85.00"), item.getPrice().amount(), "price must be the final charged (loyalty) price");
+        assertEquals(ORIGINAL, item.getOriginalUnitPrice().amount());
+        assertEquals(WinningMechanism.LOYALTY, item.getMechanism());
+        assertEquals(new BigDecimal("15.00"), item.getEffectiveDiscountPercent());
+        assertEquals(0, new BigDecimal("15").compareTo(item.getLoyaltyTierPercent()));
+        assertEquals(0, fakeAppPort.stored.size(), "Loyalty-only line must not create a discount_application row");
+    }
+
+    @Test
+    @DisplayName("No discount: order item charged price equals base price, mechanism is NONE")
+    void noDiscount_orderItemSnapshotsBreakdown() {
+        FakeSaveDiscountApplicationPort fakeAppPort = new FakeSaveDiscountApplicationPort();
+        List<OrderItem> captured = new ArrayList<>();
+        SaveOrderPort capturingPort = order -> {
+            captured.addAll(order.items());
+            return SAVE_ORDER.save(order);
+        };
+        CheckoutService service = buildServiceWithSavePort(Map.of(), fakeAppPort, capturingPort);
+
+        service.execute(new CheckoutUseCase.Command(USER_ID, 0, null, DeliveryType.HOME, "123 Test St", null, null));
+
+        assertEquals(1, captured.size());
+        OrderItem item = captured.get(0);
+        assertEquals(ORIGINAL, item.getPrice().amount());
+        assertEquals(ORIGINAL, item.getOriginalUnitPrice().amount());
+        assertEquals(WinningMechanism.NONE, item.getMechanism());
+        assertEquals(new BigDecimal("0.00"), item.getEffectiveDiscountPercent());
+        assertEquals(0, fakeAppPort.stored.size());
+    }
+
     // ---- Seller attribution tests (Phase 5) ----
 
     @Test
@@ -247,7 +351,8 @@ class CheckoutServiceStackingTest {
             captured.addAll(order.items());
             List<OrderItem> withIds = order.items().stream()
                     .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                            i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
+                            i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId(),
+                            i.getOriginalUnitPrice(), i.getMechanism(), i.getEffectiveDiscountPercent(), i.getLoyaltyTierPercent()))
                     .toList();
             return new Order.Builder().id(100L).userId(order.userId()).status(OrderStatus.PENDING)
                     .totalAmount(order.totalAmount()).items(withIds).createdAt(order.createdAt())
@@ -284,7 +389,8 @@ class CheckoutServiceStackingTest {
             captured.addAll(order.items());
             List<OrderItem> withIds = order.items().stream()
                     .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                            i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
+                            i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId(),
+                            i.getOriginalUnitPrice(), i.getMechanism(), i.getEffectiveDiscountPercent(), i.getLoyaltyTierPercent()))
                     .toList();
             return new Order.Builder().id(100L).userId(order.userId()).status(OrderStatus.PENDING)
                     .totalAmount(order.totalAmount()).items(withIds).createdAt(order.createdAt())

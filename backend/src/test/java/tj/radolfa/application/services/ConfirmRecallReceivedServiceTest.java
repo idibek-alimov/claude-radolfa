@@ -50,8 +50,8 @@ class ConfirmRecallReceivedServiceTest {
     }
 
     static Order recalledOrderWithItems(int loyaltyRedeemed) {
-        var item1 = new OrderItem(1L, SKU_A, null, "SKU-A", "Widget", 2, new Money(BigDecimal.valueOf(100)), 0, null, null, null);
-        var item2 = new OrderItem(2L, SKU_B, null, "SKU-B", "Gadget", 1, new Money(BigDecimal.valueOf(50)), 0, null, null, null);
+        var item1 = new OrderItem(1L, SKU_A, null, "SKU-A", "Widget", 2, new Money(BigDecimal.valueOf(100)), 0, null, null, null, null, WinningMechanism.NONE, null, null);
+        var item2 = new OrderItem(2L, SKU_B, null, "SKU-B", "Gadget", 1, new Money(BigDecimal.valueOf(50)), 0, null, null, null, null, WinningMechanism.NONE, null, null);
         return new Order.Builder()
                 .id(ORDER_ID).userId(10L).status(OrderStatus.RECALL_REQUESTED)
                 .courierId(COURIER_ID)

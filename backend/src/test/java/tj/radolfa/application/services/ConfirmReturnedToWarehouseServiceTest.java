@@ -157,9 +157,9 @@ class ConfirmReturnedToWarehouseServiceTest {
     @DisplayName("Order with 2 items → stock incremented twice with RETURN_RESTORE type")
     void orderWithItems_stockRestoredForEach() {
         var item1 = new OrderItem(1L, 101L, null, "SKU-A", "Widget", 2,
-                new Money(BigDecimal.TEN), 0, null, null, null);
+                new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
         var item2 = new OrderItem(2L, 102L, null, "SKU-B", "Gadget", 1,
-                new Money(BigDecimal.TEN), 0, null, null, null);
+                new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
         Order orderWithItems = new Order.Builder()
                 .id(ORDER_ID).userId(10L).status(OrderStatus.RETURN_INITIATED)
                 .deliveryType(DeliveryType.PICKPOINT).pickpointId(PICKPOINT_ID)
@@ -181,9 +181,9 @@ class ConfirmReturnedToWarehouseServiceTest {
     @DisplayName("Item with null skuId → stock increment skipped for that item")
     void itemWithNullSkuId_incrementSkipped() {
         var itemWithSku    = new OrderItem(1L, 101L, null, "SKU-A", "Widget", 3,
-                new Money(BigDecimal.TEN), 0, null, null, null);
+                new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
         var itemWithoutSku = new OrderItem(2L, null, null, "SKU-DEL", "Deleted", 1,
-                new Money(BigDecimal.TEN), 0, null, null, null);
+                new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
         Order orderWithItems = new Order.Builder()
                 .id(ORDER_ID).userId(10L).status(OrderStatus.RETURN_INITIATED)
                 .deliveryType(DeliveryType.PICKPOINT).pickpointId(PICKPOINT_ID)

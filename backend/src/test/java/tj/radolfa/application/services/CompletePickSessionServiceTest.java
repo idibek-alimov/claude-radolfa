@@ -11,6 +11,7 @@ import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -34,7 +35,7 @@ class CompletePickSessionServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, picked >= qty ? Instant.now() : null, null, null);
+                new Money(BigDecimal.TEN), picked, picked >= qty ? Instant.now() : null, null, null, null, WinningMechanism.NONE, null, null);
     }
 
     static Order orderWithStatus(OrderStatus status, List<OrderItem> items) {
