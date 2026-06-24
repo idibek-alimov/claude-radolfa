@@ -3,15 +3,17 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lock, Loader2, Plus, Ruler, X, Check, Copy } from "lucide-react";
+import { Lock, Loader2, Plus, Ruler, History, X, Check, Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@radolfa/shared/ui/button";
 import { Input } from "@radolfa/shared/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radolfa/shared/ui/tooltip";
 import { addSkuToVariant } from "@/entities/product/api/admin";
 import { getErrorMessage, useCopyToClipboard } from "@radolfa/shared/lib";
 import { useDraftOptional } from "../model/ProductCardDraftContext";
 import type { ProductCardSku } from "@/entities/product/model/types";
 import { SkuLogisticsDialog } from "./SkuLogisticsDialog";
+import { SkuPriceHistoryDrawer } from "./SkuPriceHistoryDrawer";
 
 interface Props {
   slug: string;
@@ -32,6 +34,9 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin, on
 
   const [logisticsSkuId, setLogisticsSkuId] = useState<number | null>(null);
   const logisticsSku = logisticsSkuId !== null ? skus.find((s) => s.skuId === logisticsSkuId) ?? null : null;
+
+  const [historySkuId, setHistorySkuId] = useState<number | null>(null);
+  const historySku = historySkuId !== null ? skus.find((s) => s.skuId === historySkuId) ?? null : null;
 
   // Add Size form state (admin only)
   const [addingSize, setAddingSize] = useState(false);
@@ -279,15 +284,34 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin, on
                         )}
                       </Button>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        title="Logistics dimensions"
-                        onClick={() => setLogisticsSkuId(sku.skuId)}
-                      >
-                        <Ruler className="h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          title="Logistics dimensions"
+                          onClick={() => setLogisticsSkuId(sku.skuId)}
+                        >
+                          <Ruler className="h-3.5 w-3.5" />
+                        </Button>
+                        {isAdmin && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => setHistorySkuId(sku.skuId)}
+                                >
+                                  <History className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t("priceHistory.tooltip")}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -386,6 +410,14 @@ export function SkuTableCard({ slug, productBaseId, variantId, skus, isAdmin, on
           productBaseId={productBaseId}
         />
       )}
+
+      <SkuPriceHistoryDrawer
+        open={historySkuId !== null}
+        onClose={() => setHistorySkuId(null)}
+        skuId={historySkuId}
+        skuCode={historySku?.skuCode ?? ""}
+        sizeLabel={historySku?.sizeLabel ?? ""}
+      />
     </div>
   );
 }

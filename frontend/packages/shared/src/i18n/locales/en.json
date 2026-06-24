@@ -542,6 +542,18 @@
         "bio": "Bio",
         "created": "Created"
       }
+    },
+    "priceHistory": {
+      "title": "Price History",
+      "tooltip": "Price history",
+      "columns": {
+        "when": "When",
+        "old": "Old",
+        "new": "New",
+        "source": "Source",
+        "changedBy": "Changed by"
+      },
+      "empty": "No price changes yet."
     }
   },
   "profile": {

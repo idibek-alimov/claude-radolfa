@@ -21,6 +21,7 @@ import tj.radolfa.application.ports.in.product.ApproveProductUseCase;
 import tj.radolfa.application.ports.in.product.CountPendingProductsUseCase;
 import tj.radolfa.application.ports.in.product.CreateProductUseCase;
 import tj.radolfa.application.ports.in.product.GetProductCardUseCase;
+import tj.radolfa.application.ports.in.product.GetSkuPriceHistoryUseCase;
 import tj.radolfa.application.ports.in.product.ListAdminProductsUseCase;
 import tj.radolfa.application.ports.in.product.RejectProductUseCase;
 import tj.radolfa.application.ports.in.product.ReorderVariantImagesUseCase;
@@ -39,9 +40,11 @@ import tj.radolfa.application.readmodel.AdminProductRow;
 import tj.radolfa.application.readmodel.ProductCardDto;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.ProductStatus;
+import tj.radolfa.domain.model.SkuPriceChange;
 import tj.radolfa.infrastructure.web.PageResponse;
 import tj.radolfa.infrastructure.web.dto.AdminProductRowDto;
 import tj.radolfa.infrastructure.web.dto.RejectProductRequestDto;
+import tj.radolfa.infrastructure.web.dto.SkuPriceChangeDto;
 import tj.radolfa.domain.exception.ImageProcessingException;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.infrastructure.web.dto.AddSkuRequestDto;
@@ -88,6 +91,7 @@ public class ProductManagementController {
     private final RejectProductUseCase rejectProductUseCase;
     private final ListAdminProductsUseCase listAdminProductsUseCase;
     private final CountPendingProductsUseCase countPendingProductsUseCase;
+    private final GetSkuPriceHistoryUseCase getSkuPriceHistoryUseCase;
 
     public ProductManagementController(CreateProductUseCase createProductUseCase,
             GetProductCardUseCase getProductCardUseCase,
@@ -106,7 +110,8 @@ public class ProductManagementController {
             ApproveProductUseCase approveProductUseCase,
             RejectProductUseCase rejectProductUseCase,
             ListAdminProductsUseCase listAdminProductsUseCase,
-            CountPendingProductsUseCase countPendingProductsUseCase) {
+            CountPendingProductsUseCase countPendingProductsUseCase,
+            GetSkuPriceHistoryUseCase getSkuPriceHistoryUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.getProductCardUseCase = getProductCardUseCase;
         this.reorderVariantImagesUseCase = reorderVariantImagesUseCase;
@@ -125,6 +130,7 @@ public class ProductManagementController {
         this.rejectProductUseCase = rejectProductUseCase;
         this.listAdminProductsUseCase = listAdminProductsUseCase;
         this.countPendingProductsUseCase = countPendingProductsUseCase;
+        this.getSkuPriceHistoryUseCase = getSkuPriceHistoryUseCase;
     }
 
     /**
@@ -330,6 +336,25 @@ public class ProductManagementController {
         SkuEditActor actor = new SkuEditActor(UserRole.ADMIN, principal.userId(), null);
         updateProductPriceUseCase.execute(skuId, new Money(request.price()), actor);
         return ResponseEntity.ok(MessageResponseDto.success("Price updated successfully."));
+    }
+
+    /**
+     * GET /api/v1/admin/skus/{skuId}/price-history
+     * Append-only audit trail of price edits for a SKU. ADMIN only.
+     */
+    @Operation(summary = "Price-change history for a SKU", description = "Append-only audit trail of price edits. ADMIN only.")
+    @GetMapping("/skus/{skuId}/price-history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<SkuPriceChangeDto> getSkuPriceHistory(
+            @PathVariable Long skuId,
+            @RequestParam(defaultValue = "occurredAt") String sortBy,
+            @RequestParam(defaultValue = "DESC")       String sortDir,
+            @RequestParam(defaultValue = "1")          int page,
+            @RequestParam(defaultValue = "20")         int size) {
+
+        PageResult<SkuPriceChange> result =
+                getSkuPriceHistoryUseCase.execute(skuId, sortBy, sortDir, page, size);
+        return PageResponse.from(result.map(SkuPriceChangeDto::from));
     }
 
     /**

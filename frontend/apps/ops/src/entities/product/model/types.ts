@@ -212,3 +212,15 @@ export interface ProductCardSku {
   widthCm?:  number | null;
   heightCm?: number | null;
 }
+
+/** One row of a SKU's append-only price-change audit trail (ADMIN only). */
+export interface SkuPriceChange {
+  id: number;
+  skuId: number;
+  skuCode: string;
+  oldPrice: number | null;
+  newPrice: number;
+  actorUserId: number | null;
+  source: string | null;
+  occurredAt: string;
+}
