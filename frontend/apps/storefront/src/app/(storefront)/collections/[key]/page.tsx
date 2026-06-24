@@ -30,7 +30,7 @@ export default function CollectionViewAllPage({
   const listings = data?.listings ?? [];
 
   return (
-    <section className="max-w-[1440px] mx-auto px-6 py-5 sm:py-10">
+    <section className="max-w-[1440px] mx-auto px-4 sm:px-6 py-5 sm:py-10">
       {/* Breadcrumb */}
       <Breadcrumb className="mb-3 sm:mb-6">
         <BreadcrumbList>
