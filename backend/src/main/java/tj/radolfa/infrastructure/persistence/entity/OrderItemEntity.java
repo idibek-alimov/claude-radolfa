@@ -36,8 +36,23 @@ public class OrderItemEntity {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
+    /** Final unit price actually charged to the customer (post-discount). */
     @Column(name = "price_at_purchase", nullable = false, precision = 12, scale = 2)
     private BigDecimal priceAtPurchase;
+
+    /** Pre-discount base unit price (the cart's add-to-cart snapshot). Null for items predating this audit trail. */
+    @Column(name = "original_unit_price", precision = 12, scale = 2)
+    private BigDecimal originalUnitPrice;
+
+    /** Which pricing mechanism produced {@code priceAtPurchase}: NONE | CAMPAIGN | LOYALTY. */
+    @Column(name = "discount_mechanism", length = 16)
+    private String discountMechanism;
+
+    @Column(name = "effective_discount_percent", precision = 5, scale = 2)
+    private BigDecimal effectiveDiscountPercent;
+
+    @Column(name = "loyalty_tier_percent", precision = 5, scale = 2)
+    private BigDecimal loyaltyTierPercent;
 
     @Column(name = "quantity_picked", nullable = false)
     private int quantityPicked;

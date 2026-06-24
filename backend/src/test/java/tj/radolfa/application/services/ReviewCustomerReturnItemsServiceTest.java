@@ -25,6 +25,7 @@ import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.Resellability;
 import tj.radolfa.domain.model.ReturnReason;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -58,8 +59,8 @@ class ReviewCustomerReturnItemsServiceTest {
     }
 
     static Order orderWithItems() {
-        var itemA = new OrderItem(ORDER_ITEM_A, SKU_A, null, "SKU-A", "Widget", 2, new Money(BigDecimal.TEN), 0, null, null, null);
-        var itemB = new OrderItem(ORDER_ITEM_B, SKU_B, null, "SKU-B", "Gadget", 2, new Money(BigDecimal.TEN), 0, null, null, null);
+        var itemA = new OrderItem(ORDER_ITEM_A, SKU_A, null, "SKU-A", "Widget", 2, new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
+        var itemB = new OrderItem(ORDER_ITEM_B, SKU_B, null, "SKU-B", "Gadget", 2, new Money(BigDecimal.TEN), 0, null, null, null, null, WinningMechanism.NONE, null, null);
         return new Order.Builder()
                 .id(ORDER_ID).userId(10L).status(OrderStatus.RETURNED_TO_WAREHOUSE)
                 .deliveryType(DeliveryType.PICKPOINT).pickpointId(5L)

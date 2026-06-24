@@ -19,6 +19,7 @@ import tj.radolfa.domain.model.PageResult;
 import tj.radolfa.domain.model.PlacementView;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.Warehouse;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -43,7 +44,7 @@ class GetPickSessionServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null, null, WinningMechanism.NONE, null, null);
     }
 
     static Sku sku(Long id, String barcode, String sizeLabel) {

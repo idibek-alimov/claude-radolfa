@@ -34,6 +34,7 @@ import tj.radolfa.domain.model.Pickpoint;
 import tj.radolfa.domain.model.ProductBase;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.User;
+import tj.radolfa.domain.model.WinningMechanism;
 import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class CheckoutService implements CheckoutUseCase {
@@ -228,9 +230,14 @@ public class CheckoutService implements CheckoutUseCase {
                 .collect(Collectors.toSet());
         Map<Long, ProductBase> productById = loadProductBasePort.findProductsByIds(productIds);
 
-        // 8. Build order items
-        List<OrderItem> orderItems = cart.getItems().stream()
-                .map(item -> enrichToOrderItem(item, skuById, variantById, productById))
+        // 8. Build order items — zipped positionally with lineResolutions (both derived
+        // from cart.getItems() in the same order), so each line gets its own charged price.
+        // (cart is reassigned earlier in this method, so it's not effectively final — capture
+        // its items list in a local before the lambda.)
+        List<CartItem> finalCartItems = cart.getItems();
+        List<OrderItem> orderItems = IntStream.range(0, finalCartItems.size())
+                .mapToObj(i -> enrichToOrderItem(finalCartItems.get(i), lineResolutions.get(i),
+                        skuById, variantById, productById))
                 .toList();
 
         // 8b. Resolve payment method (defaults to CARD) and the COD handling fee
@@ -327,7 +334,18 @@ public class CheckoutService implements CheckoutUseCase {
         }
     }
 
-    private record LineResolution(BigDecimal finalUnitPrice, List<AppliedDiscount> applied) {}
+    /**
+     * Full per-line pricing breakdown: the pre-discount snapshot, the user's loyalty tier
+     * percentage at checkout time, and the {@link CartLinePricer.LinePrice} result (final
+     * charged price, winning mechanism, effective discount %, campaign layers).
+     */
+    private record LineResolution(Money originalUnitPrice, BigDecimal tierPct,
+                                   CartLinePricer.LinePrice linePrice) {
+        BigDecimal finalUnitPrice() { return linePrice.finalUnitPrice().amount(); }
+        List<AppliedDiscount> applied() { return linePrice.applied(); }
+        WinningMechanism mechanism() { return linePrice.mechanism(); }
+        BigDecimal effectiveDiscountPercent() { return linePrice.effectivePercent(); }
+    }
 
     /**
      * Returns the effective unit price and winning applied discounts.
@@ -345,10 +363,11 @@ public class CheckoutService implements CheckoutUseCase {
         CartLinePricer.LinePrice linePrice =
                 cartLinePricer.price(item.getUnitPriceSnapshot(), tierPct, discounts);
 
-        return new LineResolution(linePrice.finalUnitPrice().amount(), linePrice.applied());
+        return new LineResolution(item.getUnitPriceSnapshot(), tierPct, linePrice);
     }
 
     private OrderItem enrichToOrderItem(CartItem cartItem,
+                                         LineResolution lineResolution,
                                          Map<Long, Sku> skuById,
                                          Map<Long, ListingVariant> variantById,
                                          Map<Long, ProductBase> productById) {
@@ -363,8 +382,13 @@ public class CheckoutService implements CheckoutUseCase {
 
         // product.getSellerId() is the snapshot: null = Radolfa-owned.
         // This value must never be recomputed from the product after placement.
+        //
+        // price is the FINAL charged unit price; originalUnitPrice is the pre-discount base.
+        // Per-campaign-layer detail lives in discount_application (recorded below); this line
+        // summary also covers loyalty-only and full-price lines, which discount_application does not.
         return new OrderItem(null, cartItem.getSkuId(), variant.getId(), sku.getSkuCode(),
-                product.getName(), cartItem.getQuantity(), cartItem.getUnitPriceSnapshot(), 0, null, null,
-                product.getSellerId());
+                product.getName(), cartItem.getQuantity(), lineResolution.linePrice().finalUnitPrice(), 0, null, null,
+                product.getSellerId(), lineResolution.originalUnitPrice(), lineResolution.mechanism(),
+                lineResolution.effectiveDiscountPercent(), lineResolution.tierPct());
     }
 }

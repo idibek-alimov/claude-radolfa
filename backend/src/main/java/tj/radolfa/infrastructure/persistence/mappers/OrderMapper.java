@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderItem;
+import tj.radolfa.domain.model.WinningMechanism;
 import tj.radolfa.infrastructure.persistence.entity.OrderEntity;
 import tj.radolfa.infrastructure.persistence.entity.OrderItemEntity;
 
@@ -36,9 +37,11 @@ public interface OrderMapper {
     @Mapping(target = "price", source = "priceAtPurchase")
     @Mapping(target = "skuId", source = "sku.id")
     @Mapping(target = "listingVariantId", source = "sku.listingVariant.id")
+    @Mapping(target = "mechanism", source = "discountMechanism")
     OrderItem toOrderItem(OrderItemEntity entity);
 
     @Mapping(target = "priceAtPurchase", source = "price")
+    @Mapping(target = "discountMechanism", source = "mechanism")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "order", ignore = true)
     @Mapping(target = "sku", ignore = true)
@@ -52,5 +55,15 @@ public interface OrderMapper {
 
     default BigDecimal moneyToBigDecimal(Money money) {
         return money != null ? money.amount() : null;
+    }
+
+    // ---- WinningMechanism <-> String bridge --------------------------
+
+    default String mechanismToString(WinningMechanism mechanism) {
+        return mechanism != null ? mechanism.name() : null;
+    }
+
+    default WinningMechanism stringToMechanism(String value) {
+        return value != null ? WinningMechanism.valueOf(value) : null;
     }
 }

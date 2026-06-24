@@ -40,6 +40,7 @@ import tj.radolfa.domain.model.SkuTarget;
 import tj.radolfa.domain.model.StackingPolicy;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.model.WinningMechanism;
 import tj.radolfa.domain.service.CartLinePricer;
 import tj.radolfa.domain.service.LoyaltyCalculator;
 
@@ -129,7 +130,8 @@ class ResolveDiscountsServiceLoyaltyGuardTest {
     static final SaveOrderPort SAVE_ORDER = order -> {
         List<OrderItem> itemsWithIds = order.items().stream()
                 .map(i -> new OrderItem(200L, i.getSkuId(), i.getListingVariantId(),
-                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId()))
+                        i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(), 0, null, null, i.getSellerId(),
+                        i.getOriginalUnitPrice(), i.getMechanism(), i.getEffectiveDiscountPercent(), i.getLoyaltyTierPercent()))
                 .toList();
         return new Order.Builder()
                 .id(100L).userId(order.userId()).status(OrderStatus.PENDING)

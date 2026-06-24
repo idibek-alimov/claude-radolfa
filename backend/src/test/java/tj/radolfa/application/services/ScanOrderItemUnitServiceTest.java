@@ -20,6 +20,7 @@ import tj.radolfa.domain.model.OrderItem;
 import tj.radolfa.domain.model.OrderStatus;
 import tj.radolfa.domain.model.Sku;
 import tj.radolfa.domain.model.Warehouse;
+import tj.radolfa.domain.model.WinningMechanism;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -48,7 +49,7 @@ class ScanOrderItemUnitServiceTest {
 
     static OrderItem item(Long id, Long skuId, int qty, int picked) {
         return new OrderItem(id, skuId, null, "SKU-" + id, "Product " + id, qty,
-                new Money(BigDecimal.TEN), picked, null, null, null);
+                new Money(BigDecimal.TEN), picked, null, null, null, null, WinningMechanism.NONE, null, null);
     }
 
     static Sku sku(Long id, String barcode) {
@@ -109,7 +110,8 @@ class ScanOrderItemUnitServiceTest {
                             if (!orderItemId.equals(i.getId())) return i;
                             return new OrderItem(i.getId(), i.getSkuId(), i.getListingVariantId(),
                                     i.getSkuCode(), i.getProductName(), i.getQuantity(), i.getPrice(),
-                                    newCount, newCount >= i.getQuantity() ? Instant.now() : null, null, i.getSellerId());
+                                    newCount, newCount >= i.getQuantity() ? Instant.now() : null, null, i.getSellerId(),
+                                    i.getOriginalUnitPrice(), i.getMechanism(), i.getEffectiveDiscountPercent(), i.getLoyaltyTierPercent());
                         })
                         .toList();
                 orderPort.update(order.toBuilder().items(updated).build());

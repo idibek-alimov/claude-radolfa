@@ -72,16 +72,23 @@ CREATE SEQUENCE order_external_code_seq START WITH 10001 INCREMENT BY 1;
 -- Order items
 -- ----------------------------------------------------------------
 CREATE TABLE order_items (
-    id                BIGSERIAL      PRIMARY KEY,
-    order_id          BIGINT         NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    sku_id            BIGINT         REFERENCES skus(id) ON DELETE SET NULL,
-    sku_code          VARCHAR(128),
-    product_name      VARCHAR(255),
-    quantity          INTEGER        NOT NULL,
-    price_at_purchase NUMERIC(12,2)  NOT NULL,
-    quantity_picked   INTEGER        NOT NULL DEFAULT 0,
-    picked_at         TIMESTAMPTZ,
-    picked_by_user_id BIGINT         REFERENCES users(id) ON DELETE SET NULL,
+    id                          BIGSERIAL      PRIMARY KEY,
+    order_id                    BIGINT         NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    sku_id                      BIGINT         REFERENCES skus(id) ON DELETE SET NULL,
+    sku_code                    VARCHAR(128),
+    product_name                VARCHAR(255),
+    quantity                    INTEGER        NOT NULL,
+    -- Final unit price actually charged to the customer (post-discount).
+    price_at_purchase           NUMERIC(12,2)  NOT NULL,
+    -- Pre-discount base unit price (the cart's add-to-cart snapshot). Null for items predating this audit trail.
+    original_unit_price         NUMERIC(12,2),
+    -- Which pricing mechanism produced price_at_purchase: NONE | CAMPAIGN | LOYALTY.
+    discount_mechanism          VARCHAR(16),
+    effective_discount_percent  NUMERIC(5,2),
+    loyalty_tier_percent        NUMERIC(5,2),
+    quantity_picked             INTEGER        NOT NULL DEFAULT 0,
+    picked_at                   TIMESTAMPTZ,
+    picked_by_user_id           BIGINT         REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT chk_order_items_pick_qty
         CHECK (quantity_picked >= 0 AND quantity_picked <= quantity)
 );
