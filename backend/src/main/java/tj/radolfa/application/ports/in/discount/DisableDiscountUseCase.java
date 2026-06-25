@@ -6,5 +6,5 @@ public interface DisableDiscountUseCase {
 
     record Command(Long id, boolean disable) {}
 
-    Discount execute(Command command);
+    Discount execute(Command command, Long actorUserId);
 }

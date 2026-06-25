@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface BulkToggleDiscountUseCase {
     record Command(List<Long> ids, boolean disabled) {}
-    int execute(Command command);
+    int execute(Command command, Long actorUserId);
 }

@@ -7,11 +7,15 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.event.DiscountTargetsChangedEvent;
 import tj.radolfa.application.ports.in.discount.CreateDiscountUseCase;
 import tj.radolfa.application.ports.out.DiscountFilter;
+import tj.radolfa.application.ports.out.DiscountSnapshotPort;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.application.ports.out.LoadDiscountTypePort;
+import tj.radolfa.application.ports.out.SaveDiscountChangePort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
 import tj.radolfa.domain.exception.DiscountConflictException;
+import tj.radolfa.domain.model.ChangeType;
 import tj.radolfa.domain.model.Discount;
+import tj.radolfa.domain.model.DiscountChange;
 import tj.radolfa.domain.model.DiscountTarget;
 import tj.radolfa.domain.model.DiscountType;
 import tj.radolfa.domain.model.SkuTarget;
@@ -28,19 +32,25 @@ public class CreateDiscountService implements CreateDiscountUseCase {
     private final LoadDiscountPort loadDiscountPort;
     private final SaveDiscountPort saveDiscountPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final SaveDiscountChangePort saveDiscountChangePort;
+    private final DiscountSnapshotPort discountSnapshotPort;
 
     public CreateDiscountService(LoadDiscountTypePort loadDiscountTypePort,
                                  LoadDiscountPort loadDiscountPort,
                                  SaveDiscountPort saveDiscountPort,
-                                 ApplicationEventPublisher eventPublisher) {
+                                 ApplicationEventPublisher eventPublisher,
+                                 SaveDiscountChangePort saveDiscountChangePort,
+                                 DiscountSnapshotPort discountSnapshotPort) {
         this.loadDiscountTypePort = loadDiscountTypePort;
         this.loadDiscountPort = loadDiscountPort;
         this.saveDiscountPort = saveDiscountPort;
         this.eventPublisher = eventPublisher;
+        this.saveDiscountChangePort = saveDiscountChangePort;
+        this.discountSnapshotPort = discountSnapshotPort;
     }
 
     @Override
-    public Discount execute(Command command) {
+    public Discount execute(Command command, Long actorUserId) {
         DiscountType type = loadDiscountTypePort.findById(command.typeId())
                 .orElseThrow(() -> new IllegalArgumentException("Discount type not found: " + command.typeId()));
 
@@ -64,6 +74,8 @@ public class CreateDiscountService implements CreateDiscountUseCase {
                 command.couponCode()
         );
         Discount saved = saveDiscountPort.save(discount);
+        saveDiscountChangePort.save(new DiscountChange(null, saved.id(), ChangeType.CREATE,
+                null, discountSnapshotPort.toJson(saved), actorUserId, Instant.now()));
         eventPublisher.publishEvent(new DiscountTargetsChangedEvent(saved.targets()));
         return saved;
     }

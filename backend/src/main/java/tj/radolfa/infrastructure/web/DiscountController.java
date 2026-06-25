@@ -11,12 +11,14 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.discount.*;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.DiscountedProductFilter;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
+import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
 import tj.radolfa.infrastructure.web.dto.*;
 
 import java.math.BigDecimal;
@@ -112,7 +114,8 @@ public class DiscountController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public DiscountResponse create(@Valid @RequestBody CreateDiscountRequest request) {
+    public DiscountResponse create(@Valid @RequestBody CreateDiscountRequest request,
+                                   @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         return DiscountResponse.fromDomain(
                 createDiscountUseCase.execute(new CreateDiscountUseCase.Command(
                         request.typeId(),
@@ -122,13 +125,14 @@ public class DiscountController {
                         request.title(), request.colorHex(),
                         request.minBasketAmount(), request.usageCapTotal(),
                         request.usageCapPerCustomer(), request.couponCode()
-                )));
+                ), principal.userId()));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public DiscountResponse update(@PathVariable Long id,
-                                   @Valid @RequestBody UpdateDiscountRequest request) {
+                                   @Valid @RequestBody UpdateDiscountRequest request,
+                                   @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         return DiscountResponse.fromDomain(
                 updateDiscountUseCase.execute(new UpdateDiscountUseCase.Command(
                         id, request.typeId(),
@@ -138,21 +142,23 @@ public class DiscountController {
                         request.title(), request.colorHex(),
                         request.minBasketAmount(), request.usageCapTotal(),
                         request.usageCapPerCustomer(), request.couponCode()
-                )));
+                ), principal.userId()));
     }
 
     @PatchMapping("/{id}/disable")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public DiscountResponse disable(@PathVariable Long id) {
+    public DiscountResponse disable(@PathVariable Long id,
+                                    @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         return DiscountResponse.fromDomain(
-                disableDiscountUseCase.execute(new DisableDiscountUseCase.Command(id, true)));
+                disableDiscountUseCase.execute(new DisableDiscountUseCase.Command(id, true), principal.userId()));
     }
 
     @PatchMapping("/{id}/enable")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public DiscountResponse enable(@PathVariable Long id) {
+    public DiscountResponse enable(@PathVariable Long id,
+                                   @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         return DiscountResponse.fromDomain(
-                disableDiscountUseCase.execute(new DisableDiscountUseCase.Command(id, false)));
+                disableDiscountUseCase.execute(new DisableDiscountUseCase.Command(id, false), principal.userId()));
     }
 
     // ---- Discounted products view ----
@@ -199,17 +205,19 @@ public class DiscountController {
 
     @PatchMapping("/bulk/enable")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public Map<String, Integer> bulkEnable(@Valid @RequestBody BulkIdsRequest request) {
+    public Map<String, Integer> bulkEnable(@Valid @RequestBody BulkIdsRequest request,
+                                           @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         int affected = bulkToggleDiscountUseCase.execute(
-                new BulkToggleDiscountUseCase.Command(request.ids(), false));
+                new BulkToggleDiscountUseCase.Command(request.ids(), false), principal.userId());
         return Map.of("affected", affected);
     }
 
     @PatchMapping("/bulk/disable")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public Map<String, Integer> bulkDisable(@Valid @RequestBody BulkIdsRequest request) {
+    public Map<String, Integer> bulkDisable(@Valid @RequestBody BulkIdsRequest request,
+                                            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         int affected = bulkToggleDiscountUseCase.execute(
-                new BulkToggleDiscountUseCase.Command(request.ids(), true));
+                new BulkToggleDiscountUseCase.Command(request.ids(), true), principal.userId());
         return Map.of("affected", affected);
     }
 

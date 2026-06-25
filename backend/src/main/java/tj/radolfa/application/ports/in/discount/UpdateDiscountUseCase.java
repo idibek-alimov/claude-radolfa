@@ -26,5 +26,5 @@ public interface UpdateDiscountUseCase {
             String couponCode
     ) {}
 
-    Discount execute(Command command);
+    Discount execute(Command command, Long actorUserId);
 }

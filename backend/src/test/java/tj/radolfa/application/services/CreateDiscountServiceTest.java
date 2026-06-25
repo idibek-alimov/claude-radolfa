@@ -6,10 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import tj.radolfa.application.ports.in.discount.BulkToggleDiscountUseCase;
+import tj.radolfa.application.ports.in.discount.CreateDiscountUseCase;
 import tj.radolfa.application.ports.out.DiscountFilter;
 import tj.radolfa.application.ports.out.DiscountSnapshotPort;
 import tj.radolfa.application.ports.out.LoadDiscountPort;
+import tj.radolfa.application.ports.out.LoadDiscountTypePort;
 import tj.radolfa.application.ports.out.SaveDiscountChangePort;
 import tj.radolfa.application.ports.out.SaveDiscountPort;
 import tj.radolfa.domain.model.AmountType;
@@ -23,115 +24,76 @@ import tj.radolfa.domain.model.StackingPolicy;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class BulkToggleDiscountServiceTest {
+class CreateDiscountServiceTest {
 
-    private static final Long ACTOR_ID = 42L;
-
-    private FakeLoadDiscountPort fakeLoad;
-    private FakeSaveDiscountPort fakeSave;
-    private FakeSaveDiscountChangePort fakeChange;
-    private BulkToggleDiscountService service;
-
+    private static final Long ACTOR_ID = 7L;
     private static final DiscountType FLASH = new DiscountType(1L, "FLASH_SALE", 1, StackingPolicy.BEST_WINS);
     private static final Instant FROM = Instant.parse("2024-01-01T00:00:00Z");
     private static final Instant UPTO = Instant.parse("2099-12-31T00:00:00Z");
 
+    private FakeLoadDiscountTypePort fakeType;
+    private FakeLoadDiscountPort fakeLoad;
+    private FakeSaveDiscountPort fakeSave;
+    private FakeSaveDiscountChangePort fakeChange;
+    private CreateDiscountService service;
+
     @BeforeEach
     void setUp() {
+        fakeType = new FakeLoadDiscountTypePort();
+        fakeType.store(FLASH);
         fakeLoad = new FakeLoadDiscountPort();
         fakeSave = new FakeSaveDiscountPort();
         fakeChange = new FakeSaveDiscountChangePort();
-        service  = new BulkToggleDiscountService(fakeLoad, fakeSave, event -> {},
+        service = new CreateDiscountService(fakeType, fakeLoad, fakeSave, event -> {},
                 fakeChange, new FakeDiscountSnapshotPort());
     }
 
-    @Test
-    @DisplayName("Disables all given ids and returns count")
-    void execute_disable_returnsAffectedCount() {
-        fakeLoad.store(discount(1L, false), discount(2L, false));
-
-        int affected = service.execute(new BulkToggleDiscountUseCase.Command(List.of(1L, 2L), true), ACTOR_ID);
-
-        assertEquals(2, affected);
-        assertEquals(2, fakeSave.savedDiscounts.size());
-        assertTrue(fakeSave.savedDiscounts.stream().allMatch(Discount::disabled));
+    private static CreateDiscountUseCase.Command command() {
+        return new CreateDiscountUseCase.Command(
+                FLASH.id(), List.of(new SkuTarget("SKU-1")), AmountType.PERCENT, new BigDecimal("20.00"),
+                FROM, UPTO, "Flash Sale", "#FF0000", null, null, null, null);
     }
 
     @Test
-    @DisplayName("Enables all given ids and returns count")
-    void execute_enable_setsDisabledFalse() {
-        fakeLoad.store(discount(1L, true), discount(2L, true));
+    @DisplayName("Creating a discount writes one CREATE ledger row with oldValueJson=null")
+    void create_recordsLedgerRow_withNullOldValue() {
+        Discount created = service.execute(command(), ACTOR_ID);
 
-        int affected = service.execute(new BulkToggleDiscountUseCase.Command(List.of(1L, 2L), false), ACTOR_ID);
-
-        assertEquals(2, affected);
-        assertTrue(fakeSave.savedDiscounts.stream().noneMatch(Discount::disabled));
-    }
-
-    @Test
-    @DisplayName("Non-existent ids are silently skipped; affected count reflects only found ids")
-    void execute_nonExistentIds_skipped() {
-        fakeLoad.store(discount(1L, false));
-
-        int affected = service.execute(
-                new BulkToggleDiscountUseCase.Command(List.of(1L, 999L), true), ACTOR_ID);
-
-        assertEquals(1, affected);
-        assertEquals(1, fakeSave.savedDiscounts.size());
-    }
-
-    @Test
-    @DisplayName("Empty id list returns zero affected")
-    void execute_emptyIds_returnsZero() {
-        int affected = service.execute(new BulkToggleDiscountUseCase.Command(List.of(), false), ACTOR_ID);
-        assertEquals(0, affected);
-    }
-
-    // ---- Ledger capture ----
-
-    @Test
-    @DisplayName("Writes one UPDATE ledger row per found id, none for not-found ids, with the acting user")
-    void execute_recordsOneLedgerRowPerFoundId() {
-        fakeLoad.store(discount(1L, false), discount(2L, false));
-
-        service.execute(new BulkToggleDiscountUseCase.Command(List.of(1L, 2L, 999L), true), ACTOR_ID);
-
-        assertEquals(2, fakeChange.saved.size(), "one row per found id, none for the missing id");
-        for (DiscountChange change : fakeChange.saved) {
-            assertEquals(ChangeType.UPDATE, change.changeType());
-            assertEquals(ACTOR_ID, change.actorUserId());
-            assertNotNull(change.oldValueJson());
-            assertNotNull(change.newValueJson());
-        }
-    }
-
-    // ---- Helpers ----
-
-    private static Discount discount(Long id, boolean disabled) {
-        List<DiscountTarget> targets = List.of(new SkuTarget("SKU-" + id));
-        return new Discount(id, FLASH, targets, AmountType.PERCENT, new BigDecimal("10.00"),
-                FROM, UPTO, disabled, "Camp-" + id, "#FFFFFF", null, null, null, null);
+        assertEquals(1, fakeChange.saved.size());
+        DiscountChange change = fakeChange.saved.get(0);
+        assertEquals(created.id(), change.discountId());
+        assertEquals(ChangeType.CREATE, change.changeType());
+        assertNull(change.oldValueJson(), "no prior state exists on create");
+        assertNotNull(change.newValueJson());
+        assertEquals(ACTOR_ID, change.actorUserId());
+        assertNotNull(change.occurredAt());
     }
 
     // ---- Fakes ----
 
+    static class FakeLoadDiscountTypePort implements LoadDiscountTypePort {
+        private final Map<Long, DiscountType> store = new HashMap<>();
+        void store(DiscountType... types) { for (DiscountType t : types) store.put(t.id(), t); }
+        @Override public List<DiscountType> findAll() { return List.copyOf(store.values()); }
+        @Override public Optional<DiscountType> findById(Long id) { return Optional.ofNullable(store.get(id)); }
+        @Override public long countDiscountsByTypeId(Long typeId) { return 0; }
+    }
+
     static class FakeLoadDiscountPort implements LoadDiscountPort {
         private final Map<Long, Discount> store = new HashMap<>();
-
-        void store(Discount... discounts) {
-            for (Discount d : discounts) store.put(d.id(), d);
-        }
-
-        @Override
-        public Optional<Discount> findById(Long id) { return Optional.ofNullable(store.get(id)); }
-
+        void store(Discount... discounts) { for (Discount d : discounts) store.put(d.id(), d); }
+        @Override public Optional<Discount> findById(Long id) { return Optional.ofNullable(store.get(id)); }
         @Override public List<Discount> findActiveByItemCode(String c) { return List.of(); }
-        @Override public List<Discount> findActiveByItemCodes(Collection<String> c) { return List.of(); }
+        @Override public List<Discount> findActiveByItemCodes(java.util.Collection<String> c) { return List.of(); }
         @Override public List<Discount> findActiveWithAnyNonSkuTarget() { return List.of(); }
         @Override public Page<Discount> findAll(DiscountFilter f, Pageable p) {
             return new PageImpl<>(List.copyOf(store.values()), p, store.size());
