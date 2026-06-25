@@ -554,6 +554,22 @@
         "changedBy": "Изменил"
       },
       "empty": "Изменений цены пока нет."
+    },
+    "discountChangeLog": {
+      "title": "История изменений",
+      "tooltip": "История изменений",
+      "columns": {
+        "when": "Когда",
+        "type": "Тип",
+        "summary": "Сводка",
+        "changedBy": "Изменил"
+      },
+      "types": {
+        "create": "Создано",
+        "update": "Изменено"
+      },
+      "created": "Создано",
+      "empty": "Изменений пока нет."
     }
   },
   "profile": {

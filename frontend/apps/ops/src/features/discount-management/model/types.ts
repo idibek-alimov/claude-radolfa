@@ -158,3 +158,17 @@ export interface TopCampaignRow {
 export interface AnalyticsConfig {
   startDate: string; // ISO date yyyy-MM-dd
 }
+
+// ── Change log ────────────────────────────────────────────────────
+
+// Synced from backend DiscountChangeDto — do not edit manually
+/** One row of a discount's append-only create/edit audit trail (MANAGER/ADMIN). */
+export interface DiscountChangeLogEntry {
+  id: number;
+  discountId: number;
+  changeType: "CREATE" | "UPDATE";
+  oldValue: string | null; // JSON snapshot of prior amountType/amountValue/validFrom/validUpto/disabled/targets
+  newValue: string; // JSON snapshot of the resulting state
+  actorUserId: number | null;
+  occurredAt: string; // ISO instant
+}

@@ -5,12 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, History, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchDiscountById, createDiscount, updateDiscount } from "../api";
 import type { AmountType } from "../model/types";
 import { getErrorMessage } from "@radolfa/shared/lib/utils";
+import { Button } from "@radolfa/shared/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radolfa/shared/ui/tooltip";
 import { DiscountWizardStepper } from "./DiscountWizardStepper";
+import { DiscountChangeLogDrawer } from "./DiscountChangeLogDrawer";
 import { WizardFooter } from "@/features/product-creation/ui/WizardFooter";
 import { Step1Details } from "./wizard-steps/Step1Details";
 import { Step2Schedule } from "./wizard-steps/Step2Schedule";
@@ -134,6 +137,7 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
   const sourceId = editId ?? fromId;
 
   const [state, setState] = useState<DiscountWizardState>(DEFAULT_STATE);
+  const [changeLogOpen, setChangeLogOpen] = useState(false);
   const [initialized, setInitialized] = useState(!sourceId);
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -330,6 +334,24 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
         <span className="text-sm font-medium text-foreground truncate max-w-[320px]">
           {breadcrumbTitle}
         </span>
+        {isEdit && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => setChangeLogOpen(true)}
+                >
+                  <History className="h-3.5 w-3.5 mr-1.5" />
+                  Change Log
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View create/edit history for this discount</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </header>
 
       {/* Body: sidebar + main */}
@@ -405,6 +427,14 @@ export function DiscountCreationWizard({ editId, fromId }: Props) {
         submitLabel={isEdit ? "Save Changes" : "Create Discount"}
         sidebarOffset={260}
       />
+
+      {isEdit && (
+        <DiscountChangeLogDrawer
+          open={changeLogOpen}
+          onClose={() => setChangeLogOpen(false)}
+          discountId={editId ?? null}
+        />
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import type {
   DiscountMetrics,
   TopCampaignRow,
   AnalyticsConfig,
+  DiscountChangeLogEntry,
 } from "../model/types";
 import type { PaginatedResponse } from "@radolfa/shared/api/types";
 
@@ -258,4 +259,18 @@ export async function fetchCouponAvailable(
     { params: { code, excludeId } }
   );
   return data;
+}
+
+// ── Change log ─────────────────────────────────────────────────────
+
+/** GET /api/v1/admin/discounts/{id}/change-log — MANAGER+, append-only create/edit audit trail */
+export async function fetchDiscountChangeLog(
+  id: number,
+  { page, size = 20 }: { page: number; size?: number }
+): Promise<PaginatedResponse<DiscountChangeLogEntry>> {
+  const response = await apiClient.get<PaginatedResponse<DiscountChangeLogEntry>>(
+    `/api/v1/admin/discounts/${id}/change-log`,
+    { params: { page, size } }
+  );
+  return response.data;
 }

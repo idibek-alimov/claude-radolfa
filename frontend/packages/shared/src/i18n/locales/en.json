@@ -554,6 +554,22 @@
         "changedBy": "Changed by"
       },
       "empty": "No price changes yet."
+    },
+    "discountChangeLog": {
+      "title": "Change Log",
+      "tooltip": "Change log",
+      "columns": {
+        "when": "When",
+        "type": "Type",
+        "summary": "Summary",
+        "changedBy": "Changed by"
+      },
+      "types": {
+        "create": "Created",
+        "update": "Updated"
+      },
+      "created": "Created",
+      "empty": "No changes recorded yet."
     }
   },
   "profile": {

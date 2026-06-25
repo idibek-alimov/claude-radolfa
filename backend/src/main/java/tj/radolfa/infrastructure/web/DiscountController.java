@@ -43,6 +43,7 @@ public class DiscountController {
     private final GetDiscountMetricsUseCase getDiscountMetricsUseCase;
     private final GetTopCampaignsUseCase getTopCampaignsUseCase;
     private final CheckCouponAvailabilityUseCase checkCouponAvailabilityUseCase;
+    private final GetDiscountChangeLogUseCase getDiscountChangeLogUseCase;
     private final LocalDate analyticsStartDate;
     private final boolean couponsEnabled;
 
@@ -58,6 +59,7 @@ public class DiscountController {
                               GetDiscountMetricsUseCase getDiscountMetricsUseCase,
                               GetTopCampaignsUseCase getTopCampaignsUseCase,
                               CheckCouponAvailabilityUseCase checkCouponAvailabilityUseCase,
+                              GetDiscountChangeLogUseCase getDiscountChangeLogUseCase,
                               @Value("${radolfa.analytics.start-date}") LocalDate analyticsStartDate,
                               @Value("${radolfa.discount.coupons.enabled:true}") boolean couponsEnabled) {
         this.loadDiscountPort = loadDiscountPort;
@@ -72,6 +74,7 @@ public class DiscountController {
         this.getDiscountMetricsUseCase = getDiscountMetricsUseCase;
         this.getTopCampaignsUseCase = getTopCampaignsUseCase;
         this.checkCouponAvailabilityUseCase = checkCouponAvailabilityUseCase;
+        this.getDiscountChangeLogUseCase = getDiscountChangeLogUseCase;
         this.analyticsStartDate = analyticsStartDate;
         this.couponsEnabled = couponsEnabled;
     }
@@ -85,6 +88,17 @@ public class DiscountController {
                 .toList());
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                 filtered.isEmpty() ? Sort.by("id") : filtered);
+    }
+
+    private static final Set<String> ALLOWED_CHANGE_LOG_SORT = Set.of(
+            "id", "occurredAt", "changeType");
+
+    private Pageable sanitizeChangeLog(Pageable pageable) {
+        Sort filtered = Sort.by(pageable.getSort().stream()
+                .filter(o -> ALLOWED_CHANGE_LOG_SORT.contains(o.getProperty()))
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                filtered.isEmpty() ? Sort.by(Sort.Direction.DESC, "occurredAt") : filtered);
     }
 
     // ---- Campaign list ----
@@ -271,5 +285,16 @@ public class DiscountController {
         if (!couponsEnabled) return org.springframework.http.ResponseEntity.notFound().build();
         return org.springframework.http.ResponseEntity.ok(
                 new CouponAvailabilityResponse(checkCouponAvailabilityUseCase.isAvailable(code, excludeId)));
+    }
+
+    // ---- Change log ----
+
+    @GetMapping("/{id}/change-log")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Page<DiscountChangeDto> getChangeLog(
+            @PathVariable Long id,
+            @PageableDefault(size = 20, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return getDiscountChangeLogUseCase.execute(id, sanitizeChangeLog(pageable))
+                .map(DiscountChangeDto::from);
     }
 }
