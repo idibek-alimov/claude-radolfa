@@ -42,6 +42,12 @@ public record LoyaltyLedgerEntry(
         /** ADMIN user who initiated a manual adjustment; {@code null} for system movements. */
         Long actorUserId,
 
+        /**
+         * Optional free-text note provided by the ADMIN for a manual adjustment.
+         * {@code null} for system-generated movements.
+         */
+        String note,
+
         /** For debit rows: the credit lot this draw came from; {@code null} for credit rows. */
         Long sourceLotId,
 
@@ -63,4 +69,18 @@ public record LoyaltyLedgerEntry(
 
         /** When this row was created. */
         Instant createdAt
-) {}
+) {
+    /**
+     * Convenience constructor for system-generated movements (note = {@code null}).
+     *
+     * <p>Existing call sites that pre-date the {@code note} field use this form;
+     * only ADMIN manual-adjustment paths pass a note explicitly via the canonical constructor.
+     */
+    public LoyaltyLedgerEntry(Long id, Long userId, int delta, LoyaltyReason reason,
+                               Long orderId, Long actorUserId,
+                               Long sourceLotId, Integer remainingPoints,
+                               Instant expiresAt, int balanceAfter, Instant createdAt) {
+        this(id, userId, delta, reason, orderId, actorUserId, null,
+             sourceLotId, remainingPoints, expiresAt, balanceAfter, createdAt);
+    }
+}

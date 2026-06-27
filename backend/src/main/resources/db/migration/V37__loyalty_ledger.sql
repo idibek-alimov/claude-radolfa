@@ -19,6 +19,7 @@ CREATE TABLE loyalty_ledger (
     reason           VARCHAR(24)  NOT NULL,          -- LoyaltyReason
     order_id         BIGINT       REFERENCES orders(id) ON DELETE SET NULL,
     actor_user_id    BIGINT       REFERENCES users(id) ON DELETE SET NULL, -- manual adjust
+    note             VARCHAR(255),                                -- free-text note for manual adjustments
     source_lot_id    BIGINT       REFERENCES loyalty_ledger(id),  -- debit -> credit row drawn from
     remaining_points INTEGER,                        -- credit rows only; decremented on consume/expire
     expires_at       TIMESTAMPTZ,                    -- credit rows only; NULL = never

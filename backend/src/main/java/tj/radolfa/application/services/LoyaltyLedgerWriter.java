@@ -59,12 +59,21 @@ public class LoyaltyLedgerWriter {
      */
     public int credit(Long userId, int amount, LoyaltyReason reason,
                       Long orderId, Long actorUserId, int currentBalance, int ttlMonths) {
+        return credit(userId, amount, reason, orderId, actorUserId, currentBalance, ttlMonths, null);
+    }
+
+    /**
+     * Overload that also records a free-text {@code note} (for ADMIN manual adjustments).
+     */
+    public int credit(Long userId, int amount, LoyaltyReason reason,
+                      Long orderId, Long actorUserId, int currentBalance, int ttlMonths, String note) {
         int newBalance  = currentBalance + amount;
         Instant now       = Instant.now();
         Instant expiresAt = calculator.expiresAt(now, ttlMonths);
         saveLedgerPort.append(new LoyaltyLedgerEntry(
                 null, userId, amount, reason,
                 orderId, actorUserId,
+                note,
                 null,        // sourceLotId — null for credit rows
                 amount,      // remainingPoints = full delta on creation
                 expiresAt,
@@ -92,6 +101,14 @@ public class LoyaltyLedgerWriter {
      */
     public DebitResult debit(Long userId, int amount, LoyaltyReason reason,
                               Long orderId, Long actorUserId, int currentBalance) {
+        return debit(userId, amount, reason, orderId, actorUserId, currentBalance, null);
+    }
+
+    /**
+     * Overload that also records a free-text {@code note} (for ADMIN manual adjustments).
+     */
+    public DebitResult debit(Long userId, int amount, LoyaltyReason reason,
+                              Long orderId, Long actorUserId, int currentBalance, String note) {
         List<LoyaltyLedgerEntry> liveLots = loadLedgerPort.findLiveLots(userId);
         List<LotDraw> draws = calculator.planConsumption(liveLots, amount);
 
@@ -101,6 +118,7 @@ public class LoyaltyLedgerWriter {
             saveLedgerPort.append(new LoyaltyLedgerEntry(
                     null, userId, -draw.drawAmount(), reason,
                     orderId, actorUserId,
+                    note,
                     draw.lotId(),  // sourceLotId — links to the credit row consumed
                     null,          // remainingPoints — null for debit rows
                     null,          // expiresAt — null for debit rows

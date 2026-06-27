@@ -43,6 +43,9 @@ public class LoyaltyLedgerEntity {
     @Column(name = "actor_user_id")
     private Long actorUserId;
 
+    @Column(name = "note", length = 255)
+    private String note;
+
     @Column(name = "source_lot_id")
     private Long sourceLotId;
 

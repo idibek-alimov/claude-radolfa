@@ -3,18 +3,28 @@ package tj.radolfa.infrastructure.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.ChangeUserRoleUseCase;
 import tj.radolfa.application.ports.in.ListUsersUseCase;
 import tj.radolfa.application.ports.in.ToggleUserStatusUseCase;
 import tj.radolfa.application.ports.in.UpdateUserProfileUseCase;
+import tj.radolfa.application.ports.in.loyalty.AdjustLoyaltyPointsUseCase;
 import tj.radolfa.application.ports.in.loyalty.AssignUserTierUseCase;
+import tj.radolfa.application.ports.in.loyalty.GetLoyaltyLedgerUseCase;
 import tj.radolfa.application.ports.in.loyalty.ToggleLoyaltyPermanentUseCase;
 import tj.radolfa.application.ports.in.notification.GetNotificationPrefsUseCase;
 import tj.radolfa.application.ports.in.notification.UpdateNotificationPrefsUseCase;
@@ -30,6 +40,7 @@ import tj.radolfa.infrastructure.security.RateLimitProperties;
 import tj.radolfa.infrastructure.security.RateLimiterService;
 import tj.radolfa.infrastructure.web.dto.AssignTierRequestDto;
 import tj.radolfa.infrastructure.web.dto.ChangeUserRoleRequestDto;
+import tj.radolfa.infrastructure.web.dto.LoyaltyLedgerDto;
 import tj.radolfa.infrastructure.web.dto.MessageResponseDto;
 import tj.radolfa.infrastructure.web.dto.NotificationPrefsDto;
 import tj.radolfa.infrastructure.web.dto.NotificationPrefsRequestDto;
@@ -44,21 +55,26 @@ import tj.radolfa.infrastructure.web.dto.UserDto;
 @Tag(name = "Users", description = "User management endpoints")
 public class UserController {
 
-    private final UpdateUserProfileUseCase    updateUserProfileUseCase;
-    private final ListUsersUseCase            listUsersUseCase;
-    private final ToggleUserStatusUseCase     toggleUserStatusUseCase;
-    private final ChangeUserRoleUseCase       changeUserRoleUseCase;
-    private final LoadUserPort                loadUserPort;
-    private final LoadPickpointPort           loadPickpointPort;
-    private final GetRecentEarningsService    getRecentEarningsService;
-    private final AssignUserTierUseCase       assignUserTierUseCase;
-    private final ToggleLoyaltyPermanentUseCase toggleLoyaltyPermanentUseCase;
-    private final GetNotificationPrefsUseCase getNotificationPrefsUseCase;
+    private static final Set<String> ALLOWED_LEDGER_SORT =
+            Set.of("id", "createdAt", "delta", "reason");
+
+    private final UpdateUserProfileUseCase       updateUserProfileUseCase;
+    private final ListUsersUseCase               listUsersUseCase;
+    private final ToggleUserStatusUseCase        toggleUserStatusUseCase;
+    private final ChangeUserRoleUseCase          changeUserRoleUseCase;
+    private final LoadUserPort                   loadUserPort;
+    private final LoadPickpointPort              loadPickpointPort;
+    private final GetRecentEarningsService       getRecentEarningsService;
+    private final AssignUserTierUseCase          assignUserTierUseCase;
+    private final ToggleLoyaltyPermanentUseCase  toggleLoyaltyPermanentUseCase;
+    private final GetNotificationPrefsUseCase    getNotificationPrefsUseCase;
     private final UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase;
-    private final RequestPhoneChangeUseCase  requestPhoneChangeUseCase;
-    private final ConfirmPhoneChangeUseCase  confirmPhoneChangeUseCase;
-    private final RateLimiterService         rateLimiter;
-    private final RateLimitProperties        rateLimitProps;
+    private final RequestPhoneChangeUseCase      requestPhoneChangeUseCase;
+    private final ConfirmPhoneChangeUseCase      confirmPhoneChangeUseCase;
+    private final GetLoyaltyLedgerUseCase        getLoyaltyLedgerUseCase;
+    private final AdjustLoyaltyPointsUseCase     adjustLoyaltyPointsUseCase;
+    private final RateLimiterService             rateLimiter;
+    private final RateLimitProperties            rateLimitProps;
 
     public UserController(UpdateUserProfileUseCase updateUserProfileUseCase,
                           ListUsersUseCase listUsersUseCase,
@@ -73,6 +89,8 @@ public class UserController {
                           UpdateNotificationPrefsUseCase updateNotificationPrefsUseCase,
                           RequestPhoneChangeUseCase requestPhoneChangeUseCase,
                           ConfirmPhoneChangeUseCase confirmPhoneChangeUseCase,
+                          GetLoyaltyLedgerUseCase getLoyaltyLedgerUseCase,
+                          AdjustLoyaltyPointsUseCase adjustLoyaltyPointsUseCase,
                           RateLimiterService rateLimiter,
                           RateLimitProperties rateLimitProps) {
         this.updateUserProfileUseCase         = updateUserProfileUseCase;
@@ -88,6 +106,8 @@ public class UserController {
         this.updateNotificationPrefsUseCase   = updateNotificationPrefsUseCase;
         this.requestPhoneChangeUseCase        = requestPhoneChangeUseCase;
         this.confirmPhoneChangeUseCase        = confirmPhoneChangeUseCase;
+        this.getLoyaltyLedgerUseCase          = getLoyaltyLedgerUseCase;
+        this.adjustLoyaltyPointsUseCase       = adjustLoyaltyPointsUseCase;
         this.rateLimiter                      = rateLimiter;
         this.rateLimitProps                   = rateLimitProps;
     }
@@ -267,5 +287,45 @@ public class UserController {
             @RequestParam boolean permanent) {
         var updatedUser = toggleLoyaltyPermanentUseCase.execute(id, permanent);
         return ResponseEntity.ok(UserDto.fromDomain(updatedUser));
+    }
+
+    // ── Loyalty ledger ────────────────────────────────────────────────────────
+
+    @GetMapping("/{id}/loyalty-ledger")
+    @Operation(summary = "Get a user's loyalty points history (MANAGER + ADMIN)")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public Page<LoyaltyLedgerDto> getLoyaltyLedger(
+            @PathVariable Long id,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return getLoyaltyLedgerUseCase.execute(id, sanitizeLedger(pageable))
+                .map(LoyaltyLedgerDto::from);
+    }
+
+    @PostMapping("/{id}/loyalty-adjustment")
+    @Operation(summary = "Manually credit or debit a user's loyalty points balance (ADMIN only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LoyaltyAdjustmentResultDto> adjustLoyaltyPoints(
+            @PathVariable Long id,
+            @Valid @RequestBody AdjustPointsRequest request,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
+        int newBalance = adjustLoyaltyPointsUseCase.execute(
+                new AdjustLoyaltyPointsUseCase.Command(id, request.delta(), request.reason(), principal.userId()));
+        return ResponseEntity.ok(new LoyaltyAdjustmentResultDto(newBalance));
+    }
+
+    // ── Request / response records ────────────────────────────────────────────
+
+    record AdjustPointsRequest(@NotNull Integer delta, @NotBlank String reason) {}
+
+    record LoyaltyAdjustmentResultDto(int balance) {}
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private Pageable sanitizeLedger(Pageable pageable) {
+        Sort filtered = Sort.by(pageable.getSort().stream()
+                .filter(o -> ALLOWED_LEDGER_SORT.contains(o.getProperty()))
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                filtered.isEmpty() ? Sort.by(Sort.Direction.DESC, "createdAt") : filtered);
     }
 }

@@ -183,11 +183,15 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
-                                                // Loyalty tier management
+                                                // Loyalty tier management + ledger ops
                                                 // ============================================================
                                                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/loyalty-permanent")
                                                 .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/users/*/loyalty-adjustment")
+                                                .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/tier")
+                                                .hasAnyRole("MANAGER", "ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/users/*/loyalty-ledger")
                                                 .hasAnyRole("MANAGER", "ADMIN")
 
                                                 // ============================================================
