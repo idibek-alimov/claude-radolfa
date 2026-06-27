@@ -3,14 +3,21 @@ package tj.radolfa.application.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.application.ports.out.LoadLoyaltyLedgerPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
+import tj.radolfa.application.ports.out.SaveLoyaltyLedgerPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
+import tj.radolfa.domain.model.LoyaltyLedgerEntry;
 import tj.radolfa.domain.model.LoyaltyProfile;
+import tj.radolfa.domain.model.LoyaltyReason;
 import tj.radolfa.domain.model.PhoneNumber;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.domain.model.UserRole;
+import tj.radolfa.domain.service.LoyaltyCalculator;
 import tj.radolfa.infrastructure.config.LoyaltyRewardProperties;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,13 +29,19 @@ class AwardReviewBonusServiceTest {
     private FakeSaveUserPort fakeSave;
     private AwardReviewBonusService service;
 
-    private static final int REWARD = 50;
+    private static final int REWARD     = 50;
+    private static final int TTL_MONTHS = 12;
+
+    private FakeLedgerPort fakeLedger;
 
     @BeforeEach
     void setUp() {
-        fakeLoad = new FakeLoadUserPort();
-        fakeSave = new FakeSaveUserPort();
-        service  = new AwardReviewBonusService(fakeLoad, fakeSave, new LoyaltyRewardProperties(REWARD));
+        fakeLoad   = new FakeLoadUserPort();
+        fakeSave   = new FakeSaveUserPort();
+        fakeLedger = new FakeLedgerPort();
+        LoyaltyLedgerWriter writer = new LoyaltyLedgerWriter(fakeLedger, fakeLedger, new LoyaltyCalculator());
+        service = new AwardReviewBonusService(fakeLoad, fakeSave,
+                new LoyaltyRewardProperties(REWARD, TTL_MONTHS), writer);
     }
 
     @Test
@@ -74,6 +87,21 @@ class AwardReviewBonusServiceTest {
         assertNull(fakeSave.saved);
     }
 
+    @Test
+    @DisplayName("Appends one REVIEW_BONUS ledger row with correct delta and balance_after")
+    void execute_appendsLedgerRow() {
+        fakeLoad.user = userWithPoints(100);
+
+        service.execute(1L);
+
+        assertEquals(1, fakeLedger.appended.size());
+        LoyaltyLedgerEntry row = fakeLedger.appended.get(0);
+        assertEquals(LoyaltyReason.REVIEW_BONUS, row.reason());
+        assertEquals(REWARD, row.delta());
+        assertEquals(100 + REWARD, row.balanceAfter());
+        assertNotNull(row.expiresAt(), "credit lot must have an expiry");
+    }
+
     // =========================================================
     //  Helpers
     // =========================================================
@@ -110,5 +138,35 @@ class AwardReviewBonusServiceTest {
             saved = user;
             return user;
         }
+    }
+
+    static class FakeLedgerPort implements SaveLoyaltyLedgerPort, LoadLoyaltyLedgerPort {
+        final List<LoyaltyLedgerEntry> appended = new ArrayList<>();
+        private long nextId = 1L;
+
+        @Override
+        public LoyaltyLedgerEntry append(LoyaltyLedgerEntry entry) {
+            LoyaltyLedgerEntry saved = new LoyaltyLedgerEntry(
+                    nextId++, entry.userId(), entry.delta(), entry.reason(),
+                    entry.orderId(), entry.actorUserId(), entry.sourceLotId(),
+                    entry.remainingPoints(), entry.expiresAt(), entry.balanceAfter(), Instant.now());
+            appended.add(saved);
+            return saved;
+        }
+
+        @Override
+        public void updateRemaining(Long lotId, int newRemaining) { /* no-op for these tests */ }
+
+        @Override
+        public org.springframework.data.domain.Page<LoyaltyLedgerEntry> findByUserId(
+                Long userId, org.springframework.data.domain.Pageable pageable) {
+            return org.springframework.data.domain.Page.empty();
+        }
+
+        @Override
+        public List<LoyaltyLedgerEntry> findLiveLots(Long userId) { return List.of(); }
+
+        @Override
+        public List<LoyaltyLedgerEntry> findExpiredLots(Instant now) { return List.of(); }
     }
 }

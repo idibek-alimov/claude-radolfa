@@ -118,6 +118,7 @@ radolfa:
     start-date: 2026-04-19
   loyalty:
     review-reward-points: 50
+    points-ttl-months: 12
   discount:
     coupons:
       enabled: ${DISCOUNT_COUPONS_ENABLED:true}

@@ -3,11 +3,17 @@ package tj.radolfa.domain.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tj.radolfa.domain.model.LotDraw;
+import tj.radolfa.domain.model.LoyaltyLedgerEntry;
 import tj.radolfa.domain.model.LoyaltyProfile;
+import tj.radolfa.domain.model.LoyaltyReason;
 import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.Money;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -278,9 +284,119 @@ class LoyaltyCalculatorTest {
         assertThat(result.permanent()).isTrue();
     }
 
+    // ── planConsumption ───────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("planConsumption — exact single-lot match draws the whole lot")
+    void planConsumption_exactSingleLot() {
+        LoyaltyLedgerEntry lot = creditLot(10L, 100);
+        List<LotDraw> plan = calculator.planConsumption(List.of(lot), 100);
+
+        assertThat(plan).hasSize(1);
+        assertThat(plan.get(0).lotId()).isEqualTo(10L);
+        assertThat(plan.get(0).drawAmount()).isEqualTo(100);
+        assertThat(plan.get(0).newRemaining()).isZero();
+    }
+
+    @Test
+    @DisplayName("planConsumption — partial draw from one lot")
+    void planConsumption_partialSingleLot() {
+        LoyaltyLedgerEntry lot = creditLot(20L, 200);
+        List<LotDraw> plan = calculator.planConsumption(List.of(lot), 50);
+
+        assertThat(plan).hasSize(1);
+        assertThat(plan.get(0).drawAmount()).isEqualTo(50);
+        assertThat(plan.get(0).newRemaining()).isEqualTo(150);
+    }
+
+    @Test
+    @DisplayName("planConsumption — spanning multiple lots drains oldest first")
+    void planConsumption_spanningMultipleLots() {
+        // FIFO: lot A (oldest) = 100 pts, lot B = 50 pts; request 120
+        LoyaltyLedgerEntry lotA = creditLot(1L, 100);
+        LoyaltyLedgerEntry lotB = creditLot(2L, 50);
+
+        List<LotDraw> plan = calculator.planConsumption(List.of(lotA, lotB), 120);
+
+        assertThat(plan).hasSize(2);
+        // Lot A fully consumed (100)
+        assertThat(plan.get(0).lotId()).isEqualTo(1L);
+        assertThat(plan.get(0).drawAmount()).isEqualTo(100);
+        assertThat(plan.get(0).newRemaining()).isZero();
+        // Lot B partially consumed (20 of 50)
+        assertThat(plan.get(1).lotId()).isEqualTo(2L);
+        assertThat(plan.get(1).drawAmount()).isEqualTo(20);
+        assertThat(plan.get(1).newRemaining()).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("planConsumption — exact total across two lots produces no remainder")
+    void planConsumption_exactTotalAcrossLots() {
+        LoyaltyLedgerEntry lotA = creditLot(1L, 60);
+        LoyaltyLedgerEntry lotB = creditLot(2L, 40);
+
+        List<LotDraw> plan = calculator.planConsumption(List.of(lotA, lotB), 100);
+
+        assertThat(plan).hasSize(2);
+        assertThat(plan.get(0).newRemaining()).isZero();
+        assertThat(plan.get(1).newRemaining()).isZero();
+        int totalDrawn = plan.stream().mapToInt(LotDraw::drawAmount).sum();
+        assertThat(totalDrawn).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("planConsumption — over-balance throws IllegalArgumentException")
+    void planConsumption_overBalance_throws() {
+        LoyaltyLedgerEntry lot = creditLot(1L, 50);
+
+        assertThatThrownBy(() -> calculator.planConsumption(List.of(lot), 100))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("short by 50");
+    }
+
+    @Test
+    @DisplayName("planConsumption — amount <= 0 throws IllegalArgumentException")
+    void planConsumption_nonPositiveAmount_throws() {
+        assertThatThrownBy(() -> calculator.planConsumption(List.of(), 0))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> calculator.planConsumption(List.of(), -5))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ── expiresAt ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("expiresAt — adds exact calendar months (not 30-day approximations)")
+    void expiresAt_addsCalendarMonths() {
+        // Use a known instant: 2026-06-27T00:00:00Z
+        Instant earnedAt = Instant.parse("2026-06-27T00:00:00Z");
+        Instant result   = calculator.expiresAt(earnedAt, 12);
+
+        // Should be exactly 2027-06-27T00:00:00Z
+        Instant expected = Instant.parse("2027-06-27T00:00:00Z");
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("expiresAt — respects month-end edge (e.g. Jan 31 + 1 month = Feb 28)")
+    void expiresAt_handlesMonthEnd() {
+        Instant jan31 = Instant.parse("2026-01-31T00:00:00Z");
+        Instant result = calculator.expiresAt(jan31, 1);
+
+        // Feb 2026 has 28 days
+        Instant expected = Instant.parse("2026-02-28T00:00:00Z");
+        assertThat(result).isEqualTo(expected);
+    }
+
     // ── Helper ────────────────────────────────────────────────────────────────
 
     private static Money money(String amount) {
         return new Money(new BigDecimal(amount));
+    }
+
+    /** Minimal credit lot entry for FIFO planner tests. */
+    private static LoyaltyLedgerEntry creditLot(Long id, int remaining) {
+        return new LoyaltyLedgerEntry(id, 1L, remaining, LoyaltyReason.EARN_CASHBACK,
+                null, null, null, remaining, null, remaining, Instant.now());
     }
 }

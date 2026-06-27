@@ -1,11 +1,16 @@
 package tj.radolfa.domain.service;
 
+import tj.radolfa.domain.model.LotDraw;
+import tj.radolfa.domain.model.LoyaltyLedgerEntry;
 import tj.radolfa.domain.model.LoyaltyProfile;
 import tj.radolfa.domain.model.LoyaltyTier;
 import tj.radolfa.domain.model.Money;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -218,6 +223,53 @@ public class LoyaltyCalculator {
                 BigDecimal.ZERO,      // reset for the new month
                 current.permanent(),
                 newFloor);
+    }
+
+    // ── FIFO Planner ──────────────────────────────────────────────────────────
+
+    /**
+     * Produces a FIFO consumption plan: one {@link LotDraw} per credit lot touched,
+     * oldest lot first, until {@code amount} points are fully allocated.
+     *
+     * <p>Callers that floor at zero (e.g. revoke) must clamp {@code amount} to
+     * the available balance before calling so the lots can cover it.
+     *
+     * @param liveLotsFifo live credit lots for the user, ordered oldest {@code created_at} first
+     *                     (result of {@link tj.radolfa.application.ports.out.LoadLoyaltyLedgerPort#findLiveLots})
+     * @param amount       total points to consume (must be &gt; 0)
+     * @return ordered list of per-lot draws; never empty when amount &gt; 0 and lots cover it
+     * @throws IllegalArgumentException if {@code amount ≤ 0} or the lots cannot cover {@code amount}
+     */
+    public List<LotDraw> planConsumption(List<LoyaltyLedgerEntry> liveLotsFifo, int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("amount must be positive, got: " + amount);
+        }
+        List<LotDraw> plan = new ArrayList<>();
+        int remaining = amount;
+        for (LoyaltyLedgerEntry lot : liveLotsFifo) {
+            if (remaining == 0) break;
+            int draw = Math.min(lot.remainingPoints(), remaining);
+            if (draw <= 0) continue;
+            plan.add(new LotDraw(lot.id(), draw, lot.remainingPoints() - draw));
+            remaining -= draw;
+        }
+        if (remaining > 0) {
+            throw new IllegalArgumentException(
+                    "Insufficient live points to cover " + amount + "; short by " + remaining);
+        }
+        return plan;
+    }
+
+    /**
+     * Calculates the expiry instant for a credit lot earned at {@code earnedAt}.
+     * Uses calendar months (not 30-day approximations) anchored to UTC.
+     *
+     * @param earnedAt  when the lot was earned (usually {@code Instant.now()})
+     * @param ttlMonths configurable TTL in calendar months (e.g. 12)
+     * @return the instant at which this lot should expire
+     */
+    public Instant expiresAt(Instant earnedAt, int ttlMonths) {
+        return earnedAt.atZone(ZoneOffset.UTC).plusMonths(ttlMonths).toInstant();
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

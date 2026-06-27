@@ -7,6 +7,7 @@ import tj.radolfa.application.ports.in.loyalty.AwardReviewBonusUseCase;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveUserPort;
 import tj.radolfa.domain.model.LoyaltyProfile;
+import tj.radolfa.domain.model.LoyaltyReason;
 import tj.radolfa.domain.model.User;
 import tj.radolfa.infrastructure.config.LoyaltyRewardProperties;
 
@@ -15,16 +16,19 @@ import tj.radolfa.infrastructure.config.LoyaltyRewardProperties;
 @Transactional
 public class AwardReviewBonusService implements AwardReviewBonusUseCase {
 
-    private final LoadUserPort             loadUserPort;
-    private final SaveUserPort             saveUserPort;
-    private final LoyaltyRewardProperties  properties;
+    private final LoadUserPort            loadUserPort;
+    private final SaveUserPort            saveUserPort;
+    private final LoyaltyRewardProperties properties;
+    private final LoyaltyLedgerWriter     ledgerWriter;
 
     public AwardReviewBonusService(LoadUserPort loadUserPort,
                                    SaveUserPort saveUserPort,
-                                   LoyaltyRewardProperties properties) {
-        this.loadUserPort = loadUserPort;
-        this.saveUserPort = saveUserPort;
-        this.properties   = properties;
+                                   LoyaltyRewardProperties properties,
+                                   LoyaltyLedgerWriter ledgerWriter) {
+        this.loadUserPort  = loadUserPort;
+        this.saveUserPort  = saveUserPort;
+        this.properties    = properties;
+        this.ledgerWriter  = ledgerWriter;
     }
 
     @Override
@@ -33,11 +37,15 @@ public class AwardReviewBonusService implements AwardReviewBonusUseCase {
                 .orElseThrow(() -> new IllegalStateException("User not found: " + userId));
 
         LoyaltyProfile current = user.loyalty() != null ? user.loyalty() : LoyaltyProfile.empty();
-        int bonus = properties.reviewRewardPoints();
+        int bonus     = properties.reviewRewardPoints();
+        int oldPoints = current.points();
+
+        ledgerWriter.credit(userId, bonus, LoyaltyReason.REVIEW_BONUS,
+                null, null, oldPoints, properties.pointsTtlMonths());
 
         LoyaltyProfile updated = new LoyaltyProfile(
                 current.tier(),
-                current.points() + bonus,
+                oldPoints + bonus,
                 current.spendToNextTier(),
                 current.spendToMaintainTier(),
                 current.currentMonthSpending(),
