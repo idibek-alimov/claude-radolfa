@@ -1,5 +1,5 @@
 -- ================================================================
--- V32__dev_seed.sql
+-- V38__dev_seed.sql
 --
 -- DEV ONLY — Realistic seed data for local development.
 -- Only loaded when spring.flyway.locations includes
@@ -860,5 +860,24 @@ VALUES
      'HOME', 'Test User', '+992901234567', '12 Rudaki Avenue', 'Dushanbe', '734000', 'Tajikistan', TRUE),
     ((SELECT id FROM users WHERE phone = '+992901234567'),
      'WORK', 'Test User', '+992901234567', '45 Ismoili Somoni Avenue, Office 301', 'Dushanbe', '734001', 'Tajikistan', FALSE);
+
+-- ================================================================
+-- 13. LOYALTY LEDGER — opening balances
+-- ================================================================
+-- Seed one OPENING_BALANCE credit lot per user that has loyalty_points > 0.
+-- remaining_points mirrors the cached balance so SUM(delta) == loyalty_points.
+-- expires_at = 12 months from the migration date (2026-06-27).
+-- ----------------------------------------------------------------
+INSERT INTO loyalty_ledger (user_id, delta, reason, remaining_points, expires_at, balance_after, created_at)
+SELECT
+    u.id,
+    u.loyalty_points,
+    'OPENING_BALANCE',
+    u.loyalty_points,
+    TIMESTAMPTZ '2027-06-27 00:00:00+00',
+    u.loyalty_points,
+    NOW()
+FROM users u
+WHERE u.loyalty_points > 0;
 
 
