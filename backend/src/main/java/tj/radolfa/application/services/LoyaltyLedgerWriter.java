@@ -112,6 +112,32 @@ public class LoyaltyLedgerWriter {
     }
 
     /**
+     * Expires one specific credit lot: appends a single {@code EXPIRE} debit row and
+     * zeroes {@code remaining_points} on the lot.
+     *
+     * <p>Unlike {@link #debit} (which runs FIFO from the user's current balance), this
+     * method targets an already-identified expired lot returned by
+     * {@code LoadLoyaltyLedgerPort.findExpiredLots(now)}.
+     *
+     * @param lot            the expired credit lot (must have {@code remainingPoints > 0})
+     * @param currentBalance the user's balance before this expiry
+     * @return new balance ({@code currentBalance - lot.remainingPoints()})
+     */
+    public int expireLot(LoyaltyLedgerEntry lot, int currentBalance) {
+        int amount     = lot.remainingPoints();
+        int newBalance = currentBalance - amount;
+        saveLedgerPort.append(new LoyaltyLedgerEntry(
+                null, lot.userId(), -amount, LoyaltyReason.EXPIRE,
+                null, null,
+                lot.id(),  // sourceLotId — links back to the credit row being expired
+                null, null,
+                newBalance,
+                null));    // createdAt set by @PrePersist
+        saveLedgerPort.updateRemaining(lot.id(), 0);
+        return newBalance;
+    }
+
+    /**
      * Result of a FIFO debit operation.
      *
      * @param consumed   the total points consumed (= the {@code amount} argument)
