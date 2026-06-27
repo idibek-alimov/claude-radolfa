@@ -1,3 +1,29 @@
+// Synced from backend LoyaltyReason enum — do not edit manually
+export type LoyaltyReason =
+  | "EARN_CASHBACK"
+  | "REVIEW_BONUS"
+  | "REDEEM"
+  | "RESTORE"
+  | "REVOKE"
+  | "EXPIRE"
+  | "MANUAL_ADJUSTMENT"
+  | "OPENING_BALANCE";
+
+// Synced from backend LoyaltyLedgerDto — do not edit manually
+export interface LoyaltyLedgerEntry {
+  id: number;
+  userId: number;
+  delta: number;
+  reason: LoyaltyReason;
+  orderId: number | null;
+  actorUserId: number | null;
+  note: string | null;
+  remainingPoints: number | null;
+  expiresAt: string | null;   // ISO instant, nullable (debit rows + never-expire credits)
+  balanceAfter: number;
+  createdAt: string;           // ISO instant
+}
+
 /**
  * Loyalty tier definition.
  * Returned by GET /api/v1/loyalty-tiers.

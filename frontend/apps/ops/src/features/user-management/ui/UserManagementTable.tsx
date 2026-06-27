@@ -34,9 +34,11 @@ import { Skeleton } from "@radolfa/shared/ui/skeleton";
 import { getErrorMessage, useDynamicPageSize } from "@radolfa/shared/lib";
 import {
   Search, ShieldCheck, ShieldOff, ChevronLeft, ChevronRight,
-  Lock, Plus, Pencil, Truck,
+  Lock, Plus, Pencil, Truck, History,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@radolfa/shared/ui/tooltip";
 import { ManageUserDialog } from "./ManageUserDialog";
+import { UserPointsHistoryDrawer } from "./UserPointsHistoryDrawer";
 import { CreateCourierDialog } from "./CreateCourierDialog";
 import { CreatePickpointStaffDialog } from "./CreatePickpointStaffDialog";
 import { EditCourierDialog } from "./EditCourierDialog";
@@ -71,6 +73,7 @@ export function UserManagementTable({ variant }: Props) {
 
   const [page, setPage] = useState(1);
   const [managingUser, setManagingUser] = useState<UserDto | null>(null);
+  const [historyUser, setHistoryUser] = useState<{ id: number; name: string } | null>(null);
   const [editingCourier, setEditingCourier] = useState<UserDto | null>(null);
   const [editingStaff, setEditingStaff] = useState<UserDto | null>(null);
   const [showCreateCourier, setShowCreateCourier] = useState(false);
@@ -289,6 +292,26 @@ export function UserManagementTable({ variant }: Props) {
                         </Button>
                       )}
                       {variant === "customers" && currentUser &&
+                        (ROLE_RANK[currentUser.role] ?? 0) >= ROLE_RANK["MANAGER"] && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setHistoryUser({
+                                    id: user.id,
+                                    name: user.name || user.phone,
+                                  })
+                                }
+                              >
+                                <History className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Points history</TooltipContent>
+                          </Tooltip>
+                        )}
+                      {variant === "customers" && currentUser &&
                         (ROLE_RANK[currentUser.role] ?? 0) >= ROLE_RANK["MANAGER"] &&
                         currentUser.id !== user.id && (
                           <Button variant="ghost" size="sm" onClick={() => setManagingUser(user)}>
@@ -321,6 +344,13 @@ export function UserManagementTable({ variant }: Props) {
           callerId={currentUser.id}
         />
       )}
+
+      <UserPointsHistoryDrawer
+        open={historyUser !== null}
+        onClose={() => setHistoryUser(null)}
+        userId={historyUser?.id ?? null}
+        userName={historyUser?.name}
+      />
 
       {showCreateCourier && (
         <CreateCourierDialog open={showCreateCourier} onClose={() => setShowCreateCourier(false)} />

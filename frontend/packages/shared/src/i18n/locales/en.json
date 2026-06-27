@@ -570,6 +570,37 @@
       },
       "created": "Created",
       "empty": "No changes recorded yet."
+    },
+    "pointsHistory": {
+      "title": "Points History",
+      "tooltip": "Points history",
+      "columns": {
+        "when": "When",
+        "change": "Change",
+        "reason": "Reason",
+        "balance": "Balance",
+        "expires": "Expires",
+        "by": "By"
+      },
+      "reasons": {
+        "earnCashback": "Cashback",
+        "reviewBonus": "Review",
+        "redeem": "Redeem",
+        "restore": "Restore",
+        "revoke": "Revoke",
+        "expire": "Expired",
+        "manualAdjustment": "Adjustment",
+        "openingBalance": "Opening"
+      },
+      "empty": "No loyalty point movements yet.",
+      "adjust": {
+        "title": "Manual Adjustment (ADMIN)",
+        "deltaLabel": "Delta (+ credit / − debit)",
+        "reasonLabel": "Reason (required)",
+        "submit": "Apply",
+        "submitting": "Applying…",
+        "success": "Adjustment applied. New balance: {balance} pts"
+      }
     }
   },
   "profile": {

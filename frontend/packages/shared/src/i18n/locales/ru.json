@@ -570,6 +570,37 @@
       },
       "created": "Создано",
       "empty": "Изменений пока нет."
+    },
+    "pointsHistory": {
+      "title": "История баллов",
+      "tooltip": "История баллов",
+      "columns": {
+        "when": "Когда",
+        "change": "Изменение",
+        "reason": "Причина",
+        "balance": "Баланс",
+        "expires": "Истекает",
+        "by": "Кем"
+      },
+      "reasons": {
+        "earnCashback": "Кэшбэк",
+        "reviewBonus": "Отзыв",
+        "redeem": "Списание",
+        "restore": "Возврат",
+        "revoke": "Отзыв баллов",
+        "expire": "Истёк",
+        "manualAdjustment": "Корректировка",
+        "openingBalance": "Начальный"
+      },
+      "empty": "Движений по баллам пока нет.",
+      "adjust": {
+        "title": "Ручная корректировка (ADMIN)",
+        "deltaLabel": "Дельта (+ начисление / − списание)",
+        "reasonLabel": "Причина (обязательно)",
+        "submit": "Применить",
+        "submitting": "Применяется…",
+        "success": "Корректировка применена. Новый баланс: {balance} балл(ов)"
+      }
     }
   },
   "profile": {
