@@ -9,6 +9,7 @@ public class PaymentConfirmationContext {
     public Payment payment;          // populated by MarkPaymentCompletedStep
     public Order   order;            // populated by MarkOrderPaidStep
     public boolean loyaltyAwarded;   // set by AwardLoyaltyPointsStep
+    public int     awardedPoints;    // cashback credited by AwardLoyaltyPointsStep; used by compensate()
     public boolean cartFinalized;    // set by FinalizeCartStep
 
     public PaymentConfirmationContext(String providerTransactionId) {
