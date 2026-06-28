@@ -133,6 +133,23 @@ public class Cart {
         touch();
     }
 
+    /**
+     * Re-opens a checked-out cart back to {@link CartStatus#ACTIVE}.
+     *
+     * <p>Called by the saga compensation path when payment confirmation fails after the
+     * finalize step has already committed. The user can then retry checkout normally.
+     *
+     * @throws IllegalStateException if the cart is not in {@link CartStatus#CHECKED_OUT} state.
+     */
+    public void reopen() {
+        if (status != CartStatus.CHECKED_OUT) {
+            throw new IllegalStateException(
+                    "Cart is not checked out (status=" + status + "). Cannot reopen.");
+        }
+        this.status = CartStatus.ACTIVE;
+        touch();
+    }
+
     /** Transitions status to {@link CartStatus#ABANDONED}. */
     public void abandon() {
         this.status = CartStatus.ABANDONED;
