@@ -5,12 +5,14 @@ import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.application.ports.out.SaveOrderStatusChangePort;
 import tj.radolfa.domain.exception.CourierAccessDeniedException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.OrderStatusChange;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -62,9 +64,24 @@ class MarkOutForDeliveryServiceTest {
         };
     }
 
+    static class FakeSaveOrderStatusChangePort implements SaveOrderStatusChangePort {
+        final List<OrderStatusChange> appended = new ArrayList<>();
+        @Override public OrderStatusChange append(OrderStatusChange c) { appended.add(c); return c; }
+    }
+
+    static OrderStatusChangeRecorder noopRecorder() {
+        return new OrderStatusChangeRecorder(new FakeSaveOrderStatusChangePort());
+    }
+
     static MarkOutForDeliveryService service(Order order, CapturingSaveOrderPort save) {
         return new MarkOutForDeliveryService(orderPort(order), save,
-                new OrderNotificationService(silentPort()));
+                new OrderNotificationService(silentPort()), noopRecorder());
+    }
+
+    static MarkOutForDeliveryService service(Order order, CapturingSaveOrderPort save,
+                                              OrderStatusChangeRecorder recorder) {
+        return new MarkOutForDeliveryService(orderPort(order), save,
+                new OrderNotificationService(silentPort()), recorder);
     }
 
     @Test
@@ -127,5 +144,22 @@ class MarkOutForDeliveryServiceTest {
         MarkOutForDeliveryService svc = service(null, new CapturingSaveOrderPort());
 
         assertThrows(ResourceNotFoundException.class, () -> svc.execute(999L, COURIER_ID));
+    }
+
+    @Test
+    @DisplayName("Success records one ledger row: CLAIMED→OUT_FOR_DELIVERY with courier as actor")
+    void success_recordsLedgerRow() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        MarkOutForDeliveryService svc = service(claimedOrder(), new CapturingSaveOrderPort(), recorder);
+
+        svc.execute(1L, COURIER_ID);
+
+        assertEquals(1, port.appended.size());
+        var row = port.appended.get(0);
+        assertEquals(1L,                         row.orderId());
+        assertEquals(OrderStatus.CLAIMED,         row.statusFrom());
+        assertEquals(OrderStatus.OUT_FOR_DELIVERY, row.statusTo());
+        assertEquals(COURIER_ID,                  row.actorUserId());
     }
 }

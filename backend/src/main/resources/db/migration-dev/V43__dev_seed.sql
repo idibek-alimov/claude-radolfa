@@ -880,4 +880,21 @@ SELECT
 FROM users u
 WHERE u.loyalty_points > 0;
 
+-- ================================================================
+-- 14. ORDER STATUS CHANGES — creation rows for seeded orders
+-- ================================================================
+-- One row per seeded order (status_from = NULL = creation event).
+-- actor_user_id = NULL (system/seed).
+-- ----------------------------------------------------------------
+INSERT INTO order_status_changes (order_id, status_from, status_to, actor_user_id, reason, occurred_at)
+SELECT id, NULL, status::VARCHAR, NULL, 'seed', created_at
+FROM orders
+WHERE external_order_id IN (
+    'SO-2025-00101',
+    'SO-2025-00205',
+    'SO-2025-00310',
+    'SO-2025-00150',
+    'SO-2025-00280'
+);
+
 

@@ -21,22 +21,25 @@ public class MarkDeliveryAttemptedService implements MarkDeliveryAttemptedUseCas
 
     private static final Logger log = LoggerFactory.getLogger(MarkDeliveryAttemptedService.class);
 
-    private final LoadOrderPort            loadOrderPort;
-    private final SaveOrderPort            saveOrderPort;
-    private final OrderNotificationService orderNotificationService;
-    private final DeliveryEventPublisher   deliveryEventPublisher;
-    private final int                      maxAttempts;
+    private final LoadOrderPort              loadOrderPort;
+    private final SaveOrderPort              saveOrderPort;
+    private final OrderNotificationService   orderNotificationService;
+    private final DeliveryEventPublisher     deliveryEventPublisher;
+    private final OrderStatusChangeRecorder  orderStatusChangeRecorder;
+    private final int                        maxAttempts;
 
     public MarkDeliveryAttemptedService(LoadOrderPort loadOrderPort,
                                         SaveOrderPort saveOrderPort,
                                         OrderNotificationService orderNotificationService,
                                         DeliveryEventPublisher deliveryEventPublisher,
+                                        OrderStatusChangeRecorder orderStatusChangeRecorder,
                                         @Value("${radolfa.delivery.max-attempts:3}") int maxAttempts) {
-        this.loadOrderPort            = loadOrderPort;
-        this.saveOrderPort            = saveOrderPort;
-        this.orderNotificationService = orderNotificationService;
-        this.deliveryEventPublisher   = deliveryEventPublisher;
-        this.maxAttempts              = maxAttempts;
+        this.loadOrderPort             = loadOrderPort;
+        this.saveOrderPort             = saveOrderPort;
+        this.orderNotificationService  = orderNotificationService;
+        this.deliveryEventPublisher    = deliveryEventPublisher;
+        this.orderStatusChangeRecorder = orderStatusChangeRecorder;
+        this.maxAttempts               = maxAttempts;
     }
 
     @Override
@@ -66,6 +69,9 @@ public class MarkDeliveryAttemptedService implements MarkDeliveryAttemptedUseCas
                 .build();
 
         saveOrderPort.save(updated);
+        orderStatusChangeRecorder.record(order.id(), OrderStatus.OUT_FOR_DELIVERY,
+                OrderStatus.DELIVERY_ATTEMPTED, command.courierId(),
+                command.reason() != null ? command.reason().name() : null);
         orderNotificationService.notify(updated);
 
         if (newAttemptCount >= maxAttempts) {

@@ -120,16 +120,28 @@ class UpdateOrderStatusServiceTest {
                 @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
             };
 
+    static class FakeSaveOrderStatusChangePort implements tj.radolfa.application.ports.out.SaveOrderStatusChangePort {
+        final List<tj.radolfa.domain.model.OrderStatusChange> appended = new ArrayList<>();
+        @Override
+        public tj.radolfa.domain.model.OrderStatusChange append(tj.radolfa.domain.model.OrderStatusChange c) {
+            appended.add(c); return c;
+        }
+    }
+
+    static OrderStatusChangeRecorder noopRecorder() {
+        return new OrderStatusChangeRecorder(new FakeSaveOrderStatusChangePort());
+    }
+
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save) {
         return new UpdateOrderStatusService(orderPort(order), save,
                 new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
-                NO_DELIVERY_EVENTS);
+                NO_DELIVERY_EVENTS, noopRecorder());
     }
 
     static UpdateOrderStatusService service(Order order, CapturingSaveOrderPort save, NotificationPort notifPort) {
         return new UpdateOrderStatusService(orderPort(order), save,
                 new OrderNotificationService(notifPort), new FakeGenerateDeliveryCodeUseCase(),
-                NO_DELIVERY_EVENTS);
+                NO_DELIVERY_EVENTS, noopRecorder());
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -141,7 +153,7 @@ class UpdateOrderStatusServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "TST123",
-                        LocalDate.of(2026, 6, 1))));
+                        LocalDate.of(2026, 6, 1), null)));
     }
 
     @Test
@@ -150,7 +162,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeClaimedOrder(), save);
 
-        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null, null));
 
         Order saved = save.last();
         assertEquals(OrderStatus.PICKED, saved.status());
@@ -164,7 +176,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
-        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null, null));
 
         assertEquals(OrderStatus.SHIPPED, save.last().status());
     }
@@ -175,7 +187,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
-        svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null, null));
 
         assertEquals(OrderStatus.READY_FOR_PICKUP, save.last().status());
         assertNull(save.last().courierId());
@@ -187,7 +199,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PENDING), save);
 
-        svc.execute(new Command(1L, OrderStatus.PAID, 99L, "X", LocalDate.now()));
+        svc.execute(new Command(1L, OrderStatus.PAID, 99L, "X", LocalDate.now(), null));
 
         Order saved = save.last();
         assertEquals(OrderStatus.PAID, saved.status());
@@ -202,7 +214,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeShippedOrder(), save);
 
-        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null));
+        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null, null));
 
         Order saved = save.last();
         assertEquals(OrderStatus.DELIVERED, saved.status());
@@ -217,7 +229,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null)));
+                () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null, null)));
     }
 
     @Test
@@ -226,7 +238,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
-        svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.READY_FOR_PICKUP, null, null, null, null));
 
         assertEquals(OrderStatus.READY_FOR_PICKUP, save.last().status());
     }
@@ -237,7 +249,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.READY_FOR_PICKUP), save);
 
-        svc.execute(new Command(2L, OrderStatus.DELIVERED, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.DELIVERED, null, null, null, null));
 
         assertEquals(OrderStatus.DELIVERED, save.last().status());
     }
@@ -248,7 +260,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.READY_FOR_PICKUP, null, null, null)));
+                () -> svc.execute(new Command(1L, OrderStatus.READY_FOR_PICKUP, null, null, null, null)));
     }
 
     @Test
@@ -257,7 +269,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeShippedOrder(), save);
 
-        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null));
+        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null, null));
 
         assertEquals(OrderStatus.DELIVERED, save.last().status());
     }
@@ -269,7 +281,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save   = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc  = service(pickpointOrder(OrderStatus.PICKED), save, port);
 
-        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null, null));
 
         assertEquals(1, port.updateCount);
         assertEquals(OrderStatus.SHIPPED, port.lastStatus);
@@ -283,7 +295,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc  = service(homeOrder(OrderStatus.PAID), save, port);
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null)));
+                () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null, null)));
 
         assertEquals(0, port.confirmCount + port.updateCount);
     }
@@ -295,7 +307,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(pickpointOrder(OrderStatus.PICKED), save);
 
         Instant before = Instant.now();
-        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null));
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null, null));
         Instant after = Instant.now();
 
         Order saved = save.last();
@@ -313,7 +325,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(homeShippedOrder(), save);
 
         Instant before = Instant.now();
-        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null));
+        svc.execute(new Command(1L, OrderStatus.DELIVERED, null, null, null, null));
         Instant after = Instant.now();
 
         Order saved = save.last();
@@ -341,9 +353,9 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = new UpdateOrderStatusService(
                 orderPort(pristine), save,
                 new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
-                NO_DELIVERY_EVENTS);
+                NO_DELIVERY_EVENTS, noopRecorder());
 
-        svc.execute(new Command(42L, OrderStatus.SHIPPED, null, null, null));
+        svc.execute(new Command(42L, OrderStatus.SHIPPED, null, null, null, null));
 
         Order out = save.last();
         assertEquals(42L,              out.id());
@@ -366,7 +378,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null)));
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null, null)));
     }
 
     @Test
@@ -375,7 +387,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.PAID), save);
 
-        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null, null));
 
         assertEquals(OrderStatus.PICKED, save.last().status());
     }
@@ -386,7 +398,7 @@ class UpdateOrderStatusServiceTest {
         CapturingSaveOrderPort save = new CapturingSaveOrderPort();
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.AWAITING_COD), save);
 
-        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null));
+        svc.execute(new Command(1L, OrderStatus.PICKED, null, null, null, null));
 
         assertEquals(OrderStatus.PICKED, save.last().status());
     }
@@ -397,7 +409,7 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(homeOrder(OrderStatus.AWAITING_COD), new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null)));
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, "T1", null, null)));
     }
 
     @Test
@@ -413,6 +425,60 @@ class UpdateOrderStatusServiceTest {
         UpdateOrderStatusService svc = service(attemptedOrder, new CapturingSaveOrderPort());
 
         assertThrows(IllegalArgumentException.class,
-                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null)));
+                () -> svc.execute(new Command(1L, OrderStatus.SHIPPED, 99L, null, null, null)));
+    }
+
+    @Test
+    @DisplayName("Successful transition records one status-change row with correct from/to/actor")
+    void successfulTransition_recordsLedgerRow() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(pickpointOrder(OrderStatus.PICKED)), save,
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS, recorder);
+
+        svc.execute(new Command(2L, OrderStatus.SHIPPED, null, null, null, 42L));
+
+        assertEquals(1, port.appended.size());
+        var row = port.appended.get(0);
+        assertEquals(2L, row.orderId());
+        assertEquals(OrderStatus.PICKED, row.statusFrom());
+        assertEquals(OrderStatus.SHIPPED, row.statusTo());
+        assertEquals(42L, row.actorUserId());
+    }
+
+    @Test
+    @DisplayName("Failed transition (invalid) records no ledger row")
+    void failedTransition_recordsNoLedgerRow() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(homeOrder(OrderStatus.PAID)), new CapturingSaveOrderPort(),
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS, recorder);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> svc.execute(new Command(1L, OrderStatus.PENDING, null, null, null, 42L)));
+
+        assertTrue(port.appended.isEmpty());
+    }
+
+    @Test
+    @DisplayName("System transition (null actor) records null actorUserId in ledger")
+    void systemTransition_recordsNullActor() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        UpdateOrderStatusService svc = new UpdateOrderStatusService(
+                orderPort(homeOrder(OrderStatus.PENDING)), save,
+                new OrderNotificationService(silentPort()), new FakeGenerateDeliveryCodeUseCase(),
+                NO_DELIVERY_EVENTS, recorder);
+
+        svc.execute(new Command(1L, OrderStatus.PAID, null, null, null, null));
+
+        assertEquals(1, port.appended.size());
+        assertNull(port.appended.get(0).actorUserId());
     }
 }

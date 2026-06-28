@@ -22,5 +22,6 @@ public interface UpdateOrderStatusUseCase {
             OrderStatus newStatus,
             Long courierId,
             String trackingNumber,
-            LocalDate estimatedDeliveryDate) {}
+            LocalDate estimatedDeliveryDate,
+            Long actorUserId) {}
 }

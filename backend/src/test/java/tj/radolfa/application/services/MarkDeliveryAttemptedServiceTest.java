@@ -6,6 +6,7 @@ import tj.radolfa.application.ports.in.order.MarkDeliveryAttemptedUseCase.Comman
 import tj.radolfa.application.ports.out.LoadOrderPort;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.SaveOrderPort;
+import tj.radolfa.application.ports.out.SaveOrderStatusChangePort;
 import tj.radolfa.domain.exception.CourierAccessDeniedException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.DeliveryAttemptReason;
@@ -13,6 +14,7 @@ import tj.radolfa.domain.model.DeliveryType;
 import tj.radolfa.domain.model.Money;
 import tj.radolfa.domain.model.Order;
 import tj.radolfa.domain.model.OrderStatus;
+import tj.radolfa.domain.model.OrderStatusChange;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -87,15 +89,31 @@ class MarkDeliveryAttemptedServiceTest {
                 @Override public void publishDeliveryRetryLimitReached(Long o, Long c) {}
             };
 
+    static class FakeSaveOrderStatusChangePort implements SaveOrderStatusChangePort {
+        final List<OrderStatusChange> appended = new ArrayList<>();
+        @Override public OrderStatusChange append(OrderStatusChange c) { appended.add(c); return c; }
+    }
+
+    static OrderStatusChangeRecorder noopRecorder() {
+        return new OrderStatusChangeRecorder(new FakeSaveOrderStatusChangePort());
+    }
+
     static MarkDeliveryAttemptedService service(Order order, CapturingSaveOrderPort save) {
         return new MarkDeliveryAttemptedService(orderPort(order), save,
-                new OrderNotificationService(silentPort()), NO_DELIVERY_EVENTS, MAX);
+                new OrderNotificationService(silentPort()), NO_DELIVERY_EVENTS, noopRecorder(), MAX);
     }
 
     static MarkDeliveryAttemptedService service(Order order, CapturingSaveOrderPort save,
                                                  tj.radolfa.application.ports.out.DeliveryEventPublisher pub) {
         return new MarkDeliveryAttemptedService(orderPort(order), save,
-                new OrderNotificationService(silentPort()), pub, MAX);
+                new OrderNotificationService(silentPort()), pub, noopRecorder(), MAX);
+    }
+
+    static MarkDeliveryAttemptedService service(Order order, CapturingSaveOrderPort save,
+                                                 tj.radolfa.application.ports.out.DeliveryEventPublisher pub,
+                                                 OrderStatusChangeRecorder recorder) {
+        return new MarkDeliveryAttemptedService(orderPort(order), save,
+                new OrderNotificationService(silentPort()), pub, recorder, MAX);
     }
 
     @Test
@@ -189,5 +207,23 @@ class MarkDeliveryAttemptedServiceTest {
 
         assertEquals(1L,         pub.lastRetryLimitOrderId);
         assertEquals(COURIER_ID, pub.lastRetryLimitCourierId);
+    }
+
+    @Test
+    @DisplayName("Success records one ledger row: OUT_FOR_DELIVERY→DELIVERY_ATTEMPTED with courier as actor")
+    void success_recordsLedgerRow() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+        MarkDeliveryAttemptedService svc = service(outForDeliveryOrder(0), save, NO_DELIVERY_EVENTS, recorder);
+
+        svc.execute(new Command(1L, COURIER_ID, DeliveryAttemptReason.NO_ANSWER, "reason"));
+
+        assertEquals(1, port.appended.size());
+        var row = port.appended.get(0);
+        assertEquals(1L,                            row.orderId());
+        assertEquals(OrderStatus.OUT_FOR_DELIVERY,  row.statusFrom());
+        assertEquals(OrderStatus.DELIVERY_ATTEMPTED, row.statusTo());
+        assertEquals(COURIER_ID,                    row.actorUserId());
     }
 }

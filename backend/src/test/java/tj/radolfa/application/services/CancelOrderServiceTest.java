@@ -121,6 +121,18 @@ class CancelOrderServiceTest {
         }
     }
 
+    static class FakeSaveOrderStatusChangePort implements tj.radolfa.application.ports.out.SaveOrderStatusChangePort {
+        final List<tj.radolfa.domain.model.OrderStatusChange> appended = new ArrayList<>();
+        @Override
+        public tj.radolfa.domain.model.OrderStatusChange append(tj.radolfa.domain.model.OrderStatusChange c) {
+            appended.add(c); return c;
+        }
+    }
+
+    static OrderStatusChangeRecorder noopRecorder() {
+        return new OrderStatusChangeRecorder(new FakeSaveOrderStatusChangePort());
+    }
+
     static final RestoreLoyaltyPointsUseCase NO_LOYALTY        = (userId, pts) -> {};
     static final tj.radolfa.application.ports.out.DeliveryEventPublisher NO_DELIVERY_EVENTS =
             new tj.radolfa.application.ports.out.DeliveryEventPublisher() {
@@ -134,13 +146,21 @@ class CancelOrderServiceTest {
     static CancelOrderService service(Order order, User requester,
                                       CapturingSaveOrderPort save,
                                       NotificationPort notifPort) {
-        return service(order, requester, save, notifPort, NO_STOCK);
+        return service(order, requester, save, notifPort, NO_STOCK, noopRecorder());
     }
 
     static CancelOrderService service(Order order, User requester,
                                       CapturingSaveOrderPort save,
                                       NotificationPort notifPort,
                                       StockAdjustmentPort stockPort) {
+        return service(order, requester, save, notifPort, stockPort, noopRecorder());
+    }
+
+    static CancelOrderService service(Order order, User requester,
+                                      CapturingSaveOrderPort save,
+                                      NotificationPort notifPort,
+                                      StockAdjustmentPort stockPort,
+                                      OrderStatusChangeRecorder recorder) {
         return new CancelOrderService(
                 orderPort(order),
                 save,
@@ -153,7 +173,8 @@ class CancelOrderServiceTest {
                     @Override public java.util.Optional<tj.radolfa.domain.model.Cart> findActiveByUserId(Long id) { return java.util.Optional.empty(); }
                     @Override public java.util.Optional<tj.radolfa.domain.model.Cart> findById(Long id) { return java.util.Optional.empty(); }
                 },
-                cart -> cart);
+                cart -> cart,
+                recorder);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
@@ -276,5 +297,46 @@ class CancelOrderServiceTest {
 
         assertNull(capStock.capturedActorUserId, "System expiry must record null actor");
         assertEquals(InventoryTransactionType.CANCELLATION, capStock.capturedType);
+    }
+
+    @Test
+    @DisplayName("User-driven cancel records one ledger row with PENDING→CANCELLED and requester actor")
+    void userDrivenCancel_recordsLedgerRowWithActor() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+
+        service(pendingOrder(REGULAR_USER.id()), REGULAR_USER, save,
+                new CountingNotificationPort(), NO_STOCK, recorder)
+                .execute(1L, REGULAR_USER.id(), "changed mind");
+
+        assertEquals(1, port.appended.size());
+        var row = port.appended.get(0);
+        assertEquals(OrderStatus.PENDING,    row.statusFrom());
+        assertEquals(OrderStatus.CANCELLED,  row.statusTo());
+        assertEquals(REGULAR_USER.id(),      row.actorUserId());
+        assertEquals("changed mind",         row.reason());
+    }
+
+    @Test
+    @DisplayName("System-driven expiry records ledger row with null actorUserId")
+    void systemExpiry_recordsLedgerRowWithNullActor() {
+        FakeSaveOrderStatusChangePort port = new FakeSaveOrderStatusChangePort();
+        OrderStatusChangeRecorder recorder = new OrderStatusChangeRecorder(port);
+        Order order = new Order.Builder()
+                .id(1L).userId(10L).status(OrderStatus.READY_FOR_PICKUP)
+                .totalAmount(new Money(BigDecimal.valueOf(300))).createdAt(Instant.now())
+                .deliveryType(tj.radolfa.domain.model.DeliveryType.PICKPOINT).pickpointId(5L)
+                .build();
+        CapturingSaveOrderPort save = new CapturingSaveOrderPort();
+
+        service(order, ADMIN_USER, save, new CountingNotificationPort(), NO_STOCK, recorder)
+                .execute(1L, "pickup period expired");
+
+        assertEquals(1, port.appended.size());
+        var row = port.appended.get(0);
+        assertEquals(OrderStatus.READY_FOR_PICKUP, row.statusFrom());
+        assertEquals(OrderStatus.CANCELLED,        row.statusTo());
+        assertNull(row.actorUserId(), "System expiry must record null actor");
     }
 }

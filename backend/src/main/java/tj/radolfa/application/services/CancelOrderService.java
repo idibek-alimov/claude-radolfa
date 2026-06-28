@@ -49,6 +49,7 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
     private final DeliveryEventPublisher       deliveryEventPublisher;
     private final LoadCartPort                 loadCartPort;
     private final SaveCartPort                 saveCartPort;
+    private final OrderStatusChangeRecorder    orderStatusChangeRecorder;
 
     public CancelOrderService(LoadOrderPort loadOrderPort,
                               SaveOrderPort saveOrderPort,
@@ -58,7 +59,8 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
                               OrderNotificationService orderNotificationService,
                               DeliveryEventPublisher deliveryEventPublisher,
                               LoadCartPort loadCartPort,
-                              SaveCartPort saveCartPort) {
+                              SaveCartPort saveCartPort,
+                              OrderStatusChangeRecorder orderStatusChangeRecorder) {
         this.loadOrderPort               = loadOrderPort;
         this.saveOrderPort               = saveOrderPort;
         this.loadUserPort                = loadUserPort;
@@ -68,6 +70,7 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
         this.deliveryEventPublisher      = deliveryEventPublisher;
         this.loadCartPort                = loadCartPort;
         this.saveCartPort                = saveCartPort;
+        this.orderStatusChangeRecorder   = orderStatusChangeRecorder;
     }
 
     @Override
@@ -135,11 +138,13 @@ public class CancelOrderService implements CancelOrderUseCase, ExpireOrderUseCas
             restoreLoyaltyPointsUseCase.execute(order.userId(), order.loyaltyPointsRedeemed());
         }
 
+        OrderStatus previousStatus = order.status();
         Order cancelled = order.toBuilder()
                 .status(OrderStatus.CANCELLED)
                 .cancelledAt(Instant.now())
                 .build();
         saveOrderPort.save(cancelled);
+        orderStatusChangeRecorder.record(order.id(), previousStatus, OrderStatus.CANCELLED, actorUserId, reason);
         orderNotificationService.notify(cancelled);
 
         // Release the cart so the user can re-checkout with the same items

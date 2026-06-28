@@ -36,17 +36,20 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     private final OrderNotificationService   orderNotificationService;
     private final GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase;
     private final DeliveryEventPublisher     deliveryEventPublisher;
+    private final OrderStatusChangeRecorder  orderStatusChangeRecorder;
 
     public UpdateOrderStatusService(LoadOrderPort loadOrderPort,
                                     SaveOrderPort saveOrderPort,
                                     OrderNotificationService orderNotificationService,
                                     GenerateDeliveryCodeUseCase generateDeliveryCodeUseCase,
-                                    DeliveryEventPublisher deliveryEventPublisher) {
+                                    DeliveryEventPublisher deliveryEventPublisher,
+                                    OrderStatusChangeRecorder orderStatusChangeRecorder) {
         this.loadOrderPort              = loadOrderPort;
         this.saveOrderPort              = saveOrderPort;
         this.orderNotificationService   = orderNotificationService;
         this.generateDeliveryCodeUseCase = generateDeliveryCodeUseCase;
         this.deliveryEventPublisher      = deliveryEventPublisher;
+        this.orderStatusChangeRecorder   = orderStatusChangeRecorder;
     }
 
     @Override
@@ -57,6 +60,8 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
 
         validateTransition(order, command.newStatus());
         validateCourierFields(order, command);
+
+        OrderStatus previousStatus = order.status();
 
         boolean toShipped         = command.newStatus() == OrderStatus.SHIPPED;
         boolean toDelivered       = command.newStatus() == OrderStatus.DELIVERED;
@@ -84,6 +89,8 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
                 .readyForPickupAt(readyForPickupAt)
                 .build();
         saveOrderPort.save(updated);
+        orderStatusChangeRecorder.record(
+                order.id(), previousStatus, command.newStatus(), command.actorUserId(), null);
 
         if (command.newStatus() == OrderStatus.SHIPPED || command.newStatus() == OrderStatus.READY_FOR_PICKUP) {
             generateDeliveryCodeUseCase.execute(updated.id());

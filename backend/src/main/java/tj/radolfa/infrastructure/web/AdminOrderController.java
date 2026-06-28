@@ -4,12 +4,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.ApproveRefundUseCase;
 import tj.radolfa.application.ports.in.order.GetCustomerReturnsForOrderUseCase;
+import tj.radolfa.application.ports.in.order.GetOrderStatusHistoryUseCase;
 import tj.radolfa.application.ports.in.order.RequestOrderRecallUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
@@ -45,6 +51,7 @@ import tj.radolfa.infrastructure.web.dto.AdminOrderListDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderSummaryDto;
 import tj.radolfa.infrastructure.web.dto.CustomerReturnDto;
 import tj.radolfa.infrastructure.web.dto.CustomerReturnSummary;
+import tj.radolfa.infrastructure.web.dto.OrderStatusChangeDto;
 import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
 import tj.radolfa.infrastructure.web.dto.RefundOrderRequest;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -57,6 +64,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -83,6 +91,9 @@ public class AdminOrderController {
     private final ApproveRefundUseCase                approveRefundUseCase;
     private final RequestOrderRecallUseCase           requestOrderRecallUseCase;
     private final GetCustomerReturnsForOrderUseCase   getCustomerReturnsForOrderUseCase;
+    private final GetOrderStatusHistoryUseCase        getOrderStatusHistoryUseCase;
+
+    private static final Set<String> ALLOWED_STATUS_HISTORY_SORT = Set.of("id", "occurredAt");
 
     @Value("${radolfa.delivery.pickpoint-storage-days:7}")
     private int pickpointStorageDays;
@@ -104,7 +115,8 @@ public class AdminOrderController {
                                 LoadPickpointPort loadPickpointPort,
                                 ApproveRefundUseCase approveRefundUseCase,
                                 RequestOrderRecallUseCase requestOrderRecallUseCase,
-                                GetCustomerReturnsForOrderUseCase getCustomerReturnsForOrderUseCase) {
+                                GetCustomerReturnsForOrderUseCase getCustomerReturnsForOrderUseCase,
+                                GetOrderStatusHistoryUseCase getOrderStatusHistoryUseCase) {
         this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
@@ -123,6 +135,7 @@ public class AdminOrderController {
         this.approveRefundUseCase                  = approveRefundUseCase;
         this.requestOrderRecallUseCase             = requestOrderRecallUseCase;
         this.getCustomerReturnsForOrderUseCase     = getCustomerReturnsForOrderUseCase;
+        this.getOrderStatusHistoryUseCase          = getOrderStatusHistoryUseCase;
     }
 
     record RecallOrderRequest(@jakarta.validation.constraints.NotBlank String reason) {}
@@ -283,6 +296,24 @@ public class AdminOrderController {
                                               @AuthenticationPrincipal JwtAuthenticatedUser principal) {
         approveRefundUseCase.execute(returnId, principal.userId());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/status-history")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Paginated status-change history for an order (MANAGER + ADMIN)")
+    public Page<OrderStatusChangeDto> getStatusHistory(
+            @PathVariable Long id,
+            @PageableDefault(size = 20, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return getOrderStatusHistoryUseCase.execute(id, sanitizeStatusHistory(pageable))
+                .map(OrderStatusChangeDto::from);
+    }
+
+    private Pageable sanitizeStatusHistory(Pageable pageable) {
+        Sort filtered = Sort.by(pageable.getSort().stream()
+                .filter(o -> ALLOWED_STATUS_HISTORY_SORT.contains(o.getProperty()))
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                filtered.isEmpty() ? Sort.by(Sort.Direction.DESC, "occurredAt") : filtered);
     }
 
     record RedirectToPickpointRequest(@NotNull Long pickpointId) {}

@@ -190,7 +190,8 @@ public class OrderController {
     @Operation(summary = "Update order status (ADMIN only: PENDING→PAID→SHIPPED→DELIVERED). courierName required for HOME→SHIPPED.")
     public ResponseEntity<Void> updateStatus(
             @PathVariable Long id,
-            @RequestBody UpdateOrderStatusRequest body) {
+            @RequestBody UpdateOrderStatusRequest body,
+            @AuthenticationPrincipal JwtAuthenticatedUser principal) {
 
         if (body.status() == null || body.status().isBlank()) {
             return ResponseEntity.badRequest().build();
@@ -202,7 +203,8 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
         updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
-                id, newStatus, body.courierId(), body.trackingNumber(), body.estimatedDeliveryDate()));
+                id, newStatus, body.courierId(), body.trackingNumber(), body.estimatedDeliveryDate(),
+                principal.userId()));
         return ResponseEntity.noContent().build();
     }
 

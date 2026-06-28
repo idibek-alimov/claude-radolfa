@@ -88,6 +88,8 @@ class CompletePickSessionServiceTest {
         assertEquals(1, statusUseCase.commands.size());
         assertEquals(OrderStatus.PICKED, statusUseCase.commands.get(0).newStatus());
         assertEquals(ORDER_ID, statusUseCase.commands.get(0).orderId());
+        assertEquals(ACTOR_ID, statusUseCase.commands.get(0).actorUserId(),
+                "actorUserId must be threaded from CompletePickSession command into UpdateOrderStatus");
     }
 
     @Test
@@ -105,6 +107,7 @@ class CompletePickSessionServiceTest {
         assertEquals(1, statusUseCase.commands.size());
         assertEquals(OrderStatus.PICKED, statusUseCase.commands.get(0).newStatus());
         assertEquals(ORDER_ID, statusUseCase.commands.get(0).orderId());
+        assertEquals(ACTOR_ID, statusUseCase.commands.get(0).actorUserId());
     }
 
     @Test

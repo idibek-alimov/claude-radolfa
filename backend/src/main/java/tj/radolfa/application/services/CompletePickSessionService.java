@@ -40,6 +40,7 @@ public class CompletePickSessionService implements CompletePickSessionUseCase {
         }
 
         updateOrderStatusUseCase.execute(
-                new UpdateOrderStatusUseCase.Command(cmd.orderId(), OrderStatus.PICKED, null, null, null));
+                new UpdateOrderStatusUseCase.Command(cmd.orderId(), OrderStatus.PICKED, null, null, null,
+                        cmd.actorUserId()));
     }
 }

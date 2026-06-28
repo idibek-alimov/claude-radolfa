@@ -15,16 +15,19 @@ import java.time.Instant;
 @Service
 public class MarkOutForDeliveryService implements MarkOutForDeliveryUseCase {
 
-    private final LoadOrderPort            loadOrderPort;
-    private final SaveOrderPort            saveOrderPort;
-    private final OrderNotificationService orderNotificationService;
+    private final LoadOrderPort              loadOrderPort;
+    private final SaveOrderPort              saveOrderPort;
+    private final OrderNotificationService   orderNotificationService;
+    private final OrderStatusChangeRecorder  orderStatusChangeRecorder;
 
     public MarkOutForDeliveryService(LoadOrderPort loadOrderPort,
                                      SaveOrderPort saveOrderPort,
-                                     OrderNotificationService orderNotificationService) {
+                                     OrderNotificationService orderNotificationService,
+                                     OrderStatusChangeRecorder orderStatusChangeRecorder) {
         this.loadOrderPort            = loadOrderPort;
         this.saveOrderPort            = saveOrderPort;
         this.orderNotificationService = orderNotificationService;
+        this.orderStatusChangeRecorder = orderStatusChangeRecorder;
     }
 
     @Override
@@ -49,6 +52,8 @@ public class MarkOutForDeliveryService implements MarkOutForDeliveryUseCase {
                 .build();
 
         saveOrderPort.save(updated);
+        orderStatusChangeRecorder.record(order.id(), OrderStatus.CLAIMED, OrderStatus.OUT_FOR_DELIVERY,
+                courierId, null);
         orderNotificationService.notify(updated);
     }
 }

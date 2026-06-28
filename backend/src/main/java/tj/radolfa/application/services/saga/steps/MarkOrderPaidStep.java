@@ -29,7 +29,7 @@ public class MarkOrderPaidStep implements SagaStep<PaymentConfirmationContext> {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void execute(PaymentConfirmationContext ctx) {
         updateOrderStatusUseCase.execute(new UpdateOrderStatusUseCase.Command(
-                ctx.payment.orderId(), OrderStatus.PAID, null, null, null));
+                ctx.payment.orderId(), OrderStatus.PAID, null, null, null, null));
         ctx.order = loadOrderPort.loadById(ctx.payment.orderId())
                 .orElseThrow(() -> new IllegalStateException(
                         "Order not found after status update: " + ctx.payment.orderId()));
