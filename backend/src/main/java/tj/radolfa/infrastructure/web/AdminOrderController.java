@@ -15,7 +15,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tj.radolfa.application.ports.in.order.ApproveRefundUseCase;
 import tj.radolfa.application.ports.in.order.GetCustomerReturnsForOrderUseCase;
+import tj.radolfa.application.ports.in.order.GetCustomerReturnStatusHistoryUseCase;
 import tj.radolfa.application.ports.in.order.GetOrderStatusHistoryUseCase;
+import tj.radolfa.application.ports.in.payment.GetPaymentStatusHistoryUseCase;
 import tj.radolfa.application.ports.in.order.RequestOrderRecallUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderDetailUseCase;
 import tj.radolfa.application.ports.in.order.GetAdminOrderSummaryUseCase;
@@ -51,7 +53,9 @@ import tj.radolfa.infrastructure.web.dto.AdminOrderListDto;
 import tj.radolfa.infrastructure.web.dto.AdminOrderSummaryDto;
 import tj.radolfa.infrastructure.web.dto.CustomerReturnDto;
 import tj.radolfa.infrastructure.web.dto.CustomerReturnSummary;
+import tj.radolfa.infrastructure.web.dto.CustomerReturnStatusChangeDto;
 import tj.radolfa.infrastructure.web.dto.OrderStatusChangeDto;
+import tj.radolfa.infrastructure.web.dto.PaymentStatusChangeDto;
 import tj.radolfa.infrastructure.web.dto.RecentOrderDto;
 import tj.radolfa.infrastructure.web.dto.RefundOrderRequest;
 import tj.radolfa.infrastructure.security.JwtAuthenticationFilter.JwtAuthenticatedUser;
@@ -91,7 +95,9 @@ public class AdminOrderController {
     private final ApproveRefundUseCase                approveRefundUseCase;
     private final RequestOrderRecallUseCase           requestOrderRecallUseCase;
     private final GetCustomerReturnsForOrderUseCase   getCustomerReturnsForOrderUseCase;
-    private final GetOrderStatusHistoryUseCase        getOrderStatusHistoryUseCase;
+    private final GetOrderStatusHistoryUseCase          getOrderStatusHistoryUseCase;
+    private final GetCustomerReturnStatusHistoryUseCase getCustomerReturnStatusHistoryUseCase;
+    private final GetPaymentStatusHistoryUseCase        getPaymentStatusHistoryUseCase;
 
     private static final Set<String> ALLOWED_STATUS_HISTORY_SORT = Set.of("id", "occurredAt");
 
@@ -116,7 +122,9 @@ public class AdminOrderController {
                                 ApproveRefundUseCase approveRefundUseCase,
                                 RequestOrderRecallUseCase requestOrderRecallUseCase,
                                 GetCustomerReturnsForOrderUseCase getCustomerReturnsForOrderUseCase,
-                                GetOrderStatusHistoryUseCase getOrderStatusHistoryUseCase) {
+                                GetOrderStatusHistoryUseCase getOrderStatusHistoryUseCase,
+                                GetCustomerReturnStatusHistoryUseCase getCustomerReturnStatusHistoryUseCase,
+                                GetPaymentStatusHistoryUseCase getPaymentStatusHistoryUseCase) {
         this.getAdminOrderSummaryUseCase    = getAdminOrderSummaryUseCase;
         this.listAdminOrdersUseCase         = listAdminOrdersUseCase;
         this.getAdminOrderDetailUseCase     = getAdminOrderDetailUseCase;
@@ -134,8 +142,10 @@ public class AdminOrderController {
         this.loadPickpointPort              = loadPickpointPort;
         this.approveRefundUseCase                  = approveRefundUseCase;
         this.requestOrderRecallUseCase             = requestOrderRecallUseCase;
-        this.getCustomerReturnsForOrderUseCase     = getCustomerReturnsForOrderUseCase;
-        this.getOrderStatusHistoryUseCase          = getOrderStatusHistoryUseCase;
+        this.getCustomerReturnsForOrderUseCase        = getCustomerReturnsForOrderUseCase;
+        this.getOrderStatusHistoryUseCase             = getOrderStatusHistoryUseCase;
+        this.getCustomerReturnStatusHistoryUseCase    = getCustomerReturnStatusHistoryUseCase;
+        this.getPaymentStatusHistoryUseCase           = getPaymentStatusHistoryUseCase;
     }
 
     record RecallOrderRequest(@jakarta.validation.constraints.NotBlank String reason) {}
@@ -306,6 +316,26 @@ public class AdminOrderController {
             @PageableDefault(size = 20, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return getOrderStatusHistoryUseCase.execute(id, sanitizeStatusHistory(pageable))
                 .map(OrderStatusChangeDto::from);
+    }
+
+    @GetMapping("/customer-returns/{returnId}/status-history")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Paginated status-change history for a customer return (MANAGER + ADMIN)")
+    public Page<CustomerReturnStatusChangeDto> getReturnStatusHistory(
+            @PathVariable Long returnId,
+            @PageableDefault(size = 20, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return getCustomerReturnStatusHistoryUseCase.execute(returnId, sanitizeStatusHistory(pageable))
+                .map(CustomerReturnStatusChangeDto::from);
+    }
+
+    @GetMapping("/{orderId}/payment/status-history")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Paginated status-change history for the payment of an order (MANAGER + ADMIN). COD orders have no payment row and return an empty page.")
+    public Page<PaymentStatusChangeDto> getPaymentStatusHistory(
+            @PathVariable Long orderId,
+            @PageableDefault(size = 20, sort = "occurredAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return getPaymentStatusHistoryUseCase.execute(orderId, sanitizeStatusHistory(pageable))
+                .map(PaymentStatusChangeDto::from);
     }
 
     private Pageable sanitizeStatusHistory(Pageable pageable) {

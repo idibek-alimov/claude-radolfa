@@ -16,16 +16,19 @@ public class FailPaymentService implements FailPaymentUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(FailPaymentService.class);
 
-    private final LoadPaymentPort    loadPaymentPort;
-    private final SavePaymentPort    savePaymentPort;
-    private final ExpireOrderUseCase expireOrderUseCase;
+    private final LoadPaymentPort              loadPaymentPort;
+    private final SavePaymentPort              savePaymentPort;
+    private final ExpireOrderUseCase           expireOrderUseCase;
+    private final PaymentStatusChangeRecorder  paymentStatusChangeRecorder;
 
     public FailPaymentService(LoadPaymentPort loadPaymentPort,
                               SavePaymentPort savePaymentPort,
-                              ExpireOrderUseCase expireOrderUseCase) {
-        this.loadPaymentPort    = loadPaymentPort;
-        this.savePaymentPort    = savePaymentPort;
-        this.expireOrderUseCase = expireOrderUseCase;
+                              ExpireOrderUseCase expireOrderUseCase,
+                              PaymentStatusChangeRecorder paymentStatusChangeRecorder) {
+        this.loadPaymentPort             = loadPaymentPort;
+        this.savePaymentPort             = savePaymentPort;
+        this.expireOrderUseCase          = expireOrderUseCase;
+        this.paymentStatusChangeRecorder = paymentStatusChangeRecorder;
     }
 
     @Override
@@ -48,7 +51,9 @@ public class FailPaymentService implements FailPaymentUseCase {
             return;
         }
 
-        savePaymentPort.save(payment.failed());
+        var statusBefore = payment.status();
+        var failed = savePaymentPort.save(payment.failed());
+        paymentStatusChangeRecorder.record(failed.id(), statusBefore, failed.status(), null, null);
 
         // Cancel the order — restores stock and unlinks the cart (via CancelOrderService)
         expireOrderUseCase.execute(payment.orderId(), "Payment failed");

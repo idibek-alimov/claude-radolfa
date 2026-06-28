@@ -24,13 +24,14 @@ import java.util.stream.Collectors;
 @Service
 public class ApproveRefundService implements ApproveRefundUseCase {
 
-    private final LoadCustomerReturnPort loadCustomerReturnPort;
-    private final SaveCustomerReturnPort saveCustomerReturnPort;
-    private final LoadOrderPort          loadOrderPort;
-    private final LoadUserPort           loadUserPort;
-    private final LoadPaymentPort        loadPaymentPort;
-    private final ProcessRefundPort      processRefundPort;
-    private final NotificationPort       notificationPort;
+    private final LoadCustomerReturnPort                 loadCustomerReturnPort;
+    private final SaveCustomerReturnPort                 saveCustomerReturnPort;
+    private final LoadOrderPort                          loadOrderPort;
+    private final LoadUserPort                           loadUserPort;
+    private final LoadPaymentPort                        loadPaymentPort;
+    private final ProcessRefundPort                      processRefundPort;
+    private final NotificationPort                       notificationPort;
+    private final CustomerReturnStatusChangeRecorder     customerReturnStatusChangeRecorder;
 
     public ApproveRefundService(LoadCustomerReturnPort loadCustomerReturnPort,
                                 SaveCustomerReturnPort saveCustomerReturnPort,
@@ -38,14 +39,16 @@ public class ApproveRefundService implements ApproveRefundUseCase {
                                 LoadUserPort loadUserPort,
                                 LoadPaymentPort loadPaymentPort,
                                 ProcessRefundPort processRefundPort,
-                                NotificationPort notificationPort) {
-        this.loadCustomerReturnPort = loadCustomerReturnPort;
-        this.saveCustomerReturnPort = saveCustomerReturnPort;
-        this.loadOrderPort          = loadOrderPort;
-        this.loadUserPort           = loadUserPort;
-        this.loadPaymentPort        = loadPaymentPort;
-        this.processRefundPort      = processRefundPort;
-        this.notificationPort       = notificationPort;
+                                NotificationPort notificationPort,
+                                CustomerReturnStatusChangeRecorder customerReturnStatusChangeRecorder) {
+        this.loadCustomerReturnPort              = loadCustomerReturnPort;
+        this.saveCustomerReturnPort              = saveCustomerReturnPort;
+        this.loadOrderPort                       = loadOrderPort;
+        this.loadUserPort                        = loadUserPort;
+        this.loadPaymentPort                     = loadPaymentPort;
+        this.processRefundPort                   = processRefundPort;
+        this.notificationPort                    = notificationPort;
+        this.customerReturnStatusChangeRecorder  = customerReturnStatusChangeRecorder;
     }
 
     @Override
@@ -87,11 +90,17 @@ public class ApproveRefundService implements ApproveRefundUseCase {
                     result.failureReason() != null ? result.failureReason() : "Gateway returned failure");
         }
 
+        var statusBefore = customerReturn.getStatus();
         customerReturn.markRefundApproved(adminUserId, result.gatewayRefundId());
         saveCustomerReturnPort.save(customerReturn);
+        customerReturnStatusChangeRecorder.record(
+                returnId, statusBefore, customerReturn.getStatus(), adminUserId, null);
 
+        var statusBeforeRefund = customerReturn.getStatus();
         customerReturn.markRefunded();
         saveCustomerReturnPort.save(customerReturn);
+        customerReturnStatusChangeRecorder.record(
+                returnId, statusBeforeRefund, customerReturn.getStatus(), adminUserId, null);
 
         notificationPort.sendRefundApprovedNotification(order.userId(), order.id(), totalRefundAmount);
     }

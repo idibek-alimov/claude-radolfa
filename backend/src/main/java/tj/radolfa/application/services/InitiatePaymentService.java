@@ -30,19 +30,22 @@ public class InitiatePaymentService implements InitiatePaymentUseCase {
     private static final Logger log = LoggerFactory.getLogger(InitiatePaymentService.class);
     private static final String DEFAULT_CURRENCY = "TJS";
 
-    private final LoadOrderPort   loadOrderPort;
-    private final LoadPaymentPort loadPaymentPort;
-    private final SavePaymentPort savePaymentPort;
-    private final PaymentPort     paymentPort;
+    private final LoadOrderPort              loadOrderPort;
+    private final LoadPaymentPort            loadPaymentPort;
+    private final SavePaymentPort            savePaymentPort;
+    private final PaymentPort                paymentPort;
+    private final PaymentStatusChangeRecorder paymentStatusChangeRecorder;
 
     public InitiatePaymentService(LoadOrderPort loadOrderPort,
                                   LoadPaymentPort loadPaymentPort,
                                   SavePaymentPort savePaymentPort,
-                                  PaymentPort paymentPort) {
-        this.loadOrderPort   = loadOrderPort;
-        this.loadPaymentPort = loadPaymentPort;
-        this.savePaymentPort = savePaymentPort;
-        this.paymentPort     = paymentPort;
+                                  PaymentPort paymentPort,
+                                  PaymentStatusChangeRecorder paymentStatusChangeRecorder) {
+        this.loadOrderPort              = loadOrderPort;
+        this.loadPaymentPort            = loadPaymentPort;
+        this.savePaymentPort            = savePaymentPort;
+        this.paymentPort                = paymentPort;
+        this.paymentStatusChangeRecorder = paymentStatusChangeRecorder;
     }
 
     @Override
@@ -87,6 +90,7 @@ public class InitiatePaymentService implements InitiatePaymentUseCase {
         payment = payment.processing(intent.transactionId());
 
         Payment saved = savePaymentPort.save(payment);
+        paymentStatusChangeRecorder.record(saved.id(), null, saved.status(), userId, null);
 
         return new Result(saved.id(), intent.redirectUrl());
     }

@@ -13,16 +13,19 @@ import tj.radolfa.domain.model.CustomerReturnStatus;
 @Service
 public class ConfirmCustomerReturnSentService implements ConfirmCustomerReturnSentUseCase {
 
-    private final LoadCustomerReturnPort loadCustomerReturnPort;
-    private final SaveCustomerReturnPort saveCustomerReturnPort;
-    private final LoadUserPort           loadUserPort;
+    private final LoadCustomerReturnPort                 loadCustomerReturnPort;
+    private final SaveCustomerReturnPort                 saveCustomerReturnPort;
+    private final LoadUserPort                           loadUserPort;
+    private final CustomerReturnStatusChangeRecorder     customerReturnStatusChangeRecorder;
 
     public ConfirmCustomerReturnSentService(LoadCustomerReturnPort loadCustomerReturnPort,
                                              SaveCustomerReturnPort saveCustomerReturnPort,
-                                             LoadUserPort loadUserPort) {
-        this.loadCustomerReturnPort = loadCustomerReturnPort;
-        this.saveCustomerReturnPort = saveCustomerReturnPort;
-        this.loadUserPort           = loadUserPort;
+                                             LoadUserPort loadUserPort,
+                                             CustomerReturnStatusChangeRecorder customerReturnStatusChangeRecorder) {
+        this.loadCustomerReturnPort              = loadCustomerReturnPort;
+        this.saveCustomerReturnPort              = saveCustomerReturnPort;
+        this.loadUserPort                        = loadUserPort;
+        this.customerReturnStatusChangeRecorder  = customerReturnStatusChangeRecorder;
     }
 
     @Override
@@ -44,7 +47,10 @@ public class ConfirmCustomerReturnSentService implements ConfirmCustomerReturnSe
                     "Staff " + staffUserId + " is not assigned to pickpoint " + customerReturn.getPickpointId());
         }
 
+        var statusBefore = customerReturn.getStatus();
         customerReturn.markSentToWarehouse(staffUserId);
         saveCustomerReturnPort.save(customerReturn);
+        customerReturnStatusChangeRecorder.record(
+                returnId, statusBefore, customerReturn.getStatus(), staffUserId, null);
     }
 }

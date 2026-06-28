@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tj.radolfa.application.ports.out.LoadPaymentPort;
 import tj.radolfa.application.ports.out.ProcessRefundPort;
 import tj.radolfa.application.ports.out.SavePaymentPort;
+import tj.radolfa.application.services.PaymentStatusChangeRecorder;
 import tj.radolfa.application.services.saga.PaymentConfirmationContext;
 import tj.radolfa.application.services.saga.SagaStep;
 import tj.radolfa.domain.model.PaymentStatus;
@@ -17,16 +18,19 @@ public class MarkPaymentCompletedStep implements SagaStep<PaymentConfirmationCon
 
     private static final Logger log = LoggerFactory.getLogger(MarkPaymentCompletedStep.class);
 
-    private final LoadPaymentPort   loadPaymentPort;
-    private final SavePaymentPort   savePaymentPort;
-    private final ProcessRefundPort processRefundPort;
+    private final LoadPaymentPort              loadPaymentPort;
+    private final SavePaymentPort              savePaymentPort;
+    private final ProcessRefundPort            processRefundPort;
+    private final PaymentStatusChangeRecorder  paymentStatusChangeRecorder;
 
     public MarkPaymentCompletedStep(LoadPaymentPort loadPaymentPort,
                                     SavePaymentPort savePaymentPort,
-                                    ProcessRefundPort processRefundPort) {
-        this.loadPaymentPort   = loadPaymentPort;
-        this.savePaymentPort   = savePaymentPort;
-        this.processRefundPort = processRefundPort;
+                                    ProcessRefundPort processRefundPort,
+                                    PaymentStatusChangeRecorder paymentStatusChangeRecorder) {
+        this.loadPaymentPort             = loadPaymentPort;
+        this.savePaymentPort             = savePaymentPort;
+        this.processRefundPort           = processRefundPort;
+        this.paymentStatusChangeRecorder = paymentStatusChangeRecorder;
     }
 
     @Override
@@ -41,7 +45,9 @@ public class MarkPaymentCompletedStep implements SagaStep<PaymentConfirmationCon
             return;
         }
 
+        var statusBefore = payment.status();
         ctx.payment = savePaymentPort.save(payment.completed(ctx.providerTransactionId));
+        paymentStatusChangeRecorder.record(ctx.payment.id(), statusBefore, ctx.payment.status(), null, null);
     }
 
     @Override
@@ -50,7 +56,9 @@ public class MarkPaymentCompletedStep implements SagaStep<PaymentConfirmationCon
         if (ctx.payment == null || ctx.payment.status() != PaymentStatus.COMPLETED) {
             return;
         }
-        savePaymentPort.save(ctx.payment.failed());
+        var statusBefore = ctx.payment.status();
+        var failed = savePaymentPort.save(ctx.payment.failed());
+        paymentStatusChangeRecorder.record(failed.id(), statusBefore, failed.status(), null, null);
         var result = processRefundPort.process(
                 ctx.payment.orderId(),
                 ctx.payment.providerTransactionId(),

@@ -16,6 +16,9 @@ import tj.radolfa.domain.exception.ReturnItemQuantityExceededException;
 import tj.radolfa.domain.model.*;
 import tj.radolfa.domain.model.Resellability;
 
+import tj.radolfa.application.ports.out.SaveCustomerReturnStatusChangePort;
+import tj.radolfa.domain.model.CustomerReturnStatusChange;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -123,6 +126,15 @@ class ReceiveCustomerReturnServiceTest {
         CustomerReturn last() { return saved.get(saved.size() - 1); }
     }
 
+    static class FakeSaveCustomerReturnStatusChangePort implements SaveCustomerReturnStatusChangePort {
+        final List<CustomerReturnStatusChange> appended = new ArrayList<>();
+        @Override public CustomerReturnStatusChange append(CustomerReturnStatusChange c) { appended.add(c); return c; }
+    }
+
+    static CustomerReturnStatusChangeRecorder noopRecorder() {
+        return new CustomerReturnStatusChangeRecorder(new FakeSaveCustomerReturnStatusChangePort());
+    }
+
     static class CapturingNotificationPort implements NotificationPort {
         final List<Long[]> returnReceivedCalls = new ArrayList<>();
         @Override public void sendCustomerReturnReceivedNotification(Long uid, Long oid) {
@@ -142,7 +154,7 @@ class ReceiveCustomerReturnServiceTest {
                                                   CapturingSavePort save) {
         return new ReceiveCustomerReturnService(
                 orderPort(order), userPort(staff), returnPort(existing), save,
-                new CapturingNotificationPort());
+                new CapturingNotificationPort(), noopRecorder());
     }
 
     static ReceiveCustomerReturnService service(Order order, User staff,
@@ -150,7 +162,16 @@ class ReceiveCustomerReturnServiceTest {
                                                   CapturingSavePort save,
                                                   CapturingNotificationPort notif) {
         return new ReceiveCustomerReturnService(
-                orderPort(order), userPort(staff), returnPort(existing), save, notif);
+                orderPort(order), userPort(staff), returnPort(existing), save, notif, noopRecorder());
+    }
+
+    static ReceiveCustomerReturnService service(Order order, User staff,
+                                                  List<CustomerReturn> existing,
+                                                  CapturingSavePort save,
+                                                  CapturingNotificationPort notif,
+                                                  CustomerReturnStatusChangeRecorder recorder) {
+        return new ReceiveCustomerReturnService(
+                orderPort(order), userPort(staff), returnPort(existing), save, notif, recorder);
     }
 
     static ReceiveCustomerReturnUseCase.Command command(Long itemId, int qty) {
@@ -281,5 +302,41 @@ class ReceiveCustomerReturnServiceTest {
         assertEquals(1, notif.returnReceivedCalls.size());
         assertEquals(order.userId(), notif.returnReceivedCalls.get(0)[0]);
         assertEquals(ORDER_ID, notif.returnReceivedCalls.get(0)[1]);
+    }
+
+    @Test
+    @DisplayName("Successful receive records one ledger row: null → RECEIVED with staff actor")
+    void successfulReceive_recordsLedgerRow() {
+        var ledgerPort = new FakeSaveCustomerReturnStatusChangePort();
+        var recorder   = new CustomerReturnStatusChangeRecorder(ledgerPort);
+        var save       = new CapturingSavePort();
+        var order      = deliveredPickpointOrder(List.of(itemA(1)));
+
+        service(order, staffUser(), List.of(), save, new CapturingNotificationPort(), recorder)
+                .execute(command(ITEM_A_ID, 1));
+
+        assertEquals(1, ledgerPort.appended.size());
+        var row = ledgerPort.appended.get(0);
+        assertNull(row.statusFrom());
+        assertEquals(CustomerReturnStatus.RECEIVED, row.statusTo());
+        assertEquals(STAFF_ID, row.actorUserId());
+    }
+
+    @Test
+    @DisplayName("Invalid receive (order not delivered) → no ledger row written")
+    void invalidReceive_noLedgerRow() {
+        var ledgerPort = new FakeSaveCustomerReturnStatusChangePort();
+        var recorder   = new CustomerReturnStatusChangeRecorder(ledgerPort);
+        var paidOrder = new Order.Builder()
+                .id(ORDER_ID).userId(20L).status(OrderStatus.PAID)
+                .deliveryType(DeliveryType.PICKPOINT).pickpointId(PICKPOINT_ID)
+                .totalAmount(new Money(BigDecimal.valueOf(300))).createdAt(Instant.now())
+                .items(List.of(itemA(1))).build();
+
+        assertThrows(Exception.class,
+                () -> service(paidOrder, staffUser(), List.of(), new CapturingSavePort(),
+                        new CapturingNotificationPort(), recorder).execute(command(ITEM_A_ID, 1)));
+
+        assertTrue(ledgerPort.appended.isEmpty());
     }
 }

@@ -27,25 +27,28 @@ import tj.radolfa.domain.model.PaymentStatus;
 @Service
 public class RefundPaymentService implements RefundPaymentUseCase {
 
-    private final LoadPaymentPort            loadPaymentPort;
-    private final SavePaymentPort            savePaymentPort;
-    private final PaymentPort               paymentPort;
-    private final LoadOrderPort             loadOrderPort;
-    private final CancelOrderUseCase        cancelOrderUseCase;
-    private final RevokeAwardedPointsUseCase revokeAwardedPointsUseCase;
+    private final LoadPaymentPort              loadPaymentPort;
+    private final SavePaymentPort              savePaymentPort;
+    private final PaymentPort                  paymentPort;
+    private final LoadOrderPort                loadOrderPort;
+    private final CancelOrderUseCase           cancelOrderUseCase;
+    private final RevokeAwardedPointsUseCase   revokeAwardedPointsUseCase;
+    private final PaymentStatusChangeRecorder  paymentStatusChangeRecorder;
 
     public RefundPaymentService(LoadPaymentPort loadPaymentPort,
                                 SavePaymentPort savePaymentPort,
                                 PaymentPort paymentPort,
                                 LoadOrderPort loadOrderPort,
                                 CancelOrderUseCase cancelOrderUseCase,
-                                RevokeAwardedPointsUseCase revokeAwardedPointsUseCase) {
-        this.loadPaymentPort            = loadPaymentPort;
-        this.savePaymentPort            = savePaymentPort;
-        this.paymentPort               = paymentPort;
-        this.loadOrderPort             = loadOrderPort;
-        this.cancelOrderUseCase        = cancelOrderUseCase;
-        this.revokeAwardedPointsUseCase = revokeAwardedPointsUseCase;
+                                RevokeAwardedPointsUseCase revokeAwardedPointsUseCase,
+                                PaymentStatusChangeRecorder paymentStatusChangeRecorder) {
+        this.loadPaymentPort             = loadPaymentPort;
+        this.savePaymentPort             = savePaymentPort;
+        this.paymentPort                 = paymentPort;
+        this.loadOrderPort               = loadOrderPort;
+        this.cancelOrderUseCase          = cancelOrderUseCase;
+        this.revokeAwardedPointsUseCase  = revokeAwardedPointsUseCase;
+        this.paymentStatusChangeRecorder = paymentStatusChangeRecorder;
     }
 
     @Override
@@ -73,7 +76,9 @@ public class RefundPaymentService implements RefundPaymentUseCase {
         }
 
         // Persist REFUNDED state
-        savePaymentPort.save(payment.refunded());
+        var statusBefore = payment.status();
+        var refunded = savePaymentPort.save(payment.refunded());
+        paymentStatusChangeRecorder.record(refunded.id(), statusBefore, refunded.status(), adminUserId, null);
 
         // Cancel the order: restores stock and any redeemed loyalty points
         cancelOrderUseCase.execute(orderId, adminUserId, "Refunded by admin");

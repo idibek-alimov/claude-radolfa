@@ -9,6 +9,8 @@ import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.NotificationPort;
 import tj.radolfa.application.ports.out.ProcessRefundPort;
 import tj.radolfa.application.ports.out.SaveCustomerReturnPort;
+import tj.radolfa.application.ports.out.SaveCustomerReturnStatusChangePort;
+import tj.radolfa.domain.model.CustomerReturnStatusChange;
 import tj.radolfa.domain.exception.RefundFailedException;
 import tj.radolfa.domain.model.CustomerReturn;
 import tj.radolfa.domain.model.CustomerReturnItem;
@@ -143,6 +145,15 @@ class ApproveRefundServiceTest {
         }
     }
 
+    static class FakeSaveCustomerReturnStatusChangePort implements SaveCustomerReturnStatusChangePort {
+        final List<CustomerReturnStatusChange> appended = new ArrayList<>();
+        @Override public CustomerReturnStatusChange append(CustomerReturnStatusChange c) { appended.add(c); return c; }
+    }
+
+    static CustomerReturnStatusChangeRecorder noopRecorder() {
+        return new CustomerReturnStatusChangeRecorder(new FakeSaveCustomerReturnStatusChangePort());
+    }
+
     static class CapturingNotificationPort implements NotificationPort {
         Long capturedUserId; Long capturedOrderId; Money capturedAmount;
         @Override public void sendOrderConfirmation(Long u, Long o) {}
@@ -169,7 +180,25 @@ class ApproveRefundServiceTest {
                 userPort(),
                 paymentPort(payment()),
                 processPort,
-                notifPort);
+                notifPort,
+                noopRecorder());
+    }
+
+    ApproveRefundService service(CustomerReturn customerReturn,
+                                  Order order,
+                                  ConfigurableProcessRefundPort processPort,
+                                  CapturingSavePort savePort,
+                                  CapturingNotificationPort notifPort,
+                                  CustomerReturnStatusChangeRecorder recorder) {
+        return new ApproveRefundService(
+                returnPort(customerReturn),
+                savePort,
+                orderPort(order),
+                userPort(),
+                paymentPort(payment()),
+                processPort,
+                notifPort,
+                recorder);
     }
 
     // ── Tests ──────────────────────────────────────────────────────────────────
@@ -240,6 +269,48 @@ class ApproveRefundServiceTest {
                         processPort, savePort, new CapturingNotificationPort()).execute(RETURN_ID, ADMIN_ID));
 
         assertTrue(savePort.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Happy path records two ledger rows: SENT_TO_WAREHOUSE→REFUND_APPROVED then REFUND_APPROVED→REFUNDED, both with adminUserId")
+    void happyPath_recordsTwoLedgerRows() {
+        var ledgerPort = new FakeSaveCustomerReturnStatusChangePort();
+        var recorder   = new CustomerReturnStatusChangeRecorder(ledgerPort);
+        var orderItems = List.of(item(ORDER_ITEM_1, new BigDecimal("50.00"), 1));
+        var customerReturn = returnWith(CustomerReturnStatus.SENT_TO_WAREHOUSE, singleItem(ORDER_ITEM_1));
+
+        service(customerReturn, orderWith(orderItems),
+                new ConfigurableProcessRefundPort(true, null),
+                new CapturingSavePort(), new CapturingNotificationPort(), recorder)
+                .execute(RETURN_ID, ADMIN_ID);
+
+        assertEquals(2, ledgerPort.appended.size());
+        var row1 = ledgerPort.appended.get(0);
+        assertEquals(CustomerReturnStatus.SENT_TO_WAREHOUSE, row1.statusFrom());
+        assertEquals(CustomerReturnStatus.REFUND_APPROVED,   row1.statusTo());
+        assertEquals(ADMIN_ID, row1.actorUserId());
+
+        var row2 = ledgerPort.appended.get(1);
+        assertEquals(CustomerReturnStatus.REFUND_APPROVED, row2.statusFrom());
+        assertEquals(CustomerReturnStatus.REFUNDED,        row2.statusTo());
+        assertEquals(ADMIN_ID, row2.actorUserId());
+    }
+
+    @Test
+    @DisplayName("Gateway failure → no ledger rows written")
+    void gatewayFailure_noLedgerRows() {
+        var ledgerPort = new FakeSaveCustomerReturnStatusChangePort();
+        var recorder   = new CustomerReturnStatusChangeRecorder(ledgerPort);
+        var orderItems = List.of(item(ORDER_ITEM_1, new BigDecimal("50.00"), 1));
+        var customerReturn = returnWith(CustomerReturnStatus.SENT_TO_WAREHOUSE, singleItem(ORDER_ITEM_1));
+
+        assertThrows(Exception.class,
+                () -> service(customerReturn, orderWith(orderItems),
+                        new ConfigurableProcessRefundPort(false, "timeout"),
+                        new CapturingSavePort(), new CapturingNotificationPort(), recorder)
+                        .execute(RETURN_ID, ADMIN_ID));
+
+        assertTrue(ledgerPort.appended.isEmpty());
     }
 
     @Test

@@ -29,22 +29,25 @@ import java.util.Map;
 @Service
 public class ReceiveCustomerReturnService implements ReceiveCustomerReturnUseCase {
 
-    private final LoadOrderPort           loadOrderPort;
-    private final LoadUserPort            loadUserPort;
-    private final LoadCustomerReturnPort  loadCustomerReturnPort;
-    private final SaveCustomerReturnPort  saveCustomerReturnPort;
-    private final NotificationPort        notificationPort;
+    private final LoadOrderPort                          loadOrderPort;
+    private final LoadUserPort                           loadUserPort;
+    private final LoadCustomerReturnPort                 loadCustomerReturnPort;
+    private final SaveCustomerReturnPort                 saveCustomerReturnPort;
+    private final NotificationPort                       notificationPort;
+    private final CustomerReturnStatusChangeRecorder     customerReturnStatusChangeRecorder;
 
     public ReceiveCustomerReturnService(LoadOrderPort loadOrderPort,
                                         LoadUserPort loadUserPort,
                                         LoadCustomerReturnPort loadCustomerReturnPort,
                                         SaveCustomerReturnPort saveCustomerReturnPort,
-                                        NotificationPort notificationPort) {
-        this.loadOrderPort          = loadOrderPort;
-        this.loadUserPort           = loadUserPort;
-        this.loadCustomerReturnPort = loadCustomerReturnPort;
-        this.saveCustomerReturnPort = saveCustomerReturnPort;
-        this.notificationPort       = notificationPort;
+                                        NotificationPort notificationPort,
+                                        CustomerReturnStatusChangeRecorder customerReturnStatusChangeRecorder) {
+        this.loadOrderPort                       = loadOrderPort;
+        this.loadUserPort                        = loadUserPort;
+        this.loadCustomerReturnPort              = loadCustomerReturnPort;
+        this.saveCustomerReturnPort              = saveCustomerReturnPort;
+        this.notificationPort                    = notificationPort;
+        this.customerReturnStatusChangeRecorder  = customerReturnStatusChangeRecorder;
     }
 
     @Override
@@ -120,6 +123,8 @@ public class ReceiveCustomerReturnService implements ReceiveCustomerReturnUseCas
                 null, null, null, null, null, null);
 
         CustomerReturn saved = saveCustomerReturnPort.save(customerReturn);
+        customerReturnStatusChangeRecorder.record(
+                saved.getId(), null, saved.getStatus(), command.staffUserId(), null);
         notificationPort.sendCustomerReturnReceivedNotification(order.userId(), saved.getOrderId());
         return saved;
     }

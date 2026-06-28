@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import tj.radolfa.application.ports.out.LoadCustomerReturnPort;
 import tj.radolfa.application.ports.out.LoadUserPort;
 import tj.radolfa.application.ports.out.SaveCustomerReturnPort;
+import tj.radolfa.application.ports.out.SaveCustomerReturnStatusChangePort;
+import tj.radolfa.domain.model.CustomerReturnStatusChange;
 import tj.radolfa.domain.exception.PickpointAccessDeniedException;
 import tj.radolfa.domain.exception.ResourceNotFoundException;
 import tj.radolfa.domain.model.*;
@@ -70,9 +72,24 @@ class ConfirmCustomerReturnSentServiceTest {
         CustomerReturn last() { return saved.get(saved.size() - 1); }
     }
 
+    static class FakeSaveCustomerReturnStatusChangePort implements SaveCustomerReturnStatusChangePort {
+        final List<CustomerReturnStatusChange> appended = new ArrayList<>();
+        @Override public CustomerReturnStatusChange append(CustomerReturnStatusChange c) { appended.add(c); return c; }
+    }
+
+    static CustomerReturnStatusChangeRecorder noopRecorder() {
+        return new CustomerReturnStatusChangeRecorder(new FakeSaveCustomerReturnStatusChangePort());
+    }
+
     static ConfirmCustomerReturnSentService service(CustomerReturn r, User staff,
                                                       CapturingSavePort save) {
-        return new ConfirmCustomerReturnSentService(returnPort(r), save, userPort(staff));
+        return new ConfirmCustomerReturnSentService(returnPort(r), save, userPort(staff), noopRecorder());
+    }
+
+    static ConfirmCustomerReturnSentService service(CustomerReturn r, User staff,
+                                                      CapturingSavePort save,
+                                                      CustomerReturnStatusChangeRecorder recorder) {
+        return new ConfirmCustomerReturnSentService(returnPort(r), save, userPort(staff), recorder);
     }
 
     // ── Tests ────────────────────────────────────────────────────────────────
@@ -121,5 +138,35 @@ class ConfirmCustomerReturnSentServiceTest {
         assertThrows(ResourceNotFoundException.class,
                 () -> service(null, staffUser(PICKPOINT_ID), new CapturingSavePort())
                         .execute(999L, STAFF_ID));
+    }
+
+    @Test
+    @DisplayName("Successful transition records one ledger row: RECEIVED → SENT_TO_WAREHOUSE with staff actor")
+    void successfulTransition_recordsLedgerRow() {
+        var ledgerPort = new FakeSaveCustomerReturnStatusChangePort();
+        var recorder   = new CustomerReturnStatusChangeRecorder(ledgerPort);
+        var save       = new CapturingSavePort();
+
+        service(receivedReturn(), staffUser(PICKPOINT_ID), save, recorder).execute(RETURN_ID, STAFF_ID);
+
+        assertEquals(1, ledgerPort.appended.size());
+        var row = ledgerPort.appended.get(0);
+        assertEquals(RETURN_ID, row.returnId());
+        assertEquals(CustomerReturnStatus.RECEIVED, row.statusFrom());
+        assertEquals(CustomerReturnStatus.SENT_TO_WAREHOUSE, row.statusTo());
+        assertEquals(STAFF_ID, row.actorUserId());
+    }
+
+    @Test
+    @DisplayName("Failed transition (wrong pickpoint) → no ledger row written")
+    void failedTransition_noLedgerRow() {
+        var ledgerPort = new FakeSaveCustomerReturnStatusChangePort();
+        var recorder   = new CustomerReturnStatusChangeRecorder(ledgerPort);
+
+        assertThrows(PickpointAccessDeniedException.class,
+                () -> service(receivedReturn(), staffUser(99L), new CapturingSavePort(), recorder)
+                        .execute(RETURN_ID, STAFF_ID));
+
+        assertTrue(ledgerPort.appended.isEmpty());
     }
 }
